@@ -1,23 +1,18 @@
-# kleinlab-yale.github.io
-Klein Lab at Yale
-
-
+[README.md](https://github.com/user-attachments/files/25214434/README.md)
 # KLAY Lab Website Template
 
 A stylish, editable static website template for **Klein Lab at Yale (KLAY)**.
 
 ## Files
 
-- `index.html` - page structure and section text
+- `index.html` - page structure and all primary site content (people, publications, tools, news)
 - `styles.css` - visual design, layout, and responsive behavior
-- `script.js` - editable team/publication/news data and small interactions
+- `script.js` - small interactions only (menu, reveal animation, copyright year)
 
 ## Quick customization
 
-1. Edit headline copy, research themes, and contact info in `index.html`.
-2. Edit `teamMembers`, `publications`, and `newsItems` arrays in `script.js`.
-3. Replace sample publication links (`"#"`) with real URLs.
-4. Optional: change colors in CSS variables at the top of `styles.css`.
+1. Edit headline copy, research themes, people, publications, tools, news, and contact info in `index.html`.
+2. Optional: change colors in CSS variables at the top of `styles.css`.
 
 ## Local preview
 
