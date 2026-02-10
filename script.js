@@ -1,4 +1,11 @@
+document.documentElement.classList.add("js");
+
 const setupRevealAnimation = () => {
+  if (!("IntersectionObserver" in window)) {
+    document.querySelectorAll(".reveal").forEach((node) => node.classList.add("in-view"));
+    return;
+  }
+
   const revealNodes = document.querySelectorAll(".reveal");
   const observer = new IntersectionObserver(
     (entries) => {
@@ -35,6 +42,19 @@ const setupMobileMenu = () => {
   });
 };
 
+const setupTopLinks = () => {
+  const topLinks = document.querySelectorAll(".brand, a[href='#top']");
+  topLinks.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (window.location.hash !== "#top") {
+        window.history.replaceState(null, "", "#top");
+      }
+    });
+  });
+};
+
 const setCopyrightYear = () => {
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
@@ -42,4 +62,5 @@ const setCopyrightYear = () => {
 
 setupRevealAnimation();
 setupMobileMenu();
+setupTopLinks();
 setCopyrightYear();
