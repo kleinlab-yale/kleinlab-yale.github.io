@@ -1,3 +1,4 @@
+
 :root {
   --paper: #f6f3ee;
   --ink: #10243e;
@@ -208,15 +209,18 @@ body {
   margin-bottom: 1rem;
 }
 
-.hero-copy .hero-lab-name {
-  margin: 0 0 0.55rem;
+.hero-lab-name {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0 0 0.95rem;
   font-family: "Fraunces", "Times New Roman", serif;
-  font-size: clamp(2.4rem, 7.2vw, 5.2rem) !important;
+  font-size: clamp(3rem, 10vw, 7.1rem) !important;
   line-height: 0.96;
   color: #1f5fbf !important;
   font-weight: 700;
   letter-spacing: 0.01em;
-  max-width: 12ch;
+  text-align: center;
+  max-width: none;
 }
 
 .hero-line-1,
@@ -225,7 +229,7 @@ body {
 }
 
 .hero-line-2 {
-  font-size: 0.48em;
+  font-size: 0.58em;
   line-height: 1.05;
   margin-top: 0.12em;
 }
