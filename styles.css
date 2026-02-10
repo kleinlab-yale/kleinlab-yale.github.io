@@ -208,13 +208,15 @@ body {
   margin-bottom: 1rem;
 }
 
-.hero-lab-name {
-  margin: 0 0 0.7rem;
-  font-size: clamp(1.1rem, 2.2vw, 1.7rem);
-  line-height: 1.25;
-  color: var(--brand);
+.hero-copy .hero-lab-name {
+  margin: 0 0 0.55rem;
+  font-family: "Fraunces", "Times New Roman", serif;
+  font-size: clamp(2.4rem, 7.2vw, 5.2rem) !important;
+  line-height: 0.96;
+  color: #1f5fbf !important;
   font-weight: 700;
-  max-width: 30ch;
+  letter-spacing: 0.01em;
+  max-width: 12ch;
 }
 
 .lead {
