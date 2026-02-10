@@ -219,6 +219,17 @@ body {
   max-width: 12ch;
 }
 
+.hero-line-1,
+.hero-line-2 {
+  display: block;
+}
+
+.hero-line-2 {
+  font-size: 0.48em;
+  line-height: 1.05;
+  margin-top: 0.12em;
+}
+
 .lead {
   color: var(--ink-soft);
   margin: 0 0 1.6rem;
