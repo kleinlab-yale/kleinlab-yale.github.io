@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klein Lab at Yale (KLAY)</title>
+  <meta name="description" content="Klein Lab at Yale (KLAY): research at the intersection of computation, biology, and medicine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header" id="top">
+    <nav class="container nav" aria-label="Main navigation">
+      <a class="brand" href="#top">
+        <span class="brand-mark">KLAY</span>
+        <span class="brand-text">Klein Lab at Yale</span>
+      </a>
+      <button class="menu-toggle" aria-expanded="false" aria-controls="nav-links">
+        <span class="menu-icon" aria-hidden="true"></span>
+        <span class="menu-text">Menu</span>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#research">Research</a></li>
+        <li><a href="#people">People</a></li>
+        <li><a href="#publications">Publications</a></li>
+        <li><a href="#news">News</a></li>
+        <li><a href="#join">Join</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <section class="hero section">
+      <div class="container hero-grid">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Klein Lab at Yale (KLAY)</p>
+          <h1>Decoding complex biology with data-rich science.</h1>
+          <p class="lead">
+            We combine experimental systems, machine learning, and translational medicine
+            to map mechanisms of disease and discover actionable biology.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#research">Explore Research</a>
+            <a class="btn btn-secondary" href="#join">Join the Lab</a>
+          </div>
+        </div>
+        <div class="hero-graphic reveal" aria-hidden="true">
+          <div class="graphic-card card-a">
+            <p class="graphic-label">Computation</p>
+            <p class="graphic-text">Models that connect molecular signals to phenotype.</p>
+          </div>
+          <div class="graphic-card card-b">
+            <p class="graphic-label">Experiment</p>
+            <p class="graphic-text">Bench and multi-omics workflows for causal discovery.</p>
+          </div>
+          <div class="graphic-card card-c">
+            <p class="graphic-label">Translation</p>
+            <p class="graphic-text">Clinical relevance through collaborative medicine.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section stats reveal" aria-label="Lab highlights">
+      <div class="container stats-grid">
+        <article class="stat-card">
+          <p class="stat-value">12+</p>
+          <p class="stat-label">Active projects</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-value">30+</p>
+          <p class="stat-label">Recent publications</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-value">8</p>
+          <p class="stat-label">Disciplines represented</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="research">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Research</p>
+          <h2>Core themes</h2>
+          <p>Use these cards as your headline programs. Edit the copy directly in <code>index.html</code>.</p>
+        </header>
+        <div class="research-grid">
+          <article class="research-card reveal">
+            <h3>Single-cell systems biology</h3>
+            <p>Interpreting cellular heterogeneity across development, regeneration, and disease.</p>
+          </article>
+          <article class="research-card reveal">
+            <h3>AI-guided target discovery</h3>
+            <p>Building predictive models that nominate mechanisms and therapeutic intervention points.</p>
+          </article>
+          <article class="research-card reveal">
+            <h3>Clinical data integration</h3>
+            <p>Linking molecular readouts with patient trajectories to improve precision medicine.</p>
+          </article>
+          <article class="research-card reveal">
+            <h3>Quantitative experimental design</h3>
+            <p>Designing scalable assays and perturbation studies to validate model predictions.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="people">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">People</p>
+          <h2>Team</h2>
+          <p>Update names, roles, and focus areas in <code>script.js</code>.</p>
+        </header>
+        <article class="pi-card reveal">
+          <div class="pi-avatar" aria-hidden="true">EK</div>
+          <div>
+            <h3>Prof. Evelyn Klein</h3>
+            <p class="pi-role">Principal Investigator</p>
+            <p>
+              The Klein Lab investigates how cellular programs encode disease progression,
+              with a focus on rigorous computational and experimental integration.
+            </p>
+          </div>
+        </article>
+        <div class="people-grid" id="people-grid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="publications">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Publications</p>
+          <h2>Selected papers</h2>
+          <p>Replace sample entries in <code>script.js</code> with your bibliography links.</p>
+        </header>
+        <ol class="pub-list" id="pub-list"></ol>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="news">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">News</p>
+          <h2>Updates</h2>
+          <p>Keep this section fresh with talks, grants, and paper announcements.</p>
+        </header>
+        <ul class="news-list" id="news-list"></ul>
+      </div>
+    </section>
+
+    <section class="section cta-section" id="join">
+      <div class="container cta reveal">
+        <div>
+          <p class="eyebrow">Join KLAY</p>
+          <h2>We are always looking for curious, collaborative scientists.</h2>
+          <p>
+            We welcome graduate students, postdocs, and collaborators from computational,
+            biological, and clinical backgrounds.
+          </p>
+        </div>
+        <a class="btn btn-primary" href="mailto:kleinlab@yale.edu">Email the Lab</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="contact">
+    <div class="container footer-grid">
+      <div>
+        <p class="footer-title">Klein Lab at Yale (KLAY)</p>
+        <p>Yale School of Medicine</p>
+      </div>
+      <div>
+        <p>300 Cedar Street, New Haven, CT 06510</p>
+        <p><a href="mailto:kleinlab@yale.edu">kleinlab@yale.edu</a></p>
+      </div>
+      <div>
+        <p>&copy; <span id="year"></span> Klein Lab. All rights reserved.</p>
+        <p><a href="#top">Back to top</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
