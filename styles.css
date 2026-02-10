@@ -413,6 +413,10 @@ body {
   padding-top: 1.2rem;
 }
 
+.ig-embed {
+  min-height: 420px;
+}
+
 .ig-help {
   margin: -0.5rem 0 1rem;
   color: var(--ink-soft);
