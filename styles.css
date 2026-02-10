@@ -409,6 +409,13 @@ body {
   color: var(--brand);
 }
 
+.research-links {
+  margin: 0.65rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
 .instagram-section {
   padding-top: 1.2rem;
 }
