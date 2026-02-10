@@ -242,14 +242,13 @@ body {
 
 .hero-affiliations {
   margin: 0 0 1.4rem;
-  padding-left: 1.1rem;
   color: var(--ink-soft);
   display: grid;
   gap: 0.22rem;
 }
 
-.hero-affiliations li::marker {
-  color: var(--brand);
+.hero-affiliations p {
+  margin: 0;
 }
 
 .hero-actions {
