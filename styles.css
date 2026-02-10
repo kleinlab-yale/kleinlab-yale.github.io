@@ -209,26 +209,12 @@ body {
 }
 
 .hero-lab-name {
-  margin: 0 0 0.65rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.hero-lab-prefix {
-  text-transform: uppercase;
-  letter-spacing: 0.13em;
-  font-size: 0.76rem;
+  margin: 0 0 0.7rem;
+  font-size: clamp(1.1rem, 2.2vw, 1.7rem);
+  line-height: 1.25;
   color: var(--brand);
   font-weight: 700;
-}
-
-.hero-lab-klay {
-  font-family: "Fraunces", "Times New Roman", serif;
-  font-size: clamp(2.2rem, 6vw, 4.1rem);
-  line-height: 0.95;
-  color: var(--ink);
-  letter-spacing: 0.03em;
+  max-width: 30ch;
 }
 
 .lead {
