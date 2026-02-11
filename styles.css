@@ -287,17 +287,42 @@ body {
 .hero-graphic {
   position: relative;
   height: 380px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  isolation: isolate;
+  background: #d8e7f5;
+}
+
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  filter: saturate(0.95) contrast(1.05);
+}
+
+.hero-graphic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(8, 24, 46, 0.18), rgba(8, 24, 46, 0.08) 45%, rgba(8, 24, 46, 0.2));
+  z-index: 1;
+  pointer-events: none;
 }
 
 .graphic-card {
   position: absolute;
   width: min(270px, 75%);
-  background: var(--card);
+  background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(16, 36, 62, 0.08);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   padding: 1.1rem;
   animation: float 5s ease-in-out infinite;
+  z-index: 2;
+  backdrop-filter: blur(3px);
 }
 
 .graphic-label {
