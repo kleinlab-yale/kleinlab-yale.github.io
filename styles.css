@@ -121,14 +121,16 @@ body {
   color: inherit;
 }
 
-.brand-mark {
-  padding: 0.28rem 0.6rem;
-  border-radius: 0.45rem;
-  background: linear-gradient(135deg, var(--brand), var(--brand-soft));
-  color: #fefefe;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  font-size: 0.82rem;
+.brand-logo-wrap {
+  display: block;
+  line-height: 0;
+}
+
+.brand-logo {
+  height: 36px;
+  width: auto;
+  display: block;
+  border-radius: 8px;
 }
 
 .brand-text {
