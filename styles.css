@@ -121,11 +121,6 @@ body {
   color: inherit;
 }
 
-.brand-logo-wrap {
-  display: block;
-  line-height: 0;
-}
-
 .brand-logo {
   height: 36px;
   width: auto;
