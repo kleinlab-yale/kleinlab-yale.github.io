@@ -817,8 +817,23 @@ body {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1fr);
   gap: 1rem;
+  align-items: start;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.footer-brand-image {
+  width: 100%;
+  max-width: 200px;
+  max-height: 90px;
+  height: auto;
+  display: block;
 }
 
 .footer-title {
