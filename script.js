@@ -60,6 +60,16 @@ const setupHeroVideoAudio = () => {
   const toggle = document.querySelector(".hero-audio-toggle");
   if (!video || !toggle) return;
 
+  const playWithAudio = async () => {
+    video.muted = false;
+    video.volume = 1;
+    await video.play();
+  };
+
+  const muteVideo = () => {
+    video.muted = true;
+  };
+
   const syncState = () => {
     const isMuted = video.muted;
     toggle.textContent = isMuted ? "Enable Audio" : "Mute Audio";
@@ -67,14 +77,30 @@ const setupHeroVideoAudio = () => {
   };
 
   toggle.addEventListener("click", async () => {
-    video.muted = !video.muted;
     try {
-      await video.play();
+      if (video.muted) {
+        await playWithAudio();
+      } else {
+        muteVideo();
+      }
     } catch (_) {
       // Ignore autoplay errors if browser requires another user gesture.
     }
     syncState();
   });
+
+  const enableAudioOnInteraction = async () => {
+    if (!video.muted) return;
+    try {
+      await playWithAudio();
+    } catch (_) {
+      // Ignore errors; user can still use the explicit audio toggle.
+    }
+    syncState();
+  };
+
+  window.addEventListener("pointerdown", enableAudioOnInteraction, { once: true });
+  window.addEventListener("keydown", enableAudioOnInteraction, { once: true });
 
   syncState();
 };
