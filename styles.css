@@ -310,7 +310,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(145deg, rgba(8, 24, 46, 0.18), rgba(8, 24, 46, 0.08) 45%, rgba(8, 24, 46, 0.2));
+  background: linear-gradient(145deg, rgba(8, 24, 46, 0.28), rgba(8, 24, 46, 0.14) 45%, rgba(8, 24, 46, 0.3));
   z-index: 1;
   pointer-events: none;
 }
@@ -339,14 +339,14 @@ body {
 .graphic-card {
   position: absolute;
   width: min(240px, 72%);
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(16, 36, 62, 0.08);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
+  box-shadow: none;
   padding: 1.1rem;
   animation: float 5s ease-in-out infinite;
   z-index: 2;
-  backdrop-filter: blur(3px);
+  backdrop-filter: none;
 }
 
 .graphic-label {
@@ -355,13 +355,15 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
-  color: var(--brand);
+  color: #ffffff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.42);
 }
 
 .graphic-text {
   margin: 0.6rem 0 0;
-  color: var(--ink-soft);
+  color: rgba(255, 255, 255, 0.95);
   font-size: 0.9rem;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.38);
 }
 
 .card-a {
