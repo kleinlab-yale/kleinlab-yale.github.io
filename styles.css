@@ -199,7 +199,7 @@ body {
 .hero-grid {
   display: grid;
   gap: 2rem;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   align-items: center;
 }
 
@@ -286,7 +286,10 @@ body {
 
 .hero-graphic {
   position: relative;
-  height: 380px;
+  height: 315px;
+  max-width: 500px;
+  width: 100%;
+  justify-self: end;
   border-radius: var(--radius-lg);
   overflow: hidden;
   isolation: isolate;
@@ -312,9 +315,30 @@ body {
   pointer-events: none;
 }
 
+.hero-audio-toggle {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(16, 36, 62, 0.62);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.42rem 0.78rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hero-audio-toggle:hover,
+.hero-audio-toggle:focus-visible {
+  background: rgba(16, 36, 62, 0.8);
+}
+
 .graphic-card {
   position: absolute;
-  width: min(270px, 75%);
+  width: min(240px, 72%);
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(16, 36, 62, 0.08);
   border-radius: var(--radius-lg);
@@ -867,7 +891,9 @@ body {
   }
 
   .hero-graphic {
-    height: 330px;
+    height: 280px;
+    max-width: 100%;
+    justify-self: stretch;
   }
 
   .research-grid,
@@ -916,7 +942,7 @@ body {
   }
 
   .hero-graphic {
-    height: 290px;
+    height: 250px;
   }
 
   .graphic-card {
