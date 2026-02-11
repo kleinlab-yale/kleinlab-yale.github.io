@@ -1,4 +1,3 @@
-
 document.documentElement.classList.add("js");
 
 const setupRevealAnimation = () => {
@@ -56,6 +55,30 @@ const setupTopLinks = () => {
   });
 };
 
+const setupHeroVideoAudio = () => {
+  const video = document.querySelector(".hero-video");
+  const toggle = document.querySelector(".hero-audio-toggle");
+  if (!video || !toggle) return;
+
+  const syncState = () => {
+    const isMuted = video.muted;
+    toggle.textContent = isMuted ? "Enable Audio" : "Mute Audio";
+    toggle.setAttribute("aria-pressed", String(!isMuted));
+  };
+
+  toggle.addEventListener("click", async () => {
+    video.muted = !video.muted;
+    try {
+      await video.play();
+    } catch (_) {
+      // Ignore autoplay errors if browser requires another user gesture.
+    }
+    syncState();
+  });
+
+  syncState();
+};
+
 const setCopyrightYear = () => {
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
@@ -64,4 +87,5 @@ const setCopyrightYear = () => {
 setupRevealAnimation();
 setupMobileMenu();
 setupTopLinks();
+setupHeroVideoAudio();
 setCopyrightYear();
