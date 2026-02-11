@@ -769,6 +769,49 @@ body {
   text-decoration-thickness: 2px;
 }
 
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.qr-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 1rem;
+}
+
+.qr-card h3 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.qr-card p {
+  margin: 0.42rem 0 0.9rem;
+  color: var(--ink-soft);
+}
+
+.qr-card p a {
+  color: var(--brand);
+}
+
+.qr-card img {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 14px;
+  border: 1px solid rgba(16, 36, 62, 0.1);
+  background: #fff;
+  display: block;
+}
+
+.qr-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
   padding: 2.4rem 0 2.8rem;
@@ -860,7 +903,8 @@ body {
 
   .research-grid,
   .people-grid,
-  .tool-grid {
+  .tool-grid,
+  .qr-grid {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -891,7 +935,8 @@ body {
   .stats-grid,
   .research-grid,
   .people-grid,
-  .tool-grid {
+  .tool-grid,
+  .qr-grid {
     grid-template-columns: 1fr;
   }
 
