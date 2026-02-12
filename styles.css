@@ -192,6 +192,13 @@ body {
   padding: 4.25rem 0 4rem;
 }
 
+@media (min-width: 931px) {
+  .hero {
+    min-height: calc(100vh - 72px);
+    min-height: calc(100dvh - 72px);
+  }
+}
+
 .hero-grid {
   display: grid;
   column-gap: 2rem;
