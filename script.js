@@ -60,9 +60,28 @@ const setupHeroVideoAudio = () => {
   const toggle = document.querySelector(".hero-audio-toggle");
   if (!video || !toggle) return;
 
+  let previewAtEnd = true;
+
+  const setPreviewFrameToEnd = () => {
+    if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+    const previewTime = Math.max(video.duration - 0.15, 0);
+    if (Math.abs(video.currentTime - previewTime) > 0.05) {
+      video.currentTime = previewTime;
+    }
+    video.pause();
+    previewAtEnd = true;
+  };
+
+  const ensureStartsFromBeginning = () => {
+    if (!previewAtEnd) return;
+    video.currentTime = 0;
+    previewAtEnd = false;
+  };
+
   const togglePlayback = async () => {
     try {
       if (video.paused) {
+        ensureStartsFromBeginning();
         await video.play();
       } else {
         video.pause();
@@ -75,6 +94,7 @@ const setupHeroVideoAudio = () => {
   const playWithAudio = async () => {
     video.muted = false;
     video.volume = 1;
+    ensureStartsFromBeginning();
     await video.play();
   };
 
@@ -104,6 +124,12 @@ const setupHeroVideoAudio = () => {
   video.addEventListener("click", () => {
     void togglePlayback();
   });
+
+  if (video.readyState >= 1) {
+    setPreviewFrameToEnd();
+  } else {
+    video.addEventListener("loadedmetadata", setPreviewFrameToEnd, { once: true });
+  }
 
   syncState();
 };
