@@ -60,6 +60,10 @@ body {
   padding: 4.8rem 0;
 }
 
+.section[id] {
+  scroll-margin-top: 84px;
+}
+
 .section-alt {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(247, 250, 255, 0.84));
 }
