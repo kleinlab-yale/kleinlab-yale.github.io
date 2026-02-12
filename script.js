@@ -1,16 +1,30 @@
 document.documentElement.classList.add("js");
 
-const instagramProfileUrl = "https://www.instagram.com/kleinlab.yale/?hl=en";
-
-const instagramPostUrls = [
-  "https://www.instagram.com/p/DUnvn9fEUbN/",
-  "https://www.instagram.com/p/DUl9UfekfYV/",
-  "https://www.instagram.com/p/DUl9DKkEdvm/",
-  "https://www.instagram.com/p/DUl845SEZTl/",
-  "https://www.instagram.com/p/DUl1VMikeV9/"
+// Add `caption` text for hover overlay and optional `imageUrl` if you want to force a specific thumbnail.
+const instagramFeedItems = [
+  {
+    postUrl: "https://www.instagram.com/p/DUnvn9fEUbN/",
+    caption: ""
+  },
+  {
+    postUrl: "https://www.instagram.com/p/DUl9UfekfYV/",
+    caption: ""
+  },
+  {
+    postUrl: "https://www.instagram.com/p/DUl9DKkEdvm/",
+    caption: ""
+  },
+  {
+    postUrl: "https://www.instagram.com/p/DUl845SEZTl/",
+    caption: ""
+  },
+  {
+    postUrl: "https://www.instagram.com/p/DUl1VMikeV9/",
+    caption: ""
+  }
 ];
 
-const normalizeInstagramUrl = (url) => {
+const normalizeInstagramPostUrl = (url) => {
   if (typeof url !== "string") return null;
   const trimmed = url.trim();
   if (!trimmed) return null;
@@ -19,6 +33,21 @@ const normalizeInstagramUrl = (url) => {
   if (!match) return null;
 
   return `https://www.instagram.com/${match[1].toLowerCase()}/${match[2]}/`;
+};
+
+const escapeHtml = (value) =>
+  String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const getInstagramItemsPerPage = () => {
+  if (window.matchMedia("(max-width: 640px)").matches) return 1;
+  if (window.matchMedia("(max-width: 930px)").matches) return 2;
+  if (window.matchMedia("(max-width: 1280px)").matches) return 3;
+  return 4;
 };
 
 const setupRevealAnimation = () => {
@@ -159,104 +188,104 @@ const setupInstagramFeed = () => {
   const feed = document.getElementById("instagram-feed");
   if (!feed) return;
 
-  const postUrls = instagramPostUrls.map(normalizeInstagramUrl).filter(Boolean);
+  const posts = instagramFeedItems
+    .map((item) => {
+      const postUrl = normalizeInstagramPostUrl(item.postUrl);
+      if (!postUrl) return null;
+      const configuredImageUrl = typeof item.imageUrl === "string" ? item.imageUrl.trim() : "";
+      return {
+        postUrl,
+        imageUrl: configuredImageUrl || `${postUrl}media/?size=l`,
+        caption: typeof item.caption === "string" ? item.caption.trim() : ""
+      };
+    })
+    .filter(Boolean);
 
-  if (postUrls.length === 0) {
-    feed.innerHTML = `<p class="ig-help">Add your Instagram post URLs in <code>script.js</code> (<code>instagramPostUrls</code>) to render embedded posts here. For now, view the profile at <a href="${instagramProfileUrl}" target="_blank" rel="noopener noreferrer">@kleinlab.yale</a>.</p>`;
+  if (posts.length === 0) {
+    feed.innerHTML = '<p class="ig-help">Add Instagram post URLs in <code>instagramFeedItems</code> in <code>script.js</code>.</p>';
     return;
   }
 
-  feed.innerHTML = `<div class="ig-carousel" data-current-index="0">
-    <button class="ig-arrow ig-arrow-prev" type="button" aria-label="Show previous Instagram posts">&larr;</button>
-    <div class="ig-viewport">
-      <div class="ig-track">${postUrls
-    .map(
-      (url) =>
-        `<div class="ig-item"><blockquote class="instagram-media" data-instgrm-permalink="${url}" data-instgrm-version="14"><a href="${url}" target="_blank" rel="noopener noreferrer">View this post on Instagram</a></blockquote></div>`
-    )
-    .join("")}</div>
+  feed.innerHTML = `
+    <div class="ig-slider" data-page="0">
+      <button class="ig-nav ig-nav-prev" type="button" aria-label="Show previous Instagram posts">&lsaquo;</button>
+      <div class="ig-viewport">
+        <div class="ig-track"></div>
+      </div>
+      <button class="ig-nav ig-nav-next" type="button" aria-label="Show next Instagram posts">&rsaquo;</button>
     </div>
-    <button class="ig-arrow ig-arrow-next" type="button" aria-label="Show next Instagram posts">&rarr;</button>
-  </div>`;
+  `;
 
-  const carousel = feed.querySelector(".ig-carousel");
+  const slider = feed.querySelector(".ig-slider");
   const track = feed.querySelector(".ig-track");
-  const prevButton = feed.querySelector(".ig-arrow-prev");
-  const nextButton = feed.querySelector(".ig-arrow-next");
-  if (!carousel || !track || !prevButton || !nextButton) return;
+  const prevButton = feed.querySelector(".ig-nav-prev");
+  const nextButton = feed.querySelector(".ig-nav-next");
+  if (!slider || !track || !prevButton || !nextButton) return;
 
-  const getSlidesPerView = () => {
-    if (window.matchMedia("(max-width: 640px)").matches) return 1;
-    if (window.matchMedia("(max-width: 930px)").matches) return 2;
-    return 3;
+  let pageIndex = 0;
+  let resizeFrame = 0;
+
+  const render = () => {
+    const itemsPerPage = getInstagramItemsPerPage();
+    const totalPages = Math.max(Math.ceil(posts.length / itemsPerPage), 1);
+    pageIndex = Math.min(pageIndex, totalPages - 1);
+    slider.setAttribute("data-page", String(pageIndex));
+
+    const pages = [];
+    for (let page = 0; page < totalPages; page += 1) {
+      const start = page * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pagePosts = posts.slice(start, end);
+      const tiles = pagePosts
+        .map((post, idx) => {
+          const captionText = post.caption || "View post on Instagram";
+          const safeCaption = escapeHtml(captionText);
+          const safeAlt = escapeHtml(`Instagram post ${start + idx + 1}`);
+          return `<a class="ig-tile" href="${post.postUrl}" target="_blank" rel="noopener noreferrer">
+            <img class="ig-image" src="${post.imageUrl}" alt="${safeAlt}" loading="lazy" decoding="async">
+            <span class="ig-overlay"><span class="ig-caption">${safeCaption}</span></span>
+          </a>`;
+        })
+        .join("");
+      pages.push(`<div class="ig-page">${tiles}</div>`);
+    }
+
+    track.innerHTML = pages.join("");
+    track.style.transform = `translateX(-${pageIndex * 100}%)`;
+    prevButton.disabled = pageIndex <= 0;
+    nextButton.disabled = pageIndex >= totalPages - 1;
+    slider.classList.toggle("is-static", totalPages <= 1);
+
+    track.querySelectorAll(".ig-image").forEach((img) => {
+      img.addEventListener(
+        "error",
+        () => {
+          const tile = img.closest(".ig-tile");
+          if (tile) tile.classList.add("ig-image-missing");
+        },
+        { once: true }
+      );
+    });
   };
 
-  const getSlideStepPx = () => {
-    const item = track.querySelector(".ig-item");
-    if (!item) return 0;
-    const trackStyles = window.getComputedStyle(track);
-    const gap = Number.parseFloat(trackStyles.columnGap || trackStyles.gap || "0");
-    return item.getBoundingClientRect().width + gap;
-  };
-
-  const setCurrentIndex = (nextIndex) => {
-    carousel.setAttribute("data-current-index", String(nextIndex));
-  };
-
-  const getCurrentIndex = () => {
-    const raw = Number.parseInt(carousel.getAttribute("data-current-index") || "0", 10);
-    if (!Number.isFinite(raw)) return 0;
-    return Math.max(raw, 0);
-  };
-
-  const updateCarousel = () => {
-    const slidesPerView = getSlidesPerView();
-    const maxIndex = Math.max(postUrls.length - slidesPerView, 0);
-    const currentIndex = Math.min(getCurrentIndex(), maxIndex);
-    const stepPx = getSlideStepPx();
-    setCurrentIndex(currentIndex);
-    track.style.transform = `translateX(-${currentIndex * stepPx}px)`;
-    prevButton.disabled = currentIndex <= 0;
-    nextButton.disabled = currentIndex >= maxIndex;
-    carousel.classList.toggle("is-static", maxIndex === 0);
-  };
-
-  const moveBy = (delta) => {
-    const slidesPerView = getSlidesPerView();
-    const maxIndex = Math.max(postUrls.length - slidesPerView, 0);
-    const currentIndex = getCurrentIndex();
-    const nextIndex = Math.min(Math.max(currentIndex + delta, 0), maxIndex);
-    setCurrentIndex(nextIndex);
-    updateCarousel();
-  };
-
-  prevButton.addEventListener("click", () => moveBy(-1));
-  nextButton.addEventListener("click", () => moveBy(1));
-  window.addEventListener("resize", updateCarousel);
-
-  if (window.instgrm && window.instgrm.Embeds) {
-    window.instgrm.Embeds.process();
-    window.requestAnimationFrame(updateCarousel);
-    return;
-  }
-
-  const existingScript = document.querySelector("script[data-instgrm-embed-loader='true']");
-  if (existingScript) {
-    window.requestAnimationFrame(updateCarousel);
-    return;
-  }
-
-  const script = document.createElement("script");
-  script.src = "https://www.instagram.com/embed.js";
-  script.async = true;
-  script.setAttribute("data-instgrm-embed-loader", "true");
-  script.addEventListener("load", () => {
-    window.instgrm?.Embeds?.process();
-    window.requestAnimationFrame(updateCarousel);
+  prevButton.addEventListener("click", () => {
+    pageIndex = Math.max(pageIndex - 1, 0);
+    render();
   });
-  document.body.appendChild(script);
 
-  window.requestAnimationFrame(updateCarousel);
+  nextButton.addEventListener("click", () => {
+    const itemsPerPage = getInstagramItemsPerPage();
+    const maxPage = Math.max(Math.ceil(posts.length / itemsPerPage) - 1, 0);
+    pageIndex = Math.min(pageIndex + 1, maxPage);
+    render();
+  });
+
+  window.addEventListener("resize", () => {
+    window.cancelAnimationFrame(resizeFrame);
+    resizeFrame = window.requestAnimationFrame(render);
+  });
+
+  render();
 };
 
 const setCopyrightYear = () => {
