@@ -303,6 +303,7 @@ body {
   object-fit: cover;
   z-index: 0;
   filter: saturate(0.95) contrast(1.05);
+  cursor: pointer;
 }
 
 .hero-graphic::after {
