@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/25214434/README.md)
+[README.md](https://github.com/user-attachments/files/25271318/README.md)
 # KLAY Lab Website Template
 
 A stylish, editable static website template for **Klein Lab at Yale (KLAY)**.
@@ -13,6 +13,36 @@ A stylish, editable static website template for **Klein Lab at Yale (KLAY)**.
 
 1. Edit headline copy, research themes, people, publications, tools, news, and contact info in `index.html`.
 2. Optional: change colors in CSS variables at the top of `styles.css`.
+
+## Manual Instagram Update (Personal Account)
+
+If your Instagram is a personal account, this template uses a manual 5-card feed:
+
+1. Replace image files in `images/instagram/`:
+   - `post-1.svg` ... `post-5.svg` (you can use `.jpg`/`.png` too)
+2. In `index.html`, in the Instagram section:
+   - update each card `href` to the specific Instagram post URL
+   - update each card `img src` to your matching local image file
+3. Keep the account button linked to your profile:
+   - `https://www.instagram.com/kleinlab_yale/`
+
+## Instagram Single-File Update (Current Setup)
+
+You can now update the Instagram feed by editing only:
+
+- `instagram_links.js`
+
+Format:
+
+```js
+window.instagramFeedItems = [
+  { postUrl: "https://www.instagram.com/p/POST_ID/", caption: "Hover text here" }
+];
+```
+
+Notes:
+- `postUrl` can be either `/p/.../` or `/reel/.../`.
+- `caption` is the white text shown on hover.
 
 ## Local preview
 
