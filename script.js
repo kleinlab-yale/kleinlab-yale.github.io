@@ -60,6 +60,18 @@ const setupHeroVideoAudio = () => {
   const toggle = document.querySelector(".hero-audio-toggle");
   if (!video || !toggle) return;
 
+  const togglePlayback = async () => {
+    try {
+      if (video.paused) {
+        await video.play();
+      } else {
+        video.pause();
+      }
+    } catch (_) {
+      // Ignore play interruptions; user can click again.
+    }
+  };
+
   const playWithAudio = async () => {
     video.muted = false;
     video.volume = 1;
@@ -87,6 +99,10 @@ const setupHeroVideoAudio = () => {
       // Ignore autoplay errors if browser requires another user gesture.
     }
     syncState();
+  });
+
+  video.addEventListener("click", () => {
+    void togglePlayback();
   });
 
   syncState();
