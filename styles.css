@@ -495,26 +495,21 @@ body {
   background: #d4dce7;
 }
 
-.ig-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.ig-image-missing .ig-image {
-  display: none;
-}
-
-.ig-image-missing::before {
-  content: "Instagram media";
+.ig-media-shell {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--ink-soft);
-  font-weight: 600;
-  font-size: 0.86rem;
+  overflow: hidden;
+}
+
+.ig-embed-frame {
+  border: 0;
+  position: absolute;
+  left: 50%;
+  top: -24%;
+  width: 136%;
+  height: 170%;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .ig-overlay {
