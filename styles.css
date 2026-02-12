@@ -445,13 +445,93 @@ body {
 }
 
 .ig-embed {
-  min-height: 420px;
+  min-height: 120px;
 }
 
 .ig-help {
-  margin: -0.5rem 0 1rem;
+  margin: 0;
   color: var(--ink-soft);
   font-size: 0.94rem;
+}
+
+.ig-help code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+  background: rgba(19, 78, 143, 0.08);
+  border-radius: 6px;
+  padding: 0.1rem 0.28rem;
+}
+
+.ig-carousel {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.65rem;
+}
+
+.ig-viewport {
+  overflow: hidden;
+}
+
+.ig-track {
+  --ig-gap: 0.9rem;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - (var(--ig-gap) * 2)) / 3);
+  gap: var(--ig-gap);
+  align-items: start;
+  transition: transform 0.35s ease;
+  will-change: transform;
+}
+
+.ig-item {
+  min-width: 0;
+}
+
+.ig-arrow {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--brand);
+  font-size: 1.1rem;
+  font-weight: 700;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  cursor: pointer;
+  align-self: center;
+}
+
+.ig-arrow:hover,
+.ig-arrow:focus-visible {
+  border-color: rgba(19, 78, 143, 0.6);
+  box-shadow: 0 0 0 3px rgba(19, 78, 143, 0.14);
+  outline: none;
+}
+
+.ig-arrow:disabled {
+  opacity: 0.45;
+  cursor: default;
+  box-shadow: none;
+}
+
+.ig-carousel.is-static .ig-arrow {
+  visibility: hidden;
+}
+
+.ig-item .instagram-media {
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: none !important;
+  background: #fff !important;
+}
+
+.ig-item iframe {
+  width: 100% !important;
 }
 
 .ig-grid {
@@ -948,6 +1028,10 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .ig-track {
+    grid-auto-columns: calc((100% - var(--ig-gap)) / 2);
+  }
+
   .ig-1,
   .ig-2,
   .ig-3,
@@ -978,6 +1062,35 @@ body {
 
   .ig-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ig-track {
+    grid-auto-columns: 100%;
+  }
+
+  .ig-carousel {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .ig-arrow {
+    width: 34px;
+    height: 34px;
+    justify-self: center;
+  }
+
+  .ig-arrow-prev {
+    order: 2;
+    justify-self: start;
+  }
+
+  .ig-arrow-next {
+    order: 3;
+    justify-self: end;
+  }
+
+  .ig-viewport {
+    order: 1;
   }
 
   .pi-card {
