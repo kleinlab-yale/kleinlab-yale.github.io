@@ -265,6 +265,7 @@ body {
   height: 22px;
   width: auto;
   display: inline-block;
+  border-radius: 999px;
 }
 
 .btn {
@@ -420,6 +421,7 @@ body {
   margin-bottom: 0.4rem;
   font-family: "Fraunces", "Times New Roman", serif;
   font-size: 1.28rem;
+  color: var(--brand);
 }
 
 .research-card p {
