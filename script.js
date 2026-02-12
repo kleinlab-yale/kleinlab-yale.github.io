@@ -134,30 +134,6 @@ const setupHeroVideoAudio = () => {
   syncState();
 };
 
-const setupVisitCounter = () => {
-  const visitCountEl = document.getElementById("visit-count");
-  if (!visitCountEl) return;
-
-  const baseCount = 19500;
-  const counterUrl = "https://api.countapi.xyz/hit/kleinlab-yale/site-visits-main-v1";
-  const requestUrl = `${counterUrl}?_=${Date.now()}`;
-
-  fetch(requestUrl, { cache: "no-store" })
-    .then((response) => {
-      if (!response.ok) throw new Error("Counter request failed");
-      return response.json();
-    })
-    .then((payload) => {
-      const hits = Number(payload.value);
-      if (!Number.isFinite(hits)) return;
-      const total = baseCount + hits;
-      visitCountEl.textContent = total.toLocaleString("en-US");
-    })
-    .catch(() => {
-      // Keep the initial fallback value from the HTML.
-    });
-};
-
 const setCopyrightYear = () => {
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
@@ -167,5 +143,4 @@ setupRevealAnimation();
 setupMobileMenu();
 setupTopLinks();
 setupHeroVideoAudio();
-setupVisitCounter();
 setCopyrightYear();
