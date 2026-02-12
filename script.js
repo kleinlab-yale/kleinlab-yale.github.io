@@ -140,15 +140,17 @@ const setupVisitCounter = () => {
 
   const baseCount = 19500;
   const counterUrl = "https://api.countapi.xyz/hit/kleinlab-yale/site-visits-main-v1";
+  const requestUrl = `${counterUrl}?_=${Date.now()}`;
 
-  fetch(counterUrl, { cache: "no-store" })
+  fetch(requestUrl, { cache: "no-store" })
     .then((response) => {
       if (!response.ok) throw new Error("Counter request failed");
       return response.json();
     })
     .then((payload) => {
-      if (typeof payload.value !== "number") return;
-      const total = baseCount + payload.value;
+      const hits = Number(payload.value);
+      if (!Number.isFinite(hits)) return;
+      const total = baseCount + hits;
       visitCountEl.textContent = total.toLocaleString("en-US");
     })
     .catch(() => {
