@@ -89,19 +89,6 @@ const setupHeroVideoAudio = () => {
     syncState();
   });
 
-  const enableAudioOnInteraction = async () => {
-    if (!video.muted) return;
-    try {
-      await playWithAudio();
-    } catch (_) {
-      // Ignore errors; user can still use the explicit audio toggle.
-    }
-    syncState();
-  };
-
-  window.addEventListener("pointerdown", enableAudioOnInteraction, { once: true });
-  window.addEventListener("keydown", enableAudioOnInteraction, { once: true });
-
   syncState();
 };
 
