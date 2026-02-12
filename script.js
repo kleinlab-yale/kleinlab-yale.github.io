@@ -1,26 +1,26 @@
 document.documentElement.classList.add("js");
 
-// Add `caption` text for hover overlay and optional `imageUrl` if you want to force a specific thumbnail.
+// Add `caption` text for hover overlay.
 const instagramFeedItems = [
   {
     postUrl: "https://www.instagram.com/p/DUnvn9fEUbN/",
-    caption: ""
+    caption: "We've come a long way!"
   },
   {
     postUrl: "https://www.instagram.com/p/DUl9UfekfYV/",
-    caption: ""
+    caption: "Beam on!"
   },
   {
     postUrl: "https://www.instagram.com/p/DUl9DKkEdvm/",
-    caption: ""
+    caption: "Find us here"
   },
   {
     postUrl: "https://www.instagram.com/p/DUl845SEZTl/",
-    caption: ""
+    caption: "Thanks Yale Ventures!"
   },
   {
     postUrl: "https://www.instagram.com/p/DUl1VMikeV9/",
-    caption: ""
+    caption: "Science reveals secrets hidden in plain sight"
   }
 ];
 
@@ -34,6 +34,8 @@ const normalizeInstagramPostUrl = (url) => {
 
   return `https://www.instagram.com/${match[1].toLowerCase()}/${match[2]}/`;
 };
+
+const getInstagramEmbedUrl = (postUrl) => `${postUrl}embed/`;
 
 const escapeHtml = (value) =>
   String(value)
@@ -192,10 +194,9 @@ const setupInstagramFeed = () => {
     .map((item) => {
       const postUrl = normalizeInstagramPostUrl(item.postUrl);
       if (!postUrl) return null;
-      const configuredImageUrl = typeof item.imageUrl === "string" ? item.imageUrl.trim() : "";
       return {
         postUrl,
-        imageUrl: configuredImageUrl || `${postUrl}media/?size=l`,
+        embedUrl: getInstagramEmbedUrl(postUrl),
         caption: typeof item.caption === "string" ? item.caption.trim() : ""
       };
     })
@@ -242,7 +243,9 @@ const setupInstagramFeed = () => {
           const safeCaption = escapeHtml(captionText);
           const safeAlt = escapeHtml(`Instagram post ${start + idx + 1}`);
           return `<a class="ig-tile" href="${post.postUrl}" target="_blank" rel="noopener noreferrer">
-            <img class="ig-image" src="${post.imageUrl}" alt="${safeAlt}" loading="lazy" decoding="async">
+            <span class="ig-media-shell" aria-hidden="true">
+              <iframe class="ig-embed-frame" src="${post.embedUrl}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="${safeAlt}"></iframe>
+            </span>
             <span class="ig-overlay"><span class="ig-caption">${safeCaption}</span></span>
           </a>`;
         })
@@ -255,17 +258,6 @@ const setupInstagramFeed = () => {
     prevButton.disabled = pageIndex <= 0;
     nextButton.disabled = pageIndex >= totalPages - 1;
     slider.classList.toggle("is-static", totalPages <= 1);
-
-    track.querySelectorAll(".ig-image").forEach((img) => {
-      img.addEventListener(
-        "error",
-        () => {
-          const tile = img.closest(".ig-tile");
-          if (tile) tile.classList.add("ig-image-missing");
-        },
-        { once: true }
-      );
-    });
   };
 
   prevButton.addEventListener("click", () => {
