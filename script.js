@@ -1,7 +1,6 @@
 document.documentElement.classList.add("js");
 
-// Add `caption` text for hover overlay.
-const instagramFeedItems = [
+const defaultInstagramFeedItems = [
   {
     postUrl: "https://www.instagram.com/p/DUnvn9fEUbN/",
     caption: "We've come a long way!"
@@ -23,6 +22,11 @@ const instagramFeedItems = [
     caption: "Science reveals secrets hidden in plain sight"
   }
 ];
+
+const instagramFeedItems =
+  Array.isArray(window.instagramFeedItems) && window.instagramFeedItems.length > 0
+    ? window.instagramFeedItems
+    : defaultInstagramFeedItems;
 
 const normalizeInstagramPostUrl = (url) => {
   if (typeof url !== "string") return null;
