@@ -8,6 +8,10 @@ window.instagramFeedItems = [
     caption: "We've come a long way!"
   },
   {
+    postUrl: "https://www.instagram.com/p/DUq5XNLkdUk/",
+    caption: "ASBMB Chicago. JADEK runs the Lakefront!"
+  },  
+  {
     postUrl: "https://www.instagram.com/p/DUl9UfekfYV/",
     caption: "Beam on!"
   },
