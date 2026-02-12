@@ -1,4 +1,3 @@
-
 :root {
   --paper: #f6f3ee;
   --ink: #10243e;
@@ -190,12 +189,13 @@ body {
 }
 
 .hero {
-  padding: 5.5rem 0 4rem;
+  padding: 4.25rem 0 4rem;
 }
 
 .hero-grid {
   display: grid;
-  gap: 2rem;
+  column-gap: 2rem;
+  row-gap: 2.25rem;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   align-items: center;
 }
@@ -208,7 +208,7 @@ body {
 .hero-lab-name {
   grid-column: 1 / -1;
   width: 100%;
-  margin: 0 0 0.95rem;
+  margin: 0 0 1.8rem;
   display: flex;
   justify-content: center;
   text-align: center;
