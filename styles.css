@@ -258,13 +258,13 @@ body {
 
 .visit-counter {
   margin: 0.85rem 0 0;
-  font-size: 0.9rem;
-  color: var(--ink-soft);
-  font-weight: 600;
+  line-height: 0;
 }
 
-#visit-count {
-  color: var(--brand);
+.visit-counter-badge {
+  height: 22px;
+  width: auto;
+  display: inline-block;
 }
 
 .btn {
