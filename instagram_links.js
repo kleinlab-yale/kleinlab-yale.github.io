@@ -3,10 +3,16 @@
 // - postUrl: Instagram post/reel URL
 // - caption: text shown on hover
 window.instagramFeedItems = [
+{
+    postUrl: "https://www.instagram.com/p/DVB06zKEX70/?hl=en",
+    caption: "Klein lab just dropped: https://www.nature.com/articles/s41467-026-69630-7"
+  },
+  
   {
     postUrl: "https://www.instagram.com/p/DUnvn9fEUbN/",
     caption: "We've come a long way!"
   },
+  
   {
     postUrl: "https://www.instagram.com/p/DUq5XNLkdUk/",
     caption: "ASBMB Chicago. JADEK runs the Lakefront!"
