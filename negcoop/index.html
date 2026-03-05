@@ -1,390 +1,316 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pharmacodynamics Lesson Explorer</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RTK Signaling Explorer</title>
     <meta
       name="description"
-      content="Interactive pharmacodynamics lesson explorer for binding, efficacy, antagonists, partial agonists, spare receptors, and quantal dose-response."
-    >
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      content="Interactive RTK signaling explorer for receptor abundance, dimerization Kd, cooperativity, and receptor internalization."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Newsreader:opsz,wght@6..72,600;6..72,700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
-    >
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
-    <script defer src="app.js"></script>
+    />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="site-shell">
+    <div class="page-shell">
       <header class="hero">
-        <p class="eyebrow">Static HTML Edition for GitHub Pages</p>
-        <h1>Pharmacodynamics Lesson Explorer</h1>
+        <p class="eyebrow">Interactive RTK Teaching App</p>
+        <h1>
+          Weak dimerization can stretch signaling into a long, low plateau until
+          receptor abundance tips the same system into a burst.
+        </h1>
         <p class="hero-copy">
-          Interactive teaching plots for first-year medical pharmacodynamics. Every curve is generated
-          in the browser from parametric equations, so the site can run on GitHub Pages with no Python server.
+          This GitHub Pages-ready app is a qualitative teaching model for how
+          receptor abundance, dimerization strength, cooperativity, and
+          internalization reshape RTK output. It is tuned to illustrate the
+          narrative you described from
+          <a
+            href="https://www.cell.com/molecular-cell/fulltext/S1097-2765(15)00817-5"
+            target="_blank"
+            rel="noreferrer"
+            >your Molecular Cell paper</a
+          >:
+          low sustained signaling can bias differentiation, while high transient
+          signaling can bias growth.
         </p>
-        <div class="hero-tags" aria-label="Key topics">
-          <span>KD and Bmax</span>
-          <span>Efficacy and potency</span>
-          <span>Antagonists</span>
-          <span>Partial agonists</span>
-          <span>Spare receptors</span>
-          <span>Quantal dose-response</span>
+        <div class="hero-actions">
+          <button id="resetDefaults" class="secondary-button">
+            Reset to paper-like preset
+          </button>
+          <span class="hero-note"
+            >Model note: this interface is deliberately simplified for students;
+            it captures the qualitative logic rather than a full methods-level
+            reconstruction.</span
+          >
         </div>
       </header>
 
-      <nav class="tab-bar" aria-label="Lesson sections">
-        <button class="tab-button is-active" data-tab-target="binding" aria-selected="true">1. Binding</button>
-        <button class="tab-button" data-tab-target="efficacy" aria-selected="false">2. Efficacy</button>
-        <button class="tab-button" data-tab-target="antagonists" aria-selected="false">3. Antagonists</button>
-        <button class="tab-button" data-tab-target="partial" aria-selected="false">4. Partial agonists</button>
-        <button class="tab-button" data-tab-target="spare" aria-selected="false">5. Spare receptors</button>
-        <button class="tab-button" data-tab-target="quantal" aria-selected="false">6. Quantal dose</button>
-      </nav>
-
-      <main>
-        <section class="lesson-panel is-active" data-tab-panel="binding">
-          <div class="panel-header">
-            <div>
-              <p class="panel-step">Lesson 1</p>
-              <h2>Binding: KD and Bmax</h2>
+      <main class="workspace">
+        <aside class="panel controls-panel">
+          <section class="block">
+            <div class="block-heading">
+              <h2>Teaching scenarios</h2>
+              <p>Start from the regimes you said you want students to compare.</p>
             </div>
-            <p class="panel-summary">Three colored curves show normalized receptor occupancy, so changing KD shifts fractional binding on a fixed 0 to 1 scale.</p>
-          </div>
+            <div class="preset-grid" id="presetGrid"></div>
+          </section>
 
-          <div class="controls-grid">
-            <label class="control accent-blue">
-              <span class="control-top">
-                <span class="control-label">Curve 1 KD</span>
-                <output class="control-value" data-for="bind-kd1"></output>
-              </span>
-              <input id="bind-kd1" type="range" min="0.1" max="250" step="0.1" value="1" data-format="nm">
-            </label>
-            <label class="control accent-green">
-              <span class="control-top">
-                <span class="control-label">Curve 2 KD</span>
-                <output class="control-value" data-for="bind-kd2"></output>
-              </span>
-              <input id="bind-kd2" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
-            </label>
-            <label class="control accent-orange">
-              <span class="control-top">
-                <span class="control-label">Curve 3 KD</span>
-                <output class="control-value" data-for="bind-kd3"></output>
-              </span>
-              <input id="bind-kd3" type="range" min="0.1" max="250" step="0.1" value="100" data-format="nm">
-            </label>
-          </div>
-
-          <div class="plots-grid">
-            <article class="plot-card">
-              <h3>Log plot</h3>
-              <div id="binding-log" class="plot-frame"></div>
-            </article>
-            <article class="plot-card">
-              <h3>Linear plot</h3>
-              <div id="binding-linear" class="plot-frame"></div>
-            </article>
-          </div>
-
-          <p id="binding-note" class="note"></p>
-        </section>
-
-        <section class="lesson-panel" data-tab-panel="efficacy" hidden>
-          <div class="panel-header">
-            <div>
-              <p class="panel-step">Lesson 2</p>
-              <h2>Efficacy: idealized KD = EC50</h2>
+          <section class="block">
+            <div class="block-heading">
+              <h2>Primary knobs</h2>
+              <p>All values are relative units intended for interactive intuition.</p>
             </div>
-            <p class="panel-summary">This idealized bridge shows how moving KD shifts EC50 when effect is displayed as the normalized fraction E/Emax.</p>
-          </div>
+            <div class="control-list">
+              <label class="control">
+                <span class="control-label">
+                  Receptor abundance
+                  <strong id="receptorLevelValue"></strong>
+                </span>
+                <input
+                  id="receptorLevel"
+                  type="range"
+                  min="30"
+                  max="300"
+                  step="5"
+                />
+              </label>
 
-          <div class="controls-grid">
-            <label class="control accent-blue">
-              <span class="control-top">
-                <span class="control-label">Curve 1 KD = EC50</span>
-                <output class="control-value" data-for="eff-kd1"></output>
-              </span>
-              <input id="eff-kd1" type="range" min="0.1" max="250" step="0.1" value="1" data-format="nm">
-            </label>
-            <label class="control accent-green">
-              <span class="control-top">
-                <span class="control-label">Curve 2 KD = EC50</span>
-                <output class="control-value" data-for="eff-kd2"></output>
-              </span>
-              <input id="eff-kd2" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
-            </label>
-            <label class="control accent-orange">
-              <span class="control-top">
-                <span class="control-label">Curve 3 KD = EC50</span>
-                <output class="control-value" data-for="eff-kd3"></output>
-              </span>
-              <input id="eff-kd3" type="range" min="0.1" max="250" step="0.1" value="100" data-format="nm">
-            </label>
-          </div>
+              <label class="control">
+                <span class="control-label">
+                  Dimerization Kd
+                  <strong id="dimerKdValue"></strong>
+                </span>
+                <input id="dimerKd" type="range" min="15" max="180" step="5" />
+              </label>
 
-          <div class="plots-grid">
-            <article class="plot-card">
-              <h3>Log plot</h3>
-              <div id="efficacy-log" class="plot-frame"></div>
-            </article>
-            <article class="plot-card">
-              <h3>Linear plot</h3>
-              <div id="efficacy-linear" class="plot-frame"></div>
-            </article>
-          </div>
+              <label class="control">
+                <span class="control-label">
+                  Ligand pulse amplitude
+                  <strong id="ligandPulseValue"></strong>
+                </span>
+                <input
+                  id="ligandPulse"
+                  type="range"
+                  min="0.4"
+                  max="3.2"
+                  step="0.1"
+                />
+              </label>
 
-          <p id="efficacy-note" class="note"></p>
-        </section>
-
-        <section class="lesson-panel" data-tab-panel="antagonists" hidden>
-          <div class="panel-header">
-            <div>
-              <p class="panel-step">Lesson 3</p>
-              <h2>Antagonists</h2>
+              <label class="control">
+                <span class="control-label">
+                  Ligand pulse duration
+                  <strong id="pulseDurationValue"></strong>
+                </span>
+                <input
+                  id="pulseDuration"
+                  type="range"
+                  min="12"
+                  max="90"
+                  step="2"
+                />
+              </label>
             </div>
-            <p class="panel-summary">Compare competitive and noncompetitive antagonism while keeping the antagonist-alone line fixed at zero efficacy.</p>
-          </div>
+          </section>
 
-          <div class="controls-grid">
-            <div class="control">
-              <span class="control-top">
-                <span class="control-label">Antagonist model</span>
-              </span>
-              <div class="segment-group" role="radiogroup" aria-label="Antagonist model">
-                <label class="segment-option">
-                  <input id="ant-model-competitive" type="radio" name="ant-model" value="Competitive" checked>
-                  <span>Competitive</span>
-                </label>
-                <label class="segment-option">
-                  <input id="ant-model-noncompetitive" type="radio" name="ant-model" value="Noncompetitive">
-                  <span>Noncompetitive</span>
-                </label>
+          <section class="block">
+            <div class="block-heading">
+              <h2>Cooperativity regime</h2>
+              <p>
+                Negative cooperativity is represented as a broader, weaker
+                dimerization response; positive cooperativity is sharper and
+                stronger.
+              </p>
+            </div>
+            <div class="segmented-control" id="cooperativityButtons"></div>
+          </section>
+
+          <section class="block">
+            <div class="block-heading">
+              <h2>Trafficking</h2>
+              <p>
+                Strong activation drives receptor loss from the surface, which
+                shortens the pulse.
+              </p>
+            </div>
+            <div class="control-list">
+              <label class="control">
+                <span class="control-label">
+                  Internalization rate
+                  <strong id="internalizationRateValue"></strong>
+                </span>
+                <input
+                  id="internalizationRate"
+                  type="range"
+                  min="0.01"
+                  max="0.12"
+                  step="0.002"
+                />
+              </label>
+
+              <label class="control">
+                <span class="control-label">
+                  Recycling rate
+                  <strong id="recyclingRateValue"></strong>
+                </span>
+                <input
+                  id="recyclingRate"
+                  type="range"
+                  min="0.001"
+                  max="0.03"
+                  step="0.001"
+                />
+              </label>
+            </div>
+          </section>
+
+          <details class="model-note">
+            <summary>Model structure</summary>
+            <p>
+              The simulator treats ligand occupancy, receptor dimerization,
+              activation, internalization, and recycling as a compact dynamical
+              system. It uses three ideas:
+            </p>
+            <ol>
+              <li>
+                Surface receptors bind a transient ligand pulse:
+                <code>bound = R_surface * L / (L + K_L)</code>
+              </li>
+              <li>
+                Active dimers emerge from a cooperativity-shaped dimerization
+                curve controlled by receptor abundance and Kd:
+                <code>dimerized ~ bound * f(bound / Kd, cooperativity)</code>
+              </li>
+              <li>
+                Active dimers drive both signal and receptor internalization:
+                <code>dR_surface/dt = -k_int * active + k_rec * internal</code>
+              </li>
+            </ol>
+          </details>
+        </aside>
+
+        <section class="panel results-panel">
+          <section class="outcome-banner">
+            <div>
+              <p class="eyebrow">Current interpretation</p>
+              <h2 id="fateTitle"></h2>
+            </div>
+            <span id="fateBadge" class="fate-badge"></span>
+          </section>
+
+          <p id="insightText" class="insight-text"></p>
+
+          <section class="metric-grid">
+            <article class="metric-card">
+              <span class="metric-label">Peak signal</span>
+              <strong id="peakSignalMetric" class="metric-value"></strong>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Peak time</span>
+              <strong id="peakTimeMetric" class="metric-value"></strong>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Plateau width</span>
+              <strong id="durationMetric" class="metric-value"></strong>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Surface receptor loss</span>
+              <strong id="surfaceLossMetric" class="metric-value"></strong>
+            </article>
+          </section>
+
+          <section class="chart-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">Time course</p>
+                <h3>Signal versus receptor availability</h3>
+              </div>
+              <div class="chart-legend">
+                <span><i class="legend-swatch signal"></i> Signal</span>
+                <span><i class="legend-swatch surface"></i> Surface receptor</span>
+                <span><i class="legend-swatch ligand"></i> Ligand pulse</span>
               </div>
             </div>
-            <label class="control">
-              <span class="control-top">
-                <span class="control-label">Baseline Emax</span>
-                <output class="control-value" data-for="ant-emax"></output>
-              </span>
-              <input id="ant-emax" type="range" min="40" max="150" step="1" value="100" data-format="percent0">
-            </label>
-            <label class="control accent-blue">
-              <span class="control-top">
-                <span class="control-label">Baseline agonist EC50</span>
-                <output class="control-value" data-for="ant-ec50"></output>
-              </span>
-              <input id="ant-ec50" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
-            </label>
-            <label class="control">
-              <span class="control-top">
-                <span class="control-label">Hill coefficient</span>
-                <output class="control-value" data-for="ant-hill"></output>
-              </span>
-              <input id="ant-hill" type="range" min="0.5" max="3.0" step="0.1" value="1.0" data-format="decimal1">
-            </label>
-            <label class="control">
-              <span class="control-top">
-                <span class="control-label">Current antagonist [I]</span>
-                <output class="control-value" data-for="ant-conc"></output>
-              </span>
-              <input id="ant-conc" type="range" min="0.1" max="250" step="0.1" value="100" data-format="nm">
-            </label>
-            <label class="control accent-green">
-              <span class="control-top">
-                <span class="control-label">IC50</span>
-                <output class="control-value" data-for="ant-ic50"></output>
-              </span>
-              <input id="ant-ic50" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
-            </label>
-          </div>
+            <svg
+              id="timecourseChart"
+              class="timecourse-chart"
+              viewBox="0 0 860 360"
+              role="img"
+              aria-label="Time course of signaling and receptor surface retention"
+            ></svg>
+          </section>
 
-          <div class="plots-grid plots-grid-two">
-            <article class="plot-card">
-              <h3>Agonist-response log plot</h3>
-              <div id="ant-response-log" class="plot-frame"></div>
+          <section class="detail-grid">
+            <article class="chart-card">
+              <div class="card-heading">
+                <div>
+                  <p class="eyebrow">Phase map</p>
+                  <h3>Receptor abundance versus dimerization Kd</h3>
+                </div>
+                <p class="card-caption">
+                  The dot marks the current setting. Blue regions are
+                  differentiation-like, warm regions are growth-like.
+                </p>
+              </div>
+              <canvas
+                id="phaseCanvas"
+                class="phase-canvas"
+                width="520"
+                height="360"
+              ></canvas>
+              <div class="phase-legend">
+                <span>Differentiation-like</span>
+                <div class="phase-gradient" aria-hidden="true"></div>
+                <span>Growth-like</span>
+              </div>
             </article>
-            <article class="plot-card">
-              <h3>Agonist-response linear plot</h3>
-              <div id="ant-response-linear" class="plot-frame"></div>
+
+            <article class="chart-card">
+              <div class="card-heading">
+                <div>
+                  <p class="eyebrow">State snapshot</p>
+                  <h3>Where the receptors are at peak and late phase</h3>
+                </div>
+                <p class="card-caption">
+                  Active receptors shrink when internalization strips the cell
+                  surface.
+                </p>
+              </div>
+
+              <div class="snapshot" id="peakSnapshot">
+                <div class="snapshot-header">
+                  <h4>At signal peak</h4>
+                  <span id="peakSnapshotLabel"></span>
+                </div>
+                <div class="stacked-bar" id="peakSnapshotBar"></div>
+                <p id="peakSnapshotText" class="snapshot-text"></p>
+              </div>
+
+              <div class="snapshot" id="lateSnapshot">
+                <div class="snapshot-header">
+                  <h4>Late phase</h4>
+                  <span id="lateSnapshotLabel"></span>
+                </div>
+                <div class="stacked-bar" id="lateSnapshotBar"></div>
+                <p id="lateSnapshotText" class="snapshot-text"></p>
+              </div>
+
+              <div class="snapshot-legend">
+                <span><i class="legend-swatch silent"></i> Silent surface</span>
+                <span><i class="legend-swatch active"></i> Active dimers</span>
+                <span><i class="legend-swatch internal"></i> Internalized</span>
+              </div>
             </article>
-            <article class="plot-card">
-              <h3>Inhibition log plot</h3>
-              <div id="ant-inhibition-log" class="plot-frame"></div>
-            </article>
-            <article class="plot-card">
-              <h3>Inhibition linear plot</h3>
-              <div id="ant-inhibition-linear" class="plot-frame"></div>
-            </article>
-          </div>
-
-          <p id="ant-note" class="note"></p>
-        </section>
-
-        <section class="lesson-panel" data-tab-panel="partial" hidden>
-          <div class="panel-header">
-            <div>
-              <p class="panel-step">Lesson 4</p>
-              <h2>Partial agonists</h2>
-            </div>
-            <p class="panel-summary">Full agonist Emax stays fixed at 100 while intrinsic efficacy and EC50 shape the partial agonist curve.</p>
-          </div>
-
-          <div class="controls-grid">
-            <label class="control accent-blue">
-              <span class="control-top">
-                <span class="control-label">Full agonist EC50</span>
-                <output class="control-value" data-for="pa-full-ec50"></output>
-              </span>
-              <input id="pa-full-ec50" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
-            </label>
-            <label class="control">
-              <span class="control-top">
-                <span class="control-label">Full agonist Hill n</span>
-                <output class="control-value" data-for="pa-full-hill"></output>
-              </span>
-              <input id="pa-full-hill" type="range" min="0.5" max="3.0" step="0.1" value="1.0" data-format="decimal1">
-            </label>
-            <label class="control">
-              <span class="control-top">
-                <span class="control-label">Partial intrinsic efficacy</span>
-                <output class="control-value" data-for="pa-intrinsic"></output>
-              </span>
-              <input id="pa-intrinsic" type="range" min="0.1" max="1.0" step="0.05" value="0.6" data-format="fractionx">
-            </label>
-            <label class="control accent-green">
-              <span class="control-top">
-                <span class="control-label">Partial agonist EC50</span>
-                <output class="control-value" data-for="pa-partial-ec50"></output>
-              </span>
-              <input id="pa-partial-ec50" type="range" min="0.1" max="250" step="0.1" value="31.6" data-format="nm">
-            </label>
-            <label class="control">
-              <span class="control-top">
-                <span class="control-label">Partial agonist Hill n</span>
-                <output class="control-value" data-for="pa-partial-hill"></output>
-              </span>
-              <input id="pa-partial-hill" type="range" min="0.5" max="3.0" step="0.1" value="1.0" data-format="decimal1">
-            </label>
-          </div>
-
-          <div class="plots-grid">
-            <article class="plot-card">
-              <h3>Log plot</h3>
-              <div id="partial-log" class="plot-frame"></div>
-            </article>
-            <article class="plot-card">
-              <h3>Linear plot</h3>
-              <div id="partial-linear" class="plot-frame"></div>
-            </article>
-          </div>
-
-          <p id="partial-note" class="note"></p>
-        </section>
-
-        <section class="lesson-panel" data-tab-panel="spare" hidden>
-          <div class="panel-header">
-            <div>
-              <p class="panel-step">Lesson 5</p>
-              <h2>Spare receptors</h2>
-            </div>
-            <p class="panel-summary">Occupancy and effect share the same 0 to 100 percent scale so receptor reserve shows up as a leftward shift in effect.</p>
-          </div>
-
-          <div class="controls-grid">
-            <label class="control">
-              <span class="control-top">
-                <span class="control-label">KD</span>
-                <output class="control-value" data-for="spare-kd"></output>
-              </span>
-              <input id="spare-kd" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
-            </label>
-            <label class="control">
-              <span class="control-top">
-                <span class="control-label">Transduction factor tau</span>
-                <output class="control-value" data-for="spare-tau"></output>
-              </span>
-              <input id="spare-tau" type="range" min="0.1" max="20" step="0.1" value="5.0" data-format="decimal1">
-            </label>
-          </div>
-
-          <div class="plots-grid">
-            <article class="plot-card">
-              <h3>Log plot</h3>
-              <div id="spare-log" class="plot-frame"></div>
-            </article>
-            <article class="plot-card">
-              <h3>Linear plot</h3>
-              <div id="spare-linear" class="plot-frame"></div>
-            </article>
-          </div>
-
-          <p id="spare-note" class="note"></p>
-        </section>
-
-        <section class="lesson-panel" data-tab-panel="quantal" hidden>
-          <div class="panel-header">
-            <div>
-              <p class="panel-step">Lesson 6</p>
-              <h2>Quantal dose-response</h2>
-            </div>
-            <p class="panel-summary">Cumulative curves are logistic CDFs on a log-dose axis. The bell-shaped frequency curves are the derivatives scaled to percent in each dose interval.</p>
-          </div>
-
-          <div class="controls-grid">
-            <label class="control accent-blue">
-              <span class="control-top">
-                <span class="control-label">ED50</span>
-                <output class="control-value" data-for="q-ed50"></output>
-              </span>
-              <input id="q-ed50" type="range" min="1" max="200" step="1" value="20" data-format="mgkg">
-            </label>
-            <label class="control accent-green">
-              <span class="control-top">
-                <span class="control-label">TD50</span>
-                <output class="control-value" data-for="q-td50"></output>
-              </span>
-              <input id="q-td50" type="range" min="1" max="200" step="1" value="60" data-format="mgkg">
-            </label>
-            <label class="control accent-blue">
-              <span class="control-top">
-                <span class="control-label">s_eff</span>
-                <output class="control-value" data-for="q-s-eff"></output>
-              </span>
-              <input id="q-s-eff" type="range" min="0.05" max="0.20" step="0.01" value="0.05" data-format="decimal2">
-            </label>
-            <label class="control accent-green">
-              <span class="control-top">
-                <span class="control-label">s_tox</span>
-                <output class="control-value" data-for="q-s-tox"></output>
-              </span>
-              <input id="q-s-tox" type="range" min="0.05" max="0.20" step="0.01" value="0.05" data-format="decimal2">
-            </label>
-          </div>
-
-          <div class="plots-grid plots-grid-single">
-            <article class="plot-card plot-card-feature">
-              <h3>Log-dose plot</h3>
-              <div id="quantal-plot" class="plot-frame plot-frame-feature"></div>
-            </article>
-          </div>
-
-          <p id="quantal-note" class="note"></p>
+          </section>
         </section>
       </main>
-
-      <section class="footer-notes">
-        <h2>Teaching notes</h2>
-        <ul>
-          <li>Tabs 1 and 2 are normalized to fractions: binding uses `[LR]/[R0]` and efficacy uses `E/Emax`.</li>
-          <li>Concentration sliders use linear nM controls from 0.1 to 250 while the plotted x-axes stay fixed for comparison.</li>
-          <li>Linear concentration plots cap at 1000 nM. Quantal dose uses mg/kg on a log x-axis from 1 to 200.</li>
-        </ul>
-      </section>
     </div>
+
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
