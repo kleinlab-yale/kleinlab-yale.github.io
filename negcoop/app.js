@@ -1,5 +1,6 @@
 const TOTAL_TIME = 60;
 const DT = 0.25;
+const FIXED_PULSE_DURATION = 1;
 const RECEPTOR_RANGE = { min: 30, max: 300 };
 const KD_RANGE = { min: 15, max: 180 };
 
@@ -31,7 +32,6 @@ const DEFAULTS = {
   receptorLevel: 45,
   dimerKd: 145,
   ligandPulse: 1.5,
-  pulseDuration: 55,
   internalizationRate: 0.045,
   recyclingRate: 0.008,
   cooperativity: "negative",
@@ -47,7 +47,6 @@ const PRESETS = [
       receptorLevel: 45,
       dimerKd: 145,
       ligandPulse: 1.5,
-      pulseDuration: 55,
       internalizationRate: 0.045,
       recyclingRate: 0.008,
       cooperativity: "negative",
@@ -62,7 +61,6 @@ const PRESETS = [
       receptorLevel: 260,
       dimerKd: 145,
       ligandPulse: 1.5,
-      pulseDuration: 55,
       internalizationRate: 0.2,
       recyclingRate: 0.01,
       cooperativity: "negative",
@@ -77,7 +75,6 @@ const PRESETS = [
       receptorLevel: 145,
       dimerKd: 60,
       ligandPulse: 1.8,
-      pulseDuration: 24,
       internalizationRate: 0.18,
       recyclingRate: 0.01,
       cooperativity: "neutral",
@@ -92,7 +89,6 @@ const PRESETS = [
       receptorLevel: 145,
       dimerKd: 50,
       ligandPulse: 1.9,
-      pulseDuration: 22,
       internalizationRate: 0.22,
       recyclingRate: 0.01,
       cooperativity: "positive",
@@ -100,10 +96,8 @@ const PRESETS = [
   },
 ];
 
-function pulseValue(time, amplitude, duration) {
-  const onset = logistic((time - 0.15) / 0.08);
-  const offset = logistic((time - duration) / 0.45);
-  return amplitude * Math.max(onset - offset, 0);
+function pulseValue(time, amplitude) {
+  return amplitude * inverseLogistic((time - FIXED_PULSE_DURATION) / 0.12);
 }
 
 function simulate(params) {
@@ -114,7 +108,7 @@ function simulate(params) {
   const series = [];
 
   for (let time = 0; time <= TOTAL_TIME + 1e-9; time += DT) {
-    const ligand = pulseValue(time, params.ligandPulse, params.pulseDuration);
+    const ligand = pulseValue(time, params.ligandPulse);
     const occupancy = ligand / (ligand + 0.7);
     const transientShape = gammaPeak(time, profile.peakTime);
     const transientGate = inverseLogistic((time - profile.transientEnd) / 1.15);
@@ -272,8 +266,6 @@ function deriveResponseProfile(params, config) {
     0,
     1
   );
-  const pulseDurationNorm = clamp((params.pulseDuration - 12) / (60 - 12), 0, 1);
-
   return {
     drive,
     transientStrength,
@@ -283,13 +275,10 @@ function deriveResponseProfile(params, config) {
       1.55 *
         Math.pow(transientStrength, 1.1) *
         (0.75 + (0.25 * params.ligandPulse) / 1.8),
-    sustainedAmplitude:
-      0.02 +
-      0.22 * sustainedStrength * (0.85 + 0.5 * pulseDurationNorm),
+    sustainedAmplitude: 0.02 + 0.285 * sustainedStrength,
     peakTime: 2.1 - 0.28 * clamp(transientStrength - 0.5, -1, 1),
     transientEnd: 15 - 2.6 * clamp(transientStrength - 0.55, -0.5, 0.5),
-    sustainEnd:
-      28 + 34 * sustainedStrength * (0.55 + 0.45 * pulseDurationNorm),
+    sustainEnd: 28 + 32 * sustainedStrength,
     sustainRise: 2.2 + 1.0 * (1 - sustainedStrength),
   };
 }
@@ -304,7 +293,6 @@ const controls = {
   receptorLevel: document.querySelector("#receptorLevel"),
   dimerKd: document.querySelector("#dimerKd"),
   ligandPulse: document.querySelector("#ligandPulse"),
-  pulseDuration: document.querySelector("#pulseDuration"),
   internalizationRate: document.querySelector("#internalizationRate"),
   recyclingRate: document.querySelector("#recyclingRate"),
 };
@@ -313,7 +301,6 @@ const valueTargets = {
   receptorLevel: document.querySelector("#receptorLevelValue"),
   dimerKd: document.querySelector("#dimerKdValue"),
   ligandPulse: document.querySelector("#ligandPulseValue"),
-  pulseDuration: document.querySelector("#pulseDurationValue"),
   internalizationRate: document.querySelector("#internalizationRateValue"),
   recyclingRate: document.querySelector("#recyclingRateValue"),
 };
@@ -439,7 +426,6 @@ function updateValueLabels() {
   valueTargets.receptorLevel.textContent = `${state.receptorLevel.toFixed(0)} AU`;
   valueTargets.dimerKd.textContent = `${state.dimerKd.toFixed(0)} AU`;
   valueTargets.ligandPulse.textContent = `${state.ligandPulse.toFixed(1)} AU`;
-  valueTargets.pulseDuration.textContent = `${state.pulseDuration.toFixed(0)} min`;
   valueTargets.internalizationRate.textContent =
     `${state.internalizationRate.toFixed(3)} / min`;
   valueTargets.recyclingRate.textContent =
@@ -506,7 +492,7 @@ function renderTimecourse(summary) {
 
   const horizontalTicks = [0, 0.25, 0.5, 0.75, 1].map((fraction) => signalMax * fraction);
   const verticalTicks = TOTAL_TIME <= 60
-    ? [0, 5, 10, 15, 30, 45, 60].filter((tick) => tick <= TOTAL_TIME)
+    ? [0, 1, 2, 5, 10, 15, 30, 45, 60].filter((tick) => tick <= TOTAL_TIME)
     : [0, 15, 30, 45, 60, 75, 90, 120, 150, 180].filter((tick) => tick <= TOTAL_TIME);
 
   timecourseChart.innerHTML = `
@@ -616,24 +602,24 @@ function renderPhaseMap() {
   const margin = { top: 18, right: 18, bottom: 38, left: 52 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
-  const receptorSteps = 26;
   const kdSteps = 18;
-  const cellWidth = plotWidth / receptorSteps;
-  const cellHeight = plotHeight / kdSteps;
+  const receptorSteps = 26;
+  const cellWidth = plotWidth / kdSteps;
+  const cellHeight = plotHeight / receptorSteps;
 
   phaseContext.clearRect(0, 0, width, height);
   phaseContext.fillStyle = "rgba(255,252,245,0.96)";
   roundRect(phaseContext, 0, 0, width, height, 22);
   phaseContext.fill();
 
-  for (let y = 0; y < kdSteps; y += 1) {
-    const kd = interpolate(KD_RANGE.min, KD_RANGE.max, y / (kdSteps - 1));
-    for (let x = 0; x < receptorSteps; x += 1) {
-      const receptorLevel = interpolate(
-        RECEPTOR_RANGE.min,
-        RECEPTOR_RANGE.max,
-        x / (receptorSteps - 1)
-      );
+  for (let y = 0; y < receptorSteps; y += 1) {
+    const receptorLevel = interpolate(
+      RECEPTOR_RANGE.max,
+      RECEPTOR_RANGE.min,
+      y / (receptorSteps - 1)
+    );
+    for (let x = 0; x < kdSteps; x += 1) {
+      const kd = interpolate(KD_RANGE.min, KD_RANGE.max, x / (kdSteps - 1));
       const summary = simulate({
         ...state,
         receptorLevel,
@@ -658,12 +644,14 @@ function renderPhaseMap() {
 
   const dotX =
     margin.left +
-    ((state.receptorLevel - RECEPTOR_RANGE.min) /
-      (RECEPTOR_RANGE.max - RECEPTOR_RANGE.min)) *
+    ((state.dimerKd - KD_RANGE.min) / (KD_RANGE.max - KD_RANGE.min)) *
       plotWidth;
   const dotY =
     margin.top +
-    ((state.dimerKd - KD_RANGE.min) / (KD_RANGE.max - KD_RANGE.min)) * plotHeight;
+    (1 -
+      (state.receptorLevel - RECEPTOR_RANGE.min) /
+        (RECEPTOR_RANGE.max - RECEPTOR_RANGE.min)) *
+      plotHeight;
 
   phaseContext.beginPath();
   phaseContext.arc(dotX, dotY, 7, 0, Math.PI * 2);
@@ -681,10 +669,10 @@ function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
   context.fillStyle = "#5f6470";
   context.font = '12px "Space Grotesk", sans-serif';
   context.textAlign = "center";
-  for (const tick of receptorTicks) {
+  for (const tick of kdTicks) {
     const x =
       margin.left +
-      ((tick - RECEPTOR_RANGE.min) / (RECEPTOR_RANGE.max - RECEPTOR_RANGE.min)) *
+      ((tick - KD_RANGE.min) / (KD_RANGE.max - KD_RANGE.min)) *
         plotWidth;
     context.beginPath();
     context.moveTo(x, margin.top + plotHeight);
@@ -696,10 +684,13 @@ function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
 
   context.save();
   context.textAlign = "right";
-  for (const tick of kdTicks) {
+  for (const tick of receptorTicks) {
     const y =
       margin.top +
-      ((tick - KD_RANGE.min) / (KD_RANGE.max - KD_RANGE.min)) * plotHeight;
+      (1 -
+        (tick - RECEPTOR_RANGE.min) /
+          (RECEPTOR_RANGE.max - RECEPTOR_RANGE.min)) *
+        plotHeight;
     context.beginPath();
     context.moveTo(margin.left - 6, y);
     context.lineTo(margin.left, y);
@@ -712,7 +703,7 @@ function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
   context.fillStyle = "#5f6470";
   context.textAlign = "center";
   context.fillText(
-    "receptor abundance (AU)",
+    "dimerization Kd (AU)",
     margin.left + plotWidth / 2,
     margin.top + plotHeight + 34
   );
@@ -720,7 +711,7 @@ function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
   context.save();
   context.translate(16, margin.top + plotHeight / 2);
   context.rotate(-Math.PI / 2);
-  context.fillText("dimerization Kd (AU)", 0, 0);
+  context.fillText("receptor abundance (AU)", 0, 0);
   context.restore();
 }
 
