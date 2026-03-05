@@ -2,80 +2,83 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Signal Fate: RTK Density & Affinity</title>
+    <title>RTK Signaling: Amplitude vs Duration</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
-        body { font-family: -apple-system, sans-serif; margin: 0; background: #fafafa; display: flex; flex-direction: column; height: 100vh; }
-        .header { background: #2c3e50; color: white; padding: 15px 30px; }
-        .layout { display: grid; grid-template-columns: 350px 1fr; flex: 1; overflow: hidden; padding: 20px; gap: 20px; }
-        .sidebar { background: white; padding: 25px; border-radius: 12px; border: 1px solid #ddd; display: flex; flex-direction: column; gap: 25px; }
-        .main { display: grid; grid-template-rows: 1fr 280px; gap: 20px; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        label { font-weight: bold; font-size: 0.9rem; display: block; margin-bottom: 8px; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: #f8f9fa; }
+        .header { background: #2c3e50; color: white; padding: 1rem 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .main { display: grid; grid-template-columns: 350px 1fr; flex: 1; overflow: hidden; padding: 20px; gap: 20px; }
+        .controls { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 25px; border: 1px solid #e1e4e8; }
+        .visuals { display: grid; grid-template-rows: 1.2fr 0.8fr; gap: 20px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; }
+        label { font-weight: bold; font-size: 0.9rem; color: #34495e; display: block; margin-bottom: 10px; }
         input[type=range] { width: 100%; cursor: pointer; }
-        .val { float: right; color: #2980b9; font-weight: bold; font-family: monospace; }
-        .desc { font-size: 0.8rem; color: #7f8c8d; line-height: 1.4; margin-top: 5px; }
+        .val { float: right; color: #3498db; font-family: monospace; font-size: 1rem; }
+        .hint { font-size: 0.8rem; color: #7f8c8d; line-height: 1.4; margin-top: 5px; }
+        .fate-legend { margin-top: auto; padding: 15px; background: #f1f2f6; border-radius: 8px; font-size: 0.85rem; border-left: 5px solid #3498db; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2 style="margin:0">RTK Signal Fate Map</h2>
+    <h2 style="margin:0">RTK Signal Dynamics (Jenni et al. Model)</h2>
 </div>
 
-<div class="layout">
-    <div class="sidebar">
+<div class="main">
+    <div class="controls">
         <div>
-            <label>Receptor Level ([R]₀) <span class="val" id="dispR">500</span></label>
-            <input type="range" id="Rtot" min="10" max="2000" value="500">
-            <p class="desc">Increasing density shifts fate <b>UP and LEFT</b> (Burst).</p>
+            <label>Receptor Density ([R]₀) <span class="val" id="dispR">500</span></label>
+            <input type="range" id="Rtot" min="20" max="2000" value="500">
+            <p class="hint">Increasing density speeds up dimerization, driving the <b>Amplitude UP</b> and <b>Duration DOWN</b>.</p>
         </div>
 
         <div>
-            <label>Dimerization K<sub>d</sub> (K<sub>d2</sub>) <span class="val" id="dispKd2">200</span></label>
+            <label>Dimerization K<sub>d</sub> (K<sub>d2</sub>) <span class="val" id="dispKd">200</span></label>
             <input type="range" id="Kd2" min="1" max="1000" value="200">
-            <p class="desc">Weakening K<sub>d</sub> (moving right) shifts fate <b>DOWN and RIGHT</b> (Sustained).</p>
+            <p class="hint">Weakening K<sub>d</sub> (Negative Cooperativity) forces the signal to be <b>Lower</b> but <b>Longer</b>.</p>
         </div>
 
-        <div style="margin-top:auto; padding:15px; background:#f1f2f6; border-radius:8px; border-left:5px solid #2980b9;">
-            <small>
-                <b>Proliferation:</b> High Amp, < 10 min.<br>
-                <b>Differentiation:</b> Low Amp, > 15 min.
-            </small>
+        <div class="fate-legend">
+            <b>Learning Key:</b><br>
+            • <b>Burst (Proliferation):</b> Fast, High Peak.<br>
+            • <b>Sustained (Differentiation):</b> Slow, Low Plateau.
         </div>
     </div>
 
-    <div class="main">
+    <div class="visuals">
         <div class="card" id="fatePlot"></div>
         <div class="card" id="timePlot"></div>
     </div>
 </div>
 
 <script>
-    function simulate() {
+    function solve() {
         const R0 = parseFloat(document.getElementById('Rtot').value);
-        const Kd2_val = parseFloat(document.getElementById('Kd2').value);
-        const L0 = 100; 
-
-        // Parameters tuned to prevent biphasic duration collapse
-        const k_on = 0.15;   
+        const Kd2 = parseFloat(document.getElementById('Kd2').value);
+        
+        // Stabilized Model Constants
+        const L0 = 100;        // Initial Ligand
+        const k_on = 0.15;     // Association rate
         const Kd1 = 2.0;       // Strong initial capture
         const koff1 = k_on * Kd1;
-        const koff2 = k_on * Kd2_val;
-        const k_int = 0.08;    // Internalization
+        const koff2 = k_on * Kd2;
+        const k_int = 0.1;     // Rapid internalization of active complex
 
         document.getElementById('dispR').innerText = R0;
-        document.getElementById('dispKd2').innerText = Kd2_val;
+        document.getElementById('dispKd').innerText = Kd2;
 
+        // Simulation (Fine-step Euler)
         let R = R0, L = L0, RL2 = 0, R2L2 = 0;
-        let dt = 0.1, steps = 1000;
+        let dt = 0.05, steps = 800;
         let time = [], signal = [];
-        let maxA = 0;
+        let maxAmp = 0;
 
         for (let i = 0; i < steps; i++) {
-            // Sequential binding: L + R -> RL2 + R -> R2L2
+            // v1: R + L2 -> RL2
             let v1 = (k_on * R * L) - (koff1 * RL2);
+            // v2: RL2 + R -> R2L2
             let v2 = (k_on * RL2 * R) - (koff2 * R2L2);
+            // v3: Internalization (the sink)
             let v_int = k_int * R2L2;
 
             L -= v1 * dt;
@@ -84,56 +87,59 @@
             R2L2 += (v2 - v_int) * dt;
 
             let s = Math.max(0, R2L2);
-            if (s > maxA) maxA = s;
-            time.append ? null : time.push(i * dt);
+            if (s > maxAmp) maxAmp = s;
+            time.push(i * dt);
             signal.push(s);
         }
 
-        // Calculation of Duration (Integrative approach to avoid FWHM jitter)
-        // Duration = Time the signal spends above 40% of its peak
-        let thresh = maxA * 0.4;
-        let t1 = -1, t2 = -1;
-        for(let i=0; i<signal.length; i++){
-            if(t1 === -1 && signal[i] >= thresh) t1 = time[i];
-            if(t1 !== -1 && t2 === -1 && signal[i] < thresh) t2 = time[i];
+        // Robust Duration Calculation:
+        // Duration is the time the signal remains above a noise floor (5 units)
+        // This prevents the "jumping" caused by FWHM logic.
+        let noiseFloor = 5;
+        let t_start = -1, t_end = -1;
+        for(let i=0; i<signal.length; i++) {
+            if(t_start === -1 && signal[i] > noiseFloor) t_start = time[i];
+            if(t_start !== -1 && signal[i] > noiseFloor) t_end = time[i];
         }
-        let duration = (t1 === -1) ? 0 : (t2 === -1 ? (steps*dt - t1) : (t2 - t1));
+        let duration = (t_start === -1) ? 0 : (t_end - t_start);
 
-        render(maxA, duration, time, signal);
+        updatePlots(maxAmp, duration, time, signal);
     }
 
-    function render(amp, dur, tArr, sArr) {
+    function updatePlots(amp, dur, tArr, sArr) {
+        // Fate Map
         Plotly.newPlot('fatePlot', [{
             x: [dur], y: [amp], mode: 'markers+text',
-            text: ['Current Fate'], textposition: 'top center',
-            marker: { size: 22, color: '#2c3e50', line: {width: 2, color: 'white'} }
+            text: ['Signal Outcome'], textposition: 'top center',
+            marker: { size: 25, color: '#2c3e50', line: {width: 3, color: 'white'} }
         }], {
-            title: '<b>Signal Fate Map</b>',
-            xaxis: { title: 'Duration (Minutes)', range: [0, 25], fixedrange: true },
-            yaxis: { title: 'Amplitude (Peak R₂L₂)', range: [0, 150], fixedrange: true },
+            title: '<b>Signal Fate Map: Amplitude vs Duration</b>',
+            xaxis: { title: 'Duration (Minutes)', range: [0, 25], gridcolor: '#eee' },
+            yaxis: { title: 'Amplitude (Peak R₂L₂)', range: [0, 160], gridcolor: '#eee' },
             shapes: [
-                { type: 'rect', xref: 'x', yref: 'y', x0: 0, x1: 10, y0: 80, y1: 150, fillcolor: 'rgba(231, 76, 60, 0.1)', line: {width: 0} },
-                { type: 'rect', xref: 'x', yref: 'y', x0: 15, x1: 25, y0: 0, y1: 60, fillcolor: 'rgba(39, 174, 96, 0.1)', line: {width: 0} }
+                { type: 'rect', xref: 'x', yref: 'y', x0: 0, x1: 10, y0: 80, y1: 160, fillcolor: 'rgba(231, 76, 60, 0.1)', line: {width: 0} },
+                { type: 'rect', xref: 'x', yref: 'y', x0: 14, x1: 25, y0: 0, y1: 60, fillcolor: 'rgba(46, 204, 113, 0.1)', line: {width: 0} }
             ],
             annotations: [
-                { x: 5, y: 140, text: 'PROLIFERATION', showarrow: false, font: {color: '#c0392b', size: 14} },
-                { x: 20, y: 10, text: 'DIFFERENTIATION', showarrow: false, font: {color: '#27ae60', size: 14} }
+                { x: 5, y: 150, text: '<b>PROLIFERATION</b>', showarrow: false, font: {color: '#c0392b'} },
+                { x: 20, y: 10, text: '<b>DIFFERENTIATION</b>', showarrow: false, font: {color: '#27ae60'} }
             ],
-            margin: { t: 50, l: 50, r: 30, b: 50 }
-        });
+            margin: { t: 50, b: 50, l: 60, r: 30 }
+        }, {staticPlot: true});
 
+        // Time Course
         Plotly.newPlot('timePlot', [{
-            x: tArr, y: sArr, fill: 'tozeroy', line: {color: '#2980b9', width: 3}
+            x: tArr, y: sArr, fill: 'tozeroy', line: {color: '#3498db', width: 3}
         }], {
-            title: 'Active Signal Over Time',
+            title: 'Active Signal Over Time (R₂L₂)',
             xaxis: { title: 'Time (min)', range: [0, 40] },
-            yaxis: { title: 'Intensity' },
-            margin: { t: 40, b: 40, l: 50, r: 30 }, height: 240
-        });
+            yaxis: { title: 'Concentration' },
+            margin: { t: 40, b: 40, l: 60, r: 30 }
+        }, {staticPlot: true});
     }
 
-    document.querySelectorAll('input').forEach(i => i.addEventListener('input', simulate));
-    simulate();
+    document.querySelectorAll('input').forEach(i => i.addEventListener('input', solve));
+    solve();
 </script>
 </body>
 </html>
