@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/25780675/README.md)
+[README.md](https://github.com/user-attachments/files/25780796/README.md)
 # RTK Signaling Explorer
 
 A zero-build static web app for illustrating how receptor abundance, dimerization Kd, cooperativity, and receptor internalization reshape RTK signaling output.
@@ -22,12 +22,11 @@ The implementation is intentionally compact rather than a methods-level reproduc
 
 - `index.html`: structure and teaching copy
 - `styles.css`: visual design and layout
-- `model.mjs`: simulation logic and presets
-- `app.js`: UI wiring, charts, phase map, and interpretation text
+- `app.js`: simulation logic, UI wiring, charts, phase map, and interpretation text
 
 ## Local preview
 
-Because this is a static site, you can preview it with any simple web server from the repo root:
+This app no longer depends on JavaScript modules, so you can either open `index.html` directly or use a simple local web server from the repo root:
 
 ```bash
 python3 -m http.server 8000
