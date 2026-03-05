@@ -54,11 +54,15 @@ body::before {
 .page-shell {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 40px 24px 56px;
+  padding: 24px 24px 56px;
 }
 
 .hero {
-  padding: 28px 30px 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: start;
+  padding: 6px 6px 16px;
 }
 
 .eyebrow {
@@ -80,31 +84,26 @@ body::before {
 
 .hero h1 {
   margin: 0;
-  max-width: 14ch;
-  font-size: clamp(2.8rem, 5vw, 5.4rem);
-  line-height: 0.94;
-  letter-spacing: -0.04em;
+  max-width: none;
+  font-size: clamp(1.7rem, 3.1vw, 2.7rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
 }
 
-.hero-copy {
-  margin: 22px 0 0;
-  max-width: 78ch;
+.hero-text {
+  min-width: 0;
+}
+
+.hero-subtitle {
+  margin: 8px 0 0;
+  max-width: 72ch;
   color: var(--muted);
-  font-size: 1.02rem;
-  line-height: 1.72;
+  font-size: 0.94rem;
+  line-height: 1.55;
 }
 
-.hero-copy a {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  margin-top: 24px;
-  flex-wrap: wrap;
+.hero-controls {
+  flex: 0 0 auto;
 }
 
 .secondary-button,
@@ -133,13 +132,6 @@ body::before {
 .preset-button:hover,
 .segmented-control button:hover {
   transform: translateY(-1px);
-}
-
-.hero-note {
-  max-width: 46ch;
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.5;
 }
 
 .workspace {
@@ -521,12 +513,12 @@ input[type="range"] {
   }
 
   .hero {
-    padding: 12px 6px 18px;
+    flex-direction: column;
+    padding: 8px 6px 16px;
   }
 
   .hero h1 {
-    max-width: none;
-    font-size: clamp(2.3rem, 12vw, 3.7rem);
+    font-size: clamp(1.8rem, 9vw, 2.5rem);
   }
 
   .controls-panel,
