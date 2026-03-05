@@ -53,7 +53,7 @@
               <p class="panel-step">Lesson 1</p>
               <h2>Binding: KD and Bmax</h2>
             </div>
-            <p class="panel-summary">Three colored curves share a fixed Bmax of 100 so the impact of changing KD is easy to compare.</p>
+            <p class="panel-summary">Three colored curves show normalized receptor occupancy, so changing KD shifts fractional binding on a fixed 0 to 1 scale.</p>
           </div>
 
           <div class="controls-grid">
@@ -100,7 +100,7 @@
               <p class="panel-step">Lesson 2</p>
               <h2>Efficacy: idealized KD = EC50</h2>
             </div>
-            <p class="panel-summary">This idealized bridge shows how moving KD can shift EC50 while Emax remains fixed at 100.</p>
+            <p class="panel-summary">This idealized bridge shows how moving KD shifts EC50 when effect is displayed as the normalized fraction E/Emax.</p>
           </div>
 
           <div class="controls-grid">
@@ -203,7 +203,7 @@
             </label>
           </div>
 
-          <div class="plots-grid">
+          <div class="plots-grid plots-grid-two">
             <article class="plot-card">
               <h3>Agonist-response log plot</h3>
               <div id="ant-response-log" class="plot-frame"></div>
@@ -380,7 +380,7 @@
       <section class="footer-notes">
         <h2>Teaching notes</h2>
         <ul>
-          <li>Tabs 1 and 2 use fixed `Bmax` and `Emax` at 100 so horizontal shifts are easier to see.</li>
+          <li>Tabs 1 and 2 are normalized to fractions: binding uses `[LR]/[R0]` and efficacy uses `E/Emax`.</li>
           <li>Concentration sliders use linear nM controls from 0.1 to 250 while the plotted x-axes stay fixed for comparison.</li>
           <li>Linear concentration plots cap at 1000 nM. Quantal dose uses mg/kg on a log x-axis from 1 to 200.</li>
         </ul>
