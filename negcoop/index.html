@@ -111,8 +111,8 @@
                   id="pulseDuration"
                   type="range"
                   min="12"
-                  max="90"
-                  step="2"
+                  max="60"
+                  step="1"
                 />
               </label>
             </div>
@@ -148,8 +148,8 @@
                   id="internalizationRate"
                   type="range"
                   min="0.01"
-                  max="0.12"
-                  step="0.002"
+                  max="0.24"
+                  step="0.005"
                 />
               </label>
 
@@ -172,23 +172,24 @@
           <details class="model-note">
             <summary>Model structure</summary>
             <p>
-              The simulator treats ligand occupancy, receptor dimerization,
-              activation, internalization, and recycling as a compact dynamical
-              system. It uses three ideas:
+              The simulator is now tuned as a teaching model for the curve shapes
+              you asked for. It uses three linked ideas:
             </p>
             <ol>
               <li>
-                Surface receptors bind a transient ligand pulse:
-                <code>bound = R_surface * L / (L + K_L)</code>
+                Receptor abundance, ligand, cooperativity, and Kd set an
+                effective dimerization drive that decides whether the response
+                is mostly transient or mostly sustained.
               </li>
               <li>
-                Active dimers emerge from a cooperativity-shaped dimerization
-                curve controlled by receptor abundance and Kd:
-                <code>dimerized ~ bound * f(bound / Kd, cooperativity)</code>
+                A fast transient component peaks near 2 minutes, while a weak
+                negative-cooperative regime adds a low plateau that can persist
+                for 30 to 60 minutes.
               </li>
               <li>
-                Active dimers drive both signal and receptor internalization:
-                <code>dR_surface/dt = -k_int * active + k_rec * internal</code>
+                Strong signaling drives rapid receptor loss from the surface,
+                which makes transient responses crash even if ligand is still
+                present.
               </li>
             </ol>
           </details>
