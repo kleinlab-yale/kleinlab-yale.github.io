@@ -1,3 +1,4 @@
+[README.md](https://github.com/user-attachments/files/25780675/README.md)
 # RTK Signaling Explorer
 
 A zero-build static web app for illustrating how receptor abundance, dimerization Kd, cooperativity, and receptor internalization reshape RTK signaling output.
@@ -9,6 +10,11 @@ This app is designed for GitHub Pages and intended for teaching. It emphasizes t
 - weak or negatively cooperative dimerization can create lower-amplitude, longer-lived signaling at low receptor abundance
 - the same weak dimerization step can be titrated at higher receptor abundance, converting the response into a stronger transient
 - stronger non-cooperative or positive-cooperative dimerization produces more burst-like signaling and stronger receptor loss from the surface
+
+The current curve tuning is intentionally shape-first:
+
+- transient presets peak at about 2 minutes and collapse by about 15 minutes
+- sustained weak-dimerization presets stay low but can persist for roughly 30 to 60 minutes
 
 The implementation is intentionally compact rather than a methods-level reproduction of every equation in the paper.
 
@@ -39,11 +45,11 @@ Then open `http://localhost:8000`.
 
 ## Model summary
 
-The simulator uses a small dynamical system:
+The simulator uses a compact teaching model:
 
-- ligand occupancy creates a pool of bound surface receptors
-- dimerization depends on receptor abundance, Kd, and a cooperativity-shaped response curve
-- active receptors drive both signaling and internalization
-- recycling slowly returns receptors to the surface
+- receptor abundance, ligand, Kd, and cooperativity determine whether the response favors a fast transient or a low sustained plateau
+- the transient component is tuned to peak early
+- the sustained component dominates only in weak negative-cooperative regimes
+- internalization strips surface receptors quickly when the transient component is strong
 
 This is enough to let students see the switch you care about: weak dimerization can look sustained at low receptor abundance but transient at high receptor abundance because mass action overcomes the same Kd.
