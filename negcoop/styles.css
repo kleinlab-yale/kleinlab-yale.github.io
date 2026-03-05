@@ -281,6 +281,10 @@ h1 {
   gap: 1rem;
 }
 
+.plots-grid-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .plots-grid-single {
   grid-template-columns: 1fr;
 }
@@ -344,6 +348,10 @@ h1 {
   .plot-frame,
   .plot-frame-feature {
     min-height: 320px;
+  }
+
+  .plots-grid-two {
+    grid-template-columns: 1fr;
   }
 }
 
