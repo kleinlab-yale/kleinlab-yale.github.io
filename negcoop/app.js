@@ -287,6 +287,8 @@ function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
 
+applyCompatibilityOverrides();
+
 const state = { ...DEFAULTS };
 
 const controls = {
@@ -334,6 +336,137 @@ const snapshotNodes = {
 let phaseMapTimeout = null;
 
 initialize();
+
+function applyCompatibilityOverrides() {
+  document.title = "Cooperativity and Control of Signaling";
+
+  const description = document.querySelector('meta[name="description"]');
+  if (description) {
+    description.setAttribute(
+      "content",
+      "KLAY teaching app for RTK cooperativity, receptor abundance, dimerization Kd, and signaling control."
+    );
+  }
+
+  injectCompatibilityStyles();
+  normalizeHero();
+  removeLegacyPulseDurationControl();
+  rewriteStaticCopy();
+}
+
+function injectCompatibilityStyles() {
+  if (document.querySelector("#compatibility-overrides")) {
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.id = "compatibility-overrides";
+  style.textContent = `
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 6px 6px 16px !important;
+    }
+    .hero h1 {
+      margin: 0;
+      max-width: none;
+      font-size: clamp(1.7rem, 3.1vw, 2.7rem) !important;
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .hero-text {
+      min-width: 0;
+    }
+    .hero-subtitle {
+      margin: 8px 0 0;
+      max-width: 72ch;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+    .hero-controls {
+      flex: 0 0 auto;
+    }
+    .hero-note {
+      display: none !important;
+    }
+    @media (max-width: 760px) {
+      .hero {
+        flex-direction: column;
+      }
+      .hero h1 {
+        font-size: clamp(1.8rem, 9vw, 2.5rem) !important;
+      }
+    }
+  `;
+  document.head.append(style);
+}
+
+function normalizeHero() {
+  const hero = document.querySelector(".hero");
+  if (!hero) {
+    return;
+  }
+
+  const resetButton = hero.querySelector("#resetDefaults");
+  const eyebrow = hero.querySelector(".eyebrow") || document.createElement("p");
+  eyebrow.className = "eyebrow";
+  eyebrow.textContent = "KLAY Teaching App";
+
+  const heading = hero.querySelector("h1") || document.createElement("h1");
+  heading.textContent = "Cooperativity and Control of Signaling";
+
+  const subtitle =
+    hero.querySelector(".hero-subtitle") ||
+    hero.querySelector(".hero-copy") ||
+    document.createElement("p");
+  subtitle.className = "hero-subtitle";
+  subtitle.textContent =
+    "For Pharmacology graduate students. Designed and maintained by the Klein Lab at Yale (KLAY).";
+
+  const heroText = hero.querySelector(".hero-text") || document.createElement("div");
+  heroText.className = "hero-text";
+  heroText.replaceChildren(eyebrow, heading, subtitle);
+
+  const heroControls =
+    hero.querySelector(".hero-controls") ||
+    hero.querySelector(".hero-actions") ||
+    document.createElement("div");
+  heroControls.className = "hero-controls";
+
+  if (resetButton) {
+    heroControls.replaceChildren(resetButton);
+  }
+
+  hero.replaceChildren(heroText, heroControls);
+}
+
+function removeLegacyPulseDurationControl() {
+  const pulseDurationControl = document.querySelector("#pulseDuration");
+  pulseDurationControl?.closest(".control")?.remove();
+}
+
+function rewriteStaticCopy() {
+  const primaryBlock = Array.from(document.querySelectorAll(".block-heading")).find(
+    (node) => node.querySelector("h2")?.textContent.trim() === "Primary knobs"
+  );
+  const primaryDescription = primaryBlock?.querySelector("p");
+  if (primaryDescription) {
+    primaryDescription.textContent =
+      "All values are relative units intended for interactive intuition. Ligand is treated as limiting, with a fixed 1 minute pulse starting at time zero.";
+  }
+
+  for (const heading of document.querySelectorAll(".card-heading h3")) {
+    if (
+      heading.textContent.includes("Receptor abundance") ||
+      heading.textContent.includes("dimerization Kd")
+    ) {
+      heading.textContent = "Dimerization Kd versus receptor abundance";
+    }
+  }
+}
 
 function initialize() {
   buildPresetButtons();
