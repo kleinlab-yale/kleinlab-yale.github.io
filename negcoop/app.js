@@ -237,6 +237,7 @@ function renderBinding() {
     Math.max(getInputValue("bind-kd2"), CONC_MIN_NM),
     Math.max(getInputValue("bind-kd3"), CONC_MIN_NM),
   ];
+  const fractionalMax = 1.0;
   const colors = ["royalblue", "seagreen", "darkorange"];
   const { xLogNm, xLinearNm } = concentrationGridsNm();
   const xLogM = xLogNm.map(nmToM);
@@ -244,7 +245,7 @@ function renderBinding() {
 
   const logTraces = kdValues.map((kdNm, index) => ({
     x: xLogNm,
-    y: hillResponse(xLogM, BMAX_FIXED, nmToM(kdNm), 1.0),
+    y: hillResponse(xLogM, fractionalMax, nmToM(kdNm), 1.0),
     mode: "lines",
     name: `Curve ${index + 1} KD=${fmtNm(kdNm)} nM`,
     line: { width: 3, color: colors[index] },
@@ -252,7 +253,7 @@ function renderBinding() {
 
   const linearTraces = kdValues.map((kdNm, index) => ({
     x: xLinearNm,
-    y: hillResponse(xLinearM, BMAX_FIXED, nmToM(kdNm), 1.0),
+    y: hillResponse(xLinearM, fractionalMax, nmToM(kdNm), 1.0),
     mode: "lines",
     name: `Curve ${index + 1} KD=${fmtNm(kdNm)} nM`,
     line: { width: 3, color: colors[index] },
@@ -261,32 +262,32 @@ function renderBinding() {
   let logLayout = baseLayout(
     "Binding Curve (Log X)",
     "Drug concentration [D] (nM, log scale)",
-    "Bound receptor amount (B, a.u.)",
+    "Fractional receptor bound [LR]/[R0]",
     true,
-    [0, 110],
+    [0, 1.05],
     [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
   );
   logLayout = addReferenceLines(logLayout, {
     vlines: kdValues.map((value, index) => [value, `KD${index + 1} ${fmtNm(value)}`, colors[index]]),
     hlines: [
-      [BMAX_FIXED, "Bmax", "gray"],
-      [0.5 * BMAX_FIXED, "50% Bmax", "steelblue"],
+      [fractionalMax, "[LR]/[R0] max = 1", "gray"],
+      [0.5 * fractionalMax, "0.5 bound", "steelblue"],
     ],
   });
 
   let linearLayout = baseLayout(
     "Binding Curve (Linear X)",
     "Drug concentration [D] (nM, linear scale)",
-    "Bound receptor amount (B, a.u.)",
+    "Fractional receptor bound [LR]/[R0]",
     false,
-    [0, 110],
+    [0, 1.05],
     [0, LINEAR_MAX_NM]
   );
   linearLayout = addReferenceLines(linearLayout, {
     vlines: kdValues.map((value, index) => [value, `KD${index + 1} ${fmtNm(value)}`, colors[index]]),
     hlines: [
-      [BMAX_FIXED, "Bmax", "gray"],
-      [0.5 * BMAX_FIXED, "50% Bmax", "steelblue"],
+      [fractionalMax, "[LR]/[R0] max = 1", "gray"],
+      [0.5 * fractionalMax, "0.5 bound", "steelblue"],
     ],
   });
 
@@ -294,7 +295,7 @@ function renderBinding() {
   plot("binding-linear", linearTraces, linearLayout);
   setNote(
     "binding-note",
-    `KD1=${fmtNm(kdValues[0])} nM, KD2=${fmtNm(kdValues[1])} nM, KD3=${fmtNm(kdValues[2])} nM. At each KD, binding is 50% of Bmax. Bmax is fixed at ${BMAX_FIXED.toFixed(0)} binding units.`
+    `KD1=${fmtNm(kdValues[0])} nM, KD2=${fmtNm(kdValues[1])} nM, KD3=${fmtNm(kdValues[2])} nM. At each KD, fractional receptor occupancy [LR]/[R0] = 0.5. Binding is normalized so the maximal fractional occupancy is 1.0.`
   );
 }
 
@@ -304,6 +305,7 @@ function renderEfficacy() {
     Math.max(getInputValue("eff-kd2"), CONC_MIN_NM),
     Math.max(getInputValue("eff-kd3"), CONC_MIN_NM),
   ];
+  const fractionalMax = 1.0;
   const colors = ["royalblue", "seagreen", "darkorange"];
   const { xLogNm, xLinearNm } = concentrationGridsNm();
   const xLogM = xLogNm.map(nmToM);
@@ -311,7 +313,7 @@ function renderEfficacy() {
 
   const logTraces = kdValues.map((ec50Nm, index) => ({
     x: xLogNm,
-    y: hillResponse(xLogM, EMAX_FIXED, nmToM(ec50Nm), 1.0),
+    y: hillResponse(xLogM, fractionalMax, nmToM(ec50Nm), 1.0),
     mode: "lines",
     name: `Curve ${index + 1} KD=EC50=${fmtNm(ec50Nm)} nM`,
     line: { width: 3, color: colors[index] },
@@ -319,7 +321,7 @@ function renderEfficacy() {
 
   const linearTraces = kdValues.map((ec50Nm, index) => ({
     x: xLinearNm,
-    y: hillResponse(xLinearM, EMAX_FIXED, nmToM(ec50Nm), 1.0),
+    y: hillResponse(xLinearM, fractionalMax, nmToM(ec50Nm), 1.0),
     mode: "lines",
     name: `Curve ${index + 1} KD=EC50=${fmtNm(ec50Nm)} nM`,
     line: { width: 3, color: colors[index] },
@@ -328,32 +330,32 @@ function renderEfficacy() {
   let logLayout = baseLayout(
     "Efficacy Curve (Idealized: KD = EC50, Log X)",
     "Drug concentration [D] (nM, log scale)",
-    "Effect (a.u.)",
+    "Fractional effect E/Emax",
     true,
-    [0, 110],
+    [0, 1.05],
     [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
   );
   logLayout = addReferenceLines(logLayout, {
     vlines: kdValues.map((value, index) => [value, `KD=EC50 ${index + 1}: ${fmtNm(value)}`, colors[index]]),
     hlines: [
-      [EMAX_FIXED, "Emax=efficacy", "gray"],
-      [0.5 * EMAX_FIXED, "50% efficacy", "steelblue"],
+      [fractionalMax, "E/Emax max = 1", "gray"],
+      [0.5 * fractionalMax, "0.5 effect", "steelblue"],
     ],
   });
 
   let linearLayout = baseLayout(
     "Efficacy Curve (Idealized: KD = EC50, Linear X)",
     "Drug concentration [D] (nM, linear scale)",
-    "Effect (a.u.)",
+    "Fractional effect E/Emax",
     false,
-    [0, 110],
+    [0, 1.05],
     [0, LINEAR_MAX_NM]
   );
   linearLayout = addReferenceLines(linearLayout, {
     vlines: kdValues.map((value, index) => [value, `KD=EC50 ${index + 1}: ${fmtNm(value)}`, colors[index]]),
     hlines: [
-      [EMAX_FIXED, "Emax=efficacy", "gray"],
-      [0.5 * EMAX_FIXED, "50% efficacy", "steelblue"],
+      [fractionalMax, "E/Emax max = 1", "gray"],
+      [0.5 * fractionalMax, "0.5 effect", "steelblue"],
     ],
   });
 
@@ -361,7 +363,7 @@ function renderEfficacy() {
   plot("efficacy-linear", linearTraces, linearLayout);
   setNote(
     "efficacy-note",
-    `KD=EC50 values: ${fmtNm(kdValues[0])}, ${fmtNm(kdValues[1])}, ${fmtNm(kdValues[2])} nM. Emax=efficacy is fixed at ${EMAX_FIXED.toFixed(0)}.`
+    `KD=EC50 values: ${fmtNm(kdValues[0])}, ${fmtNm(kdValues[1])}, ${fmtNm(kdValues[2])} nM. Effect is normalized to E/Emax, so the maximum effect is 1.0 and E/Emax = 0.5 at EC50.`
   );
 }
 
