@@ -216,7 +216,9 @@ function renderTimecourse(summary) {
   );
 
   const horizontalTicks = [0, 0.25, 0.5, 0.75, 1].map((fraction) => signalMax * fraction);
-  const verticalTicks = [0, 30, 60, 90, 120, 150, 180];
+  const verticalTicks = TOTAL_TIME <= 60
+    ? [0, 5, 10, 15, 30, 45, 60].filter((tick) => tick <= TOTAL_TIME)
+    : [0, 15, 30, 45, 60, 75, 90, 120, 150, 180].filter((tick) => tick <= TOTAL_TIME);
 
   timecourseChart.innerHTML = `
     <defs>
@@ -435,12 +437,12 @@ function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
 
 function buildInsight(summary, peakDrive) {
   const driveSentence =
-    peakDrive < 0.9
+    peakDrive < 0.55
       ? "At the signal peak, receptor occupancy still sits below the weak dimerization threshold, so the pathway never fully commits to a burst."
       : "At the signal peak, receptor abundance is high enough to titrate the weak dimerization step, so mass action pushes the system into a stronger pulse.";
 
   const internalizationSentence =
-    summary.surfaceLossFraction > 0.38
+    summary.surfaceLossFraction > 0.25
       ? "That larger active receptor pool drives substantial internalization, stripping the surface and forcing the signal to collapse."
       : "Because active dimers stay comparatively sparse, internalization remains modest and the surface pool is not exhausted quickly.";
 
