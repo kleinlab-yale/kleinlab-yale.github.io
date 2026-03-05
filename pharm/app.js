@@ -1,0 +1,938 @@
+const EPS = 1e-15;
+const CONC_MIN_NM = 0.1;
+const CONC_MAX_NM = 5000.0;
+const LINEAR_MAX_NM = 1000.0;
+const NM_TO_M = 1e-9;
+const BMAX_FIXED = 100.0;
+const EMAX_FIXED = 100.0;
+const QUANTAL_MIN_MGKG = 1.0;
+const QUANTAL_MAX_MGKG = 200.0;
+const PLOT_CONFIG = {
+  responsive: true,
+  displaylogo: false,
+};
+
+const TAB_IDS = ["binding", "efficacy", "antagonists", "partial", "spare", "quantal"];
+const dirtyTabs = Object.fromEntries(TAB_IDS.map((tabId) => [tabId, true]));
+let activeTabId = "binding";
+
+function fmtNm(valueNm) {
+  if (valueNm >= 100) {
+    return valueNm.toFixed(0);
+  }
+  if (valueNm >= 10) {
+    return valueNm.toFixed(1);
+  }
+  return valueNm.toFixed(2);
+}
+
+function nmToM(valueNm) {
+  return valueNm * NM_TO_M;
+}
+
+function linspace(start, end, points) {
+  if (points <= 1) {
+    return [start];
+  }
+  const step = (end - start) / (points - 1);
+  return Array.from({ length: points }, (_, index) => start + step * index);
+}
+
+function logspace(startExp, endExp, points) {
+  return linspace(startExp, endExp, points).map((value) => 10 ** value);
+}
+
+function hillResponse(concentrations, emax, ec50, hillN = 1.0) {
+  const safeEc50 = Math.max(ec50, EPS);
+  const safeHill = Math.max(hillN, EPS);
+  const ec50Pow = safeEc50 ** safeHill;
+  return concentrations.map((conc) => {
+    const concPow = Math.max(conc, 0) ** safeHill;
+    return (emax * concPow) / (ec50Pow + concPow);
+  });
+}
+
+function concentrationGridsNm(points = 500) {
+  return {
+    xLogNm: logspace(Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM), points),
+    xLinearNm: linspace(0, LINEAR_MAX_NM, points),
+  };
+}
+
+function addReferenceLines(layout, options = {}) {
+  const { vlines = [], hlines = [] } = options;
+  const shapes = layout.shapes ? [...layout.shapes] : [];
+  const annotations = layout.annotations ? [...layout.annotations] : [];
+
+  vlines.forEach(([x, label, color]) => {
+    shapes.push({
+      type: "line",
+      x0: x,
+      x1: x,
+      y0: 0,
+      y1: 1,
+      xref: "x",
+      yref: "paper",
+      line: { color, width: 2, dash: "dot" },
+      layer: "above",
+    });
+    if (label) {
+      annotations.push({
+        x,
+        y: 1.01,
+        xref: "x",
+        yref: "paper",
+        text: label,
+        showarrow: false,
+        font: { color, size: 11 },
+        bgcolor: "rgba(255,255,255,0.85)",
+      });
+    }
+  });
+
+  hlines.forEach(([y, label, color]) => {
+    shapes.push({
+      type: "line",
+      x0: 0,
+      x1: 1,
+      y0: y,
+      y1: y,
+      xref: "paper",
+      yref: "y",
+      line: { color, width: 2, dash: "dash" },
+      layer: "above",
+    });
+    if (label) {
+      annotations.push({
+        x: 1,
+        y,
+        xref: "paper",
+        yref: "y",
+        text: label,
+        showarrow: false,
+        xanchor: "right",
+        yanchor: "bottom",
+        font: { color, size: 11 },
+        bgcolor: "rgba(255,255,255,0.85)",
+      });
+    }
+  });
+
+  return {
+    ...layout,
+    shapes,
+    annotations,
+  };
+}
+
+function baseLayout(title, xTitle, yTitle, isLogX, yRange = null, xRange = null) {
+  const layout = {
+    title: {
+      text: title,
+      font: { family: "Newsreader, serif", size: 21, color: "#15253d" },
+    },
+    font: { family: "Manrope, sans-serif", size: 13, color: "#15253d" },
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "#ffffff",
+    legend: {
+      x: 0.02,
+      y: 0.98,
+      bgcolor: "rgba(255,255,255,0.76)",
+    },
+    margin: { l: 56, r: 30, t: 62, b: 56 },
+    xaxis: {
+      title: xTitle,
+      showgrid: true,
+      gridcolor: "#d8deea",
+      zeroline: false,
+      linecolor: "#aab8cb",
+      tickfont: { color: "#42536d" },
+    },
+    yaxis: {
+      title: yTitle,
+      showgrid: true,
+      gridcolor: "#d8deea",
+      zeroline: false,
+      linecolor: "#aab8cb",
+      tickfont: { color: "#42536d" },
+    },
+  };
+
+  if (isLogX) {
+    layout.xaxis.type = "log";
+  }
+  if (xRange) {
+    layout.xaxis.range = xRange;
+  }
+  if (yRange) {
+    layout.yaxis.range = yRange;
+  }
+
+  return layout;
+}
+
+function plot(divId, data, layout) {
+  Plotly.react(divId, data, layout, PLOT_CONFIG);
+}
+
+function getInputValue(id) {
+  return Number(document.getElementById(id).value);
+}
+
+function getRadioValue(name) {
+  const checked = document.querySelector(`input[name="${name}"]:checked`);
+  return checked ? checked.value : "";
+}
+
+function setNote(id, text) {
+  document.getElementById(id).textContent = text;
+}
+
+function logisticQuantal(logDose, mu, sigma) {
+  const safeSigma = Math.max(sigma, 0.01);
+  return 1 / (1 + Math.exp(-(logDose - mu) / safeSigma));
+}
+
+function tiColor(tiValue) {
+  if (tiValue < 2.0) {
+    return "#d34134";
+  }
+  if (tiValue < 5.0) {
+    return "#d37522";
+  }
+  if (tiValue <= 10.0) {
+    return "#b29200";
+  }
+  return "#1f8a62";
+}
+
+function formatControlValue(input) {
+  const value = Number(input.value);
+  switch (input.dataset.format) {
+    case "nm":
+      return `${fmtNm(value)} nM`;
+    case "mgkg":
+      return `${value.toFixed(0)} mg/kg`;
+    case "percent0":
+      return `${value.toFixed(0)}%`;
+    case "decimal1":
+      return value.toFixed(1);
+    case "decimal2":
+      return value.toFixed(2);
+    case "fractionx":
+      return `${value.toFixed(2)} x`;
+    default:
+      return String(value);
+  }
+}
+
+function syncControlOutputs(panel = document) {
+  panel.querySelectorAll("input[type='range']").forEach((input) => {
+    const output = panel.querySelector(`output[data-for="${input.id}"]`);
+    if (output) {
+      output.textContent = formatControlValue(input);
+    }
+  });
+}
+
+function renderBinding() {
+  const kdValues = [
+    Math.max(getInputValue("bind-kd1"), CONC_MIN_NM),
+    Math.max(getInputValue("bind-kd2"), CONC_MIN_NM),
+    Math.max(getInputValue("bind-kd3"), CONC_MIN_NM),
+  ];
+  const fractionalMax = 1.0;
+  const colors = ["royalblue", "seagreen", "darkorange"];
+  const { xLogNm, xLinearNm } = concentrationGridsNm();
+  const xLogM = xLogNm.map(nmToM);
+  const xLinearM = xLinearNm.map(nmToM);
+
+  const logTraces = kdValues.map((kdNm, index) => ({
+    x: xLogNm,
+    y: hillResponse(xLogM, fractionalMax, nmToM(kdNm), 1.0),
+    mode: "lines",
+    name: `Curve ${index + 1}`,
+    line: { width: 3, color: colors[index] },
+  }));
+
+  const linearTraces = kdValues.map((kdNm, index) => ({
+    x: xLinearNm,
+    y: hillResponse(xLinearM, fractionalMax, nmToM(kdNm), 1.0),
+    mode: "lines",
+    name: `Curve ${index + 1}`,
+    line: { width: 3, color: colors[index] },
+  }));
+
+  let logLayout = baseLayout(
+    "Binding Curve (Log X)",
+    "Drug concentration [D] (nM, log scale)",
+    "Fractional receptor bound [LR]/[R0]",
+    true,
+    [0, 1.05],
+    [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
+  );
+  logLayout = addReferenceLines(logLayout, {
+    vlines: kdValues.map((value, index) => [value, "", colors[index]]),
+    hlines: [
+      [fractionalMax, "[LR]/[R0] max = 1", "gray"],
+      [0.5 * fractionalMax, "0.5 bound", "steelblue"],
+    ],
+  });
+  logLayout.showlegend = false;
+
+  let linearLayout = baseLayout(
+    "Binding Curve (Linear X)",
+    "Drug concentration [D] (nM, linear scale)",
+    "Fractional receptor bound [LR]/[R0]",
+    false,
+    [0, 1.05],
+    [0, LINEAR_MAX_NM]
+  );
+  linearLayout = addReferenceLines(linearLayout, {
+    vlines: kdValues.map((value, index) => [value, "", colors[index]]),
+    hlines: [
+      [fractionalMax, "[LR]/[R0] max = 1", "gray"],
+      [0.5 * fractionalMax, "0.5 bound", "steelblue"],
+    ],
+  });
+  linearLayout.showlegend = false;
+
+  plot("binding-log", logTraces, logLayout);
+  plot("binding-linear", linearTraces, linearLayout);
+  setNote(
+    "binding-note",
+    "At KD, fractional receptor occupancy [LR]/[R0] = 0.5. Binding is normalized so the maximal fractional occupancy is 1.0."
+  );
+}
+
+function renderEfficacy() {
+  const kdValues = [
+    Math.max(getInputValue("eff-kd1"), CONC_MIN_NM),
+    Math.max(getInputValue("eff-kd2"), CONC_MIN_NM),
+    Math.max(getInputValue("eff-kd3"), CONC_MIN_NM),
+  ];
+  const fractionalMax = 1.0;
+  const colors = ["royalblue", "seagreen", "darkorange"];
+  const { xLogNm, xLinearNm } = concentrationGridsNm();
+  const xLogM = xLogNm.map(nmToM);
+  const xLinearM = xLinearNm.map(nmToM);
+
+  const logTraces = kdValues.map((ec50Nm, index) => ({
+    x: xLogNm,
+    y: hillResponse(xLogM, fractionalMax, nmToM(ec50Nm), 1.0),
+    mode: "lines",
+    name: `Curve ${index + 1}`,
+    line: { width: 3, color: colors[index] },
+  }));
+
+  const linearTraces = kdValues.map((ec50Nm, index) => ({
+    x: xLinearNm,
+    y: hillResponse(xLinearM, fractionalMax, nmToM(ec50Nm), 1.0),
+    mode: "lines",
+    name: `Curve ${index + 1}`,
+    line: { width: 3, color: colors[index] },
+  }));
+
+  let logLayout = baseLayout(
+    "Efficacy Curve (Idealized: KD = EC50, Log X)",
+    "Drug concentration [D] (nM, log scale)",
+    "Fractional effect E/Emax",
+    true,
+    [0, 1.05],
+    [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
+  );
+  logLayout = addReferenceLines(logLayout, {
+    vlines: kdValues.map((value, index) => [value, "", colors[index]]),
+    hlines: [
+      [fractionalMax, "E/Emax max = 1", "gray"],
+      [0.5 * fractionalMax, "0.5 effect", "steelblue"],
+    ],
+  });
+  logLayout.showlegend = false;
+
+  let linearLayout = baseLayout(
+    "Efficacy Curve (Idealized: KD = EC50, Linear X)",
+    "Drug concentration [D] (nM, linear scale)",
+    "Fractional effect E/Emax",
+    false,
+    [0, 1.05],
+    [0, LINEAR_MAX_NM]
+  );
+  linearLayout = addReferenceLines(linearLayout, {
+    vlines: kdValues.map((value, index) => [value, "", colors[index]]),
+    hlines: [
+      [fractionalMax, "E/Emax max = 1", "gray"],
+      [0.5 * fractionalMax, "0.5 effect", "steelblue"],
+    ],
+  });
+  linearLayout.showlegend = false;
+
+  plot("efficacy-log", logTraces, logLayout);
+  plot("efficacy-linear", linearTraces, linearLayout);
+  setNote(
+    "efficacy-note",
+    "Effect is normalized to E/Emax, so the maximum effect is 1.0 and E/Emax = 0.5 at EC50."
+  );
+}
+
+function renderAntagonists() {
+  const model = getRadioValue("ant-model");
+  const baseEmax = EMAX_FIXED;
+  const baseEc50Nm = Math.max(getInputValue("ant-ec50"), CONC_MIN_NM);
+  const hillN = getInputValue("ant-hill");
+  const antConcNm = Math.max(getInputValue("ant-conc"), CONC_MIN_NM);
+  const ic50Nm = Math.max(getInputValue("ant-ic50"), CONC_MIN_NM);
+  const baseEc50M = nmToM(baseEc50Nm);
+  const antConcM = nmToM(antConcNm);
+  const ic50M = nmToM(ic50Nm);
+  const doseRatio = 1.0 + antConcM / ic50M;
+
+  const withEmax = model === "Competitive" ? baseEmax : baseEmax / doseRatio;
+  const withEc50M = model === "Competitive" ? baseEc50M * doseRatio : baseEc50M;
+  const withEc50Nm = withEc50M / NM_TO_M;
+  const withEc50LineNm = Math.min(Math.max(withEc50Nm, CONC_MIN_NM), CONC_MAX_NM);
+  const modelLine =
+    model === "Competitive"
+      ? "Competitive antagonist: rightward EC50 shift, unchanged Emax."
+      : "Noncompetitive antagonist: reduced Emax, EC50 approximately unchanged.";
+
+  const { xLogNm, xLinearNm } = concentrationGridsNm();
+  const xLogM = xLogNm.map(nmToM);
+  const xLinearM = xLinearNm.map(nmToM);
+  const baseLogCurve = hillResponse(xLogM, baseEmax, baseEc50M, hillN);
+  const withLogCurve = hillResponse(xLogM, withEmax, withEc50M, hillN);
+  const baseLinearCurve = hillResponse(xLinearM, baseEmax, baseEc50M, hillN);
+  const withLinearCurve = hillResponse(xLinearM, withEmax, withEc50M, hillN);
+
+  const responseLogTraces = [
+    {
+      x: xLogNm,
+      y: baseLogCurve,
+      mode: "lines",
+      name: "Agonist alone",
+      line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: xLogNm,
+      y: xLogNm.map(() => 0),
+      mode: "lines",
+      name: "Antagonist alone (no efficacy)",
+      line: { width: 3, color: "red" },
+    },
+    {
+      x: xLogNm,
+      y: withLogCurve,
+      mode: "lines",
+      name: `With ${model.toLowerCase()} antagonist`,
+      line: { width: 3, color: "seagreen", dash: "dash" },
+    },
+  ];
+
+  const responseLinearTraces = [
+    {
+      x: xLinearNm,
+      y: baseLinearCurve,
+      mode: "lines",
+      name: "Agonist alone",
+      line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: xLinearNm,
+      y: xLinearNm.map(() => 0),
+      mode: "lines",
+      name: "Antagonist alone (no efficacy)",
+      line: { width: 3, color: "red" },
+    },
+    {
+      x: xLinearNm,
+      y: withLinearCurve,
+      mode: "lines",
+      name: `With ${model.toLowerCase()} antagonist`,
+      line: { width: 3, color: "seagreen", dash: "dash" },
+    },
+  ];
+
+  const vlineItems = [[baseEc50Nm, "Baseline EC50", "royalblue"]];
+  const hlineItems = [[baseEmax, "Baseline Emax=efficacy", "royalblue"]];
+  if (model === "Competitive") {
+    vlineItems.push([withEc50LineNm, "Shifted EC50", "seagreen"]);
+  } else {
+    hlineItems.push([withEmax, "Reduced Emax=efficacy", "seagreen"]);
+  }
+
+  let responseLogLayout = baseLayout(
+    `${model} Antagonism (Log X)`,
+    "Agonist concentration (nM, log scale)",
+    "Effect (%)",
+    true,
+    [-5, 160],
+    [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
+  );
+  responseLogLayout = addReferenceLines(responseLogLayout, {
+    vlines: vlineItems,
+    hlines: hlineItems,
+  });
+
+  let responseLinearLayout = baseLayout(
+    `${model} Antagonism (Linear X)`,
+    "Agonist concentration (nM, linear scale)",
+    "Effect (%)",
+    false,
+    [-5, 160],
+    [0, LINEAR_MAX_NM]
+  );
+  responseLinearLayout = addReferenceLines(responseLinearLayout, {
+    vlines: vlineItems,
+    hlines: hlineItems,
+  });
+
+  const { xLogNm: antLogGridNm, xLinearNm: antLinearGridNm } = concentrationGridsNm();
+  const inhibLog = antLogGridNm.map((value) => (100.0 * value) / (ic50Nm + value));
+  const inhibLinear = antLinearGridNm.map((value) => (100.0 * value) / (ic50Nm + value));
+  const inhibitionAtCurrent = (100.0 * antConcNm) / (ic50Nm + antConcNm);
+
+  const inhibitionLogTraces = [
+    {
+      x: antLogGridNm,
+      y: inhibLog,
+      mode: "lines",
+      name: "Inhibition",
+      line: { width: 3, color: "seagreen" },
+    },
+  ];
+  const inhibitionLinearTraces = [
+    {
+      x: antLinearGridNm,
+      y: inhibLinear,
+      mode: "lines",
+      name: "Inhibition",
+      line: { width: 3, color: "seagreen" },
+    },
+  ];
+
+  let inhibitionLogLayout = baseLayout(
+    "Antagonist Inhibition vs [I] (Log X)",
+    "Antagonist concentration [I] (nM, log scale)",
+    "Inhibition (%)",
+    true,
+    [0, 100],
+    [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
+  );
+  inhibitionLogLayout = addReferenceLines(inhibitionLogLayout, {
+    vlines: [
+      [ic50Nm, "IC50", "seagreen"],
+      [antConcNm, "[I]", "gray"],
+    ],
+    hlines: [[50.0, "50% inhibition", "steelblue"]],
+  });
+
+  let inhibitionLinearLayout = baseLayout(
+    "Antagonist Inhibition vs [I] (Linear X)",
+    "Antagonist concentration [I] (nM, linear scale)",
+    "Inhibition (%)",
+    false,
+    [0, 100],
+    [0, LINEAR_MAX_NM]
+  );
+  inhibitionLinearLayout = addReferenceLines(inhibitionLinearLayout, {
+    vlines: [
+      [ic50Nm, "IC50", "seagreen"],
+      [antConcNm, "[I]", "gray"],
+    ],
+    hlines: [[50.0, "50% inhibition", "steelblue"]],
+  });
+
+  plot("ant-response-log", responseLogTraces, responseLogLayout);
+  plot("ant-response-linear", responseLinearTraces, responseLinearLayout);
+  plot("ant-inhibition-log", inhibitionLogTraces, inhibitionLogLayout);
+  plot("ant-inhibition-linear", inhibitionLinearTraces, inhibitionLinearLayout);
+  setNote(
+    "ant-note",
+    `${modelLine} Baseline Emax is fixed at ${baseEmax.toFixed(0)}%. IC50 = ${fmtNm(ic50Nm)} nM, [I] = ${fmtNm(antConcNm)} nM, inhibition at [I] = ${inhibitionAtCurrent.toFixed(1)}%. Baseline EC50 = ${fmtNm(baseEc50Nm)} nM; with antagonist EC50 = ${fmtNm(withEc50Nm)} nM.`
+  );
+}
+
+function renderPartial() {
+  const fullEc50Nm = Math.max(getInputValue("pa-full-ec50"), CONC_MIN_NM);
+  const fullHill = getInputValue("pa-full-hill");
+  const partialIntrinsic = getInputValue("pa-intrinsic");
+  const partialEc50Nm = Math.max(getInputValue("pa-partial-ec50"), CONC_MIN_NM);
+  const partialHill = getInputValue("pa-partial-hill");
+  const partialEmax = EMAX_FIXED * partialIntrinsic;
+  const fullEc50M = nmToM(fullEc50Nm);
+  const partialEc50M = nmToM(partialEc50Nm);
+
+  const { xLogNm, xLinearNm } = concentrationGridsNm();
+  const xLogM = xLogNm.map(nmToM);
+  const xLinearM = xLinearNm.map(nmToM);
+
+  const fullLogCurve = hillResponse(xLogM, EMAX_FIXED, fullEc50M, fullHill);
+  const partialLogCurve = hillResponse(xLogM, partialEmax, partialEc50M, partialHill);
+  const fullLinearCurve = hillResponse(xLinearM, EMAX_FIXED, fullEc50M, fullHill);
+  const partialLinearCurve = hillResponse(xLinearM, partialEmax, partialEc50M, partialHill);
+
+  const logTraces = [
+    {
+      x: xLogNm,
+      y: fullLogCurve,
+      mode: "lines",
+      name: "Full agonist",
+      line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: xLogNm,
+      y: partialLogCurve,
+      mode: "lines",
+      name: "Partial agonist",
+      line: { width: 3, color: "seagreen", dash: "dash" },
+    },
+  ];
+
+  const linearTraces = [
+    {
+      x: xLinearNm,
+      y: fullLinearCurve,
+      mode: "lines",
+      name: "Full agonist",
+      line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: xLinearNm,
+      y: partialLinearCurve,
+      mode: "lines",
+      name: "Partial agonist",
+      line: { width: 3, color: "seagreen", dash: "dash" },
+    },
+  ];
+
+  let logLayout = baseLayout(
+    "Partial vs Full Agonist (Log X)",
+    "Agonist concentration (nM, log scale)",
+    "Effect (%)",
+    true,
+    [0, 160],
+    [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
+  );
+  logLayout = addReferenceLines(logLayout, {
+    vlines: [
+      [fullEc50Nm, "Full EC50", "royalblue"],
+      [partialEc50Nm, "Partial EC50", "seagreen"],
+    ],
+    hlines: [
+      [EMAX_FIXED, "Full Emax=efficacy", "royalblue"],
+      [partialEmax, "Partial Emax=efficacy", "seagreen"],
+    ],
+  });
+
+  let linearLayout = baseLayout(
+    "Partial vs Full Agonist (Linear X)",
+    "Agonist concentration (nM, linear scale)",
+    "Effect (%)",
+    false,
+    [0, 160],
+    [0, LINEAR_MAX_NM]
+  );
+  linearLayout = addReferenceLines(linearLayout, {
+    vlines: [
+      [fullEc50Nm, "Full EC50", "royalblue"],
+      [partialEc50Nm, "Partial EC50", "seagreen"],
+    ],
+    hlines: [
+      [EMAX_FIXED, "Full Emax=efficacy", "royalblue"],
+      [partialEmax, "Partial Emax=efficacy", "seagreen"],
+    ],
+  });
+
+  plot("partial-log", logTraces, logLayout);
+  plot("partial-linear", linearTraces, linearLayout);
+  setNote(
+    "partial-note",
+    `Full EC50 = ${fmtNm(fullEc50Nm)} nM, Partial EC50 = ${fmtNm(partialEc50Nm)} nM. Full Emax=efficacy is fixed at ${EMAX_FIXED.toFixed(0)}; Partial Emax = ${partialEmax.toFixed(1)}% (${partialIntrinsic.toFixed(2)} x full).`
+  );
+}
+
+function renderSpare() {
+  const kdNm = Math.max(getInputValue("spare-kd"), CONC_MIN_NM);
+  const tau = Math.max(getInputValue("spare-tau"), 1e-6);
+  const kdM = nmToM(kdNm);
+  const ec50EffectM = kdM / (1.0 + tau);
+  const ec50EffectNm = ec50EffectM / NM_TO_M;
+
+  const { xLogNm, xLinearNm } = concentrationGridsNm();
+  const xLogM = xLogNm.map(nmToM);
+  const xLinearM = xLinearNm.map(nmToM);
+  const occupancyLog = xLogM.map((value) => (100.0 * value) / (kdM + value));
+  const occupancyLinear = xLinearM.map((value) => (100.0 * value) / (kdM + value));
+  const effectLog = hillResponse(xLogM, EMAX_FIXED, ec50EffectM, 1.0);
+  const effectLinear = hillResponse(xLinearM, EMAX_FIXED, ec50EffectM, 1.0);
+
+  const logTraces = [
+    {
+      x: xLogNm,
+      y: occupancyLog,
+      mode: "lines",
+      name: "Occupancy (%)",
+      line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: xLogNm,
+      y: effectLog,
+      mode: "lines",
+      name: "Effect (%)",
+      line: { width: 3, color: "seagreen", dash: "dash" },
+    },
+  ];
+
+  const linearTraces = [
+    {
+      x: xLinearNm,
+      y: occupancyLinear,
+      mode: "lines",
+      name: "Occupancy (%)",
+      line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: xLinearNm,
+      y: effectLinear,
+      mode: "lines",
+      name: "Effect (%)",
+      line: { width: 3, color: "seagreen", dash: "dash" },
+    },
+  ];
+
+  let logLayout = baseLayout(
+    "Spare Receptors: Occupancy vs Effect (Log X)",
+    "Agonist concentration (nM, log scale)",
+    "Percent",
+    true,
+    [0, 100],
+    [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
+  );
+  logLayout = addReferenceLines(logLayout, {
+    vlines: [
+      [kdNm, "KD", "gray"],
+      [ec50EffectNm, "Apparent EC50", "black"],
+    ],
+    hlines: [[EMAX_FIXED, "Emax=efficacy", "gray"]],
+  });
+
+  let linearLayout = baseLayout(
+    "Spare Receptors: Occupancy vs Effect (Linear X)",
+    "Agonist concentration (nM, linear scale)",
+    "Percent",
+    false,
+    [0, 100],
+    [0, LINEAR_MAX_NM]
+  );
+  linearLayout = addReferenceLines(linearLayout, {
+    vlines: [
+      [kdNm, "KD", "gray"],
+      [ec50EffectNm, "Apparent EC50", "black"],
+    ],
+    hlines: [[EMAX_FIXED, "Emax=efficacy", "gray"]],
+  });
+
+  plot("spare-log", logTraces, logLayout);
+  plot("spare-linear", linearTraces, linearLayout);
+  setNote(
+    "spare-note",
+    `KD = ${fmtNm(kdNm)} nM, apparent effect EC50 = ${fmtNm(ec50EffectNm)} nM. When tau > 1, EC50 falls below KD while both occupancy and effect still cap at 100%.`
+  );
+}
+
+function renderQuantal() {
+  const ed50 = Math.max(getInputValue("q-ed50"), EPS);
+  const td50 = Math.max(getInputValue("q-td50"), EPS);
+  const sEff = Math.max(getInputValue("q-s-eff"), 0.01);
+  const sTox = Math.max(getInputValue("q-s-tox"), 0.01);
+  const ed50Log10 = Math.log10(ed50);
+  const td50Log10 = Math.log10(td50);
+  const ti = td50 / Math.max(ed50, EPS);
+  const tiTextColor = tiColor(ti);
+
+  const xMin = Math.log10(QUANTAL_MIN_MGKG);
+  const xMax = Math.log10(QUANTAL_MAX_MGKG);
+  const x = linspace(xMin, xMax, 800);
+  const dose = x.map((value) => 10 ** value);
+  const pEff = x.map((value) => logisticQuantal(value, ed50Log10, sEff));
+  const pTox = x.map((value) => logisticQuantal(value, td50Log10, sTox));
+  const fEff = pEff.map((value) => (1.0 / sEff) * value * (1.0 - value));
+  const fTox = pTox.map((value) => (1.0 / sTox) * value * (1.0 - value));
+  const dx = x[1] - x[0];
+  const pEffPct = pEff.map((value) => 100.0 * value);
+  const pToxPct = pTox.map((value) => 100.0 * value);
+  const fEffPct = fEff.map((value) => 100.0 * value * dx);
+  const fToxPct = fTox.map((value) => 100.0 * value * dx);
+  const y2Max = Math.max(...fEffPct, ...fToxPct, 0.001) * 1.15;
+
+  const traces = [
+    {
+      x: dose,
+      y: pEffPct,
+      mode: "lines",
+      name: "Efficacy cumulative",
+      line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: dose,
+      y: pToxPct,
+      mode: "lines",
+      name: "Toxicity cumulative",
+      line: { width: 3, color: "orange", dash: "dash" },
+    },
+    {
+      x: dose,
+      y: fEffPct,
+      mode: "lines",
+      name: "Efficacy frequency (% in dose interval)",
+      line: { width: 2, color: "blue", dash: "dash" },
+      yaxis: "y2",
+    },
+    {
+      x: dose,
+      y: fToxPct,
+      mode: "lines",
+      name: "Toxicity frequency (% in dose interval)",
+      line: { width: 2, color: "orange", dash: "dash" },
+      yaxis: "y2",
+    },
+  ];
+
+  let layout = baseLayout(
+    "Quantal Dose-Response (Log X, mg/kg)",
+    "Dose (mg/kg)",
+    "Cumulative population (%)",
+    true,
+    [0, 100],
+    [xMin, xMax]
+  );
+  layout = addReferenceLines(layout, {
+    vlines: [
+      [ed50, "ED50", "blue"],
+      [td50, "TD50", "orange"],
+    ],
+    hlines: [[50.0, "50%", "steelblue"]],
+  });
+  layout.margin = { l: 56, r: 40, t: 130, b: 56 };
+  layout.title = {
+    ...layout.title,
+    x: 0.03,
+    xanchor: "left",
+  };
+  layout.yaxis2 = {
+    title: "Frequency (% in each log-dose interval)",
+    overlaying: "y",
+    side: "right",
+    range: [0, y2Max],
+    showgrid: false,
+    tickfont: { color: "#42536d" },
+  };
+  layout.annotations = [
+    ...(layout.annotations || []),
+    {
+      x: 0.99,
+      y: 1.10,
+      xref: "paper",
+      yref: "paper",
+      xanchor: "right",
+      yanchor: "bottom",
+      text: `<b>Therapeutic Index (TI) = ${ti.toFixed(2)}</b>`,
+      showarrow: false,
+      font: { size: 24, color: tiTextColor },
+      bgcolor: "rgba(255,255,255,0.92)",
+      bordercolor: tiTextColor,
+      borderwidth: 2,
+      borderpad: 8,
+    },
+  ];
+
+  plot("quantal-plot", traces, layout);
+  setNote(
+    "quantal-note",
+    `ED50 = ${ed50.toFixed(0)} mg/kg, TD50 = ${td50.toFixed(0)} mg/kg, Therapeutic Index (TI = TD50/ED50) = ${ti.toFixed(2)}. s_eff = ${sEff.toFixed(2)}, s_tox = ${sTox.toFixed(2)}.`
+  );
+}
+
+const renderers = {
+  binding: renderBinding,
+  efficacy: renderEfficacy,
+  antagonists: renderAntagonists,
+  partial: renderPartial,
+  spare: renderSpare,
+  quantal: renderQuantal,
+};
+
+function renderTab(tabId) {
+  const renderer = renderers[tabId];
+  if (!renderer) {
+    return;
+  }
+  renderer();
+  dirtyTabs[tabId] = false;
+}
+
+function activateTab(tabId) {
+  activeTabId = tabId;
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    const isActive = button.dataset.tabTarget === tabId;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  document.querySelectorAll(".lesson-panel").forEach((panel) => {
+    const isActive = panel.dataset.tabPanel === tabId;
+    panel.classList.toggle("is-active", isActive);
+    panel.hidden = !isActive;
+  });
+
+  if (dirtyTabs[tabId]) {
+    renderTab(tabId);
+  } else {
+    document
+      .querySelectorAll(`[data-tab-panel="${tabId}"] .plot-frame`)
+      .forEach((plotNode) => Plotly.Plots.resize(plotNode));
+  }
+
+  window.history.replaceState(null, "", `#${tabId}`);
+}
+
+function bindControls() {
+  document.querySelectorAll("input[type='range']").forEach((input) => {
+    input.addEventListener("input", () => {
+      syncControlOutputs(input.closest(".lesson-panel"));
+      const panel = input.closest(".lesson-panel");
+      const tabId = panel.dataset.tabPanel;
+      dirtyTabs[tabId] = true;
+      if (tabId === activeTabId) {
+        renderTab(tabId);
+      }
+    });
+  });
+
+  document.querySelectorAll("input[type='radio']").forEach((input) => {
+    input.addEventListener("change", () => {
+      const panel = input.closest(".lesson-panel");
+      const tabId = panel.dataset.tabPanel;
+      dirtyTabs[tabId] = true;
+      if (tabId === activeTabId) {
+        renderTab(tabId);
+      }
+    });
+  });
+
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      activateTab(button.dataset.tabTarget);
+    });
+  });
+}
+
+function init() {
+  syncControlOutputs(document);
+  bindControls();
+  const hashTab = window.location.hash.replace("#", "");
+  const initialTab = TAB_IDS.includes(hashTab) ? hashTab : "binding";
+  activateTab(initialTab);
+}
+
+window.addEventListener("DOMContentLoaded", init);
