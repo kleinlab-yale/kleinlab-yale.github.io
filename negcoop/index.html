@@ -1,143 +1,390 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>RTK Signal Fate: Density vs. Dimerization Kd</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #fdfdfd; display: flex; flex-direction: column; height: 100vh; }
-        .header { background: #2c3e50; color: white; padding: 1rem 2rem; }
-        .main { display: grid; grid-template-columns: 360px 1fr; flex: 1; overflow: hidden; padding: 20px; gap: 20px; }
-        .sidebar { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; gap: 30px; }
-        .visuals { display: grid; grid-template-rows: 1.2fr 0.8fr; gap: 20px; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        label { font-weight: bold; font-size: 0.9rem; color: #34495e; display: block; margin-bottom: 10px; }
-        input[type=range] { width: 100%; cursor: pointer; }
-        .val { float: right; color: #e67e22; font-family: monospace; font-size: 1.1rem; }
-        .desc { font-size: 0.8rem; color: #7f8c8d; line-height: 1.4; margin-top: 5px; }
-        .fate-box { margin-top: auto; padding: 15px; background: #fcf3cf; border-radius: 8px; border-left: 5px solid #f1c40f; font-size: 0.85rem; }
-    </style>
-</head>
-<body>
-
-<div class="header">
-    <h2 style="margin:0">RTK Signal Fate (Jenni et al. Model)</h2>
-</div>
-
-<div class="main">
-    <div class="sidebar">
-        <div>
-            <label>Receptor Level ([R]₀) <span class="val" id="dispR">500</span></label>
-            <input type="range" id="Rtot" min="10" max="2000" value="500">
-            <p class="desc">Higher density drives rapid dimerization: <b>Amplitude ↑ | Duration ↓</b></p>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pharmacodynamics Lesson Explorer</title>
+    <meta
+      name="description"
+      content="Interactive pharmacodynamics lesson explorer for binding, efficacy, antagonists, partial agonists, spare receptors, and quantal dose-response."
+    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Newsreader:opsz,wght@6..72,600;6..72,700&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="hero">
+        <p class="eyebrow">Static HTML Edition for GitHub Pages</p>
+        <h1>Pharmacodynamics Lesson Explorer</h1>
+        <p class="hero-copy">
+          Interactive teaching plots for first-year medical pharmacodynamics. Every curve is generated
+          in the browser from parametric equations, so the site can run on GitHub Pages with no Python server.
+        </p>
+        <div class="hero-tags" aria-label="Key topics">
+          <span>KD and Bmax</span>
+          <span>Efficacy and potency</span>
+          <span>Antagonists</span>
+          <span>Partial agonists</span>
+          <span>Spare receptors</span>
+          <span>Quantal dose-response</span>
         </div>
+      </header>
 
-        <div>
-            <label>Dimerization K<sub>d</sub> (K<sub>d2</sub>) <span class="val" id="dispKd">200</span></label>
-            <input type="range" id="Kd2" min="1" max="1500" value="200">
-            <p class="desc">Higher K<sub>d</sub> = Weaker Binding (Neg. Coop).<br><b>Amplitude ↓ | Duration ↑</b></p>
-        </div>
+      <nav class="tab-bar" aria-label="Lesson sections">
+        <button class="tab-button is-active" data-tab-target="binding" aria-selected="true">1. Binding</button>
+        <button class="tab-button" data-tab-target="efficacy" aria-selected="false">2. Efficacy</button>
+        <button class="tab-button" data-tab-target="antagonists" aria-selected="false">3. Antagonists</button>
+        <button class="tab-button" data-tab-target="partial" aria-selected="false">4. Partial agonists</button>
+        <button class="tab-button" data-tab-target="spare" aria-selected="false">5. Spare receptors</button>
+        <button class="tab-button" data-tab-target="quantal" aria-selected="false">6. Quantal dose</button>
+      </nav>
 
-        <div class="fate-box">
-            <b>Dynamics Key:</b><br>
-            • <b>Low Kd / High R:</b> Proliferation (Burst)<br>
-            • <b>High Kd / Low R:</b> Differentiation (Sustained)
-        </div>
+      <main>
+        <section class="lesson-panel is-active" data-tab-panel="binding">
+          <div class="panel-header">
+            <div>
+              <p class="panel-step">Lesson 1</p>
+              <h2>Binding: KD and Bmax</h2>
+            </div>
+            <p class="panel-summary">Three colored curves share a fixed Bmax of 100 so the impact of changing KD is easy to compare.</p>
+          </div>
+
+          <div class="controls-grid">
+            <label class="control accent-blue">
+              <span class="control-top">
+                <span class="control-label">Curve 1 KD</span>
+                <output class="control-value" data-for="bind-kd1"></output>
+              </span>
+              <input id="bind-kd1" type="range" min="0.1" max="250" step="0.1" value="1" data-format="nm">
+            </label>
+            <label class="control accent-green">
+              <span class="control-top">
+                <span class="control-label">Curve 2 KD</span>
+                <output class="control-value" data-for="bind-kd2"></output>
+              </span>
+              <input id="bind-kd2" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+            </label>
+            <label class="control accent-orange">
+              <span class="control-top">
+                <span class="control-label">Curve 3 KD</span>
+                <output class="control-value" data-for="bind-kd3"></output>
+              </span>
+              <input id="bind-kd3" type="range" min="0.1" max="250" step="0.1" value="100" data-format="nm">
+            </label>
+          </div>
+
+          <div class="plots-grid">
+            <article class="plot-card">
+              <h3>Log plot</h3>
+              <div id="binding-log" class="plot-frame"></div>
+            </article>
+            <article class="plot-card">
+              <h3>Linear plot</h3>
+              <div id="binding-linear" class="plot-frame"></div>
+            </article>
+          </div>
+
+          <p id="binding-note" class="note"></p>
+        </section>
+
+        <section class="lesson-panel" data-tab-panel="efficacy" hidden>
+          <div class="panel-header">
+            <div>
+              <p class="panel-step">Lesson 2</p>
+              <h2>Efficacy: idealized KD = EC50</h2>
+            </div>
+            <p class="panel-summary">This idealized bridge shows how moving KD can shift EC50 while Emax remains fixed at 100.</p>
+          </div>
+
+          <div class="controls-grid">
+            <label class="control accent-blue">
+              <span class="control-top">
+                <span class="control-label">Curve 1 KD = EC50</span>
+                <output class="control-value" data-for="eff-kd1"></output>
+              </span>
+              <input id="eff-kd1" type="range" min="0.1" max="250" step="0.1" value="1" data-format="nm">
+            </label>
+            <label class="control accent-green">
+              <span class="control-top">
+                <span class="control-label">Curve 2 KD = EC50</span>
+                <output class="control-value" data-for="eff-kd2"></output>
+              </span>
+              <input id="eff-kd2" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+            </label>
+            <label class="control accent-orange">
+              <span class="control-top">
+                <span class="control-label">Curve 3 KD = EC50</span>
+                <output class="control-value" data-for="eff-kd3"></output>
+              </span>
+              <input id="eff-kd3" type="range" min="0.1" max="250" step="0.1" value="100" data-format="nm">
+            </label>
+          </div>
+
+          <div class="plots-grid">
+            <article class="plot-card">
+              <h3>Log plot</h3>
+              <div id="efficacy-log" class="plot-frame"></div>
+            </article>
+            <article class="plot-card">
+              <h3>Linear plot</h3>
+              <div id="efficacy-linear" class="plot-frame"></div>
+            </article>
+          </div>
+
+          <p id="efficacy-note" class="note"></p>
+        </section>
+
+        <section class="lesson-panel" data-tab-panel="antagonists" hidden>
+          <div class="panel-header">
+            <div>
+              <p class="panel-step">Lesson 3</p>
+              <h2>Antagonists</h2>
+            </div>
+            <p class="panel-summary">Compare competitive and noncompetitive antagonism while keeping the antagonist-alone line fixed at zero efficacy.</p>
+          </div>
+
+          <div class="controls-grid">
+            <div class="control">
+              <span class="control-top">
+                <span class="control-label">Antagonist model</span>
+              </span>
+              <div class="segment-group" role="radiogroup" aria-label="Antagonist model">
+                <label class="segment-option">
+                  <input id="ant-model-competitive" type="radio" name="ant-model" value="Competitive" checked>
+                  <span>Competitive</span>
+                </label>
+                <label class="segment-option">
+                  <input id="ant-model-noncompetitive" type="radio" name="ant-model" value="Noncompetitive">
+                  <span>Noncompetitive</span>
+                </label>
+              </div>
+            </div>
+            <label class="control">
+              <span class="control-top">
+                <span class="control-label">Baseline Emax</span>
+                <output class="control-value" data-for="ant-emax"></output>
+              </span>
+              <input id="ant-emax" type="range" min="40" max="150" step="1" value="100" data-format="percent0">
+            </label>
+            <label class="control accent-blue">
+              <span class="control-top">
+                <span class="control-label">Baseline agonist EC50</span>
+                <output class="control-value" data-for="ant-ec50"></output>
+              </span>
+              <input id="ant-ec50" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+            </label>
+            <label class="control">
+              <span class="control-top">
+                <span class="control-label">Hill coefficient</span>
+                <output class="control-value" data-for="ant-hill"></output>
+              </span>
+              <input id="ant-hill" type="range" min="0.5" max="3.0" step="0.1" value="1.0" data-format="decimal1">
+            </label>
+            <label class="control">
+              <span class="control-top">
+                <span class="control-label">Current antagonist [I]</span>
+                <output class="control-value" data-for="ant-conc"></output>
+              </span>
+              <input id="ant-conc" type="range" min="0.1" max="250" step="0.1" value="100" data-format="nm">
+            </label>
+            <label class="control accent-green">
+              <span class="control-top">
+                <span class="control-label">IC50</span>
+                <output class="control-value" data-for="ant-ic50"></output>
+              </span>
+              <input id="ant-ic50" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+            </label>
+          </div>
+
+          <div class="plots-grid">
+            <article class="plot-card">
+              <h3>Agonist-response log plot</h3>
+              <div id="ant-response-log" class="plot-frame"></div>
+            </article>
+            <article class="plot-card">
+              <h3>Agonist-response linear plot</h3>
+              <div id="ant-response-linear" class="plot-frame"></div>
+            </article>
+            <article class="plot-card">
+              <h3>Inhibition log plot</h3>
+              <div id="ant-inhibition-log" class="plot-frame"></div>
+            </article>
+            <article class="plot-card">
+              <h3>Inhibition linear plot</h3>
+              <div id="ant-inhibition-linear" class="plot-frame"></div>
+            </article>
+          </div>
+
+          <p id="ant-note" class="note"></p>
+        </section>
+
+        <section class="lesson-panel" data-tab-panel="partial" hidden>
+          <div class="panel-header">
+            <div>
+              <p class="panel-step">Lesson 4</p>
+              <h2>Partial agonists</h2>
+            </div>
+            <p class="panel-summary">Full agonist Emax stays fixed at 100 while intrinsic efficacy and EC50 shape the partial agonist curve.</p>
+          </div>
+
+          <div class="controls-grid">
+            <label class="control accent-blue">
+              <span class="control-top">
+                <span class="control-label">Full agonist EC50</span>
+                <output class="control-value" data-for="pa-full-ec50"></output>
+              </span>
+              <input id="pa-full-ec50" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+            </label>
+            <label class="control">
+              <span class="control-top">
+                <span class="control-label">Full agonist Hill n</span>
+                <output class="control-value" data-for="pa-full-hill"></output>
+              </span>
+              <input id="pa-full-hill" type="range" min="0.5" max="3.0" step="0.1" value="1.0" data-format="decimal1">
+            </label>
+            <label class="control">
+              <span class="control-top">
+                <span class="control-label">Partial intrinsic efficacy</span>
+                <output class="control-value" data-for="pa-intrinsic"></output>
+              </span>
+              <input id="pa-intrinsic" type="range" min="0.1" max="1.0" step="0.05" value="0.6" data-format="fractionx">
+            </label>
+            <label class="control accent-green">
+              <span class="control-top">
+                <span class="control-label">Partial agonist EC50</span>
+                <output class="control-value" data-for="pa-partial-ec50"></output>
+              </span>
+              <input id="pa-partial-ec50" type="range" min="0.1" max="250" step="0.1" value="31.6" data-format="nm">
+            </label>
+            <label class="control">
+              <span class="control-top">
+                <span class="control-label">Partial agonist Hill n</span>
+                <output class="control-value" data-for="pa-partial-hill"></output>
+              </span>
+              <input id="pa-partial-hill" type="range" min="0.5" max="3.0" step="0.1" value="1.0" data-format="decimal1">
+            </label>
+          </div>
+
+          <div class="plots-grid">
+            <article class="plot-card">
+              <h3>Log plot</h3>
+              <div id="partial-log" class="plot-frame"></div>
+            </article>
+            <article class="plot-card">
+              <h3>Linear plot</h3>
+              <div id="partial-linear" class="plot-frame"></div>
+            </article>
+          </div>
+
+          <p id="partial-note" class="note"></p>
+        </section>
+
+        <section class="lesson-panel" data-tab-panel="spare" hidden>
+          <div class="panel-header">
+            <div>
+              <p class="panel-step">Lesson 5</p>
+              <h2>Spare receptors</h2>
+            </div>
+            <p class="panel-summary">Occupancy and effect share the same 0 to 100 percent scale so receptor reserve shows up as a leftward shift in effect.</p>
+          </div>
+
+          <div class="controls-grid">
+            <label class="control">
+              <span class="control-top">
+                <span class="control-label">KD</span>
+                <output class="control-value" data-for="spare-kd"></output>
+              </span>
+              <input id="spare-kd" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+            </label>
+            <label class="control">
+              <span class="control-top">
+                <span class="control-label">Transduction factor tau</span>
+                <output class="control-value" data-for="spare-tau"></output>
+              </span>
+              <input id="spare-tau" type="range" min="0.1" max="20" step="0.1" value="5.0" data-format="decimal1">
+            </label>
+          </div>
+
+          <div class="plots-grid">
+            <article class="plot-card">
+              <h3>Log plot</h3>
+              <div id="spare-log" class="plot-frame"></div>
+            </article>
+            <article class="plot-card">
+              <h3>Linear plot</h3>
+              <div id="spare-linear" class="plot-frame"></div>
+            </article>
+          </div>
+
+          <p id="spare-note" class="note"></p>
+        </section>
+
+        <section class="lesson-panel" data-tab-panel="quantal" hidden>
+          <div class="panel-header">
+            <div>
+              <p class="panel-step">Lesson 6</p>
+              <h2>Quantal dose-response</h2>
+            </div>
+            <p class="panel-summary">Cumulative curves are logistic CDFs on a log-dose axis. The bell-shaped frequency curves are the derivatives scaled to percent in each dose interval.</p>
+          </div>
+
+          <div class="controls-grid">
+            <label class="control accent-blue">
+              <span class="control-top">
+                <span class="control-label">ED50</span>
+                <output class="control-value" data-for="q-ed50"></output>
+              </span>
+              <input id="q-ed50" type="range" min="1" max="200" step="1" value="20" data-format="mgkg">
+            </label>
+            <label class="control accent-green">
+              <span class="control-top">
+                <span class="control-label">TD50</span>
+                <output class="control-value" data-for="q-td50"></output>
+              </span>
+              <input id="q-td50" type="range" min="1" max="200" step="1" value="60" data-format="mgkg">
+            </label>
+            <label class="control accent-blue">
+              <span class="control-top">
+                <span class="control-label">s_eff</span>
+                <output class="control-value" data-for="q-s-eff"></output>
+              </span>
+              <input id="q-s-eff" type="range" min="0.05" max="0.20" step="0.01" value="0.05" data-format="decimal2">
+            </label>
+            <label class="control accent-green">
+              <span class="control-top">
+                <span class="control-label">s_tox</span>
+                <output class="control-value" data-for="q-s-tox"></output>
+              </span>
+              <input id="q-s-tox" type="range" min="0.05" max="0.20" step="0.01" value="0.05" data-format="decimal2">
+            </label>
+          </div>
+
+          <div class="plots-grid plots-grid-single">
+            <article class="plot-card plot-card-feature">
+              <h3>Log-dose plot</h3>
+              <div id="quantal-plot" class="plot-frame plot-frame-feature"></div>
+            </article>
+          </div>
+
+          <p id="quantal-note" class="note"></p>
+        </section>
+      </main>
+
+      <section class="footer-notes">
+        <h2>Teaching notes</h2>
+        <ul>
+          <li>Tabs 1 and 2 use fixed `Bmax` and `Emax` at 100 so horizontal shifts are easier to see.</li>
+          <li>Concentration sliders use linear nM controls from 0.1 to 250 while the plotted x-axes stay fixed for comparison.</li>
+          <li>Linear concentration plots cap at 1000 nM. Quantal dose uses mg/kg on a log x-axis from 1 to 200.</li>
+        </ul>
+      </section>
     </div>
-
-    <div class="visuals">
-        <div class="card" id="fatePlot"></div>
-        <div class="card" id="timePlot"></div>
-    </div>
-</div>
-
-<script>
-    function simulate() {
-        const R0 = parseFloat(document.getElementById('Rtot').value);
-        const Kd2 = parseFloat(document.getElementById('Kd2').value);
-        
-        // Physics-based constants
-        const L0 = 100;        // Initial Ligand Dimer
-        const k_on = 0.1;      // Association rate
-        const Kd1 = 1.0;       // Strong fixed capture affinity
-        const k_off1 = k_on * Kd1;
-        const k_off2 = k_on * Kd2; // Larger Kd2 -> much faster dissociation
-        const k_int = 0.08;    // Internalization of active R2L2
-
-        document.getElementById('dispR').innerText = R0;
-        document.getElementById('dispKd').innerText = Kd2;
-
-        // ODE Simulation
-        let R = R0, L = L0, RL2 = 0, R2L2 = 0;
-        let dt = 0.05, steps = 1000;
-        let time = [], signal = [];
-        let maxAmp = 0;
-
-        for (let i = 0; i < steps; i++) {
-            // v1: Formation of RL2 (intermediate)
-            let v1 = (k_on * R * L) - (k_off1 * RL2);
-            // v2: Formation of R2L2 (Active Signal)
-            let v2 = (k_on * RL2 * R) - (k_off2 * R2L2);
-            // v_int: Loss of signal
-            let v_int = k_int * R2L2;
-
-            L -= v1 * dt;
-            R -= (v1 + v2) * dt;
-            RL2 += (v1 - v2) * dt;
-            R2L2 += (v2 - v_int) * dt;
-
-            let curS = Math.max(0, R2L2);
-            if (curS > maxAmp) maxAmp = curS;
-            time.push(i * dt);
-            signal.push(curS);
-        }
-
-        // Duration: Time signal stays above 20% of max possible amp (stable threshold)
-        let threshold = 5; 
-        let t_start = -1, t_end = -1;
-        for(let i=0; i<signal.length; i++) {
-            if(t_start === -1 && signal[i] > threshold) t_start = time[i];
-            if(signal[i] > threshold) t_end = time[i];
-        }
-        let duration = (t_start === -1) ? 0 : (t_end - t_start);
-
-        render(maxAmp, duration, time, signal);
-    }
-
-    function render(amp, dur, tArr, sArr) {
-        // Fate Map
-        Plotly.newPlot('fatePlot', [{
-            x: [dur], y: [amp], mode: 'markers',
-            marker: { size: 25, color: '#2c3e50', line: {width: 3, color: 'white'} },
-            name: 'Fate'
-        }], {
-            title: '<b>Signal Fate Map: Amplitude vs Duration</b>',
-            xaxis: { title: 'Duration (Minutes)', range: [0, 25] },
-            yaxis: { title: 'Amplitude (Max [R₂L₂])', range: [0, 160] },
-            shapes: [
-                { type: 'rect', xref: 'x', yref: 'y', x0: 0, x1: 10, y0: 80, y1: 160, fillcolor: 'rgba(231, 76, 60, 0.15)', line: {width: 0} },
-                { type: 'rect', xref: 'x', yref: 'y', x0: 14, x1: 25, y0: 0, y1: 60, fillcolor: 'rgba(46, 204, 113, 0.15)', line: {width: 0} }
-            ],
-            annotations: [
-                { x: 5, y: 145, text: 'PROLIFERATION', showarrow: false, font: {color: '#c0392b', weight: 'bold'} },
-                { x: 20, y: 15, text: 'DIFFERENTIATION', showarrow: false, font: {color: '#27ae60', weight: 'bold'} }
-            ],
-            margin: { t: 50, b: 50, l: 60, r: 30 }
-        }, {staticPlot: true});
-
-        // Kinetics
-        Plotly.newPlot('timePlot', [{
-            x: tArr, y: sArr, fill: 'tozeroy', line: {color: '#e67e22', width: 3}
-        }], {
-            title: 'Signal Kinetics (Active R₂L₂)',
-            xaxis: { title: 'Time (min)', range: [0, 40] },
-            yaxis: { title: 'Concentration' },
-            margin: { t: 40, b: 40, l: 60, r: 30 }
-        }, {staticPlot: true});
-    }
-
-    document.querySelectorAll('input').forEach(i => i.addEventListener('input', simulate));
-    simulate();
-</script>
-</body>
+  </body>
 </html>
