@@ -259,7 +259,8 @@ function deriveResponseProfile(params, config) {
     (params.dimerKd * config.kdMultiplier);
   const dimerizationResponse = logistic((drive - 1) * 4.6);
   const weakKdBias = logistic((params.dimerKd - 95) / 18);
-  const nearThresholdWindow = Math.exp(-((drive - 0.55) / 0.55) ** 2);
+  const thresholdDistance = (drive - 0.55) / 0.55;
+  const nearThresholdWindow = Math.exp(-Math.pow(thresholdDistance, 2));
   const transientStrength = clamp(
     0.62 * dimerizationResponse + 0.48 * receptorNorm + config.transientBias,
     0,
@@ -284,7 +285,7 @@ function deriveResponseProfile(params, config) {
     transientAmplitude:
       0.14 +
       1.55 *
-        transientStrength ** 1.1 *
+        Math.pow(transientStrength, 1.1) *
         (0.75 + (0.25 * params.ligandPulse) / 1.8),
     sustainedAmplitude:
       0.02 +
