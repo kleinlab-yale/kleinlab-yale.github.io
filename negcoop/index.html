@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RTK Signaling Explorer</title>
+    <title>Cooperativity and Control of Signaling</title>
     <meta
       name="description"
-      content="Interactive RTK signaling explorer for receptor abundance, dimerization Kd, cooperativity, and receptor internalization."
+      content="KLAY teaching app for RTK cooperativity, receptor abundance, dimerization Kd, and signaling control."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,34 +19,18 @@
   <body>
     <div class="page-shell">
       <header class="hero">
-        <p class="eyebrow">Interactive RTK Teaching App</p>
-        <h1>
-          Weak dimerization can stretch signaling into a long, low plateau until
-          receptor abundance tips the same system into a burst.
-        </h1>
-        <p class="hero-copy">
-          This GitHub Pages-ready app is a qualitative teaching model for how
-          receptor abundance, dimerization strength, cooperativity, and
-          internalization reshape RTK output. It is tuned to illustrate the
-          narrative you described from
-          <a
-            href="https://www.cell.com/molecular-cell/fulltext/S1097-2765(15)00817-5"
-            target="_blank"
-            rel="noreferrer"
-            >your Molecular Cell paper</a
-          >:
-          low sustained signaling can bias differentiation, while high transient
-          signaling can bias growth.
-        </p>
-        <div class="hero-actions">
+        <div class="hero-text">
+          <p class="eyebrow">KLAY Teaching App</p>
+          <h1>Cooperativity and Control of Signaling</h1>
+          <p class="hero-subtitle">
+            For Pharmacology graduate students. Designed and maintained by the
+            Klein Lab at Yale (KLAY).
+          </p>
+        </div>
+        <div class="hero-controls">
           <button id="resetDefaults" class="secondary-button">
             Reset to paper-like preset
           </button>
-          <span class="hero-note"
-            >Model note: this interface is deliberately simplified for students;
-            it captures the qualitative logic rather than a full methods-level
-            reconstruction.</span
-          >
         </div>
       </header>
 
@@ -63,7 +47,11 @@
           <section class="block">
             <div class="block-heading">
               <h2>Primary knobs</h2>
-              <p>All values are relative units intended for interactive intuition.</p>
+              <p>
+                All values are relative units intended for interactive intuition.
+                Ligand is treated as limiting, with a fixed 1 minute pulse
+                starting at time zero.
+              </p>
             </div>
             <div class="control-list">
               <label class="control">
@@ -99,20 +87,6 @@
                   min="0.4"
                   max="3.2"
                   step="0.1"
-                />
-              </label>
-
-              <label class="control">
-                <span class="control-label">
-                  Ligand pulse duration
-                  <strong id="pulseDurationValue"></strong>
-                </span>
-                <input
-                  id="pulseDuration"
-                  type="range"
-                  min="12"
-                  max="60"
-                  step="1"
                 />
               </label>
             </div>
@@ -179,7 +153,8 @@
               <li>
                 Receptor abundance, ligand, cooperativity, and Kd set an
                 effective dimerization drive that decides whether the response
-                is mostly transient or mostly sustained.
+                is mostly transient or mostly sustained after a fixed 1 minute
+                pulse at time zero.
               </li>
               <li>
                 A fast transient component peaks near 2 minutes, while a weak
@@ -251,7 +226,7 @@
               <div class="card-heading">
                 <div>
                   <p class="eyebrow">Phase map</p>
-                  <h3>Receptor abundance versus dimerization Kd</h3>
+                  <h3>Dimerization Kd versus receptor abundance</h3>
                 </div>
                 <p class="card-caption">
                   The dot marks the current setting. Blue regions are
