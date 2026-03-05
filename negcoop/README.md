@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/25780796/README.md)
+[README.md](https://github.com/user-attachments/files/25781281/README.md)
 # RTK Signaling Explorer
 
 A zero-build static web app for illustrating how receptor abundance, dimerization Kd, cooperativity, and receptor internalization reshape RTK signaling output.
@@ -10,6 +10,7 @@ This app is designed for GitHub Pages and intended for teaching. It emphasizes t
 - weak or negatively cooperative dimerization can create lower-amplitude, longer-lived signaling at low receptor abundance
 - the same weak dimerization step can be titrated at higher receptor abundance, converting the response into a stronger transient
 - stronger non-cooperative or positive-cooperative dimerization produces more burst-like signaling and stronger receptor loss from the surface
+- ligand is treated as limiting, with a fixed 1 minute pulse starting at time zero
 
 The current curve tuning is intentionally shape-first:
 
@@ -47,6 +48,7 @@ Then open `http://localhost:8000`.
 The simulator uses a compact teaching model:
 
 - receptor abundance, ligand, Kd, and cooperativity determine whether the response favors a fast transient or a low sustained plateau
+- ligand input is fixed to a 1 minute pulse at time zero, so students focus on abundance, Kd, cooperativity, and trafficking
 - the transient component is tuned to peak early
 - the sustained component dominates only in weak negative-cooperative regimes
 - internalization strips surface receptors quickly when the transient component is strong
