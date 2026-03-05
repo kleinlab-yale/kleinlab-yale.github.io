@@ -1,5 +1,5 @@
-export const TOTAL_TIME = 180;
-export const DT = 0.5;
+export const TOTAL_TIME = 60;
+export const DT = 0.25;
 export const RECEPTOR_RANGE = { min: 30, max: 300 };
 export const KD_RANGE = { min: 15, max: 180 };
 
@@ -7,29 +7,32 @@ export const COOPERATIVITY = {
   negative: {
     key: "negative",
     label: "Negative",
-    exponent: 0.72,
-    kdMultiplier: 1.16,
+    kdMultiplier: 1.18,
+    transientBias: -0.12,
+    sustainBias: 1,
   },
   neutral: {
     key: "neutral",
     label: "Neutral",
-    exponent: 1,
     kdMultiplier: 1,
+    transientBias: 0,
+    sustainBias: 0.18,
   },
   positive: {
     key: "positive",
     label: "Positive",
-    exponent: 1.5,
     kdMultiplier: 0.82,
+    transientBias: 0.12,
+    sustainBias: 0.04,
   },
 };
 
 export const DEFAULTS = {
   receptorLevel: 45,
-  dimerKd: 110,
+  dimerKd: 145,
   ligandPulse: 1.5,
-  pulseDuration: 60,
-  internalizationRate: 0.035,
+  pulseDuration: 55,
+  internalizationRate: 0.045,
   recyclingRate: 0.008,
   cooperativity: "negative",
 };
@@ -39,13 +42,13 @@ export const PRESETS = [
     id: "low-neg",
     name: "Low receptor + negative",
     description:
-      "Weak dimerization stays sub-threshold, so internalization stays modest and signaling stretches out.",
+      "The same weak Kd stays below the transient threshold, so the response remains low but persists for roughly 30 to 60 minutes.",
     values: {
       receptorLevel: 45,
-      dimerKd: 110,
+      dimerKd: 145,
       ligandPulse: 1.5,
-      pulseDuration: 60,
-      internalizationRate: 0.035,
+      pulseDuration: 55,
+      internalizationRate: 0.045,
       recyclingRate: 0.008,
       cooperativity: "negative",
     },
@@ -54,14 +57,14 @@ export const PRESETS = [
     id: "high-neg",
     name: "High receptor + same Kd",
     description:
-      "Mass action titrates the weak dimerization step, producing a larger but shorter burst from the same Kd.",
+      "Mass action now titrates that same weak Kd, flipping the curve into a sharp transient that is mostly gone by about 15 minutes.",
     values: {
-      receptorLevel: 220,
-      dimerKd: 110,
+      receptorLevel: 260,
+      dimerKd: 145,
       ligandPulse: 1.5,
-      pulseDuration: 60,
-      internalizationRate: 0.055,
-      recyclingRate: 0.008,
+      pulseDuration: 55,
+      internalizationRate: 0.2,
+      recyclingRate: 0.01,
       cooperativity: "negative",
     },
   },
@@ -74,9 +77,9 @@ export const PRESETS = [
       receptorLevel: 145,
       dimerKd: 60,
       ligandPulse: 1.8,
-      pulseDuration: 40,
-      internalizationRate: 0.06,
-      recyclingRate: 0.007,
+      pulseDuration: 24,
+      internalizationRate: 0.18,
+      recyclingRate: 0.01,
       cooperativity: "neutral",
     },
   },
@@ -89,52 +92,65 @@ export const PRESETS = [
       receptorLevel: 145,
       dimerKd: 50,
       ligandPulse: 1.9,
-      pulseDuration: 36,
-      internalizationRate: 0.064,
-      recyclingRate: 0.007,
+      pulseDuration: 22,
+      internalizationRate: 0.22,
+      recyclingRate: 0.01,
       cooperativity: "positive",
     },
   },
 ];
 
 export function pulseValue(time, amplitude, duration) {
-  const onset = logistic((time - 6) / 1.7);
-  const offset = logistic((time - (6 + duration)) / 2.6);
+  const onset = logistic((time - 0.15) / 0.08);
+  const offset = logistic((time - duration) / 0.45);
   return amplitude * Math.max(onset - offset, 0);
 }
 
 export function simulate(params) {
   const config = COOPERATIVITY[params.cooperativity];
-  let surfaceReceptors = params.receptorLevel;
-  let internalizedReceptors = 0;
-  let signal = 0;
+  let internalFraction = 0;
 
+  const profile = deriveResponseProfile(params, config);
   const series = [];
 
   for (let time = 0; time <= TOTAL_TIME + 1e-9; time += DT) {
     const ligand = pulseValue(time, params.ligandPulse, params.pulseDuration);
-    const occupancy = ligand / (ligand + 1);
+    const occupancy = ligand / (ligand + 0.7);
+    const transientShape = gammaPeak(time, profile.peakTime);
+    const transientGate = inverseLogistic((time - profile.transientEnd) / 1.15);
+    const sustainedGate =
+      logistic((time - profile.sustainRise) / 1.3) *
+      inverseLogistic((time - profile.sustainEnd) / 4.2);
+    const transientSignal =
+      profile.transientAmplitude * transientShape * transientGate;
+    const sustainedSignal =
+      profile.sustainedAmplitude * sustainedGate;
+    const internalizationDrive =
+      transientSignal + 0.22 * sustainedSignal;
+
+    internalFraction = clamp(
+      internalFraction +
+        (params.internalizationRate * internalizationDrive * (1 - internalFraction) -
+          params.recyclingRate * internalFraction) *
+          DT,
+      0,
+      0.96
+    );
+
+    const surfaceReceptors = params.receptorLevel * (1 - internalFraction);
+    const surfaceFactor = surfaceReceptors / Math.max(params.receptorLevel, 1);
+    const signal =
+      (transientSignal + sustainedSignal) * (0.58 + 0.42 * surfaceFactor);
     const boundReceptors = surfaceReceptors * occupancy;
     const drive = boundReceptors / (params.dimerKd * config.kdMultiplier);
-    const cooperativeTerm = hillLike(drive, config.exponent);
-    const activeReceptors = clamp(boundReceptors * cooperativeTerm, 0, surfaceReceptors);
+    const activeReceptors = clamp(
+      params.receptorLevel *
+        (0.16 * signal + 0.06 * profile.sustainedAmplitude * sustainedGate),
+      0,
+      surfaceReceptors
+    );
     const activeDimers = activeReceptors / 2;
-
-    signal += ((activeReceptors / 44) - 0.14 * signal) * DT;
-
-    const internalizedFlux = params.internalizationRate * activeReceptors * DT;
-    const recycledFlux = params.recyclingRate * internalizedReceptors * DT;
-
-    surfaceReceptors = clamp(
-      surfaceReceptors - internalizedFlux + recycledFlux,
-      0,
-      params.receptorLevel
-    );
-    internalizedReceptors = clamp(
-      internalizedReceptors + internalizedFlux - recycledFlux,
-      0,
-      params.receptorLevel
-    );
+    const internalizedReceptors = params.receptorLevel * internalFraction;
 
     series.push({
       time,
@@ -147,6 +163,8 @@ export function simulate(params) {
       activeReceptors,
       activeDimers,
       signal,
+      transientSignal,
+      sustainedSignal,
     });
   }
 
@@ -173,7 +191,7 @@ function summarizeSeries(series, params) {
     }
   }
 
-  const significanceThreshold = Math.max(0.28, peakPoint.signal * 0.7);
+  const significanceThreshold = Math.max(0.05, peakPoint.signal * 0.7);
   let sustainedDuration = 0;
 
   for (const point of series) {
@@ -218,14 +236,61 @@ function summarizeSeries(series, params) {
   return summary;
 }
 
-function hillLike(value, exponent) {
-  const safeValue = Math.max(value, 0);
-  const numerator = safeValue ** exponent;
-  return numerator / (1 + numerator);
-}
-
 function logistic(value) {
   return 1 / (1 + Math.exp(-value));
+}
+
+function inverseLogistic(value) {
+  return 1 / (1 + Math.exp(value));
+}
+
+function gammaPeak(time, peakTime) {
+  const safeTime = Math.max(time, 1e-3);
+  return (safeTime / peakTime) * Math.exp(1 - safeTime / peakTime);
+}
+
+function deriveResponseProfile(params, config) {
+  const receptorNorm =
+    (params.receptorLevel - RECEPTOR_RANGE.min) /
+    (RECEPTOR_RANGE.max - RECEPTOR_RANGE.min);
+  const occupancyAtPulsePeak = params.ligandPulse / (params.ligandPulse + 0.7);
+  const drive =
+    (params.receptorLevel * occupancyAtPulsePeak) /
+    (params.dimerKd * config.kdMultiplier);
+  const dimerizationResponse = logistic((drive - 1) * 4.6);
+  const weakKdBias = logistic((params.dimerKd - 95) / 18);
+  const nearThresholdWindow = Math.exp(-((drive - 0.55) / 0.55) ** 2);
+  const transientStrength = clamp(
+    0.62 * dimerizationResponse + 0.48 * receptorNorm + config.transientBias
+  );
+  const sustainedStrength = clamp(
+    config.sustainBias *
+      weakKdBias *
+      nearThresholdWindow *
+      (0.75 + 0.25 * (1 - receptorNorm)) *
+      (1 - 0.55 * receptorNorm) *
+      (1 - 0.5 * transientStrength)
+  );
+  const pulseDurationNorm = clamp((params.pulseDuration - 12) / (60 - 12), 0, 1);
+
+  return {
+    drive,
+    transientStrength,
+    sustainedStrength,
+    transientAmplitude:
+      0.14 +
+      1.55 *
+        transientStrength ** 1.1 *
+        (0.75 + (0.25 * params.ligandPulse) / 1.8),
+    sustainedAmplitude:
+      0.02 +
+      0.22 * sustainedStrength * (0.85 + 0.5 * pulseDurationNorm),
+    peakTime: 2.1 - 0.28 * clamp(transientStrength - 0.5, -1, 1),
+    transientEnd: 15 - 2.6 * clamp(transientStrength - 0.55, -0.5, 0.5),
+    sustainEnd:
+      28 + 34 * sustainedStrength * (0.55 + 0.45 * pulseDurationNorm),
+    sustainRise: 2.2 + 1.0 * (1 - sustainedStrength),
+  };
 }
 
 function clamp(value, min, max) {
