@@ -261,7 +261,9 @@ function deriveResponseProfile(params, config) {
   const weakKdBias = logistic((params.dimerKd - 95) / 18);
   const nearThresholdWindow = Math.exp(-((drive - 0.55) / 0.55) ** 2);
   const transientStrength = clamp(
-    0.62 * dimerizationResponse + 0.48 * receptorNorm + config.transientBias
+    0.62 * dimerizationResponse + 0.48 * receptorNorm + config.transientBias,
+    0,
+    1
   );
   const sustainedStrength = clamp(
     config.sustainBias *
@@ -269,7 +271,9 @@ function deriveResponseProfile(params, config) {
       nearThresholdWindow *
       (0.75 + 0.25 * (1 - receptorNorm)) *
       (1 - 0.55 * receptorNorm) *
-      (1 - 0.5 * transientStrength)
+      (1 - 0.5 * transientStrength),
+    0,
+    1
   );
   const pulseDurationNorm = clamp((params.pulseDuration - 12) / (60 - 12), 0, 1);
 
@@ -293,6 +297,6 @@ function deriveResponseProfile(params, config) {
   };
 }
 
-function clamp(value, min, max) {
+function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
