@@ -176,6 +176,8 @@ function plot(divId, data, layout) {
 }
 
 function legendBelow(layout, bottomMargin = 124) {
+  const baseBottomMargin = layout.margin?.b ?? 56;
+  const targetHeight = 450 + Math.max(0, bottomMargin - baseBottomMargin);
   return {
     ...layout,
     legend: {
@@ -191,6 +193,7 @@ function legendBelow(layout, bottomMargin = 124) {
       ...layout.margin,
       b: bottomMargin,
     },
+    height: targetHeight,
   };
 }
 

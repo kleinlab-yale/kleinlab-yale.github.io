@@ -109,24 +109,17 @@ h1 {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  justify-content: flex-start;
-  gap: 0.2rem;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  gap: 0.25rem;
   min-width: 13rem;
   padding: 0.8rem 1rem;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(21, 37, 61, 0.08);
   box-shadow: 0 10px 24px rgba(21, 37, 61, 0.08);
-  text-align: right;
-}
-
-.hero-mark-kicker {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
+  text-align: center;
 }
 
 .hero-mark-name {
@@ -390,8 +383,7 @@ h1 {
   }
 
   .hero-mark {
-    align-items: flex-start;
-    text-align: left;
+    justify-self: start;
     min-width: 0;
   }
 
