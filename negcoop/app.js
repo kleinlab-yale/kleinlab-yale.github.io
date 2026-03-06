@@ -367,9 +367,9 @@ function injectCompatibilityStyles() {
     .hero {
       position: relative;
       overflow: hidden;
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1.5rem;
       align-items: flex-start;
       padding: clamp(1.35rem, 2.8vw, 2.3rem) !important;
       border: 1px solid rgba(15, 51, 69, 0.1);
@@ -422,24 +422,33 @@ function injectCompatibilityStyles() {
       font-size: 1rem;
       line-height: 1.65;
     }
-    .hero-controls {
+    .hero-mark {
       position: relative;
       z-index: 1;
-      flex: 0 0 auto;
-    }
-    .sigcoop-mark {
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 10px 14px;
-      border: 1px solid rgba(15, 51, 69, 0.12);
-      border-radius: 999px;
-      background: rgba(255, 252, 245, 0.75);
-      color: var(--accent);
-      font-size: 0.88rem;
+      justify-self: end;
+      gap: 0.25rem;
+      min-width: 13rem;
+      padding: 0.8rem 1rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(15, 51, 69, 0.08);
+      box-shadow: 0 10px 24px rgba(21, 37, 61, 0.08);
+      text-align: center;
+    }
+    .hero-mark-name {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(2rem, 3.4vw, 3rem);
+      line-height: 0.9;
+      color: var(--ink);
+    }
+    .hero-mark-expansion {
+      font-size: 0.9rem;
       font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      color: #d37522;
     }
     .preset-reset {
       margin-top: 14px;
@@ -457,26 +466,22 @@ function injectCompatibilityStyles() {
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
-    .phase-heading-meta .card-caption {
-      margin: 0;
-      max-width: 32ch;
-      text-align: right;
-    }
     .hero-note {
       display: none !important;
     }
     @media (max-width: 760px) {
       .hero {
-        flex-direction: column;
+        grid-template-columns: 1fr;
       }
       .hero h1 {
         font-size: clamp(1.8rem, 9vw, 2.5rem) !important;
       }
+      .hero-mark {
+        justify-self: start;
+        min-width: 0;
+      }
       .phase-heading-meta {
         align-items: flex-start;
-      }
-      .phase-heading-meta .card-caption {
-        text-align: left;
       }
     }
   `;
@@ -509,19 +514,27 @@ function normalizeHero() {
   heroText.className = "hero-text";
   heroText.replaceChildren(eyebrow, heading, subtitle);
 
-  const heroControls =
+  const heroMark =
+    hero.querySelector(".hero-mark") ||
     hero.querySelector(".hero-controls") ||
     hero.querySelector(".hero-actions") ||
-    document.createElement("div");
-  heroControls.className = "hero-controls";
+    document.createElement("aside");
+  heroMark.className = "hero-mark";
+  heroMark.setAttribute("aria-label", "Program title");
 
-  const sigcoopMark = hero.querySelector(".sigcoop-mark") || document.createElement("span");
-  sigcoopMark.className = "sigcoop-mark";
-  sigcoopMark.textContent = "SigCoop";
+  const heroMarkName =
+    heroMark.querySelector(".hero-mark-name") || document.createElement("span");
+  heroMarkName.className = "hero-mark-name";
+  heroMarkName.textContent = "SigCoop";
 
-  heroControls.replaceChildren(sigcoopMark);
+  const heroMarkExpansion =
+    heroMark.querySelector(".hero-mark-expansion") || document.createElement("span");
+  heroMarkExpansion.className = "hero-mark-expansion";
+  heroMarkExpansion.textContent = "Signaling Cooperativity Explorer";
 
-  hero.replaceChildren(heroText, heroControls);
+  heroMark.replaceChildren(heroMarkName, heroMarkExpansion);
+
+  hero.replaceChildren(heroText, heroMark);
 
   if (resetButton) {
     moveResetButtonToTeachingScenarios(resetButton);
@@ -574,6 +587,12 @@ function rewriteStaticCopy() {
       heading.textContent = "Dimerization Kd versus receptor abundance";
     }
   }
+
+  const phaseCanvasNode = document.querySelector("#phaseCanvas");
+  phaseCanvasNode
+    ?.closest(".chart-card")
+    ?.querySelector(".card-heading .card-caption")
+    ?.remove();
 }
 
 function ensurePhaseMapStatusBadge() {
@@ -585,15 +604,12 @@ function ensurePhaseMapStatusBadge() {
     return;
   }
 
+  cardHeading.querySelector(".card-caption")?.remove();
+
   let headingMeta = cardHeading.querySelector(".phase-heading-meta");
   if (!headingMeta) {
-    const existingCaption = cardHeading.querySelector(".card-caption");
     headingMeta = document.createElement("div");
     headingMeta.className = "phase-heading-meta";
-
-    if (existingCaption) {
-      headingMeta.append(existingCaption);
-    }
 
     cardHeading.append(headingMeta);
   }

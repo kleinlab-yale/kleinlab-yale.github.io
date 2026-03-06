@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260306e" />
+    <link rel="stylesheet" href="./styles.css?v=20260306f" />
   </head>
   <body>
     <div class="page-shell">
@@ -27,9 +27,10 @@
             Lab at Yale (KLAY).
           </p>
         </div>
-        <div class="hero-controls">
-          <span class="sigcoop-mark">SigCoop</span>
-        </div>
+        <aside class="hero-mark" aria-label="Program title">
+          <span class="hero-mark-name">SigCoop</span>
+          <span class="hero-mark-expansion">Signaling Cooperativity Explorer</span>
+        </aside>
       </header>
 
       <main class="workspace">
@@ -288,10 +289,6 @@
                 <div class="phase-heading-meta">
                   <span class="phase-status-label">Current setting</span>
                   <span id="phaseFateBadge" class="fate-badge"></span>
-                  <p class="card-caption">
-                    The dot marks the current setting. Blue regions are
-                    differentiation-like, warm regions are growth-like.
-                  </p>
                 </div>
               </div>
               <canvas
@@ -348,6 +345,6 @@
       </main>
     </div>
 
-    <script src="./app.js?v=20260306d"></script>
+    <script src="./app.js?v=20260306f"></script>
   </body>
 </html>

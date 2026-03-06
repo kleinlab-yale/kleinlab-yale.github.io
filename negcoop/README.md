@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/25795207/README.md)
 # RTK Signaling Explorer
 
 A zero-build static web app for illustrating how receptor abundance, dimerization Kd, cooperativity, and receptor internalization reshape RTK signaling output.
