@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cooperativity and Control of Signaling</title>
+    <title>SigCoop | Cooperativity and Control of Signaling</title>
     <meta
       name="description"
       content="KLAY teaching app for RTK cooperativity, receptor abundance, dimerization Kd, and signaling control."
@@ -14,23 +14,21 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260305c" />
+    <link rel="stylesheet" href="./styles.css?v=20260306e" />
   </head>
   <body>
     <div class="page-shell">
       <header class="hero">
         <div class="hero-text">
-          <p class="eyebrow">KLAY Teaching App</p>
+          <p class="eyebrow">Yale Medical School, Dept. of Pharmacology</p>
           <h1>Cooperativity and Control of Signaling</h1>
           <p class="hero-subtitle">
-            For Pharmacology graduate students. Designed and maintained by the
-            Klein Lab at Yale (KLAY).
+            For Yale Pharmacology students. Designed and maintained by the Klein
+            Lab at Yale (KLAY).
           </p>
         </div>
         <div class="hero-controls">
-          <button id="resetDefaults" class="secondary-button">
-            Reset to paper-like preset
-          </button>
+          <span class="sigcoop-mark">SigCoop</span>
         </div>
       </header>
 
@@ -42,6 +40,9 @@
               <p>Start from the regimes you said you want students to compare.</p>
             </div>
             <div class="preset-grid" id="presetGrid"></div>
+            <button id="resetDefaults" class="secondary-button preset-reset">
+              Reset to paper-like preset
+            </button>
           </section>
 
           <section class="block">
@@ -146,27 +147,83 @@
           <details class="model-note">
             <summary>Model structure</summary>
             <p>
-              The simulator is now tuned as a teaching model for the curve shapes
-              you asked for. It uses three linked ideas:
+              This app uses a reduced phenomenological RTK model rather than a
+              full mechanistic reaction network. Time is simulated from 0 to 60
+              minutes in 0.25 minute steps, with a fixed 1 minute ligand pulse
+              starting at time zero.
             </p>
             <ol>
               <li>
-                Receptor abundance, ligand, cooperativity, and Kd set an
-                effective dimerization drive that decides whether the response
-                is mostly transient or mostly sustained after a fixed 1 minute
-                pulse at time zero.
+                <strong>Ligand and effective dimerization drive.</strong> The
+                pulse is represented as
+                <code>L(t) = L0 / (1 + exp((t - 1) / 0.12))</code>, receptor
+                occupancy as
+                <code>theta(t) = L(t) / (L(t) + 0.7)</code>, and peak
+                dimerization drive as
+                <code>D = R * theta_peak / (Kd * c_coop)</code>. The
+                cooperativity setting changes <code>c_coop</code> and adds
+                regime-specific bias toward transient or sustained output.
               </li>
               <li>
-                A fast transient component peaks near 2 minutes, while a weak
-                negative-cooperative regime adds a low plateau that can persist
-                for 30 to 60 minutes.
+                <strong>Two-component signaling response.</strong> The signal is
+                written as the sum of a fast transient branch and a weak
+                sustained branch. The transient term uses a gamma-like peak,
+                <code>g(t) = (t / t_peak) * exp(1 - t / t_peak)</code>,
+                multiplied by an early shutoff gate. The sustained term is the
+                product of a rise logistic and a fall logistic. Their amplitudes
+                are heuristic functions of <code>D</code>, receptor abundance,
+                and a near-threshold weak-<code>Kd</code> window, which allows
+                weak dimerization to remain low and prolonged at low receptor
+                abundance but switch to a high transient when receptor abundance
+                is increased.
               </li>
               <li>
-                Strong signaling drives rapid receptor loss from the surface,
-                which makes transient responses crash even if ligand is still
-                present.
+                <strong>Trafficking and signal collapse.</strong> Internalized
+                receptor fraction follows
+                <code>
+                  I(t + dt) = clamp(I + [kint * (T + 0.22S) * (1 - I) - krec * I]dt)
+                </code>.
+                Surface receptors are
+                <code>Rs = R * (1 - I)</code>, and displayed signaling is scaled
+                by surface availability,
+                <code>signal = (T + S) * (0.58 + 0.42 * Rs / R)</code>. This
+                produces rapid decay after a strong burst when internalization
+                outpaces recycling.
+              </li>
+              <li>
+                <strong>Summary metrics and labels.</strong> Peak signal, peak
+                time, area-under-the-curve-derived effective duration, and final
+                surface receptor loss are calculated from the simulated trace.
+                The transient versus sustained label comes from a score that
+                increases with peak amplitude and receptor loss and decreases
+                with effective duration, so it should be interpreted as a
+                compact teaching summary of the waveform rather than a direct
+                fate prediction.
               </li>
             </ol>
+            <p><strong>Limitations</strong></p>
+            <ul>
+              <li>
+                Parameters are in relative units and are tuned for qualitative
+                behavior, not globally fit to a single experimental dataset.
+              </li>
+              <li>
+                The simulator does not explicitly solve monomer-dimer
+                mass-action equations with ligand depletion, adaptor
+                competition, phosphatases, endosomal signaling, or downstream
+                ERK/AKT feedback loops.
+              </li>
+              <li>
+                Cooperativity is represented by effective <code>Kd</code>
+                rescaling and bias terms rather than a microscopic
+                thermodynamic model of receptor-receptor interaction energies.
+              </li>
+              <li>
+                The growth-like and differentiation-like labels summarize curve
+                shape in this reduced model and should not be treated as
+                universal predictions across all ligands, cell types, or RTKs.
+              </li>
+            </ul>
           </details>
         </aside>
 
@@ -228,10 +285,14 @@
                   <p class="eyebrow">Phase map</p>
                   <h3>Dimerization Kd versus receptor abundance</h3>
                 </div>
-                <p class="card-caption">
-                  The dot marks the current setting. Blue regions are
-                  differentiation-like, warm regions are growth-like.
-                </p>
+                <div class="phase-heading-meta">
+                  <span class="phase-status-label">Current setting</span>
+                  <span id="phaseFateBadge" class="fate-badge"></span>
+                  <p class="card-caption">
+                    The dot marks the current setting. Blue regions are
+                    differentiation-like, warm regions are growth-like.
+                  </p>
+                </div>
               </div>
               <canvas
                 id="phaseCanvas"
@@ -287,6 +348,6 @@
       </main>
     </div>
 
-    <script src="./app.js?v=20260305c"></script>
+    <script src="./app.js?v=20260306d"></script>
   </body>
 </html>
