@@ -46,6 +46,10 @@ body {
 .hero {
   position: relative;
   overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: start;
   padding: clamp(1.5rem, 3vw, 2.6rem);
   border-radius: 30px;
   background:
@@ -87,12 +91,55 @@ h1 {
   max-width: 10ch;
 }
 
+.hero-main {
+  position: relative;
+  z-index: 1;
+}
+
 .hero-copy {
   max-width: 66ch;
   margin: 1rem 0 0;
   font-size: 1.02rem;
   line-height: 1.7;
   color: var(--muted);
+}
+
+.hero-mark {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  min-width: 13rem;
+  padding: 0.8rem 1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(21, 37, 61, 0.08);
+  box-shadow: 0 10px 24px rgba(21, 37, 61, 0.08);
+  text-align: right;
+}
+
+.hero-mark-kicker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hero-mark-name {
+  font-family: "Newsreader", serif;
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+  line-height: 0.9;
+  color: var(--ink);
+}
+
+.hero-mark-expansion {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--orange);
 }
 
 .tab-bar {
@@ -338,6 +385,16 @@ h1 {
 }
 
 @media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-mark {
+    align-items: flex-start;
+    text-align: left;
+    min-width: 0;
+  }
+
   .panel-header {
     grid-template-columns: 1fr;
   }

@@ -175,6 +175,25 @@ function plot(divId, data, layout) {
   Plotly.react(divId, data, layout, PLOT_CONFIG);
 }
 
+function legendBelow(layout, bottomMargin = 124) {
+  return {
+    ...layout,
+    legend: {
+      ...layout.legend,
+      x: 0,
+      y: -0.24,
+      xanchor: "left",
+      yanchor: "top",
+      orientation: "v",
+      bgcolor: "rgba(255,255,255,0.86)",
+    },
+    margin: {
+      ...layout.margin,
+      b: bottomMargin,
+    },
+  };
+}
+
 function getInputValue(id) {
   return Number(document.getElementById(id).value);
 }
@@ -465,26 +484,28 @@ function renderAntagonists() {
     "Agonist concentration (nM, log scale)",
     "Effect (%)",
     true,
-    [-5, 160],
+    [0, 100],
     [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
   );
   responseLogLayout = addReferenceLines(responseLogLayout, {
     vlines: vlineItems,
     hlines: hlineItems,
   });
+  responseLogLayout = legendBelow(responseLogLayout, 140);
 
   let responseLinearLayout = baseLayout(
     `${model} Antagonism (Linear X)`,
     "Agonist concentration (nM, linear scale)",
     "Effect (%)",
     false,
-    [-5, 160],
+    [0, 100],
     [0, LINEAR_MAX_NM]
   );
   responseLinearLayout = addReferenceLines(responseLinearLayout, {
     vlines: vlineItems,
     hlines: hlineItems,
   });
+  responseLinearLayout = legendBelow(responseLinearLayout, 140);
 
   const { xLogNm: antLogGridNm, xLinearNm: antLinearGridNm } = concentrationGridsNm();
   const inhibLog = antLogGridNm.map((value) => (100.0 * value) / (ic50Nm + value));
@@ -610,7 +631,7 @@ function renderPartial() {
     "Agonist concentration (nM, log scale)",
     "Effect (%)",
     true,
-    [0, 160],
+    [0, 100],
     [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
   );
   logLayout = addReferenceLines(logLayout, {
@@ -623,13 +644,14 @@ function renderPartial() {
       [partialEmax, "Partial Emax=efficacy", "seagreen"],
     ],
   });
+  logLayout = legendBelow(logLayout, 120);
 
   let linearLayout = baseLayout(
     "Partial vs Full Agonist (Linear X)",
     "Agonist concentration (nM, linear scale)",
     "Effect (%)",
     false,
-    [0, 160],
+    [0, 100],
     [0, LINEAR_MAX_NM]
   );
   linearLayout = addReferenceLines(linearLayout, {
@@ -642,6 +664,7 @@ function renderPartial() {
       [partialEmax, "Partial Emax=efficacy", "seagreen"],
     ],
   });
+  linearLayout = legendBelow(linearLayout, 120);
 
   plot("partial-log", logTraces, logLayout);
   plot("partial-linear", linearTraces, linearLayout);
