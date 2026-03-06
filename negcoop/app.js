@@ -317,6 +317,7 @@ const phaseContext = phaseCanvas.getContext("2d");
 const outcomeNodes = {
   fateTitle: document.querySelector("#fateTitle"),
   fateBadge: document.querySelector("#fateBadge"),
+  phaseFateBadge: document.querySelector("#phaseFateBadge"),
   insightText: document.querySelector("#insightText"),
   peakSignalMetric: document.querySelector("#peakSignalMetric"),
   peakTimeMetric: document.querySelector("#peakTimeMetric"),
@@ -338,7 +339,7 @@ let phaseMapTimeout = null;
 initialize();
 
 function applyCompatibilityOverrides() {
-  document.title = "Cooperativity and Control of Signaling";
+  document.title = "SigCoop | Cooperativity and Control of Signaling";
 
   const description = document.querySelector('meta[name="description"]');
   if (description) {
@@ -352,6 +353,7 @@ function applyCompatibilityOverrides() {
   normalizeHero();
   removeLegacyPulseDurationControl();
   rewriteStaticCopy();
+  ensurePhaseMapStatusBadge();
 }
 
 function injectCompatibilityStyles() {
@@ -363,31 +365,102 @@ function injectCompatibilityStyles() {
   style.id = "compatibility-overrides";
   style.textContent = `
     .hero {
+      position: relative;
+      overflow: hidden;
       display: flex;
       justify-content: space-between;
       gap: 20px;
       align-items: flex-start;
-      padding: 6px 6px 16px !important;
+      padding: clamp(1.35rem, 2.8vw, 2.3rem) !important;
+      border: 1px solid rgba(15, 51, 69, 0.1);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      background:
+        linear-gradient(120deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.92)),
+        linear-gradient(135deg, rgba(107, 167, 214, 0.08), rgba(211, 117, 34, 0.08));
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -4rem -5rem auto;
+      width: 14rem;
+      height: 14rem;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(211, 117, 34, 0.2), rgba(211, 117, 34, 0));
+      pointer-events: none;
     }
     .hero h1 {
+      position: relative;
+      z-index: 1;
       margin: 0;
-      max-width: none;
-      font-size: clamp(1.7rem, 3.1vw, 2.7rem) !important;
-      line-height: 1.02;
+      max-width: 12ch;
+      font-size: clamp(2rem, 3.9vw, 3.2rem) !important;
+      line-height: 0.98;
       letter-spacing: -0.03em;
     }
     .hero-text {
+      position: relative;
+      z-index: 1;
       min-width: 0;
     }
+    .eyebrow {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 0.6rem;
+      color: #d37522;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
     .hero-subtitle {
-      margin: 8px 0 0;
-      max-width: 72ch;
+      position: relative;
+      z-index: 1;
+      margin: 1rem 0 0;
+      max-width: 66ch;
       color: var(--muted);
-      font-size: 0.94rem;
-      line-height: 1.55;
+      font-size: 1rem;
+      line-height: 1.65;
     }
     .hero-controls {
+      position: relative;
+      z-index: 1;
       flex: 0 0 auto;
+    }
+    .sigcoop-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border: 1px solid rgba(15, 51, 69, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 252, 245, 0.75);
+      color: var(--accent);
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .preset-reset {
+      margin-top: 14px;
+    }
+    .phase-heading-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    .phase-status-label {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .phase-heading-meta .card-caption {
+      margin: 0;
+      max-width: 32ch;
+      text-align: right;
     }
     .hero-note {
       display: none !important;
@@ -398,6 +471,12 @@ function injectCompatibilityStyles() {
       }
       .hero h1 {
         font-size: clamp(1.8rem, 9vw, 2.5rem) !important;
+      }
+      .phase-heading-meta {
+        align-items: flex-start;
+      }
+      .phase-heading-meta .card-caption {
+        text-align: left;
       }
     }
   `;
@@ -410,10 +489,10 @@ function normalizeHero() {
     return;
   }
 
-  const resetButton = hero.querySelector("#resetDefaults");
+  const resetButton = document.querySelector("#resetDefaults");
   const eyebrow = hero.querySelector(".eyebrow") || document.createElement("p");
   eyebrow.className = "eyebrow";
-  eyebrow.textContent = "KLAY Teaching App";
+  eyebrow.textContent = "Yale Medical School, Dept. of Pharmacology";
 
   const heading = hero.querySelector("h1") || document.createElement("h1");
   heading.textContent = "Cooperativity and Control of Signaling";
@@ -424,7 +503,7 @@ function normalizeHero() {
     document.createElement("p");
   subtitle.className = "hero-subtitle";
   subtitle.textContent =
-    "For Pharmacology graduate students. Designed and maintained by the Klein Lab at Yale (KLAY).";
+    "For Yale Pharmacology students. Designed and maintained by the Klein Lab at Yale (KLAY).";
 
   const heroText = hero.querySelector(".hero-text") || document.createElement("div");
   heroText.className = "hero-text";
@@ -436,11 +515,40 @@ function normalizeHero() {
     document.createElement("div");
   heroControls.className = "hero-controls";
 
-  if (resetButton) {
-    heroControls.replaceChildren(resetButton);
-  }
+  const sigcoopMark = hero.querySelector(".sigcoop-mark") || document.createElement("span");
+  sigcoopMark.className = "sigcoop-mark";
+  sigcoopMark.textContent = "SigCoop";
+
+  heroControls.replaceChildren(sigcoopMark);
 
   hero.replaceChildren(heroText, heroControls);
+
+  if (resetButton) {
+    moveResetButtonToTeachingScenarios(resetButton);
+  }
+}
+
+function moveResetButtonToTeachingScenarios(resetButton) {
+  const presetGrid = document.querySelector("#presetGrid");
+  const teachingBlock =
+    presetGrid?.closest(".block") ||
+    Array.from(document.querySelectorAll(".block")).find(
+      (block) => block.querySelector("h2")?.textContent.trim() === "Teaching scenarios"
+    );
+
+  if (!teachingBlock) {
+    return;
+  }
+
+  resetButton.classList.add("preset-reset");
+  resetButton.textContent = "Reset to paper-like preset";
+
+  if (presetGrid && presetGrid.parentElement === teachingBlock) {
+    presetGrid.insertAdjacentElement("afterend", resetButton);
+    return;
+  }
+
+  teachingBlock.append(resetButton);
 }
 
 function removeLegacyPulseDurationControl() {
@@ -465,6 +573,44 @@ function rewriteStaticCopy() {
     ) {
       heading.textContent = "Dimerization Kd versus receptor abundance";
     }
+  }
+}
+
+function ensurePhaseMapStatusBadge() {
+  const phaseCanvasNode = document.querySelector("#phaseCanvas");
+  const phaseCard = phaseCanvasNode?.closest(".chart-card");
+  const cardHeading = phaseCard?.querySelector(".card-heading");
+
+  if (!cardHeading || document.querySelector("#phaseFateBadge")) {
+    return;
+  }
+
+  let headingMeta = cardHeading.querySelector(".phase-heading-meta");
+  if (!headingMeta) {
+    const existingCaption = cardHeading.querySelector(".card-caption");
+    headingMeta = document.createElement("div");
+    headingMeta.className = "phase-heading-meta";
+
+    if (existingCaption) {
+      headingMeta.append(existingCaption);
+    }
+
+    cardHeading.append(headingMeta);
+  }
+
+  const statusLabel = headingMeta.querySelector(".phase-status-label") || document.createElement("span");
+  statusLabel.className = "phase-status-label";
+  statusLabel.textContent = "Current setting";
+
+  const phaseBadge = document.createElement("span");
+  phaseBadge.id = "phaseFateBadge";
+  phaseBadge.className = "fate-badge";
+
+  if (headingMeta.firstChild) {
+    headingMeta.insertBefore(statusLabel, headingMeta.firstChild);
+    statusLabel.insertAdjacentElement("afterend", phaseBadge);
+  } else {
+    headingMeta.append(statusLabel, phaseBadge);
   }
 }
 
@@ -584,6 +730,10 @@ function renderSummary(summary) {
   outcomeNodes.fateTitle.textContent = summary.fateLabel;
   outcomeNodes.fateBadge.textContent = badgeLabel(summary.fate);
   outcomeNodes.fateBadge.className = `fate-badge ${summary.fate}`;
+  if (outcomeNodes.phaseFateBadge) {
+    outcomeNodes.phaseFateBadge.textContent = badgeLabel(summary.fate);
+    outcomeNodes.phaseFateBadge.className = `fate-badge ${summary.fate}`;
+  }
 
   outcomeNodes.insightText.textContent = buildInsight(summary, peakDrive);
   outcomeNodes.peakSignalMetric.textContent = `${summary.peakSignal.toFixed(2)} AU`;
