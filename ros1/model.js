@@ -234,8 +234,8 @@ const activeLegLocal = {
 };
 
 const defaultView = Object.freeze({
-  yaw: -0.52,
-  pitch: 0.03,
+  yaw: 0,
+  pitch: 0,
   zoom: 0.38,
   centerYFactor: 0.57,
 });
@@ -1014,32 +1014,6 @@ function buildCommands(now) {
 
     if (dynamicFactor > 0.18) {
       const ghostKeys = ["shoulder", "upper", "hip", "mid1", "mid2", "knee", "low1", "low2", "low3", "low4", "tm", "tmBase"];
-      const hazeAlpha = 0.12 * dynamicFactor * receptorAlpha;
-      const lowerLegClouds = [
-        { point: projected.mid2, radiusX: 38, radiusY: 76 },
-        { point: projected.knee, radiusX: 48, radiusY: 94 },
-        { point: projected.low2, radiusX: 54, radiusY: 112 },
-        { point: projected.low4, radiusX: 44, radiusY: 92 },
-      ];
-
-      lowerLegClouds.forEach((cloud, cloudIndex) => {
-        const pulse = dynamicTrailOffsets(index, cloudIndex + 4, now);
-        const hazePoint = {
-          ...cloud.point,
-          x: cloud.point.x + pulse.x * (1.2 + cloudIndex * 0.28),
-          y: cloud.point.y,
-          depth: cloud.point.depth,
-          scale: cloud.point.scale,
-        };
-        pushLegHaze(
-          commands,
-          hazePoint,
-          cloud.radiusX,
-          cloud.radiusY,
-          hazeAlpha * (1 - cloudIndex * 0.12)
-        );
-      });
-
       for (let trailIndex = 0; trailIndex < 3; trailIndex += 1) {
         const alpha = 0.11 * dynamicFactor * receptorAlpha * (1 - trailIndex * 0.18);
         const offset = dynamicTrailOffsets(index, trailIndex, now);
@@ -1098,6 +1072,43 @@ function buildCommands(now) {
       pushLabel(commands, projected.kinase, "Kinase", palette.kinase, kinaseX, kinaseY);
     }
   });
+
+  if (dynamicFactor > 0.18 && ligandReceptors.length > 1) {
+    const axisClouds = [
+      { key: "mid2", radiusX: 26, radiusY: 60, alpha: 0.075 },
+      { key: "knee", radiusX: 36, radiusY: 84, alpha: 0.092 },
+      { key: "low1", radiusX: 46, radiusY: 104, alpha: 0.108 },
+      { key: "low2", radiusX: 54, radiusY: 118, alpha: 0.122 },
+      { key: "low4", radiusX: 42, radiusY: 92, alpha: 0.094 },
+      { key: "tm", radiusX: 32, radiusY: 68, alpha: 0.08 },
+    ];
+
+    axisClouds.forEach((cloud, cloudIndex) => {
+      const axisWorld = ligandReceptors.reduce(
+        (sum, receptor) => add(sum, receptor.nodes[cloud.key]),
+        [0, 0, 0]
+      ).map((value) => value / ligandReceptors.length);
+      const axisPoint = project(axisWorld);
+      const pulse = dynamicTrailOffsets(9, cloudIndex + 5, now);
+      const pulseStrength = Math.abs(pulse.x) * 0.32 + Math.abs(pulse.z) * 0.2;
+      const baseAlpha = cloud.alpha * dynamicFactor;
+
+      pushLegHaze(
+        commands,
+        axisPoint,
+        cloud.radiusX + pulseStrength,
+        cloud.radiusY + pulseStrength * 1.8,
+        baseAlpha
+      );
+      pushLegHaze(
+        commands,
+        axisPoint,
+        cloud.radiusX + 18 + pulseStrength * 1.45,
+        cloud.radiusY + 24 + pulseStrength * 2.2,
+        baseAlpha * 0.55
+      );
+    });
+  }
 
   if (receptorVisibility[labelIndex] > 0.35) {
     const membranePoint = project([-260, membraneY, 0]);
