@@ -15,6 +15,7 @@ const palette = {
   hand: "#d77faf",
   arm: "#7ed6e6",
   leg: "#8c8df0",
+  kinase: "#134e8f",
   ligand: "#353336",
   ligandSoft: "#8f8f8f",
   rx5: "#cf5977",
@@ -48,7 +49,7 @@ const baseStates = {
   active: {
     title: "NELL2 engages sites 1, 2, and 3",
     body:
-      "Full ligand engagement rotates the CATCH plus FNIII-1/2 block about 130 degrees around YWTD-A, pulls the hand out of the hip pocket, and frees the leg to become dynamic while the lower receptor regions come together.",
+      "Full ligand engagement rotates the CATCH plus FNIII-1/2 block about 130 degrees around YWTD-A, pulls the hand out of the hip pocket, and frees the leg so the transmembrane and kinase regions can approach one another.",
     metrics: {
       ligand: "Sites 1/2/3",
       leg: "Dynamic",
@@ -100,7 +101,7 @@ function buildProfile(state, antibody) {
       return {
         title: "CTX traps a pre-active assembly",
         body:
-          "CTX binds between the FNIII arm and YWTD-A shoulder, so the arm-hand rigid body cannot release and swing upward. ROS1 can still form a ligand-driven cluster, but it is trapped before activation.",
+          "CTX binds between the FNIII arm and YWTD-A shoulder, so the arm-hand rigid body cannot release and swing upward. ROS1 can still form a ligand-driven cluster, but the transmembrane and kinase regions never fully converge.",
         metrics: {
           ligand: "Site 1 trapped",
           leg: "Constrained",
@@ -170,6 +171,7 @@ const nodeStyles = {
   low3: { radius: 16, color: palette.leg },
   low4: { radius: 16, color: palette.leg },
   tm: { radius: 10, color: palette.leg },
+  kinase: { radius: 30, color: palette.kinase },
   armProx: { radius: 16, color: palette.arm },
   armDist: { radius: 16, color: palette.arm },
   hand: { radius: 12, color: palette.hand },
@@ -193,6 +195,7 @@ const bentLocal = {
   low3: [-6, -432, -6],
   low4: [0, -478, -4],
   tm: [2, -520, -2],
+  kinase: [26, -620, -10],
   ...bentArmLocal,
 };
 
@@ -207,6 +210,7 @@ const activeLocal = {
   low3: [62, -458, 0],
   low4: [64, -506, 0],
   tm: [64, -548, 0],
+  kinase: [82, -640, 0],
   armProx: rotateZ(bentArmLocal.armProx, armRotationRadians),
   armDist: rotateZ(bentArmLocal.armDist, armRotationRadians),
   hand: rotateZ(bentArmLocal.hand, armRotationRadians),
@@ -215,7 +219,7 @@ const activeLocal = {
 const view = {
   yaw: -0.4,
   pitch: 0.18,
-  zoom: 0.52,
+  zoom: 0.48,
   autoYaw: -0.4,
   autoRotate: true,
 };
@@ -224,6 +228,9 @@ const pointer = {
   dragging: false,
   x: 0,
   y: 0,
+  hoverX: 0,
+  hoverY: 0,
+  hoverActive: false,
 };
 
 const labelIndex = 1;
@@ -549,6 +556,21 @@ function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
   });
 }
 
+function pushKinaseGlow(commands, point, radiusUnits, alpha = 1) {
+  commands.push({
+    type: "kinaseGlow",
+    point,
+    radiusUnits,
+    alpha,
+    depth: point.depth - 1,
+  });
+}
+
+function labelOffsets(point, distance, rise = 0) {
+  const direction = point.x < width * 0.5 ? -1 : 1;
+  return [direction * distance, rise];
+}
+
 function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
   const visible = clamp(site1Factor + fullFactor, 0, 1);
   if (visible < 0.02) {
@@ -606,7 +628,7 @@ function addRx5(commands, receptors, visible) {
     const anchor = project(site1Anchor(receptor.nodes));
     const shoulder = project(receptor.nodes.shoulder);
     const angle = Math.atan2(shoulder.y - anchor.y, shoulder.x - anchor.x);
-    pushFab(commands, anchor, palette.rx5, angle, 38, visible);
+    pushFab(commands, anchor, palette.rx5, angle, 64, visible);
 
     if (index === labelIndex) {
       pushLabel(commands, anchor, "RX5", palette.rx5, 22, -22);
@@ -625,7 +647,7 @@ function addCtx(commands, receptors, visible) {
     const shoulder = project(receptor.nodes.shoulder);
     const arm = project(receptor.nodes.armProx);
     const angle = Math.atan2((shoulder.y + arm.y) * 0.5 - anchor.y, (shoulder.x + arm.x) * 0.5 - anchor.x);
-    pushFab(commands, anchor, palette.ctx, angle, 40, visible);
+    pushFab(commands, anchor, palette.ctx, angle, 68, visible);
 
     if (index === labelIndex) {
       pushLabel(commands, anchor, "CTX", palette.ctx, 20, -20);
@@ -656,6 +678,7 @@ function buildCommands(now) {
   const morph = fromProfile.geometryState === toProfile.geometryState ? 1 : progress;
 
   const commands = [];
+  const hoverCandidates = [];
   const receptors = [0, 1, 2].map((index) =>
     mixReceptor(
       buildReceptor(fromProfile.geometryState, index),
@@ -692,6 +715,7 @@ function buildCommands(now) {
 
     drawProjectedChain(commands, projected, legKeys, palette.leg, [22, 24, 22, 20, 24, 20, 18, 18, 16, 14, 10], 1);
     drawProjectedChain(commands, projected, armKeys, palette.arm, [20, 18, 14], 1);
+    pushSegment(commands, projected.tmBase, projected.kinase, palette.kinase, 16, 1);
 
     Object.entries(nodeStyles).forEach(([key, style]) => {
       pushSphere(commands, projected[key], style.radius, style.color);
@@ -702,15 +726,26 @@ function buildCommands(now) {
       pushSphere(commands, projected.hand, 20, palette.hand, 0.12 * pocketFactor);
     }
 
+    hoverCandidates.push(
+      { point: projected.hand, text: "CATCH", color: palette.hand },
+      { point: projected.armDist, text: "FNIII-1/2", color: palette.arm },
+      { point: projected.shoulder, text: "YWTD-A", color: palette.propeller },
+      { point: projected.upper, text: "FNIII-3", color: palette.leg },
+      { point: projected.hip, text: "YWTD-B", color: palette.propeller },
+      { point: projected.mid1, text: "FNIII-4/5", color: palette.leg },
+      { point: projected.knee, text: "YWTD-C", color: palette.propeller },
+      { point: projected.low2, text: "FNIII-6-9", color: palette.leg },
+      { point: projected.tm, text: "TM", color: palette.leg },
+      { point: projected.kinase, text: "Kinase", color: palette.kinase }
+    );
+
     if (index === labelIndex) {
-      pushLabel(commands, projected.hand, "CATCH", palette.hand, 24, -16);
-      pushLabel(commands, projected.armDist, "FNIII-1/2", palette.arm, 26, 8);
-      pushLabel(commands, projected.shoulder, "YWTD-A", palette.propeller, 26, -22);
-      pushLabel(commands, projected.upper, "FNIII-3", palette.leg, 24, 12);
-      pushLabel(commands, projected.hip, "YWTD-B", palette.propeller, 24, 10);
-      pushLabel(commands, projected.mid1, "FNIII-4/5", palette.leg, 24, 12);
-      pushLabel(commands, projected.knee, "YWTD-C", palette.propeller, 24, 10);
-      pushLabel(commands, projected.low2, "FNIII-6-9", palette.leg, 26, 12);
+      const [armX, armY] = labelOffsets(projected.armDist, 88, -6);
+      const [shoulderX, shoulderY] = labelOffsets(projected.shoulder, 96, -28);
+      const [legX, legY] = labelOffsets(projected.low2, 88, 10);
+      pushLabel(commands, projected.armDist, "Arm", palette.arm, armX, armY);
+      pushLabel(commands, projected.shoulder, "Shoulder", palette.propeller, shoulderX, shoulderY);
+      pushLabel(commands, projected.low2, "Leg", palette.leg, legX, legY);
     }
   });
 
@@ -718,6 +753,15 @@ function buildCommands(now) {
   addBlockedLigand(commands, receptors, blockedFactor);
   addRx5(commands, receptors, rx5Factor);
   addCtx(commands, receptors, ctxFactor);
+
+  if (fullFactor > 0.12) {
+    const centroidWorld = receptors.reduce(
+      (sum, receptor) => add(sum, receptor.nodes.kinase),
+      [0, 0, 0]
+    ).map((value) => value / receptors.length);
+    const centroid = project(centroidWorld);
+    pushKinaseGlow(commands, centroid, 46, 0.18 * fullFactor);
+  }
 
   if (pocketFactor > 0.15) {
     const receptor = receptors[labelIndex];
@@ -731,6 +775,26 @@ function buildCommands(now) {
       depth: (hand.depth + hip.depth) / 2,
       alpha: 0.18 * pocketFactor,
     });
+  }
+
+  if (pointer.hoverActive && !pointer.dragging) {
+    let bestCandidate = null;
+    let bestDistance = 34;
+
+    hoverCandidates.forEach((candidate) => {
+      const dx = pointer.hoverX - candidate.point.x;
+      const dy = pointer.hoverY - candidate.point.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestCandidate = candidate;
+      }
+    });
+
+    if (bestCandidate) {
+      const [offsetX, offsetY] = labelOffsets(bestCandidate.point, 26, -18);
+      pushLabel(commands, bestCandidate.point, bestCandidate.text, bestCandidate.color, offsetX, offsetY);
+    }
   }
 
   return commands.sort((a, b) => a.depth - b.depth);
@@ -834,6 +898,25 @@ function drawFab(command) {
   });
 }
 
+function drawKinaseGlow(command) {
+  const radius = Math.max(10, command.radiusUnits * command.point.scale);
+  const gradient = ctx.createRadialGradient(
+    command.point.x,
+    command.point.y,
+    radius * 0.16,
+    command.point.x,
+    command.point.y,
+    radius
+  );
+  gradient.addColorStop(0, `rgba(59, 127, 198, ${command.alpha * 1.2})`);
+  gradient.addColorStop(0.5, `rgba(59, 127, 198, ${command.alpha * 0.45})`);
+  gradient.addColorStop(1, "rgba(59, 127, 198, 0)");
+  ctx.beginPath();
+  ctx.arc(command.point.x, command.point.y, radius, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+}
+
 function drawLabel(command) {
   ctx.save();
   ctx.font = "600 16px Avenir Next, Segoe UI, sans-serif";
@@ -926,6 +1009,8 @@ function render(now) {
       drawSegment(command);
     } else if (command.type === "sphere") {
       drawSphere(command);
+    } else if (command.type === "kinaseGlow") {
+      drawKinaseGlow(command);
     } else if (command.type === "fab") {
       drawFab(command);
     } else if (command.type === "callout") {
@@ -947,10 +1032,16 @@ function onPointerDown(event) {
   pointer.dragging = true;
   pointer.x = event.clientX;
   pointer.y = event.clientY;
+  pointer.hoverX = event.offsetX;
+  pointer.hoverY = event.offsetY;
+  pointer.hoverActive = true;
   canvas.setPointerCapture(event.pointerId);
 }
 
 function onPointerMove(event) {
+  pointer.hoverX = event.offsetX;
+  pointer.hoverY = event.offsetY;
+  pointer.hoverActive = true;
   if (!pointer.dragging) {
     return;
   }
@@ -970,16 +1061,24 @@ function onPointerUp(event) {
   }
 }
 
+function onPointerLeave(event) {
+  pointer.dragging = false;
+  pointer.hoverActive = false;
+  if (canvas.hasPointerCapture(event.pointerId)) {
+    canvas.releasePointerCapture(event.pointerId);
+  }
+}
+
 function onWheel(event) {
   event.preventDefault();
   view.autoRotate = false;
-  view.zoom = clamp(view.zoom - event.deltaY * 0.0009, 0.42, 1.3);
+  view.zoom = clamp(view.zoom - event.deltaY * 0.0009, 0.32, 1.3);
 }
 
 function resetView() {
   view.yaw = -0.4;
   view.pitch = 0.18;
-  view.zoom = 0.52;
+  view.zoom = 0.48;
   view.autoYaw = -0.4;
   view.autoRotate = true;
 }
@@ -997,7 +1096,7 @@ resetViewButton.addEventListener("click", resetView);
 canvas.addEventListener("pointerdown", onPointerDown);
 canvas.addEventListener("pointermove", onPointerMove);
 canvas.addEventListener("pointerup", onPointerUp);
-canvas.addEventListener("pointerleave", onPointerUp);
+canvas.addEventListener("pointerleave", onPointerLeave);
 canvas.addEventListener("wheel", onWheel, { passive: false });
 
 window.addEventListener("resize", resizeCanvas);

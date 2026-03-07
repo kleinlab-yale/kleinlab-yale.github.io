@@ -13,7 +13,7 @@ into a rotatable 3D schematic.
 
 - `Unliganded`: the small CATCH hand is tucked into the hip pocket and the ectodomain stays bent
 - `NELL2 site 1`: NELL2 clusters ROS1 without pulling the hand out of the hip pocket
-- `NELL2 sites 1/2/3`: the CATCH plus FNIII-1/2 block rotates about 130 degrees around YWTD-A, the hand exits the hip pocket, and the legs become dynamic and draw together
+- `NELL2 sites 1/2/3`: the CATCH plus FNIII-1/2 block rotates about 130 degrees around YWTD-A, the hand exits the hip pocket, and the transmembrane plus kinase regions draw together
 
 ## Antibody blockade
 
