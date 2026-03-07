@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260306f" />
+    <link rel="stylesheet" href="./styles.css?v=20260307a" />
   </head>
   <body>
     <div class="page-shell">
@@ -37,8 +37,8 @@
         <aside class="panel controls-panel">
           <section class="block">
             <div class="block-heading">
-              <h2>Bio-state scenarios</h2>
-              <p>Regimes to compare.</p>
+              <h2>Teaching scenarios</h2>
+              <p>Start from the regimes you said you want students to compare.</p>
             </div>
             <div class="preset-grid" id="presetGrid"></div>
             <button id="resetDefaults" class="secondary-button preset-reset">
@@ -72,7 +72,7 @@
 
               <label class="control">
                 <span class="control-label">
-                  Dimerization Kd
+                  Dimerization Kd2
                   <strong id="dimerKdValue"></strong>
                 </span>
                 <input id="dimerKd" type="range" min="15" max="180" step="5" />
@@ -98,9 +98,11 @@
             <div class="block-heading">
               <h2>Cooperativity regime</h2>
               <p>
-                Negative cooperativity is represented as a broader, weaker
-                dimerization response; positive cooperativity is sharper and
-                stronger.
+                Kd1 is treated as a fixed ligand-capture term, conceptually
+                around 200 nM. This toggle shifts the second-step dimerization
+                term Kd2 relative to that fixed capture step, so negative
+                cooperativity means weaker Kd2 and positive cooperativity means
+                stronger Kd2.
               </p>
             </div>
             <div class="segmented-control" id="cooperativityButtons"></div>
@@ -161,9 +163,12 @@
                 occupancy as
                 <code>theta(t) = L(t) / (L(t) + 0.7)</code>, and peak
                 dimerization drive as
-                <code>D = R * theta_peak / (Kd * c_coop)</code>. The
-                cooperativity setting changes <code>c_coop</code> and adds
-                regime-specific bias toward transient or sustained output.
+                <code>D = R * theta_peak / Kd2eff</code>, with
+                <code>Kd2eff = Kd2 * c_coop</code>. In this teaching app,
+                <code>Kd1</code> is held fixed as a ligand-capture term
+                (conceptually about 200 nM), while the user changes
+                <code>Kd2</code> and the cooperativity factor shifts it
+                relative to that fixed first step.
               </li>
               <li>
                 <strong>Two-component signaling response.</strong> The signal is
@@ -215,9 +220,16 @@
                 ERK/AKT feedback loops.
               </li>
               <li>
-                Cooperativity is represented by effective <code>Kd</code>
-                rescaling and bias terms rather than a microscopic
-                thermodynamic model of receptor-receptor interaction energies.
+                Cooperativity is represented by an effective shift in
+                <code>Kd2</code> relative to a fixed <code>Kd1</code> capture
+                term, not by a full microscopic thermodynamic fit of all ligand
+                binding and dimerization states.
+              </li>
+              <li>
+                The phase map is drawn as a fixed canonical background in
+                effective <code>Kd2</code> versus receptor abundance space, so
+                changing cooperativity moves the current point on that map
+                rather than recoloring the full field.
               </li>
               <li>
                 The growth-like and differentiation-like labels summarize curve
@@ -284,7 +296,7 @@
               <div class="card-heading">
                 <div>
                   <p class="eyebrow">Phase map</p>
-                  <h3>Dimerization Kd versus receptor abundance</h3>
+                  <h3>Effective Kd2 versus receptor abundance</h3>
                 </div>
                 <div class="phase-heading-meta">
                   <span class="phase-status-label">Current setting</span>
@@ -298,9 +310,9 @@
                 height="360"
               ></canvas>
               <div class="phase-legend">
-                <span>Differentiation-like</span>
-                <div class="phase-gradient" aria-hidden="true"></div>
                 <span>Growth-like</span>
+                <div class="phase-gradient" aria-hidden="true"></div>
+                <span>Differentiation-like</span>
               </div>
             </article>
 
@@ -345,6 +357,6 @@
       </main>
     </div>
 
-    <script src="./app.js?v=20260306f"></script>
+    <script src="./app.js?v=20260307a"></script>
   </body>
 </html>

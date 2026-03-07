@@ -28,6 +28,14 @@ const COOPERATIVITY = {
   },
 };
 
+const PHASE_KD_RANGE = { min: 10, max: 220 };
+const PHASE_MAP_BASELINE = {
+  ligandPulse: 1.5,
+  internalizationRate: 0.045,
+  recyclingRate: 0.008,
+  cooperativity: "neutral",
+};
+
 const DEFAULTS = {
   receptorLevel: 45,
   dimerKd: 145,
@@ -287,6 +295,10 @@ function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
 }
 
+function effectiveDimerKd(params) {
+  return params.dimerKd * COOPERATIVITY[params.cooperativity].kdMultiplier;
+}
+
 applyCompatibilityOverrides();
 
 const state = { ...DEFAULTS };
@@ -466,6 +478,9 @@ function injectCompatibilityStyles() {
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
+    .phase-gradient {
+      background: linear-gradient(90deg, #e67e4b 0%, #f3d7a9 50%, #6ba7d6 100%);
+    }
     .hero-note {
       display: none !important;
     }
@@ -579,13 +594,37 @@ function rewriteStaticCopy() {
       "All values are relative units intended for interactive intuition. Ligand is treated as limiting, with a fixed 1 minute pulse starting at time zero.";
   }
 
+  const dimerKdLabel = document.querySelector('label[for="dimerKd"], #dimerKd')?.closest(".control");
+  const dimerKdLabelText = dimerKdLabel?.querySelector(".control-label");
+  if (dimerKdLabelText) {
+    dimerKdLabelText.childNodes[0].textContent = "Dimerization Kd2 ";
+  }
+
+  const cooperativityBlock = Array.from(document.querySelectorAll(".block-heading")).find(
+    (node) => node.querySelector("h2")?.textContent.trim() === "Cooperativity regime"
+  );
+  const cooperativityDescription = cooperativityBlock?.querySelector("p");
+  if (cooperativityDescription) {
+    cooperativityDescription.textContent =
+      "Kd1 is treated as a fixed ligand-capture term, conceptually around 200 nM. This toggle shifts the second-step dimerization term Kd2 relative to that fixed capture step, so negative cooperativity means weaker Kd2 and positive cooperativity means stronger Kd2.";
+  }
+
   for (const heading of document.querySelectorAll(".card-heading h3")) {
     if (
+      heading.textContent.includes("Effective Kd2") ||
+      heading.textContent.includes("Effective dimerization Kd") ||
       heading.textContent.includes("Receptor abundance") ||
       heading.textContent.includes("dimerization Kd")
     ) {
-      heading.textContent = "Dimerization Kd versus receptor abundance";
+      heading.textContent = "Effective Kd2 versus receptor abundance";
     }
+  }
+
+  const phaseLegend = document.querySelector(".phase-legend");
+  const phaseLegendLabels = phaseLegend?.querySelectorAll("span");
+  if (phaseLegendLabels?.length === 2) {
+    phaseLegendLabels[0].textContent = "Growth-like";
+    phaseLegendLabels[1].textContent = "Differentiation-like";
   }
 
   const phaseCanvasNode = document.querySelector("#phaseCanvas");
@@ -918,9 +957,9 @@ function renderPhaseMap() {
       y / (receptorSteps - 1)
     );
     for (let x = 0; x < kdSteps; x += 1) {
-      const kd = interpolate(KD_RANGE.min, KD_RANGE.max, x / (kdSteps - 1));
+      const kd = interpolate(PHASE_KD_RANGE.min, PHASE_KD_RANGE.max, x / (kdSteps - 1));
       const summary = simulate({
-        ...state,
+        ...PHASE_MAP_BASELINE,
         receptorLevel,
         dimerKd: kd,
       });
@@ -941,9 +980,14 @@ function renderPhaseMap() {
 
   drawPhaseAxes(phaseContext, margin, plotWidth, plotHeight);
 
+  const phaseDotKd = clamp(
+    effectiveDimerKd(state),
+    PHASE_KD_RANGE.min,
+    PHASE_KD_RANGE.max
+  );
   const dotX =
     margin.left +
-    ((state.dimerKd - KD_RANGE.min) / (KD_RANGE.max - KD_RANGE.min)) *
+    ((phaseDotKd - PHASE_KD_RANGE.min) / (PHASE_KD_RANGE.max - PHASE_KD_RANGE.min)) *
       plotWidth;
   const dotY =
     margin.top +
@@ -963,7 +1007,7 @@ function renderPhaseMap() {
 
 function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
   const receptorTicks = [50, 100, 150, 200, 250, 300];
-  const kdTicks = [20, 60, 100, 140, 180];
+  const kdTicks = [20, 60, 100, 140, 180, 220];
 
   context.fillStyle = "#5f6470";
   context.font = '12px "Space Grotesk", sans-serif';
@@ -971,7 +1015,7 @@ function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
   for (const tick of kdTicks) {
     const x =
       margin.left +
-      ((tick - KD_RANGE.min) / (KD_RANGE.max - KD_RANGE.min)) *
+      ((tick - PHASE_KD_RANGE.min) / (PHASE_KD_RANGE.max - PHASE_KD_RANGE.min)) *
         plotWidth;
     context.beginPath();
     context.moveTo(x, margin.top + plotHeight);
@@ -1002,7 +1046,7 @@ function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
   context.fillStyle = "#5f6470";
   context.textAlign = "center";
   context.fillText(
-    "dimerization Kd (AU)",
+    "effective Kd2 (AU)",
     margin.left + plotWidth / 2,
     margin.top + plotHeight + 34
   );
