@@ -526,19 +526,19 @@ function drawProjectedChain(commands, projected, keys, color, widths, alpha) {
   }
 }
 
-function addLigand(commands, receptors, clusterFactor, activeFactor) {
-  const visible = clamp(clusterFactor + activeFactor, 0, 1);
+function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
+  const visible = clamp(site1Factor + fullFactor, 0, 1);
   if (visible < 0.02) {
     return;
   }
 
-  const topWorld = [0, 288 + activeFactor * 14, 0];
+  const topWorld = [0, 288 + fullFactor * 14, 0];
   const top = project(topWorld);
   pushSphere(commands, top, 28, palette.ligand, visible);
 
   receptors.forEach((receptor, index) => {
     const shoulderTarget = add(receptor.nodes.shoulder, [0, 34, 0]);
-    const targetWorld = mixVec(shoulderTarget, receptor.nodes.hand, activeFactor);
+    const targetWorld = mixVec(shoulderTarget, receptor.nodes.hand, fullFactor);
     const jointWorld = mixVec(topWorld, targetWorld, 0.44);
     jointWorld[1] += 18 - index * 2;
     const joint = project(jointWorld);
@@ -548,27 +548,113 @@ function addLigand(commands, receptors, clusterFactor, activeFactor) {
     pushSphere(commands, joint, 10, palette.ligandSoft, visible);
   });
 
-  pushLabel(commands, top, "NELL2 trimer", palette.ligand, 22, -24);
+  pushLabel(commands, top, fullFactor > 0.4 ? "NELL2 trimer" : "NELL2 site 1", palette.ligand, 22, -24);
+}
+
+function addBlockedLigand(commands, receptors, blockedFactor) {
+  if (blockedFactor < 0.02) {
+    return;
+  }
+
+  const topWorld = [0, 318, 0];
+  const top = project(topWorld);
+  pushSphere(commands, top, 26, palette.ligand, blockedFactor * 0.72);
+
+  receptors.forEach((receptor, index) => {
+    const epitope = mixVec(receptor.nodes.armDist, receptor.nodes.hand, 0.42);
+    const blockedTarget = add(epitope, [0, 26, 0]);
+    const jointWorld = mixVec(topWorld, blockedTarget, 0.5);
+    jointWorld[1] += 10 - index * 3;
+    const joint = project(jointWorld);
+    const target = project(blockedTarget);
+    pushSegment(commands, top, joint, palette.ligandSoft, 10, blockedFactor * 0.42);
+    pushSegment(commands, joint, target, palette.ligandSoft, 8, blockedFactor * 0.32);
+  });
+
+  pushLabel(commands, top, "NELL2 blocked", palette.ligand, 22, -24);
+}
+
+function addRx5(commands, receptors, visible) {
+  if (visible < 0.02) {
+    return;
+  }
+
+  receptors.forEach((receptor, index) => {
+    const epitope = mixVec(receptor.nodes.armDist, receptor.nodes.hand, 0.42);
+    const left = project(add(epitope, [-20, 16, 8]));
+    const right = project(add(epitope, [20, 16, -8]));
+    const hub = project(add(epitope, [0, 2, 0]));
+    const stem = project(add(epitope, [0, -20, 0]));
+    pushSegment(commands, left, hub, palette.rx5, 10, visible);
+    pushSegment(commands, right, hub, palette.rx5, 10, visible);
+    pushSegment(commands, hub, stem, palette.rx5, 10, visible);
+    pushSphere(commands, hub, 8, palette.rx5, visible);
+
+    if (index === labelIndex) {
+      pushLabel(commands, hub, "RX5", palette.rx5, 20, -20);
+    }
+  });
+}
+
+function addCtx(commands, receptors, visible) {
+  if (visible < 0.02) {
+    return;
+  }
+
+  receptors.forEach((receptor, index) => {
+    const clampA1 = project(mixVec(receptor.nodes.shoulder, receptor.nodes.armProx, 0.2));
+    const clampA2 = project(mixVec(receptor.nodes.shoulder, receptor.nodes.armProx, 0.78));
+    const clampB1 = project(add(mixVec(receptor.nodes.shoulder, receptor.nodes.armProx, 0.2), [8, -4, 10]));
+    const clampB2 = project(add(mixVec(receptor.nodes.shoulder, receptor.nodes.armProx, 0.78), [8, -4, 10]));
+    pushSegment(commands, clampA1, clampA2, palette.ctx, 11, visible);
+    pushSegment(commands, clampB1, clampB2, palette.ctx, 11, visible);
+    pushSegment(commands, clampA1, clampB1, palette.ctx, 8, visible);
+    pushSegment(commands, clampA2, clampB2, palette.ctx, 8, visible);
+    pushSphere(commands, clampA1, 6, palette.ctx, visible);
+    pushSphere(commands, clampA2, 6, palette.ctx, visible);
+
+    if (index === labelIndex) {
+      pushLabel(commands, clampB1, "CTX", palette.ctx, 18, -18);
+    }
+  });
 }
 
 function buildCommands(now) {
   const elapsed = transitionStart ? clamp((now - transitionStart) / transitionDuration, 0, 1) : 1;
   const progress = smoothstep(elapsed);
-  const inactiveFactor = stateFactor("inactive", progress);
-  const clusterFactor = stateFactor("clustered", progress);
-  const activeFactor = stateFactor("active", progress);
-  const morph = fromState === activeState ? 1 : progress;
+  const fromProfile = buildProfile(fromState, fromAntibody);
+  const toProfile = buildProfile(activeState, activeAntibody);
+  const dynamicFactor = transitionFlag(
+    fromProfile.geometryState === "active",
+    toProfile.geometryState === "active",
+    progress
+  );
+  const pocketFactor = transitionFlag(
+    fromProfile.geometryState !== "active",
+    toProfile.geometryState !== "active",
+    progress
+  );
+  const site1Factor = modeFactor("site1", fromProfile.ligandMode, toProfile.ligandMode, progress);
+  const fullFactor = modeFactor("full", fromProfile.ligandMode, toProfile.ligandMode, progress);
+  const blockedFactor = modeFactor("blocked", fromProfile.ligandMode, toProfile.ligandMode, progress);
+  const rx5Factor = transitionFlag(fromProfile.showRX5, toProfile.showRX5, progress);
+  const ctxFactor = transitionFlag(fromProfile.showCTX, toProfile.showCTX, progress);
+  const morph = fromProfile.geometryState === toProfile.geometryState ? 1 : progress;
 
   const commands = [];
   const receptors = [0, 1, 2].map((index) =>
-    mixReceptor(buildReceptor(fromState, index), buildReceptor(activeState, index), morph)
+    mixReceptor(
+      buildReceptor(fromProfile.geometryState, index),
+      buildReceptor(toProfile.geometryState, index),
+      morph
+    )
   );
 
   receptors.forEach((receptor, index) => {
-    if (activeFactor > 0.18) {
+    if (dynamicFactor > 0.18) {
       const ghostKeys = ["shoulder", "upper", "hip", "mid1", "mid2", "knee", "low1", "low2", "low3", "low4", "tm", "tmBase"];
       for (let trailIndex = 0; trailIndex < 3; trailIndex += 1) {
-        const alpha = 0.11 * activeFactor * (1 - trailIndex * 0.18);
+        const alpha = 0.11 * dynamicFactor * (1 - trailIndex * 0.18);
         const offset = dynamicTrailOffsets(index, trailIndex, now);
         const ghost = {};
 
@@ -597,9 +683,9 @@ function buildCommands(now) {
       pushSphere(commands, projected[key], style.radius, style.color);
     });
 
-    if (activeFactor < 0.72) {
-      pushSphere(commands, projected.hip, 38, palette.propeller, 0.08 * (1 - activeFactor));
-      pushSphere(commands, projected.hand, 20, palette.hand, 0.12 * (1 - activeFactor));
+    if (pocketFactor > 0.15) {
+      pushSphere(commands, projected.hip, 38, palette.propeller, 0.08 * pocketFactor);
+      pushSphere(commands, projected.hand, 20, palette.hand, 0.12 * pocketFactor);
     }
 
     if (index === labelIndex) {
@@ -614,9 +700,11 @@ function buildCommands(now) {
     }
   });
 
-  addLigand(commands, receptors, clusterFactor, activeFactor);
+  addBoundLigand(commands, receptors, site1Factor, fullFactor);
+  addBlockedLigand(commands, receptors, blockedFactor);
+  addRx5(commands, receptors, rx5Factor);
+  addCtx(commands, receptors, ctxFactor);
 
-  const pocketFactor = clamp(inactiveFactor + clusterFactor, 0, 1);
   if (pocketFactor > 0.15) {
     const receptor = receptors[labelIndex];
     const hand = project(receptor.nodes.hand);
@@ -834,6 +922,10 @@ stateButtons.forEach((button) => {
   button.addEventListener("click", () => setState(button.dataset.state));
 });
 
+antibodyButtons.forEach((button) => {
+  button.addEventListener("click", () => setAntibody(button.dataset.antibody));
+});
+
 resetViewButton.addEventListener("click", resetView);
 
 canvas.addEventListener("pointerdown", onPointerDown);
@@ -845,5 +937,5 @@ canvas.addEventListener("wheel", onWheel, { passive: false });
 window.addEventListener("resize", resizeCanvas);
 
 resizeCanvas();
-applyStateText();
+applyViewText();
 requestAnimationFrame(render);

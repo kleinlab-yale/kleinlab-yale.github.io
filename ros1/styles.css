@@ -171,6 +171,7 @@ h2 {
 }
 
 .hero-link,
+.antibody-button,
 .state-button,
 .secondary-button {
   appearance: none;
@@ -197,6 +198,7 @@ h2 {
 }
 
 .hero-link:hover,
+.antibody-button:hover,
 .state-button:hover,
 .secondary-button:hover {
   transform: translateY(-1px);

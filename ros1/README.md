@@ -15,6 +15,11 @@ into a rotatable 3D schematic.
 - `NELL2 site 1`: NELL2 clusters ROS1 without pulling the hand out of the hip pocket
 - `NELL2 sites 1/2/3`: the CATCH plus FNIII-1/2 block rotates about 130 degrees around YWTD-A, the hand exits the hip pocket, and the legs become dynamic and draw together
 
+## Antibody blockade
+
+- `RX5`: masks ligand epitope 1 and prevents productive site-1 engagement by NELL2
+- `CTX`: binds between the FNIII arm and YWTD-A shoulder and prevents the arm-hand rigid body from releasing upward
+
 ## Domain layout encoded in the schematic
 
 - N-terminal `CATCH`
