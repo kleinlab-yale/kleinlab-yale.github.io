@@ -68,6 +68,7 @@ const ANTAGONIST_CLASS_DATA = {
     summary: "A reversible antagonist at the active site competes with the agonist for occupancy of the same receptor site.",
     bullets: [
       "This is the classic setup for competitive antagonism.",
+      "A related orthosteric ligand can also behave as an inverse agonist if it has negative intrinsic efficacy.",
       "The agonist curve shifts right as more agonist is required to reach the same response.",
       "Efficacy stays the same because enough agonist can still outcompete the antagonist.",
     ],
@@ -107,6 +108,16 @@ const ANTAGONIST_CLASS_DATA = {
       "Efficacy or Emax stays the same.",
       "More agonist can overcome the antagonism.",
       "Teaching pearl: competitive antagonism primarily changes potency, not maximal efficacy.",
+    ],
+  },
+  "inverse-agonist": {
+    title: "Inverse agonist",
+    summary: "An inverse agonist binds the receptor and stabilizes the inactive state, reducing constitutive receptor activity below basal signaling.",
+    bullets: [
+      "This is not just neutral blockade; it produces negative intrinsic efficacy.",
+      "Basal activity falls even in the absence of agonist.",
+      "If an agonist is added, the observed response curve can appear depressed until sufficient agonist displaces the inverse agonist.",
+      "Teaching pearl: a competitive antagonist blocks agonist effect, while an inverse agonist pushes receptor signaling in the opposite direction.",
     ],
   },
   "noncompetitive-active-site": {

@@ -376,8 +376,8 @@ h1 {
 
 .ant-class-map {
   position: relative;
-  min-width: 980px;
-  min-height: 650px;
+  min-width: 1120px;
+  min-height: 700px;
   border-radius: 24px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 248, 252, 0.94)),
@@ -408,10 +408,11 @@ h1 {
   transform: translate(-50%, -50%);
   border: 1px solid rgba(21, 37, 61, 0.12);
   border-radius: 16px;
-  padding: 0.8rem 0.85rem;
+  padding: 0.72rem 0.8rem;
   font: inherit;
   font-weight: 800;
   line-height: 1.2;
+  font-size: 0.94rem;
   text-align: center;
   color: var(--ink);
   cursor: pointer;
@@ -453,6 +454,7 @@ h1 {
 
 .tier-leaf {
   background: linear-gradient(135deg, rgba(211, 117, 34, 0.08), rgba(255, 255, 255, 0.98));
+  font-size: 0.9rem;
 }
 
 .ant-class-detail {
@@ -565,6 +567,6 @@ h1 {
   }
 
   .ant-class-map {
-    min-width: 900px;
+    min-width: 1020px;
   }
 }
