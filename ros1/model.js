@@ -1000,6 +1000,22 @@ function buildCommands(now) {
   const ligandReceptors = receptors
     .map((receptor, index) => ({ nodes: receptor.nodes, index }))
     .filter((_, index) => receptorVisibility[index] > 0.02);
+  const ligandAnchorMode =
+    toProfile.ligandMode === "site1" || toProfile.ligandMode === "full"
+      ? toProfile.ligandMode
+      : fromProfile.ligandMode === "site1" || fromProfile.ligandMode === "full"
+        ? fromProfile.ligandMode
+        : "none";
+  const ligandAnchorState =
+    ligandAnchorMode === "none"
+      ? "inactive"
+      : toProfile.ligandMode === "site1" || toProfile.ligandMode === "full"
+        ? toProfile.geometryState
+        : fromProfile.geometryState;
+  const stableLigandReceptors =
+    ligandAnchorMode === "none"
+      ? []
+      : [0, 1, 2].map((index) => ({ nodes: buildReceptor(ligandAnchorState, index).nodes, index }));
 
   receptors.forEach((receptor, index) => {
     const receptorAlpha = receptorVisibility[index];
@@ -1075,12 +1091,12 @@ function buildCommands(now) {
 
   if (dynamicFactor > 0.18 && ligandReceptors.length > 1) {
     const axisClouds = [
-      { key: "mid2", radiusX: 26, radiusY: 60, alpha: 0.075 },
-      { key: "knee", radiusX: 36, radiusY: 84, alpha: 0.092 },
-      { key: "low1", radiusX: 46, radiusY: 104, alpha: 0.108 },
-      { key: "low2", radiusX: 54, radiusY: 118, alpha: 0.122 },
-      { key: "low4", radiusX: 42, radiusY: 92, alpha: 0.094 },
-      { key: "tm", radiusX: 32, radiusY: 68, alpha: 0.08 },
+      { key: "mid2", radiusX: 28, radiusY: 68, alpha: 0.12 },
+      { key: "knee", radiusX: 40, radiusY: 96, alpha: 0.145 },
+      { key: "low1", radiusX: 52, radiusY: 118, alpha: 0.17 },
+      { key: "low2", radiusX: 60, radiusY: 134, alpha: 0.19 },
+      { key: "low4", radiusX: 48, radiusY: 104, alpha: 0.15 },
+      { key: "tm", radiusX: 36, radiusY: 76, alpha: 0.125 },
     ];
 
     axisClouds.forEach((cloud, cloudIndex) => {
@@ -1090,7 +1106,7 @@ function buildCommands(now) {
       ).map((value) => value / ligandReceptors.length);
       const axisPoint = project(axisWorld);
       const pulse = dynamicTrailOffsets(9, cloudIndex + 5, now);
-      const pulseStrength = Math.abs(pulse.x) * 0.32 + Math.abs(pulse.z) * 0.2;
+      const pulseStrength = Math.abs(pulse.x) * 0.58 + Math.abs(pulse.z) * 0.34;
       const baseAlpha = cloud.alpha * dynamicFactor;
 
       pushLegHaze(
@@ -1103,9 +1119,9 @@ function buildCommands(now) {
       pushLegHaze(
         commands,
         axisPoint,
-        cloud.radiusX + 18 + pulseStrength * 1.45,
-        cloud.radiusY + 24 + pulseStrength * 2.2,
-        baseAlpha * 0.55
+        cloud.radiusX + 22 + pulseStrength * 1.7,
+        cloud.radiusY + 28 + pulseStrength * 2.5,
+        baseAlpha * 0.72
       );
     });
   }
@@ -1115,7 +1131,7 @@ function buildCommands(now) {
     pushLabel(commands, membranePoint, "Membrane", palette.membrane, -12, -16);
   }
 
-  addBoundLigand(commands, ligandReceptors, site1Factor, fullFactor);
+  addBoundLigand(commands, stableLigandReceptors, site1Factor, fullFactor);
   addBlockedLigand(commands, ligandReceptors, blockedFactor);
   addRx5(commands, ligandReceptors, rx5Factor);
   addCt4(commands, ligandReceptors, ct4Factor);
@@ -1502,8 +1518,9 @@ function drawLegHaze(command) {
   ctx.scale(1, radiusY / radiusX);
 
   const gradient = ctx.createRadialGradient(0, 0, radiusX * 0.16, 0, 0, radiusX);
-  gradient.addColorStop(0, rgba(tint(palette.leg, 0.14), command.alpha * 0.7));
-  gradient.addColorStop(0.45, rgba(palette.leg, command.alpha * 0.32));
+  gradient.addColorStop(0, rgba(tint(palette.leg, -0.2), command.alpha * 1.05));
+  gradient.addColorStop(0.4, rgba(tint(palette.leg, -0.08), command.alpha * 0.7));
+  gradient.addColorStop(0.72, rgba(palette.leg, command.alpha * 0.34));
   gradient.addColorStop(1, rgba(palette.leg, 0));
 
   ctx.beginPath();
