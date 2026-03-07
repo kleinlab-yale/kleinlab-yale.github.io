@@ -13,12 +13,12 @@ into a rotatable 3D schematic.
 
 - `Unliganded`: the small CATCH hand is tucked into the hip pocket and the ectodomain stays bent
 - `NELL2 site 1`: the rigid `NELL2` trimer binds the strong site-1 interface on `YWTD-A`, but the rigid ROS1 arm has not yet flipped up to add site 2 on `FNIII-2` and site 3 on `FNIII-1`
-- `NELL2 sites 1/2/3`: `NELL2` remains rigid and bound at site 1 on `YWTD-A` while the ROS1 arm swings upward as a rigid `CATCH + FNIII-1/2` body, adding site 2 on `FNIII-2` and site 3 on `FNIII-1`; `CATCH` just releases from the `YWTD-B` pocket and the transmembrane plus kinase regions draw together
+- `NELL2 sites 1/2/3`: `NELL2` remains rigid and bound at site 1 on `YWTD-A` while the ROS1 arm swings upward as a rigid `CATCH + FNIII-1/2` body, adding site 2 on `FNIII-2` and site 3 on `FNIII-1`; `CATCH` just releases from the `YWTD-B` pocket so the legs, transmembrane segments, and kinase regions can draw together
 
 ## Antibody blockade
 
-- `RX5`: drawn as a full `IgG` capping the site-1 epitope on `YWTD-A`, preventing productive engagement by NELL2
-- `CTX`: drawn as a clamp-like `Fab` bound between the FNIII arm and `YWTD-A` shoulder, preventing the rigid arm-body from flipping up to add site 2 on `FNIII-2` and site 3 on `FNIII-1`
+- `RX5`: drawn as a Y-shaped antibody whose single contacting Fab tip caps the site-1 epitope on `YWTD-A`, preventing productive engagement by NELL2
+- `CTX`: drawn as the same Y-shaped antibody, but with one Fab tip docked between the FNIII arm and `YWTD-A` shoulder, preventing the rigid arm-body from flipping up to add site 2 on `FNIII-2` and site 3 on `FNIII-1`
 
 ## Domain layout encoded in the schematic
 
