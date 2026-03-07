@@ -22,7 +22,7 @@
   --ligand: #343338;
   --ligand-soft: #9ea2aa;
   --rx5: #ff4048;
-  --ctx: #ff7864;
+  --ct4: #ff7864;
   --membrane: #d8d44d;
 }
 
@@ -143,17 +143,11 @@ h2 {
   font-size: 1.45rem;
 }
 
-.lede,
-.hero-subtitle,
 .caption p,
 .note-card p {
   margin: 1rem 0 0;
   color: var(--ink-soft);
   line-height: 1.65;
-}
-
-.hero-subtitle {
-  max-width: 58ch;
 }
 
 .intro-copy {
@@ -213,10 +207,14 @@ h2 {
 
 .toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+}
+
+.toolbar-group {
+  min-width: 0;
 }
 
 .antibody-toolbar {
@@ -235,12 +233,6 @@ h2 {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-.toolbar-note {
-  margin: 10px 0 0;
-  color: var(--ink-soft);
-  line-height: 1.55;
 }
 
 .button-row {
@@ -286,8 +278,8 @@ h2 {
   box-shadow: 0 12px 24px rgba(207, 89, 119, 0.24);
 }
 
-.antibody-button.is-active[data-antibody="ctx"] {
-  background: var(--ctx);
+.antibody-button.is-active[data-antibody="ct4"] {
+  background: var(--ct4);
   color: #fff;
   box-shadow: 0 12px 24px rgba(239, 157, 52, 0.24);
 }

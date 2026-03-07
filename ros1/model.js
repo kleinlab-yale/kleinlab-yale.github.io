@@ -16,7 +16,7 @@ const viewerBadgeLabel = document.getElementById("viewerBadgeLabel");
 const palette = {
   propeller: "#edd47c",
   hand: "#d77faf",
-  arm: "#7ed6e6",
+  arm: "#d77faf",
   leg: "#8c8df0",
   kinase: "#134e8f",
   ligand: "#343338",
@@ -24,7 +24,7 @@ const palette = {
   ligandBlade: "#d7d9df",
   ligandBladeEdge: "#9ea2aa",
   rx5: "#ff4048",
-  ctx: "#ff7864",
+  ct4: "#ff7864",
   membrane: "#d8d44d",
 };
 
@@ -80,7 +80,7 @@ function buildProfile(state, antibody) {
         geometryState: "inactive",
         ligandMode: "none",
         showRX5: true,
-        showCTX: false,
+        showCT4: false,
       };
     }
 
@@ -97,16 +97,16 @@ function buildProfile(state, antibody) {
       geometryState: "inactive",
       ligandMode: "blocked",
       showRX5: true,
-      showCTX: false,
+      showCT4: false,
     };
   }
 
-  if (antibody === "ctx") {
+  if (antibody === "ct4") {
     if (state === "active") {
       return {
-        title: "CTX traps a pre-active assembly",
+        title: "CT4 traps a pre-active assembly",
         body:
-          "CTX binds between the FNIII arm and YWTD-A shoulder, so the arm-hand rigid body cannot release and swing upward to add site 2 on FNIII-2 and site 3 on FNIII-1. ROS1 can still form a site-1-driven cluster, but the transmembrane and kinase regions never fully converge.",
+          "CT4 binds between the FNIII arm and YWTD-A shoulder, so the arm-hand rigid body cannot release and swing upward to add site 2 on FNIII-2 and site 3 on FNIII-1. ROS1 can still form a site-1-driven cluster, but the transmembrane and kinase regions never fully converge.",
         metrics: {
           ligand: "Site 1 trapped",
           leg: "Constrained",
@@ -116,15 +116,15 @@ function buildProfile(state, antibody) {
         geometryState: "clustered",
         ligandMode: "site1",
         showRX5: false,
-        showCTX: true,
+        showCT4: true,
       };
     }
 
     if (state === "clustered") {
       return {
-        title: "CTX clamps the arm to the shoulder",
+        title: "CT4 clamps the arm to the shoulder",
         body:
-          "With CTX bound between the arm and YWTD-A shoulder, NELL2 can still collect ROS1 into a cluster through site 1, but the rigid arm remains pocketed, sites 2 and 3 cannot be added, and activation does not proceed.",
+          "With CT4 bound between the arm and YWTD-A shoulder, NELL2 can still collect ROS1 into a cluster through site 1, but the rigid arm remains pocketed, sites 2 and 3 cannot be added, and activation does not proceed.",
         metrics: {
           ligand: "Site 1",
           leg: "Constrained",
@@ -134,16 +134,16 @@ function buildProfile(state, antibody) {
         geometryState: "clustered",
         ligandMode: "site1",
         showRX5: false,
-        showCTX: true,
+        showCT4: true,
       };
     }
 
     return {
-      title: "CTX reinforces the inactive clamp",
+      title: "CT4 reinforces the inactive clamp",
       body:
-        "CTX binds between the FNIII arm and YWTD-A shoulder, reinforcing the pocketed inactive state and opposing the arm-release step needed for activation.",
+        "CT4 binds between the FNIII arm and YWTD-A shoulder, reinforcing the pocketed inactive state and opposing the arm-release step needed for activation.",
       metrics: {
-        ligand: "CTX bound",
+        ligand: "CT4 bound",
         leg: "Constrained",
         oligomer: "No",
         activity: "Off",
@@ -151,7 +151,7 @@ function buildProfile(state, antibody) {
       geometryState: "inactive",
       ligandMode: "none",
       showRX5: false,
-      showCTX: true,
+      showCT4: true,
     };
   }
 
@@ -160,17 +160,17 @@ function buildProfile(state, antibody) {
     geometryState: state,
     ligandMode: state === "inactive" ? "none" : state === "clustered" ? "site1" : "full",
     showRX5: false,
-    showCTX: false,
+    showCT4: false,
   };
 }
 
 const nodeStyles = {
   shoulder: { radius: 34, color: palette.propeller },
   upper: { radius: 18, color: palette.leg },
-  hip: { radius: 30, color: palette.propeller },
+  hip: { radius: 30, color: palette.leg },
   mid1: { radius: 18, color: palette.leg },
   mid2: { radius: 18, color: palette.leg },
-  knee: { radius: 28, color: palette.propeller },
+  knee: { radius: 28, color: palette.leg },
   low1: { radius: 18, color: palette.leg },
   low2: { radius: 18, color: palette.leg },
   low3: { radius: 16, color: palette.leg },
@@ -233,11 +233,19 @@ const activeLegLocal = {
   kinase: [-96, -862, -8],
 };
 
+const defaultView = Object.freeze({
+  yaw: -0.52,
+  pitch: 0.03,
+  zoom: 0.38,
+  centerYFactor: 0.57,
+});
+
 const view = {
-  yaw: -0.4,
-  pitch: 0.18,
-  zoom: 0.48,
-  autoYaw: -0.4,
+  yaw: defaultView.yaw,
+  pitch: defaultView.pitch,
+  zoom: defaultView.zoom,
+  centerYFactor: defaultView.centerYFactor,
+  autoYaw: defaultView.yaw,
   autoRotate: true,
 };
 
@@ -462,7 +470,7 @@ function project(point) {
   const camera = 1380;
   const scale = camera / (camera - rotated.z);
   const zoomScale = scale * view.zoom;
-  const centerY = height * 0.52;
+  const centerY = height * view.centerYFactor;
   return {
     x: width / 2 + rotated.x * zoomScale,
     y: centerY - rotated.y * zoomScale,
@@ -622,7 +630,7 @@ function site3Anchor(nodes) {
   return add(nodes.armDist, [4, 12, 0]);
 }
 
-function ctxAnchor(nodes) {
+function ct4Anchor(nodes) {
   return mixVec(nodes.shoulder, nodes.armProx, 0.44);
 }
 
@@ -762,6 +770,17 @@ function pushKinaseGlow(commands, point, radiusUnits, alpha = 1) {
     radiusUnits,
     alpha,
     depth: point.depth - 1,
+  });
+}
+
+function pushLegHaze(commands, point, radiusXUnits, radiusYUnits, alpha = 1) {
+  commands.push({
+    type: "legHaze",
+    point,
+    radiusXUnits,
+    radiusYUnits,
+    alpha,
+    depth: point.depth - 6,
   });
 }
 
@@ -919,23 +938,23 @@ function addRx5(commands, receptors, visible) {
   });
 }
 
-function addCtx(commands, receptors, visible) {
+function addCt4(commands, receptors, visible) {
   if (visible < 0.02) {
     return;
   }
 
   receptors.forEach((receptor) => {
     const interfaceNormal = normalize(subtract(receptor.nodes.armProx, receptor.nodes.shoulder));
-    const anchorWorld = add(ctxAnchor(receptor.nodes), scaleVec(interfaceNormal, 8));
+    const anchorWorld = add(ct4Anchor(receptor.nodes), scaleVec(interfaceNormal, 8));
     const shoulderAway = normalize(subtract(anchorWorld, receptor.nodes.shoulder));
     const armAway = normalize(subtract(anchorWorld, receptor.nodes.armProx));
     const combinedAway = normalize(add(add(shoulderAway, armAway), [0, 0.45, 0]));
     const sideHint = subtract(receptor.nodes.armProx, receptor.nodes.shoulder);
     const points = projectAntibodyWorld(anchorWorld, combinedAway, sideHint, 90);
-    pushClampFab(commands, points, palette.ctx, visible);
+    pushClampFab(commands, points, palette.ct4, visible);
 
     if (receptor.index === labelIndex) {
-      pushLabel(commands, points.contactTip, "CTX", palette.ctx, 20, -20);
+      pushLabel(commands, points.contactTip, "CT4", palette.ct4, 20, -20);
     }
   });
 }
@@ -959,7 +978,7 @@ function buildCommands(now) {
   const fullFactor = modeFactor("full", fromProfile.ligandMode, toProfile.ligandMode, progress);
   const blockedFactor = modeFactor("blocked", fromProfile.ligandMode, toProfile.ligandMode, progress);
   const rx5Factor = transitionFlag(fromProfile.showRX5, toProfile.showRX5, progress);
-  const ctxFactor = transitionFlag(fromProfile.showCTX, toProfile.showCTX, progress);
+  const ct4Factor = transitionFlag(fromProfile.showCT4, toProfile.showCT4, progress);
   const morph = fromProfile.geometryState === toProfile.geometryState ? 1 : progress;
 
   const commands = [];
@@ -988,8 +1007,39 @@ function buildCommands(now) {
       return;
     }
 
+    const projected = {};
+    Object.entries(receptor.nodes).forEach(([key, value]) => {
+      projected[key] = project(value);
+    });
+
     if (dynamicFactor > 0.18) {
       const ghostKeys = ["shoulder", "upper", "hip", "mid1", "mid2", "knee", "low1", "low2", "low3", "low4", "tm", "tmBase"];
+      const hazeAlpha = 0.12 * dynamicFactor * receptorAlpha;
+      const lowerLegClouds = [
+        { point: projected.mid2, radiusX: 38, radiusY: 76 },
+        { point: projected.knee, radiusX: 48, radiusY: 94 },
+        { point: projected.low2, radiusX: 54, radiusY: 112 },
+        { point: projected.low4, radiusX: 44, radiusY: 92 },
+      ];
+
+      lowerLegClouds.forEach((cloud, cloudIndex) => {
+        const pulse = dynamicTrailOffsets(index, cloudIndex + 4, now);
+        const hazePoint = {
+          ...cloud.point,
+          x: cloud.point.x + pulse.x * (1.2 + cloudIndex * 0.28),
+          y: cloud.point.y,
+          depth: cloud.point.depth,
+          scale: cloud.point.scale,
+        };
+        pushLegHaze(
+          commands,
+          hazePoint,
+          cloud.radiusX,
+          cloud.radiusY,
+          hazeAlpha * (1 - cloudIndex * 0.12)
+        );
+      });
+
       for (let trailIndex = 0; trailIndex < 3; trailIndex += 1) {
         const alpha = 0.11 * dynamicFactor * receptorAlpha * (1 - trailIndex * 0.18);
         const offset = dynamicTrailOffsets(index, trailIndex, now);
@@ -1008,11 +1058,6 @@ function buildCommands(now) {
       }
     }
 
-    const projected = {};
-    Object.entries(receptor.nodes).forEach(([key, value]) => {
-      projected[key] = project(value);
-    });
-
     drawProjectedChain(commands, projected, legKeys, palette.leg, [22, 24, 22, 20, 24, 20, 18, 18, 16, 14, 10], receptorAlpha);
     drawProjectedChain(commands, projected, armKeys, palette.arm, [20, 18, 14], receptorAlpha);
     pushSegment(commands, projected.tmBase, projected.kinase, palette.kinase, 16, receptorAlpha);
@@ -1022,7 +1067,7 @@ function buildCommands(now) {
     });
 
     if (pocketFactor > 0.15) {
-      pushSphere(commands, projected.hip, 38, palette.propeller, 0.08 * pocketFactor * receptorAlpha);
+      pushSphere(commands, projected.hip, 38, palette.leg, 0.08 * pocketFactor * receptorAlpha);
       pushSphere(commands, projected.hand, 20, palette.hand, 0.12 * pocketFactor * receptorAlpha);
     }
 
@@ -1033,9 +1078,9 @@ function buildCommands(now) {
         { point: projected.armDist, text: "FNIII-1", color: palette.arm },
         { point: projected.shoulder, text: "YWTD-A", color: palette.propeller },
         { point: projected.upper, text: "FNIII-3", color: palette.leg },
-        { point: projected.hip, text: "YWTD-B", color: palette.propeller },
+        { point: projected.hip, text: "YWTD-B", color: palette.leg },
         { point: projected.mid1, text: "FNIII-4/5", color: palette.leg },
-        { point: projected.knee, text: "YWTD-C", color: palette.propeller },
+        { point: projected.knee, text: "YWTD-C", color: palette.leg },
         { point: projected.low2, text: "FNIII-6-9", color: palette.leg },
         { point: projected.tm, text: "TM", color: palette.leg },
         { point: projected.kinase, text: "Kinase", color: palette.kinase }
@@ -1046,16 +1091,23 @@ function buildCommands(now) {
       const [armX, armY] = labelOffsets(projected.armDist, 110, -10);
       const [shoulderX, shoulderY] = labelOffsets(projected.shoulder, 118, -30);
       const [legX, legY] = labelOffsets(projected.low2, 102, 12);
+      const [kinaseX, kinaseY] = labelOffsets(projected.kinase, 112, 18);
       pushLabel(commands, projected.armDist, "Arm", palette.arm, armX, armY);
       pushLabel(commands, projected.shoulder, "Shoulder", palette.propeller, shoulderX, shoulderY);
       pushLabel(commands, projected.low2, "Leg", palette.leg, legX, legY);
+      pushLabel(commands, projected.kinase, "Kinase", palette.kinase, kinaseX, kinaseY);
     }
   });
+
+  if (receptorVisibility[labelIndex] > 0.35) {
+    const membranePoint = project([-260, membraneY, 0]);
+    pushLabel(commands, membranePoint, "Membrane", palette.membrane, -12, -16);
+  }
 
   addBoundLigand(commands, ligandReceptors, site1Factor, fullFactor);
   addBlockedLigand(commands, ligandReceptors, blockedFactor);
   addRx5(commands, ligandReceptors, rx5Factor);
-  addCtx(commands, ligandReceptors, ctxFactor);
+  addCt4(commands, ligandReceptors, ct4Factor);
 
   if (fullFactor > 0.12) {
     ligandReceptors.forEach((receptor) => {
@@ -1230,6 +1282,8 @@ function drawNell2Core(command) {
 
 function drawNell2Protomer(command) {
   const avgScale = (command.stemTop.scale + command.stemBase.scale) * 0.5;
+  const stalkWidth = Math.max(7, avgScale * 10.5);
+  const bladeSpineWidth = Math.max(8, avgScale * 12.5);
   const hookWidth = Math.max(10, avgScale * 19);
   const site = command.site1 || command.stemBase;
   const axisDx = command.bladeTip.x - command.branch.x;
@@ -1245,6 +1299,51 @@ function drawNell2Protomer(command) {
     x: site.x + px * hookWidth * 0.22,
     y: site.y + py * hookWidth * 0.16,
   };
+  const stalkPath = [
+    command.branch,
+    command.stemTop,
+    command.stemMid,
+    command.stemBase,
+    command.bladeRoot,
+  ];
+  const bladeSpinePath = [
+    command.stemBase,
+    command.bladeRoot,
+    command.bladeMid,
+    command.bladeTip,
+  ];
+
+  strokeRoundedPath(
+    stalkPath,
+    stalkWidth + 3,
+    palette.ligandBladeEdge,
+    command.alpha
+  );
+  strokeRoundedPath(
+    stalkPath,
+    stalkWidth,
+    palette.ligandSoft,
+    command.alpha * 0.98
+  );
+  strokeRoundedPath(
+    stalkPath,
+    Math.max(2, stalkWidth * 0.34),
+    "#f5f5f5",
+    command.alpha * 0.9
+  );
+
+  strokeRoundedPath(
+    bladeSpinePath,
+    bladeSpineWidth + 3,
+    palette.ligandBladeEdge,
+    command.alpha
+  );
+  strokeRoundedPath(
+    bladeSpinePath,
+    bladeSpineWidth,
+    palette.ligandBlade,
+    command.alpha * 0.98
+  );
 
   strokeRoundedPath(
     [command.branch, hookControlA, hookControlB, site],
@@ -1383,6 +1482,26 @@ function drawKinaseGlow(command) {
   ctx.fill();
 }
 
+function drawLegHaze(command) {
+  const radiusX = Math.max(16, command.radiusXUnits * command.point.scale);
+  const radiusY = Math.max(24, command.radiusYUnits * command.point.scale);
+
+  ctx.save();
+  ctx.translate(command.point.x, command.point.y);
+  ctx.scale(1, radiusY / radiusX);
+
+  const gradient = ctx.createRadialGradient(0, 0, radiusX * 0.16, 0, 0, radiusX);
+  gradient.addColorStop(0, rgba(tint(palette.leg, 0.14), command.alpha * 0.7));
+  gradient.addColorStop(0.45, rgba(palette.leg, command.alpha * 0.32));
+  gradient.addColorStop(1, rgba(palette.leg, 0));
+
+  ctx.beginPath();
+  ctx.arc(0, 0, radiusX, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawLabel(command) {
   ctx.save();
   ctx.font = "600 16px Avenir Next, Segoe UI, sans-serif";
@@ -1463,7 +1582,6 @@ function drawBackground(now) {
 function render(now) {
   if (view.autoRotate && !pointer.dragging) {
     view.yaw += (view.autoYaw - view.yaw) * 0.0025;
-    view.autoYaw += 0.00045;
   }
 
   drawBackground(now);
@@ -1471,7 +1589,9 @@ function render(now) {
   const commands = buildCommands(now);
 
   commands.forEach((command) => {
-    if (command.type === "segment") {
+    if (command.type === "legHaze") {
+      drawLegHaze(command);
+    } else if (command.type === "segment") {
       drawSegment(command);
     } else if (command.type === "flatSegment") {
       drawFlatSegment(command);
@@ -1546,14 +1666,15 @@ function onPointerLeave(event) {
 function onWheel(event) {
   event.preventDefault();
   view.autoRotate = false;
-  view.zoom = clamp(view.zoom - event.deltaY * 0.0009, 0.32, 1.3);
+  view.zoom = clamp(view.zoom - event.deltaY * 0.0009, 0.24, 1.3);
 }
 
 function resetView() {
-  view.yaw = -0.4;
-  view.pitch = 0.18;
-  view.zoom = 0.48;
-  view.autoYaw = -0.4;
+  view.yaw = defaultView.yaw;
+  view.pitch = defaultView.pitch;
+  view.zoom = defaultView.zoom;
+  view.centerYFactor = defaultView.centerYFactor;
+  view.autoYaw = defaultView.yaw;
   view.autoRotate = true;
 }
 

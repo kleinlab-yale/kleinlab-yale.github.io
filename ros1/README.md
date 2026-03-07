@@ -18,7 +18,7 @@ into a rotatable 3D schematic.
 ## Antibody blockade
 
 - `RX5`: drawn as a Y-shaped antibody whose single contacting Fab tip caps the site-1 epitope on `YWTD-A`, preventing productive engagement by NELL2
-- `CTX`: drawn as the same Y-shaped antibody, but with one Fab tip docked between the FNIII arm and `YWTD-A` shoulder, preventing the rigid arm-body from flipping up to add site 2 on `FNIII-2` and site 3 on `FNIII-1`
+- `CT4`: drawn as the same Y-shaped antibody, but with one Fab tip docked between the FNIII arm and `YWTD-A` shoulder, preventing the rigid arm-body from flipping up to add site 2 on `FNIII-2` and site 3 on `FNIII-1`
 
 ## Domain layout encoded in the schematic
 

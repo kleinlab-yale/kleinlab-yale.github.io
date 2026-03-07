@@ -22,14 +22,6 @@
       <div class="intro-copy">
         <p class="eyebrow">Klein Lab at Yale • Mechanistic Viewer</p>
         <h1>ROS1 activation in response to NELL2</h1>
-        <p class="lede">
-          This viewer turns the mechanism from your figure panels into a rotatable 3D cartoon:
-          unliganded ROS1, NELL2-driven clustering through site 1, and the fully active state
-          after NELL2 engages sites 1, 2, and 3.
-        </p>
-        <p class="hero-subtitle">
-          Based on the Klein Lab ROS1 study and styled to match the other KLAY web tools.
-        </p>
         <div class="hero-actions">
           <a
             class="hero-link hero-link-primary"
@@ -49,10 +41,13 @@
 
     <section class="viewer-panel">
       <div class="toolbar">
-        <div class="button-row">
-          <button class="state-button is-active" data-state="inactive">Unliganded</button>
-          <button class="state-button" data-state="clustered">NELL2 site 1</button>
-          <button class="state-button" data-state="active">NELL2 sites 1/2/3</button>
+        <div class="toolbar-group">
+          <span class="toolbar-label">Ligand engagement</span>
+          <div class="button-row">
+            <button class="state-button is-active" data-state="inactive">Unliganded</button>
+            <button class="state-button" data-state="clustered">NELL2 site 1</button>
+            <button class="state-button" data-state="active">NELL2 sites 1/2/3</button>
+          </div>
         </div>
         <button id="resetView" class="secondary-button" type="button">Reset view</button>
       </div>
@@ -61,15 +56,8 @@
         <div class="button-row antibody-row">
           <button class="antibody-button is-active" data-antibody="none" type="button">None</button>
           <button class="antibody-button" data-antibody="rx5" type="button">RX5</button>
-          <button class="antibody-button" data-antibody="ctx" type="button">CTX</button>
+          <button class="antibody-button" data-antibody="ct4" type="button">CT4</button>
         </div>
-        <p class="toolbar-note">
-          Site 1 stays on YWTD-A. The ROS1 arm then flips up as a rigid body to add site 2 on
-          FNIII-2 and site 3 on FNIII-1. The NELL2 trimer is drawn as a rigid scaffold with a
-          fixed central spine; the ROS1 arm is the main moving element. Both antibodies are drawn
-          as Y-shaped antibodies, with a single Fab tip docked to ROS1. RX5 blocks site 1, while
-          CTX blocks the arm-flip step.
-        </p>
       </div>
       <div class="canvas-wrap">
         <canvas id="scene" aria-label="3D schematic of ROS1 activation by NELL2"></canvas>
@@ -146,7 +134,7 @@
         <h2>Antibody blockade</h2>
         <p>
           RX5 is drawn as a Y-shaped antibody whose one Fab tip caps the site-1 epitope on YWTD-A
-          and prevents productive NELL2 recruitment. CTX is drawn as the same Y-shaped antibody,
+          and prevents productive NELL2 recruitment. CT4 is drawn as the same Y-shaped antibody,
           but with one Fab tip docked into the arm-shoulder interface so the arm cannot flip up to add site 2 on
           FNIII-2 and site 3 on FNIII-1, trapping a pre-active clustered state.
         </p>
