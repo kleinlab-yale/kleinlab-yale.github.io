@@ -9,6 +9,9 @@ const metricLigand = document.getElementById("metricLigand");
 const metricLeg = document.getElementById("metricLeg");
 const metricOligomer = document.getElementById("metricOligomer");
 const metricActivity = document.getElementById("metricActivity");
+const viewerBadge = document.getElementById("viewerBadge");
+const viewerBadgeStatus = document.getElementById("viewerBadgeStatus");
+const viewerBadgeLabel = document.getElementById("viewerBadgeLabel");
 
 const palette = {
   propeller: "#edd47c",
@@ -516,12 +519,18 @@ function setAntibody(nextAntibody) {
 
 function applyViewText() {
   const meta = buildProfile(activeState, activeAntibody);
+  const isActive = meta.metrics.activity === "On";
+  const isClustered = meta.metrics.oligomer === "Yes";
   stateTitle.textContent = meta.title;
   stateBody.textContent = meta.body;
   metricLigand.textContent = meta.metrics.ligand;
   metricLeg.textContent = meta.metrics.leg;
   metricOligomer.textContent = meta.metrics.oligomer;
   metricActivity.textContent = meta.metrics.activity;
+  viewerBadgeStatus.textContent = isActive ? "Active" : "Inactive";
+  viewerBadgeLabel.textContent = isClustered ? "Clustered" : "Monomer";
+  viewerBadge.classList.toggle("state-badge--active", isActive);
+  viewerBadge.classList.toggle("state-badge--inactive", !isActive);
 }
 
 function drawMembrane() {
@@ -817,9 +826,6 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
     const bladeRoot = project(protomer.bladeRoot);
     const bladeMid = project(protomer.bladeMid);
     const bladeTip = project(protomer.bladeTip);
-    const ligandSite2 = project(protomer.ligandSite2);
-    const ligandSite3 = project(protomer.ligandSite3);
-
     pushNell2Protomer(
       commands,
       {
@@ -835,13 +841,6 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
       },
       visible
     );
-
-    if (fullFactor > 0.02) {
-      const site2 = project(protomer.site2);
-      const site3 = project(protomer.site3);
-      pushFlatSegment(commands, ligandSite2, site2, palette.ligand, 5, fullFactor * 0.9);
-      pushFlatSegment(commands, ligandSite3, site3, palette.ligand, 5, fullFactor * 0.9);
-    }
   });
 
   pushLabel(commands, head, "NELL2 trimer", palette.ligand, 22, -24);

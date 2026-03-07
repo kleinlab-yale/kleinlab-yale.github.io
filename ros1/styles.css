@@ -354,6 +354,51 @@ h2 {
     linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(230, 233, 238, 0.48));
 }
 
+.state-badge {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 2;
+  min-width: 150px;
+  padding: 11px 14px 12px;
+  border-radius: 18px;
+  border: 1px solid transparent;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 34px rgba(16, 36, 62, 0.14);
+  pointer-events: none;
+}
+
+.state-badge--inactive {
+  background: rgba(216, 79, 95, 0.14);
+  border-color: rgba(216, 79, 95, 0.24);
+  color: #8b1c2a;
+}
+
+.state-badge--active {
+  background: rgba(72, 212, 106, 0.14);
+  border-color: rgba(72, 212, 106, 0.24);
+  color: #146b2a;
+}
+
+.state-badge-status,
+.state-badge-label {
+  display: block;
+}
+
+.state-badge-status {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.88;
+}
+
+.state-badge-label {
+  margin-top: 2px;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
 #scene {
   display: block;
   width: 100%;
