@@ -1,1 +1,109 @@
-test
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ROS1 Activation by NELL2</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="intro">
+      <div class="intro-copy">
+        <p class="eyebrow">Mechanistic 3D Schematic</p>
+        <h1>ROS1 activation in response to NELL2</h1>
+        <p class="lede">
+          This viewer turns the mechanism from your figure panels into a rotatable 3D cartoon:
+          unliganded ROS1, NELL2-driven clustering through site 1, and the fully active state
+          after NELL2 engages sites 1, 2, and 3.
+        </p>
+      </div>
+      <div class="legend">
+        <h2>Color key</h2>
+        <ul>
+          <li><span class="swatch shoulder"></span> ROS1 shoulder</li>
+          <li><span class="swatch arm"></span> ROS1 arm</li>
+          <li><span class="swatch leg"></span> ROS1 leg</li>
+          <li><span class="swatch ligand"></span> NELL2 trimer</li>
+          <li><span class="swatch membrane"></span> Membrane plane</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="viewer-panel">
+      <div class="toolbar">
+        <div class="button-row">
+          <button class="state-button is-active" data-state="inactive">Unliganded</button>
+          <button class="state-button" data-state="clustered">NELL2 site 1</button>
+          <button class="state-button" data-state="active">NELL2 sites 1/2/3</button>
+        </div>
+        <button id="resetView" class="secondary-button" type="button">Reset view</button>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="scene" aria-label="3D schematic of ROS1 activation by NELL2"></canvas>
+        <div class="hint">Drag to rotate. Scroll to zoom.</div>
+      </div>
+      <div class="caption">
+        <h2 id="stateTitle">Unliganded ROS1</h2>
+        <p id="stateBody">
+          A bent ectodomain keeps the arm packed against the shoulder and the leg relatively rigid,
+          so ROS1 remains monomeric and inactive at the membrane.
+        </p>
+      </div>
+    </section>
+
+    <section class="status-grid" aria-label="Mechanistic summary">
+      <article class="status-card">
+        <span class="status-label">Ligand</span>
+        <strong id="metricLigand">None</strong>
+      </article>
+      <article class="status-card">
+        <span class="status-label">Leg dynamics</span>
+        <strong id="metricLeg">Rigid</strong>
+      </article>
+      <article class="status-card">
+        <span class="status-label">Oligomer</span>
+        <strong id="metricOligomer">No</strong>
+      </article>
+      <article class="status-card">
+        <span class="status-label">Activity</span>
+        <strong id="metricActivity">Off</strong>
+      </article>
+    </section>
+
+    <section class="notes">
+      <article class="note-card">
+        <h2>What the model encodes</h2>
+        <p>
+          The model follows the logic in your uploaded schematics. Site 1 binding by NELL2
+          clusters ROS1 ectodomains but does not activate them. Full activation is shown only
+          after the arm peels away, the leg becomes more dynamic, and the receptors collapse
+          toward a common axis near the membrane.
+        </p>
+      </article>
+      <article class="note-card">
+        <h2>Structural anchors</h2>
+        <p>
+          This is a mechanistic cartoon, not an atom-by-atom simulation. It is grounded in the
+          structures reported in the paper and linked PDB entries:
+          <a href="https://www.rcsb.org/structure/9PVP">9PVP</a>,
+          <a href="https://www.rcsb.org/structure/10FT">10FT</a>,
+          <a href="https://www.rcsb.org/structure/10GH">10GH</a>,
+          <a href="https://www.rcsb.org/structure/9DZ4">9DZ4</a>, and
+          <a href="https://www.rcsb.org/structure/9PWQ">9PWQ</a>.
+        </p>
+      </article>
+      <article class="note-card">
+        <h2>How to use it</h2>
+        <p>
+          Open this page in a browser, rotate the scene, and switch between the three states.
+          If you want the next step, I can turn this into a real atomic viewer that loads the
+          PDB structures directly or export the schematic as a Blender-friendly mesh.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <script src="model.js"></script>
+</body>
+</html>
