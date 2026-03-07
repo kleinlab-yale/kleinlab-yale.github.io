@@ -16,10 +16,12 @@ const palette = {
   arm: "#7ed6e6",
   leg: "#8c8df0",
   kinase: "#134e8f",
-  ligand: "#353336",
-  ligandSoft: "#8f8f8f",
-  rx5: "#cf5977",
-  ctx: "#ef9d34",
+  ligand: "#343338",
+  ligandSoft: "#8d9098",
+  ligandBlade: "#d7d9df",
+  ligandBladeEdge: "#9ea2aa",
+  rx5: "#ff4048",
+  ctx: "#ff7864",
   membrane: "#d8d44d",
 };
 
@@ -613,15 +615,15 @@ function buildNell2Protomer(nodes, spineBaseWorld) {
   const outward = normalize([site1[0] - spineBaseWorld[0], 0, site1[2] - spineBaseWorld[2]]);
   const tangent = normalize([-outward[2], 0, outward[0]]);
 
-  const branch = add(spineBaseWorld, scaleVec(outward, 16));
-  const stemTop = add(spineBaseWorld, add(scaleVec(outward, 10), [0, -26, 0]));
-  const stemMid = add(site1, add(scaleVec(outward, 10), [0, 116, 0]));
-  const stemBase = add(site1, add(scaleVec(outward, 10), [0, 60, 0]));
-  const bladeRoot = add(site1, add(scaleVec(outward, 18), [0, 24, 0]));
-  const bladeMid = add(bladeRoot, add(scaleVec(outward, 42), add([0, 64, 0], scaleVec(tangent, 18))));
-  const bladeTip = add(bladeRoot, add(scaleVec(outward, 68), add([0, 126, 0], scaleVec(tangent, 30))));
-  const ligandSite2 = add(bladeRoot, add(scaleVec(outward, 30), add([0, 42, 0], scaleVec(tangent, 14))));
-  const ligandSite3 = add(bladeRoot, add(scaleVec(outward, 48), add([0, 86, 0], scaleVec(tangent, 24))));
+  const branch = add(spineBaseWorld, scaleVec(outward, 10));
+  const stemTop = add(spineBaseWorld, add(scaleVec(outward, 6), [0, -20, 0]));
+  const stemMid = add(site1, add(scaleVec(outward, 8), [0, 132, 0]));
+  const stemBase = add(site1, add(scaleVec(outward, 8), [0, 76, 0]));
+  const bladeRoot = add(site1, add(scaleVec(outward, 10), [0, 16, 0]));
+  const bladeMid = add(bladeRoot, add(scaleVec(outward, 20), add([0, 56, 0], scaleVec(tangent, 10))));
+  const bladeTip = add(bladeRoot, add(scaleVec(outward, 30), add([0, 108, 0], scaleVec(tangent, 18))));
+  const ligandSite2 = add(bladeRoot, add(scaleVec(outward, 18), add([0, 44, 0], scaleVec(tangent, 8))));
+  const ligandSite3 = add(bladeRoot, add(scaleVec(outward, 26), add([0, 82, 0], scaleVec(tangent, 13))));
 
   return {
     site1,
@@ -675,6 +677,44 @@ function pushClampFab(commands, point, color, angle, sizeUnits, alpha = 1) {
   });
 }
 
+function pushFlatSegment(commands, a, b, color, widthUnits, alpha = 1) {
+  commands.push({
+    type: "flatSegment",
+    a,
+    b,
+    color,
+    widthUnits,
+    alpha,
+    depth: (a.depth + b.depth) / 2,
+  });
+}
+
+function pushNell2Core(commands, head, spineBase, alpha = 1) {
+  commands.push({
+    type: "nell2Core",
+    head,
+    spineBase,
+    alpha,
+    depth: (head.depth + spineBase.depth) / 2,
+  });
+}
+
+function pushNell2Protomer(commands, parts, alpha = 1) {
+  commands.push({
+    type: "nell2Protomer",
+    ...parts,
+    alpha,
+    depth:
+      (
+        parts.stemMid.depth +
+        parts.stemBase.depth +
+        parts.bladeRoot.depth +
+        parts.bladeMid.depth +
+        parts.bladeTip.depth
+      ) / 5,
+  });
+}
+
 function pushKinaseGlow(commands, point, radiusUnits, alpha = 1) {
   commands.push({
     type: "kinaseGlow",
@@ -700,14 +740,12 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
     (sum, receptor) => add(sum, site1Anchor(receptor.nodes)),
     [0, 0, 0]
   ).map((value) => value / receptors.length);
-  const spineBaseWorld = [hubBase[0], hubBase[1] + 178, hubBase[2]];
-  const headWorld = [hubBase[0], hubBase[1] + 324, hubBase[2]];
+  const spineBaseWorld = [hubBase[0], hubBase[1] + 196, hubBase[2]];
+  const headWorld = [hubBase[0], hubBase[1] + 338, hubBase[2]];
   const head = project(headWorld);
   const spineBase = project(spineBaseWorld);
 
-  pushSegment(commands, head, spineBase, palette.ligand, 12, visible);
-  pushSphere(commands, head, 26, palette.ligand, visible);
-  pushSphere(commands, spineBase, 10, palette.ligandSoft, visible * 0.82);
+  pushNell2Core(commands, head, spineBase, visible);
 
   receptors.forEach((receptor) => {
     const protomer = buildNell2Protomer(receptor.nodes, spineBaseWorld);
@@ -722,25 +760,27 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
     const ligandSite2 = project(protomer.ligandSite2);
     const ligandSite3 = project(protomer.ligandSite3);
 
-    pushSegment(commands, spineBase, branch, palette.ligand, 10, visible);
-    pushSegment(commands, branch, stemTop, palette.ligand, 10, visible);
-    pushSegment(commands, stemTop, stemMid, palette.ligand, 10, visible);
-    pushSegment(commands, stemMid, stemBase, palette.ligand, 10, visible);
-    pushSegment(commands, stemBase, site1, palette.ligand, 8, visible);
-    pushSegment(commands, bladeRoot, bladeMid, palette.ligandSoft, 18, visible);
-    pushSegment(commands, bladeMid, bladeTip, palette.ligandSoft, 18, visible);
-    pushSegment(commands, site1, bladeRoot, palette.ligandSoft, 14, visible);
-    pushSphere(commands, branch, 6, palette.ligandSoft, visible * 0.72);
-    pushSphere(commands, stemBase, 7, palette.ligandSoft, visible);
-    pushSphere(commands, stemMid, 6, palette.ligandSoft, visible);
+    pushNell2Protomer(
+      commands,
+      {
+        spineBase,
+        branch,
+        stemTop,
+        stemMid,
+        stemBase,
+        site1,
+        bladeRoot,
+        bladeMid,
+        bladeTip,
+      },
+      visible
+    );
 
     if (fullFactor > 0.02) {
       const site2 = project(protomer.site2);
       const site3 = project(protomer.site3);
-      pushSegment(commands, ligandSite2, site2, palette.ligand, 7, fullFactor);
-      pushSegment(commands, ligandSite3, site3, palette.ligand, 7, fullFactor);
-      pushSphere(commands, ligandSite2, 5, palette.ligandSoft, fullFactor * 0.8);
-      pushSphere(commands, ligandSite3, 5, palette.ligandSoft, fullFactor * 0.8);
+      pushFlatSegment(commands, ligandSite2, site2, palette.ligand, 5, fullFactor * 0.9);
+      pushFlatSegment(commands, ligandSite3, site3, palette.ligand, 5, fullFactor * 0.9);
     }
   });
 
@@ -752,19 +792,17 @@ function addDetachedLigand(commands, headWorld, alpha, labelText) {
   const spineBaseWorld = add(headWorld, [0, -146, 0]);
   const spineBase = project(spineBaseWorld);
 
-  pushSegment(commands, head, spineBase, palette.ligand, 12, alpha);
-  pushSphere(commands, head, 24, palette.ligand, alpha * 0.88);
-  pushSphere(commands, spineBase, 9, palette.ligandSoft, alpha * 0.72);
+  pushNell2Core(commands, head, spineBase, alpha);
 
   for (let index = 0; index < 3; index += 1) {
     const angle = -Math.PI / 2 + index * ((Math.PI * 2) / 3);
-    const branchWorld = add(spineBaseWorld, polar(18, angle, 0));
-    const stemTopWorld = add(branchWorld, [0, -24, 0]);
-    const stemMidWorld = add(branchWorld, add(polar(10, angle, 0), [0, -72, 0]));
-    const stemBaseWorld = add(branchWorld, add(polar(14, angle, 0), [0, -126, 0]));
-    const bladeRootWorld = add(branchWorld, add(polar(22, angle + 0.16, 0), [0, -150, 0]));
-    const bladeMidWorld = add(bladeRootWorld, add(polar(38, angle + 0.42, 0), [0, -58, 0]));
-    const bladeTipWorld = add(bladeRootWorld, add(polar(64, angle + 0.58, 0), [0, -122, 0]));
+    const branchWorld = add(spineBaseWorld, polar(10, angle, 0));
+    const stemTopWorld = add(branchWorld, [0, -18, 0]);
+    const stemMidWorld = add(branchWorld, add(polar(6, angle, 0), [0, -72, 0]));
+    const stemBaseWorld = add(branchWorld, add(polar(8, angle, 0), [0, -128, 0]));
+    const bladeRootWorld = add(stemBaseWorld, add(polar(10, angle + 0.12, 0), [0, -16, 0]));
+    const bladeMidWorld = add(bladeRootWorld, add(polar(20, angle + 0.34, 0), [0, -60, 0]));
+    const bladeTipWorld = add(bladeRootWorld, add(polar(32, angle + 0.5, 0), [0, -118, 0]));
 
     const branch = project(branchWorld);
     const stemTop = project(stemTopWorld);
@@ -773,16 +811,21 @@ function addDetachedLigand(commands, headWorld, alpha, labelText) {
     const bladeRoot = project(bladeRootWorld);
     const bladeMid = project(bladeMidWorld);
     const bladeTip = project(bladeTipWorld);
-
-    pushSegment(commands, spineBase, branch, palette.ligand, 9, alpha * 0.9);
-    pushSegment(commands, branch, stemTop, palette.ligand, 9, alpha * 0.86);
-    pushSegment(commands, stemTop, stemMid, palette.ligand, 9, alpha * 0.82);
-    pushSegment(commands, stemMid, stemBase, palette.ligand, 8, alpha * 0.78);
-    pushSegment(commands, stemBase, bladeRoot, palette.ligandSoft, 13, alpha * 0.72);
-    pushSegment(commands, bladeRoot, bladeMid, palette.ligandSoft, 16, alpha * 0.72);
-    pushSegment(commands, bladeMid, bladeTip, palette.ligandSoft, 16, alpha * 0.72);
-    pushSphere(commands, branch, 5, palette.ligandSoft, alpha * 0.58);
-    pushSphere(commands, stemBase, 6, palette.ligandSoft, alpha * 0.62);
+    pushNell2Protomer(
+      commands,
+      {
+        spineBase,
+        branch,
+        stemTop,
+        stemMid,
+        stemBase,
+        site1: null,
+        bladeRoot,
+        bladeMid,
+        bladeTip,
+      },
+      alpha * 0.9
+    );
   }
 
   pushLabel(commands, head, labelText, palette.ligand, 22, -24);
@@ -1056,6 +1099,113 @@ function drawSphere(command) {
   ctx.stroke();
 }
 
+function strokeRoundedPath(points, width, color, alpha) {
+  if (points.length < 2) {
+    return;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const midX = (points[index].x + points[index + 1].x) * 0.5;
+    const midY = (points[index].y + points[index + 1].y) * 0.5;
+    ctx.quadraticCurveTo(points[index].x, points[index].y, midX, midY);
+  }
+
+  const last = points[points.length - 1];
+  ctx.lineTo(last.x, last.y);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = rgba(color, alpha);
+  ctx.lineWidth = width;
+  ctx.stroke();
+}
+
+function drawFlatSegment(command) {
+  const widthPx = Math.max(2, ((command.a.scale + command.b.scale) * 0.5) * command.widthUnits);
+  ctx.beginPath();
+  ctx.moveTo(command.a.x, command.a.y);
+  ctx.lineTo(command.b.x, command.b.y);
+  ctx.lineCap = "round";
+  ctx.strokeStyle = rgba(command.color, command.alpha);
+  ctx.lineWidth = widthPx;
+  ctx.stroke();
+}
+
+function drawNell2Core(command) {
+  const lineWidth = Math.max(2, ((command.head.scale + command.spineBase.scale) * 0.5) * 3.2);
+  const dx = command.spineBase.x - command.head.x;
+  const dy = command.spineBase.y - command.head.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const nx = -dy / length;
+  const ny = dx / length;
+
+  [-1, 0, 1].forEach((offset, index) => {
+    const strength = index === 1 ? 1 : 0.78;
+    const start = {
+      x: command.head.x + nx * lineWidth * 0.8 * offset,
+      y: command.head.y + ny * lineWidth * 0.8 * offset,
+    };
+    const end = {
+      x: command.spineBase.x + nx * lineWidth * 0.58 * offset,
+      y: command.spineBase.y + ny * lineWidth * 0.58 * offset,
+    };
+    drawFlatSegment({
+      a: { ...start, scale: command.head.scale, depth: command.head.depth },
+      b: { ...end, scale: command.spineBase.scale, depth: command.spineBase.depth },
+      color: index === 1 ? palette.ligand : palette.ligandSoft,
+      widthUnits: lineWidth * strength / Math.max((command.head.scale + command.spineBase.scale) * 0.5, 0.001),
+      alpha: command.alpha * strength,
+    });
+  });
+
+  ctx.beginPath();
+  ctx.arc(command.head.x, command.head.y, Math.max(3, lineWidth * 0.78), 0, Math.PI * 2);
+  ctx.fillStyle = rgba(palette.ligand, command.alpha);
+  ctx.fill();
+}
+
+function drawNell2Protomer(command) {
+  const stalkWidth = Math.max(2, ((command.stemTop.scale + command.stemBase.scale) * 0.5) * 3);
+  strokeRoundedPath(
+    [command.branch, command.stemTop, command.stemMid, command.stemBase],
+    stalkWidth,
+    palette.ligand,
+    command.alpha * 0.94
+  );
+  strokeRoundedPath(
+    [command.branch, command.stemTop, command.stemMid, command.stemBase],
+    Math.max(1.2, stalkWidth * 0.32),
+    tint(palette.ligand, 0.32),
+    command.alpha * 0.46
+  );
+
+  if (command.site1) {
+    strokeRoundedPath(
+      [command.stemBase, command.site1],
+      Math.max(1.6, stalkWidth * 0.48),
+      palette.ligand,
+      command.alpha * 0.86
+    );
+  }
+
+  const wingWidth = Math.max(8, command.bladeMid.scale * 20);
+  const wingStart = command.site1 || command.stemBase;
+  strokeRoundedPath(
+    [wingStart, command.bladeRoot, command.bladeMid, command.bladeTip],
+    wingWidth,
+    palette.ligandBlade,
+    command.alpha
+  );
+  strokeRoundedPath(
+    [wingStart, command.bladeRoot, command.bladeMid, command.bladeTip],
+    Math.max(1.4, wingWidth * 0.18),
+    palette.ligandBladeEdge,
+    command.alpha * 0.95
+  );
+}
+
 function drawFab(command) {
   const size = Math.max(12, command.sizeUnits * command.point.scale * 0.85);
   const branch = size * 0.82;
@@ -1105,7 +1255,7 @@ function drawFab(command) {
 
 function drawIgg(command) {
   const size = Math.max(18, command.sizeUnits * command.point.scale * 0.9);
-  const armWidth = Math.max(5, size * 0.2);
+  const armWidth = Math.max(6, size * 0.23);
 
   function mapLocal(localX, localY) {
     const cos = Math.cos(command.angle);
@@ -1116,50 +1266,24 @@ function drawIgg(command) {
     };
   }
 
-  const hinge = mapLocal(0, 0);
-  const fcTop = mapLocal(0, -size * 1.18);
-  const leftElbow = mapLocal(-size * 0.44, -size * 0.26);
-  const rightElbow = mapLocal(size * 0.44, -size * 0.26);
-  const leftTip = mapLocal(-size * 0.86, size * 0.48);
-  const rightTip = mapLocal(size * 0.86, size * 0.48);
-  const leftInner = mapLocal(-size * 0.26, size * 0.16);
-  const rightInner = mapLocal(size * 0.26, size * 0.16);
+  const hinge = mapLocal(0, -size * 0.04);
+  const fcTop = mapLocal(0, -size * 1.14);
+  const leftElbow = mapLocal(-size * 0.22, -size * 0.18);
+  const rightElbow = mapLocal(size * 0.22, -size * 0.18);
+  const leftTip = mapLocal(-size * 0.74, size * 0.48);
+  const rightTip = mapLocal(size * 0.74, size * 0.48);
 
-  ctx.beginPath();
-  ctx.moveTo(fcTop.x, fcTop.y);
-  ctx.lineTo(hinge.x, hinge.y);
-  ctx.lineTo(leftElbow.x, leftElbow.y);
-  ctx.lineTo(leftTip.x, leftTip.y);
-  ctx.moveTo(hinge.x, hinge.y);
-  ctx.lineTo(rightElbow.x, rightElbow.y);
-  ctx.lineTo(rightTip.x, rightTip.y);
-  ctx.moveTo(hinge.x, hinge.y);
-  ctx.lineTo(leftInner.x, leftInner.y);
-  ctx.moveTo(hinge.x, hinge.y);
-  ctx.lineTo(rightInner.x, rightInner.y);
-  ctx.lineCap = "round";
-  ctx.strokeStyle = rgba(command.color, command.alpha);
-  ctx.lineWidth = armWidth;
-  ctx.stroke();
-
-  const gloss = ctx.createLinearGradient(fcTop.x, fcTop.y, rightTip.x, rightTip.y);
-  gloss.addColorStop(0, rgba(tint(command.color, 0.2), command.alpha * 0.72));
-  gloss.addColorStop(1, rgba(tint(command.color, -0.18), command.alpha * 0.78));
-  ctx.strokeStyle = gloss;
-  ctx.lineWidth = Math.max(2, armWidth * 0.52);
-  ctx.stroke();
-
-  [hinge, fcTop, leftElbow, rightElbow, leftTip, rightTip].forEach((point, index) => {
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, index === 0 ? armWidth * 0.42 : armWidth * 0.34, 0, Math.PI * 2);
-    ctx.fillStyle = rgba(tint(command.color, index < 2 ? 0.1 : 0.04), command.alpha);
-    ctx.fill();
-  });
+  strokeRoundedPath([fcTop, hinge], armWidth, command.color, command.alpha);
+  strokeRoundedPath([hinge, leftElbow, leftTip], armWidth, command.color, command.alpha);
+  strokeRoundedPath([hinge, rightElbow, rightTip], armWidth, command.color, command.alpha);
+  strokeRoundedPath([fcTop, hinge], Math.max(2, armWidth * 0.28), tint(command.color, 0.22), command.alpha * 0.45);
+  strokeRoundedPath([hinge, leftElbow, leftTip], Math.max(2, armWidth * 0.28), tint(command.color, 0.22), command.alpha * 0.45);
+  strokeRoundedPath([hinge, rightElbow, rightTip], Math.max(2, armWidth * 0.28), tint(command.color, 0.22), command.alpha * 0.45);
 }
 
 function drawClampFab(command) {
-  const size = Math.max(16, command.sizeUnits * command.point.scale * 0.88);
-  const lobeWidth = Math.max(4, size * 0.18);
+  const size = Math.max(16, command.sizeUnits * command.point.scale * 0.84);
+  const lobeWidth = Math.max(5, size * 0.22);
 
   function mapLocal(localX, localY) {
     const cos = Math.cos(command.angle);
@@ -1170,39 +1294,17 @@ function drawClampFab(command) {
     };
   }
 
-  const stemBase = mapLocal(-size * 0.1, -size * 0.88);
-  const hinge = mapLocal(0, -size * 0.36);
-  const shoulderLobe = mapLocal(-size * 0.32, -size * 0.04);
-  const armLobe = mapLocal(size * 0.2, size * 0.12);
-  const lowerTip = mapLocal(size * 0.08, size * 0.56);
-  const upperTip = mapLocal(-size * 0.48, -size * 0.58);
+  const stemBase = mapLocal(0, -size * 0.94);
+  const hinge = mapLocal(0, -size * 0.2);
+  const shoulderTip = mapLocal(-size * 0.64, size * 0.12);
+  const armTip = mapLocal(size * 0.44, size * 0.34);
 
-  ctx.beginPath();
-  ctx.moveTo(stemBase.x, stemBase.y);
-  ctx.lineTo(hinge.x, hinge.y);
-  ctx.lineTo(shoulderLobe.x, shoulderLobe.y);
-  ctx.lineTo(lowerTip.x, lowerTip.y);
-  ctx.moveTo(hinge.x, hinge.y);
-  ctx.lineTo(armLobe.x, armLobe.y);
-  ctx.lineTo(upperTip.x, upperTip.y);
-  ctx.lineCap = "round";
-  ctx.strokeStyle = rgba(command.color, command.alpha);
-  ctx.lineWidth = lobeWidth;
-  ctx.stroke();
-
-  const gloss = ctx.createLinearGradient(stemBase.x, stemBase.y, lowerTip.x, lowerTip.y);
-  gloss.addColorStop(0, rgba(tint(command.color, 0.18), command.alpha * 0.68));
-  gloss.addColorStop(1, rgba(tint(command.color, -0.2), command.alpha * 0.72));
-  ctx.strokeStyle = gloss;
-  ctx.lineWidth = Math.max(2, lobeWidth * 0.56);
-  ctx.stroke();
-
-  [stemBase, hinge, shoulderLobe, armLobe, lowerTip, upperTip].forEach((point, index) => {
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, index === 1 ? lobeWidth * 0.44 : lobeWidth * 0.32, 0, Math.PI * 2);
-    ctx.fillStyle = rgba(tint(command.color, index === 1 ? 0.12 : 0.04), command.alpha);
-    ctx.fill();
-  });
+  strokeRoundedPath([stemBase, hinge], lobeWidth, command.color, command.alpha);
+  strokeRoundedPath([hinge, shoulderTip], lobeWidth, command.color, command.alpha);
+  strokeRoundedPath([hinge, armTip], lobeWidth, command.color, command.alpha);
+  strokeRoundedPath([stemBase, hinge], Math.max(2, lobeWidth * 0.28), tint(command.color, 0.22), command.alpha * 0.45);
+  strokeRoundedPath([hinge, shoulderTip], Math.max(2, lobeWidth * 0.28), tint(command.color, 0.22), command.alpha * 0.45);
+  strokeRoundedPath([hinge, armTip], Math.max(2, lobeWidth * 0.28), tint(command.color, 0.22), command.alpha * 0.45);
 }
 
 function drawKinaseGlow(command) {
@@ -1314,10 +1416,16 @@ function render(now) {
   commands.forEach((command) => {
     if (command.type === "segment") {
       drawSegment(command);
+    } else if (command.type === "flatSegment") {
+      drawFlatSegment(command);
     } else if (command.type === "sphere") {
       drawSphere(command);
     } else if (command.type === "kinaseGlow") {
       drawKinaseGlow(command);
+    } else if (command.type === "nell2Core") {
+      drawNell2Core(command);
+    } else if (command.type === "nell2Protomer") {
+      drawNell2Protomer(command);
     } else if (command.type === "igg") {
       drawIgg(command);
     } else if (command.type === "clampFab") {
