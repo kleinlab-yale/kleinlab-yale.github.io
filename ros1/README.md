@@ -17,7 +17,7 @@ into a rotatable 3D schematic.
 
 ## Antibody blockade
 
-- `RX5`: masks ligand epitope 1 and prevents productive site-1 engagement by NELL2
+- `RX5`: masks the site-1 epitope on `YWTD-A` and prevents productive engagement by NELL2
 - `CTX`: binds between the FNIII arm and YWTD-A shoulder and prevents the arm-hand rigid body from releasing upward
 
 ## Domain layout encoded in the schematic

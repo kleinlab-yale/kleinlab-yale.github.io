@@ -64,7 +64,7 @@ function buildProfile(state, antibody) {
       return {
         title: "RX5 occupies the site-1 epitope",
         body:
-          "RX5 sits over the NELL2 site-1 epitope on ROS1, precluding productive ligand engagement before clustering can begin.",
+          "RX5 sits over the NELL2 site-1 epitope on YWTD-A, precluding productive ligand engagement before clustering can begin.",
         metrics: {
           ligand: "RX5 bound",
           leg: "Constrained",
@@ -81,7 +81,7 @@ function buildProfile(state, antibody) {
     return {
       title: "RX5 blocks NELL2 site 1",
       body:
-        "RX5 masks ligand epitope 1, so NELL2 cannot engage site 1 productively. ROS1 therefore fails to cluster and never reaches the active geometry.",
+        "RX5 masks ligand epitope 1 on YWTD-A, so NELL2 cannot engage site 1 productively. ROS1 therefore fails to cluster and never reaches the active geometry.",
       metrics: {
         ligand: "Site 1 blocked",
         leg: "Constrained",
@@ -215,8 +215,9 @@ const activeLocal = {
 const view = {
   yaw: -0.4,
   pitch: 0.18,
-  zoom: 1,
+  zoom: 0.52,
   autoYaw: -0.4,
+  autoRotate: true,
 };
 
 const pointer = {
@@ -384,12 +385,14 @@ function rotatePoint(point) {
 
 function project(point) {
   const rotated = rotatePoint(point);
-  const camera = 1380 / view.zoom;
+  const camera = 1380;
   const scale = camera / (camera - rotated.z);
+  const zoomScale = scale * view.zoom;
+  const centerY = height * 0.52;
   return {
-    x: width / 2 + rotated.x * scale,
-    y: height / 2 - rotated.y * scale,
-    scale,
+    x: width / 2 + rotated.x * zoomScale,
+    y: centerY - rotated.y * zoomScale,
+    scale: zoomScale,
     depth: rotated.z,
   };
 }
@@ -526,6 +529,26 @@ function drawProjectedChain(commands, projected, keys, color, widths, alpha) {
   }
 }
 
+function site1Anchor(nodes) {
+  return add(mixVec(nodes.shoulder, nodes.armProx, 0.16), [0, 14, 0]);
+}
+
+function ctxAnchor(nodes) {
+  return mixVec(nodes.shoulder, nodes.armProx, 0.44);
+}
+
+function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
+  commands.push({
+    type: "fab",
+    point,
+    color,
+    angle,
+    sizeUnits,
+    alpha,
+    depth: point.depth,
+  });
+}
+
 function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
   const visible = clamp(site1Factor + fullFactor, 0, 1);
   if (visible < 0.02) {
@@ -537,8 +560,9 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
   pushSphere(commands, top, 28, palette.ligand, visible);
 
   receptors.forEach((receptor, index) => {
-    const shoulderTarget = add(receptor.nodes.shoulder, [0, 34, 0]);
-    const targetWorld = mixVec(shoulderTarget, receptor.nodes.hand, fullFactor);
+    const site1World = site1Anchor(receptor.nodes);
+    const fullTarget = mixVec(site1World, receptor.nodes.hand, 0.72);
+    const targetWorld = mixVec(site1World, fullTarget, fullFactor);
     const jointWorld = mixVec(topWorld, targetWorld, 0.44);
     jointWorld[1] += 18 - index * 2;
     const joint = project(jointWorld);
@@ -561,8 +585,7 @@ function addBlockedLigand(commands, receptors, blockedFactor) {
   pushSphere(commands, top, 26, palette.ligand, blockedFactor * 0.72);
 
   receptors.forEach((receptor, index) => {
-    const epitope = mixVec(receptor.nodes.armDist, receptor.nodes.hand, 0.42);
-    const blockedTarget = add(epitope, [0, 26, 0]);
+    const blockedTarget = add(site1Anchor(receptor.nodes), [0, 22, 0]);
     const jointWorld = mixVec(topWorld, blockedTarget, 0.5);
     jointWorld[1] += 10 - index * 3;
     const joint = project(jointWorld);
@@ -580,18 +603,13 @@ function addRx5(commands, receptors, visible) {
   }
 
   receptors.forEach((receptor, index) => {
-    const epitope = mixVec(receptor.nodes.armDist, receptor.nodes.hand, 0.42);
-    const left = project(add(epitope, [-20, 16, 8]));
-    const right = project(add(epitope, [20, 16, -8]));
-    const hub = project(add(epitope, [0, 2, 0]));
-    const stem = project(add(epitope, [0, -20, 0]));
-    pushSegment(commands, left, hub, palette.rx5, 10, visible);
-    pushSegment(commands, right, hub, palette.rx5, 10, visible);
-    pushSegment(commands, hub, stem, palette.rx5, 10, visible);
-    pushSphere(commands, hub, 8, palette.rx5, visible);
+    const anchor = project(site1Anchor(receptor.nodes));
+    const shoulder = project(receptor.nodes.shoulder);
+    const angle = Math.atan2(shoulder.y - anchor.y, shoulder.x - anchor.x);
+    pushFab(commands, anchor, palette.rx5, angle, 38, visible);
 
     if (index === labelIndex) {
-      pushLabel(commands, hub, "RX5", palette.rx5, 20, -20);
+      pushLabel(commands, anchor, "RX5", palette.rx5, 22, -22);
     }
   });
 }
@@ -602,19 +620,15 @@ function addCtx(commands, receptors, visible) {
   }
 
   receptors.forEach((receptor, index) => {
-    const clampA1 = project(mixVec(receptor.nodes.shoulder, receptor.nodes.armProx, 0.2));
-    const clampA2 = project(mixVec(receptor.nodes.shoulder, receptor.nodes.armProx, 0.78));
-    const clampB1 = project(add(mixVec(receptor.nodes.shoulder, receptor.nodes.armProx, 0.2), [8, -4, 10]));
-    const clampB2 = project(add(mixVec(receptor.nodes.shoulder, receptor.nodes.armProx, 0.78), [8, -4, 10]));
-    pushSegment(commands, clampA1, clampA2, palette.ctx, 11, visible);
-    pushSegment(commands, clampB1, clampB2, palette.ctx, 11, visible);
-    pushSegment(commands, clampA1, clampB1, palette.ctx, 8, visible);
-    pushSegment(commands, clampA2, clampB2, palette.ctx, 8, visible);
-    pushSphere(commands, clampA1, 6, palette.ctx, visible);
-    pushSphere(commands, clampA2, 6, palette.ctx, visible);
+    const anchorWorld = ctxAnchor(receptor.nodes);
+    const anchor = project(anchorWorld);
+    const shoulder = project(receptor.nodes.shoulder);
+    const arm = project(receptor.nodes.armProx);
+    const angle = Math.atan2((shoulder.y + arm.y) * 0.5 - anchor.y, (shoulder.x + arm.x) * 0.5 - anchor.x);
+    pushFab(commands, anchor, palette.ctx, angle, 40, visible);
 
     if (index === labelIndex) {
-      pushLabel(commands, clampB1, "CTX", palette.ctx, 18, -18);
+      pushLabel(commands, anchor, "CTX", palette.ctx, 20, -20);
     }
   });
 }
@@ -773,6 +787,53 @@ function drawSphere(command) {
   ctx.stroke();
 }
 
+function drawFab(command) {
+  const size = Math.max(12, command.sizeUnits * command.point.scale * 0.85);
+  const branch = size * 0.82;
+  const stem = size * 0.78;
+  const spread = Math.PI / 3.2;
+  const armWidth = Math.max(4, size * 0.22);
+
+  function mapLocal(localX, localY) {
+    const cos = Math.cos(command.angle);
+    const sin = Math.sin(command.angle);
+    return {
+      x: command.point.x + localX * cos - localY * sin,
+      y: command.point.y + localX * sin + localY * cos,
+    };
+  }
+
+  const contact = mapLocal(0, stem * 0.56);
+  const hub = mapLocal(0, 0);
+  const left = mapLocal(Math.cos(-spread) * branch, Math.sin(-spread) * branch);
+  const right = mapLocal(Math.cos(spread) * branch, Math.sin(spread) * branch);
+
+  ctx.beginPath();
+  ctx.moveTo(contact.x, contact.y);
+  ctx.lineTo(hub.x, hub.y);
+  ctx.lineTo(left.x, left.y);
+  ctx.moveTo(hub.x, hub.y);
+  ctx.lineTo(right.x, right.y);
+  ctx.lineCap = "round";
+  ctx.strokeStyle = rgba(command.color, command.alpha);
+  ctx.lineWidth = armWidth;
+  ctx.stroke();
+
+  const gloss = ctx.createLinearGradient(contact.x, contact.y, left.x, left.y);
+  gloss.addColorStop(0, rgba(tint(command.color, 0.2), command.alpha * 0.6));
+  gloss.addColorStop(1, rgba(tint(command.color, -0.18), command.alpha * 0.7));
+  ctx.strokeStyle = gloss;
+  ctx.lineWidth = Math.max(2, armWidth * 0.55);
+  ctx.stroke();
+
+  [contact, hub, left, right].forEach((point, index) => {
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, index === 1 ? armWidth * 0.44 : armWidth * 0.34, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(tint(command.color, index === 1 ? 0.15 : 0.05), command.alpha);
+    ctx.fill();
+  });
+}
+
 function drawLabel(command) {
   ctx.save();
   ctx.font = "600 16px Avenir Next, Segoe UI, sans-serif";
@@ -851,9 +912,9 @@ function drawBackground(now) {
 }
 
 function render(now) {
-  if (!pointer.dragging) {
+  if (view.autoRotate && !pointer.dragging) {
     view.yaw += (view.autoYaw - view.yaw) * 0.0025;
-    view.autoYaw += 0.0007;
+    view.autoYaw += 0.00045;
   }
 
   drawBackground(now);
@@ -865,6 +926,8 @@ function render(now) {
       drawSegment(command);
     } else if (command.type === "sphere") {
       drawSphere(command);
+    } else if (command.type === "fab") {
+      drawFab(command);
     } else if (command.type === "callout") {
       drawCallout(command);
     }
@@ -880,6 +943,7 @@ function render(now) {
 }
 
 function onPointerDown(event) {
+  view.autoRotate = false;
   pointer.dragging = true;
   pointer.x = event.clientX;
   pointer.y = event.clientY;
@@ -908,14 +972,16 @@ function onPointerUp(event) {
 
 function onWheel(event) {
   event.preventDefault();
-  view.zoom = clamp(view.zoom - event.deltaY * 0.0012, 0.72, 1.5);
+  view.autoRotate = false;
+  view.zoom = clamp(view.zoom - event.deltaY * 0.0009, 0.42, 1.3);
 }
 
 function resetView() {
   view.yaw = -0.4;
   view.pitch = 0.18;
-  view.zoom = 1;
+  view.zoom = 0.52;
   view.autoYaw = -0.4;
+  view.autoRotate = true;
 }
 
 stateButtons.forEach((button) => {
