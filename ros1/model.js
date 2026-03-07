@@ -38,7 +38,7 @@ const baseStates = {
   clustered: {
     title: "NELL2 binding through site 1",
     body:
-      "NELL2 clusters ROS1 ectodomains, but the hand is still parked in the hip pocket and the arm has not swung up. Clustering alone is therefore not enough to activate the receptor.",
+      "NELL2 engages the strong site-1 interaction on YWTD-A, but the arm has not flipped up to add sites 2 and 3 on FNIII-1 and FNIII-2. CATCH remains parked in the hip pocket, so clustering alone is not enough to activate the receptor.",
     metrics: {
       ligand: "Site 1",
       leg: "Constrained",
@@ -49,7 +49,7 @@ const baseStates = {
   active: {
     title: "NELL2 engages sites 1, 2, and 3",
     body:
-      "Full ligand engagement rotates the CATCH plus FNIII-1/2 block about 130 degrees around YWTD-A, pulls the hand out of the hip pocket, and frees the leg so the transmembrane and kinase regions can approach one another.",
+      "NELL2 remains anchored at the strong site-1 interaction on YWTD-A while the arm flips up to add site 2 and site 3 on FNIII-1 and FNIII-2. CATCH does not contact ligand; it simply releases from the YWTD-B pocket so the transmembrane and kinase regions can approach one another.",
     metrics: {
       ligand: "Sites 1/2/3",
       leg: "Dynamic",
@@ -101,7 +101,7 @@ function buildProfile(state, antibody) {
       return {
         title: "CTX traps a pre-active assembly",
         body:
-          "CTX binds between the FNIII arm and YWTD-A shoulder, so the arm-hand rigid body cannot release and swing upward. ROS1 can still form a ligand-driven cluster, but the transmembrane and kinase regions never fully converge.",
+          "CTX binds between the FNIII arm and YWTD-A shoulder, so the arm-hand rigid body cannot release and swing upward to add site 2 and site 3. ROS1 can still form a site-1-driven cluster, but the transmembrane and kinase regions never fully converge.",
         metrics: {
           ligand: "Site 1 trapped",
           leg: "Constrained",
@@ -117,9 +117,9 @@ function buildProfile(state, antibody) {
 
     if (state === "clustered") {
       return {
-        title: "CTX clamps the arm to the shoulder",
-        body:
-          "With CTX bound between the arm and YWTD-A shoulder, NELL2 can still collect ROS1 into a cluster through site 1, but the arm remains pocketed and activation does not proceed.",
+      title: "CTX clamps the arm to the shoulder",
+      body:
+          "With CTX bound between the arm and YWTD-A shoulder, NELL2 can still collect ROS1 into a cluster through site 1, but the arm remains pocketed, sites 2 and 3 cannot be added, and activation does not proceed.",
         metrics: {
           ligand: "Site 1",
           leg: "Constrained",
@@ -540,6 +540,14 @@ function site1Anchor(nodes) {
   return add(mixVec(nodes.shoulder, nodes.armProx, 0.16), [0, 14, 0]);
 }
 
+function site2Anchor(nodes) {
+  return add(nodes.armProx, [0, 10, 0]);
+}
+
+function site3Anchor(nodes) {
+  return add(nodes.armDist, [0, 8, 0]);
+}
+
 function ctxAnchor(nodes) {
   return mixVec(nodes.shoulder, nodes.armProx, 0.44);
 }
@@ -583,18 +591,25 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
 
   receptors.forEach((receptor, index) => {
     const site1World = site1Anchor(receptor.nodes);
-    const fullTarget = mixVec(site1World, receptor.nodes.hand, 0.72);
-    const targetWorld = mixVec(site1World, fullTarget, fullFactor);
-    const jointWorld = mixVec(topWorld, targetWorld, 0.44);
+    const jointWorld = mixVec(topWorld, site1World, 0.44);
     jointWorld[1] += 18 - index * 2;
     const joint = project(jointWorld);
-    const target = project(targetWorld);
+    const site1 = project(site1World);
     pushSegment(commands, top, joint, palette.ligandSoft, 13, visible);
-    pushSegment(commands, joint, target, palette.ligand, 15, visible);
+    pushSegment(commands, joint, site1, palette.ligand, 15, visible);
     pushSphere(commands, joint, 10, palette.ligandSoft, visible);
+
+    if (fullFactor > 0.02) {
+      const site2 = project(site2Anchor(receptor.nodes));
+      const site3 = project(site3Anchor(receptor.nodes));
+      pushSegment(commands, joint, site2, palette.ligand, 10, fullFactor);
+      pushSegment(commands, joint, site3, palette.ligand, 10, fullFactor);
+      pushSphere(commands, site2, 6, palette.ligandSoft, fullFactor * 0.8);
+      pushSphere(commands, site3, 6, palette.ligandSoft, fullFactor * 0.8);
+    }
   });
 
-  pushLabel(commands, top, fullFactor > 0.4 ? "NELL2 trimer" : "NELL2 site 1", palette.ligand, 22, -24);
+  pushLabel(commands, top, fullFactor > 0.4 ? "NELL2 sites 1/2/3" : "NELL2 site 1", palette.ligand, 22, -24);
 }
 
 function addBlockedLigand(commands, receptors, blockedFactor) {

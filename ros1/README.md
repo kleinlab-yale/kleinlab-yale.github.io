@@ -12,13 +12,13 @@ into a rotatable 3D schematic.
 ## What it shows
 
 - `Unliganded`: the small CATCH hand is tucked into the hip pocket and the ectodomain stays bent
-- `NELL2 site 1`: NELL2 clusters ROS1 without pulling the hand out of the hip pocket
-- `NELL2 sites 1/2/3`: the CATCH plus FNIII-1/2 block rotates about 130 degrees around YWTD-A, the hand exits the hip pocket, and the transmembrane plus kinase regions draw together
+- `NELL2 site 1`: NELL2 binds the strong site-1 interface on `YWTD-A`, but the arm has not yet flipped up to add sites 2 and 3
+- `NELL2 sites 1/2/3`: NELL2 remains bound at site 1 on `YWTD-A` while the `FNIII-1/2` arm flips up to add sites 2 and 3; `CATCH` just releases from the `YWTD-B` pocket and the transmembrane plus kinase regions draw together
 
 ## Antibody blockade
 
 - `RX5`: masks the site-1 epitope on `YWTD-A` and prevents productive engagement by NELL2
-- `CTX`: binds between the FNIII arm and YWTD-A shoulder and prevents the arm-hand rigid body from releasing upward
+- `CTX`: binds between the FNIII arm and `YWTD-A` shoulder and prevents the arm from flipping up to add sites 2 and 3
 
 ## Domain layout encoded in the schematic
 
