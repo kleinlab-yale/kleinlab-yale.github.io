@@ -1,6 +1,7 @@
 const canvas = document.getElementById("scene");
 const ctx = canvas.getContext("2d");
 const stateButtons = [...document.querySelectorAll(".state-button")];
+const antibodyButtons = [...document.querySelectorAll(".antibody-button")];
 const resetViewButton = document.getElementById("resetView");
 const stateTitle = document.getElementById("stateTitle");
 const stateBody = document.getElementById("stateBody");
@@ -10,25 +11,25 @@ const metricOligomer = document.getElementById("metricOligomer");
 const metricActivity = document.getElementById("metricActivity");
 
 const palette = {
-  shoulder: "#edd47c",
-  arm: "#e4a6cb",
-  leg: "#bbbaf1",
-  core: "#a4a3e9",
-  ligand: "#3d3a3d",
-  ligandSoft: "#909090",
+  propeller: "#edd47c",
+  hand: "#d77faf",
+  arm: "#7ed6e6",
+  leg: "#8c8df0",
+  ligand: "#353336",
+  ligandSoft: "#8f8f8f",
+  rx5: "#cf5977",
+  ctx: "#ef9d34",
   membrane: "#d8d44d",
-  text: "#151b22",
-  label: "#26313d",
 };
 
-const states = {
+const baseStates = {
   inactive: {
     title: "Unliganded ROS1",
     body:
-      "A bent ectodomain keeps the arm packed against the shoulder and the leg relatively rigid, so ROS1 remains monomeric and inactive at the membrane.",
+      "The small CATCH hand is tucked into a pocket around the hip beta-propeller. The arm and hand behave like a rigid unit around the shoulder pivot, the leg stays constrained, and ROS1 remains inactive.",
     metrics: {
       ligand: "None",
-      leg: "Rigid",
+      leg: "Constrained",
       oligomer: "No",
       activity: "Off",
     },
@@ -36,10 +37,10 @@ const states = {
   clustered: {
     title: "NELL2 binding through site 1",
     body:
-      "NELL2 recruits multiple ROS1 ectodomains into a surface cluster, but the arm still braces the receptor and the leg remains comparatively rigid, so clustering alone is not sufficient for activation.",
+      "NELL2 clusters ROS1 ectodomains, but the hand is still parked in the hip pocket and the arm has not swung up. Clustering alone is therefore not enough to activate the receptor.",
     metrics: {
       ligand: "Site 1",
-      leg: "Rigid",
+      leg: "Constrained",
       oligomer: "Yes",
       activity: "Off",
     },
@@ -47,7 +48,7 @@ const states = {
   active: {
     title: "NELL2 engages sites 1, 2, and 3",
     body:
-      "Full engagement releases the autoinhibitory arm, the leg becomes dynamic, and the receptors collapse toward a common axis. That geometry is the active state this schematic emphasizes.",
+      "Full ligand engagement rotates the CATCH plus FNIII-1/2 block about 130 degrees around YWTD-A, pulls the hand out of the hip pocket, and frees the leg to become dynamic while the lower receptor regions come together.",
     metrics: {
       ligand: "Sites 1/2/3",
       leg: "Dynamic",
@@ -57,11 +58,165 @@ const states = {
   },
 };
 
+function buildProfile(state, antibody) {
+  if (antibody === "rx5") {
+    if (state === "inactive") {
+      return {
+        title: "RX5 occupies the site-1 epitope",
+        body:
+          "RX5 sits over the NELL2 site-1 epitope on ROS1, precluding productive ligand engagement before clustering can begin.",
+        metrics: {
+          ligand: "RX5 bound",
+          leg: "Constrained",
+          oligomer: "No",
+          activity: "Off",
+        },
+        geometryState: "inactive",
+        ligandMode: "none",
+        showRX5: true,
+        showCTX: false,
+      };
+    }
+
+    return {
+      title: "RX5 blocks NELL2 site 1",
+      body:
+        "RX5 masks ligand epitope 1, so NELL2 cannot engage site 1 productively. ROS1 therefore fails to cluster and never reaches the active geometry.",
+      metrics: {
+        ligand: "Site 1 blocked",
+        leg: "Constrained",
+        oligomer: "No",
+        activity: "Off",
+      },
+      geometryState: "inactive",
+      ligandMode: "blocked",
+      showRX5: true,
+      showCTX: false,
+    };
+  }
+
+  if (antibody === "ctx") {
+    if (state === "active") {
+      return {
+        title: "CTX traps a pre-active assembly",
+        body:
+          "CTX binds between the FNIII arm and YWTD-A shoulder, so the arm-hand rigid body cannot release and swing upward. ROS1 can still form a ligand-driven cluster, but it is trapped before activation.",
+        metrics: {
+          ligand: "Site 1 trapped",
+          leg: "Constrained",
+          oligomer: "Yes",
+          activity: "Off",
+        },
+        geometryState: "clustered",
+        ligandMode: "site1",
+        showRX5: false,
+        showCTX: true,
+      };
+    }
+
+    if (state === "clustered") {
+      return {
+        title: "CTX clamps the arm to the shoulder",
+        body:
+          "With CTX bound between the arm and YWTD-A shoulder, NELL2 can still collect ROS1 into a cluster through site 1, but the arm remains pocketed and activation does not proceed.",
+        metrics: {
+          ligand: "Site 1",
+          leg: "Constrained",
+          oligomer: "Yes",
+          activity: "Off",
+        },
+        geometryState: "clustered",
+        ligandMode: "site1",
+        showRX5: false,
+        showCTX: true,
+      };
+    }
+
+    return {
+      title: "CTX reinforces the inactive clamp",
+      body:
+        "CTX binds between the FNIII arm and YWTD-A shoulder, reinforcing the pocketed inactive state and opposing the arm-release step needed for activation.",
+      metrics: {
+        ligand: "CTX bound",
+        leg: "Constrained",
+        oligomer: "No",
+        activity: "Off",
+      },
+      geometryState: "inactive",
+      ligandMode: "none",
+      showRX5: false,
+      showCTX: true,
+    };
+  }
+
+  return {
+    ...baseStates[state],
+    geometryState: state,
+    ligandMode: state === "inactive" ? "none" : state === "clustered" ? "site1" : "full",
+    showRX5: false,
+    showCTX: false,
+  };
+}
+
+const nodeStyles = {
+  shoulder: { radius: 34, color: palette.propeller },
+  upper: { radius: 18, color: palette.leg },
+  hip: { radius: 30, color: palette.propeller },
+  mid1: { radius: 18, color: palette.leg },
+  mid2: { radius: 18, color: palette.leg },
+  knee: { radius: 28, color: palette.propeller },
+  low1: { radius: 18, color: palette.leg },
+  low2: { radius: 18, color: palette.leg },
+  low3: { radius: 16, color: palette.leg },
+  low4: { radius: 16, color: palette.leg },
+  tm: { radius: 10, color: palette.leg },
+  armProx: { radius: 16, color: palette.arm },
+  armDist: { radius: 16, color: palette.arm },
+  hand: { radius: 12, color: palette.hand },
+};
+
+const armRotationRadians = (130 * Math.PI) / 180;
+const bentArmLocal = {
+  armProx: [-18, -24, 26],
+  armDist: [-32, -74, 34],
+  hand: [38, -112, 18],
+};
+
+const bentLocal = {
+  upper: [20, -52, 10],
+  hip: [40, -110, 18],
+  mid1: [22, -166, 8],
+  mid2: [6, -222, -8],
+  knee: [18, -278, -6],
+  low1: [8, -332, 0],
+  low2: [0, -384, -4],
+  low3: [-6, -432, -6],
+  low4: [0, -478, -4],
+  tm: [2, -520, -2],
+  ...bentArmLocal,
+};
+
+const activeLocal = {
+  upper: [16, -58, 8],
+  hip: [26, -118, 12],
+  mid1: [36, -178, 8],
+  mid2: [46, -236, 4],
+  knee: [54, -296, 2],
+  low1: [58, -352, 1],
+  low2: [60, -406, 0],
+  low3: [62, -458, 0],
+  low4: [64, -506, 0],
+  tm: [64, -548, 0],
+  armProx: rotateZ(bentArmLocal.armProx, armRotationRadians),
+  armDist: rotateZ(bentArmLocal.armDist, armRotationRadians),
+  hand: rotateZ(bentArmLocal.hand, armRotationRadians),
+};
+
 const view = {
-  yaw: -0.42,
-  pitch: 0.17,
+  yaw: -0.4,
+  pitch: 0.18,
   zoom: 1,
-  autoYaw: -0.42,
+  autoYaw: -0.4,
 };
 
 const pointer = {
@@ -70,10 +225,16 @@ const pointer = {
   y: 0,
 };
 
+const labelIndex = 1;
+const legKeys = ["shoulder", "upper", "hip", "mid1", "mid2", "knee", "low1", "low2", "low3", "low4", "tm", "tmBase"];
+const armKeys = ["shoulder", "armProx", "armDist", "hand"];
+
 let activeState = "inactive";
 let fromState = "inactive";
+let activeAntibody = "none";
+let fromAntibody = "none";
 let transitionStart = 0;
-let transitionDuration = 900;
+let transitionDuration = 950;
 let width = 0;
 let height = 0;
 let deviceScale = Math.min(window.devicePixelRatio || 1, 2);
@@ -92,6 +253,38 @@ function smoothstep(t) {
 
 function mixVec(a, b, t) {
   return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+}
+
+function add(a, b) {
+  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+}
+
+function polar(radius, angle, y) {
+  return [Math.cos(angle) * radius, y, Math.sin(angle) * radius];
+}
+
+function rotateY(point, angle) {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return [
+    point[0] * cos - point[2] * sin,
+    point[1],
+    point[0] * sin + point[2] * cos,
+  ];
+}
+
+function rotateZ(point, angle) {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return [
+    point[0] * cos - point[1] * sin,
+    point[0] * sin + point[1] * cos,
+    point[2],
+  ];
+}
+
+function transformLocal(anchor, local, yaw) {
+  return add(anchor, rotateY(local, yaw));
 }
 
 function hexToRgb(hex) {
@@ -125,10 +318,7 @@ function tint(color, amount) {
   const { r, g, b } = parseColor(color);
   const mix = amount >= 0 ? 255 : 0;
   const strength = Math.abs(amount);
-  const nr = Math.round(r + (mix - r) * strength);
-  const ng = Math.round(g + (mix - g) * strength);
-  const nb = Math.round(b + (mix - b) * strength);
-  return `rgb(${nr}, ${ng}, ${nb})`;
+  return `rgb(${Math.round(r + (mix - r) * strength)}, ${Math.round(g + (mix - g) * strength)}, ${Math.round(b + (mix - b) * strength)})`;
 }
 
 function rgba(color, alpha) {
@@ -136,102 +326,46 @@ function rgba(color, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function polar(radius, angle, y) {
-  return [Math.cos(angle) * radius, y, Math.sin(angle) * radius];
+function getLocalGeometry(state) {
+  return state === "active" ? activeLocal : bentLocal;
 }
 
-function add(a, b) {
-  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-}
-
-function inactiveReceptor(index) {
-  const x = -280 + index * 280;
-  const z = (index - 1) * 46;
-  return {
-    anchor: [x, -340, z - 6],
-    leg3: [x + 8, -258, z + 6],
-    leg2: [x - 12, -158, z - 18],
-    leg1: [x + 16, -48, z + 10],
-    core: [x + 46, 28, z - 4],
-    shoulder: [x + 92, 124, z - 18],
-    arm1: [x + 24, 104, z + 58],
-    arm2: [x + 8, 38, z + 74],
-  };
-}
-
-function clusteredReceptor(index) {
-  const theta = index * ((Math.PI * 2) / 3) + Math.PI / 6;
-  return {
-    anchor: polar(238, theta + 0.03, -340),
-    leg3: polar(212, theta + 0.08, -258),
-    leg2: polar(176, theta + 0.1, -158),
-    leg1: polar(144, theta + 0.16, -44),
-    core: polar(124, theta + 0.14, 34),
-    shoulder: polar(88, theta, 126),
-    arm1: polar(114, theta - 0.25, 102),
-    arm2: polar(96, theta - 0.36, 36),
-  };
-}
-
-function activeReceptor(index) {
-  const theta = index * ((Math.PI * 2) / 3) + Math.PI / 6;
-  return {
-    anchor: polar(30, theta, -340),
-    leg3: polar(42, theta + 0.02, -258),
-    leg2: polar(40, theta + 0.02, -156),
-    leg1: polar(36, theta + 0.02, -48),
-    core: polar(46, theta + 0.03, 30),
-    shoulder: polar(88, theta, 126),
-    arm1: polar(126, theta + 0.48, 154),
-    arm2: polar(154, theta + 0.65, 90),
-  };
-}
-
-function getStateReceptor(state, index) {
-  if (state === "clustered") {
-    return clusteredReceptor(index);
-  }
-  if (state === "active") {
-    return activeReceptor(index);
-  }
-  return inactiveReceptor(index);
-}
-
-function mixReceptor(stateA, stateB, index, t) {
-  const a = getStateReceptor(stateA, index);
-  const b = getStateReceptor(stateB, index);
-  const result = {};
-  Object.keys(a).forEach((key) => {
-    result[key] = mixVec(a[key], b[key], t);
-  });
-  return result;
-}
-
-function ligandGeometry(tClustered, tActive) {
-  const visible = Math.max(tClustered, tActive);
-  if (visible < 0.02) {
-    return null;
-  }
-
-  const top = [0, 258, 0];
-  const branches = [0, 1, 2].map((index) => {
-    const theta = index * ((Math.PI * 2) / 3) + Math.PI / 6;
+function getPlacement(state, index) {
+  if (state === "inactive") {
     return {
-      joint: polar(42, theta, 214),
-      tip: polar(26, theta, 182),
+      shoulder: [-312 + index * 312, 156, (index - 1) * 28],
+      yaw: Math.PI + (index - 1) * 0.08,
     };
-  });
+  }
 
-  return { visible, top, branches };
+  const theta = index * ((Math.PI * 2) / 3) + Math.PI / 6;
+  return {
+    shoulder: polar(state === "active" ? 92 : 118, theta, state === "active" ? 156 : 150),
+    yaw: theta + Math.PI,
+  };
 }
 
-function dynamicTrailOffsets(index, trailIndex, time) {
-  const phase = time * 0.0016 + index * 1.9 + trailIndex * 0.9;
-  const radial = 10 + trailIndex * 6;
-  return {
-    x: Math.cos(phase) * radial,
-    z: Math.sin(phase * 1.2) * radial,
+function buildReceptor(state, index) {
+  const placement = getPlacement(state, index);
+  const local = getLocalGeometry(state);
+  const nodes = {
+    shoulder: placement.shoulder,
   };
+
+  Object.entries(local).forEach(([key, value]) => {
+    nodes[key] = transformLocal(placement.shoulder, value, placement.yaw);
+  });
+  nodes.tmBase = transformLocal(placement.shoulder, add(local.tm, [0, -26, 0]), placement.yaw);
+
+  return { nodes };
+}
+
+function mixReceptor(a, b, t) {
+  const nodes = {};
+  Object.keys(a.nodes).forEach((key) => {
+    nodes[key] = mixVec(a.nodes[key], b.nodes[key], t);
+  });
+  return { nodes };
 }
 
 function rotatePoint(point) {
@@ -250,7 +384,7 @@ function rotatePoint(point) {
 
 function project(point) {
   const rotated = rotatePoint(point);
-  const camera = 1400 / view.zoom;
+  const camera = 1380 / view.zoom;
   const scale = camera / (camera - rotated.z);
   return {
     x: width / 2 + rotated.x * scale,
@@ -270,21 +404,44 @@ function resizeCanvas() {
   ctx.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
 }
 
+function transitionFlag(fromValue, toValue, progress) {
+  return lerp(fromValue ? 1 : 0, toValue ? 1 : 0, progress);
+}
+
+function modeFactor(modeName, fromMode, toMode, progress) {
+  return transitionFlag(fromMode === modeName, toMode === modeName, progress);
+}
+
 function setState(nextState) {
   if (nextState === activeState) {
     return;
   }
   fromState = activeState;
+  fromAntibody = activeAntibody;
   activeState = nextState;
   transitionStart = performance.now();
-  applyStateText();
+  applyViewText();
   stateButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.state === nextState);
   });
 }
 
-function applyStateText() {
-  const meta = states[activeState];
+function setAntibody(nextAntibody) {
+  if (nextAntibody === activeAntibody) {
+    return;
+  }
+  fromState = activeState;
+  fromAntibody = activeAntibody;
+  activeAntibody = nextAntibody;
+  transitionStart = performance.now();
+  applyViewText();
+  antibodyButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.antibody === nextAntibody);
+  });
+}
+
+function applyViewText() {
+  const meta = buildProfile(activeState, activeAntibody);
   stateTitle.textContent = meta.title;
   stateBody.textContent = meta.body;
   metricLigand.textContent = meta.metrics.ligand;
@@ -295,10 +452,10 @@ function applyStateText() {
 
 function drawMembrane() {
   const corners = [
-    [-520, -372, -320],
-    [520, -372, -320],
-    [520, -372, 320],
-    [-520, -372, 320],
+    [-540, -394, -320],
+    [540, -394, -320],
+    [540, -394, 320],
+    [-540, -394, 320],
   ].map(project);
 
   ctx.beginPath();
@@ -308,14 +465,14 @@ function drawMembrane() {
 
   const fill = ctx.createLinearGradient(0, corners[0].y, 0, corners[2].y);
   fill.addColorStop(0, rgba(palette.membrane, 0.94));
-  fill.addColorStop(1, rgba(tint(palette.membrane, -0.12), 0.96));
+  fill.addColorStop(1, rgba(tint(palette.membrane, -0.14), 0.98));
   ctx.fillStyle = fill;
   ctx.fill();
 
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
   ctx.lineTo(corners[1].x, corners[1].y);
-  ctx.strokeStyle = rgba("#746f1c", 0.6);
+  ctx.strokeStyle = rgba("#7a7422", 0.64);
   ctx.lineWidth = 2;
   ctx.stroke();
 }
@@ -343,126 +500,134 @@ function pushSphere(commands, point, radiusUnits, color, alpha = 1) {
   });
 }
 
+function pushLabel(commands, point, text, color, offsetX, offsetY) {
+  commands.push({
+    type: "label",
+    point,
+    text,
+    color,
+    depth: point.depth,
+    offsetX,
+    offsetY,
+  });
+}
+
+function dynamicTrailOffsets(index, trailIndex, time) {
+  const phase = time * 0.0016 + index * 1.9 + trailIndex * 0.8;
+  return {
+    x: Math.cos(phase) * (10 + trailIndex * 6),
+    z: Math.sin(phase * 1.15) * (8 + trailIndex * 5),
+  };
+}
+
+function drawProjectedChain(commands, projected, keys, color, widths, alpha) {
+  for (let i = 0; i < keys.length - 1; i += 1) {
+    pushSegment(commands, projected[keys[i]], projected[keys[i + 1]], color, widths[i], alpha);
+  }
+}
+
+function addLigand(commands, receptors, clusterFactor, activeFactor) {
+  const visible = clamp(clusterFactor + activeFactor, 0, 1);
+  if (visible < 0.02) {
+    return;
+  }
+
+  const topWorld = [0, 288 + activeFactor * 14, 0];
+  const top = project(topWorld);
+  pushSphere(commands, top, 28, palette.ligand, visible);
+
+  receptors.forEach((receptor, index) => {
+    const shoulderTarget = add(receptor.nodes.shoulder, [0, 34, 0]);
+    const targetWorld = mixVec(shoulderTarget, receptor.nodes.hand, activeFactor);
+    const jointWorld = mixVec(topWorld, targetWorld, 0.44);
+    jointWorld[1] += 18 - index * 2;
+    const joint = project(jointWorld);
+    const target = project(targetWorld);
+    pushSegment(commands, top, joint, palette.ligandSoft, 13, visible);
+    pushSegment(commands, joint, target, palette.ligand, 15, visible);
+    pushSphere(commands, joint, 10, palette.ligandSoft, visible);
+  });
+
+  pushLabel(commands, top, "NELL2 trimer", palette.ligand, 22, -24);
+}
+
 function buildCommands(now) {
   const elapsed = transitionStart ? clamp((now - transitionStart) / transitionDuration, 0, 1) : 1;
-  const t = smoothstep(elapsed);
-
-  const tClustered = activeState === "inactive" ? 0 : activeState === "clustered" ? 1 : 1;
-  const tActive = activeState === "active" ? 1 : 0;
-
-  const liveClustered = fromState === activeState
-    ? tClustered
-    : lerp(fromState === "inactive" ? 0 : 1, tClustered, t);
-  const liveActive = fromState === activeState
-    ? tActive
-    : lerp(fromState === "active" ? 1 : 0, tActive, t);
+  const progress = smoothstep(elapsed);
+  const inactiveFactor = stateFactor("inactive", progress);
+  const clusterFactor = stateFactor("clustered", progress);
+  const activeFactor = stateFactor("active", progress);
+  const morph = fromState === activeState ? 1 : progress;
 
   const commands = [];
   const receptors = [0, 1, 2].map((index) =>
-    mixReceptor(
-      fromState,
-      activeState,
-      index,
-      fromState === activeState ? 1 : t
-    )
+    mixReceptor(buildReceptor(fromState, index), buildReceptor(activeState, index), morph)
   );
 
   receptors.forEach((receptor, index) => {
-    if (liveActive > 0.2) {
+    if (activeFactor > 0.18) {
+      const ghostKeys = ["shoulder", "upper", "hip", "mid1", "mid2", "knee", "low1", "low2", "low3", "low4", "tm", "tmBase"];
       for (let trailIndex = 0; trailIndex < 3; trailIndex += 1) {
-        const alpha = 0.12 * liveActive * (1 - trailIndex * 0.18);
+        const alpha = 0.11 * activeFactor * (1 - trailIndex * 0.18);
         const offset = dynamicTrailOffsets(index, trailIndex, now);
-        const ghost = {
-          anchor: add(receptor.anchor, [offset.x, 0, offset.z]),
-          leg3: add(receptor.leg3, [offset.x, 0, offset.z]),
-          leg2: add(receptor.leg2, [offset.x, 0, offset.z]),
-          leg1: add(receptor.leg1, [offset.x, 0, offset.z]),
-          core: add(receptor.core, [offset.x * 0.5, 0, offset.z * 0.5]),
-        };
-        const trailPoints = {
-          anchor: project(ghost.anchor),
-          leg3: project(ghost.leg3),
-          leg2: project(ghost.leg2),
-          leg1: project(ghost.leg1),
-          core: project(ghost.core),
-        };
-        pushSegment(commands, trailPoints.anchor, trailPoints.leg3, palette.leg, 30, alpha);
-        pushSegment(commands, trailPoints.leg3, trailPoints.leg2, palette.leg, 28, alpha);
-        pushSegment(commands, trailPoints.leg2, trailPoints.leg1, palette.leg, 24, alpha);
-        pushSegment(commands, trailPoints.leg1, trailPoints.core, palette.leg, 34, alpha);
+        const ghost = {};
+
+        ghostKeys.forEach((key, keyIndex) => {
+          const scale = key === "shoulder" ? 0 : 0.16 + (keyIndex / ghostKeys.length) * 1.05;
+          ghost[key] = add(receptor.nodes[key], [offset.x * scale, 0, offset.z * scale]);
+        });
+
+        const projectedGhost = {};
+        ghostKeys.forEach((key) => {
+          projectedGhost[key] = project(ghost[key]);
+        });
+        drawProjectedChain(commands, projectedGhost, ghostKeys, palette.leg, [20, 22, 20, 20, 22, 20, 18, 18, 16, 14, 10], alpha);
       }
     }
 
     const projected = {};
-    Object.entries(receptor).forEach(([key, value]) => {
+    Object.entries(receptor.nodes).forEach(([key, value]) => {
       projected[key] = project(value);
     });
 
-    pushSegment(commands, projected.anchor, projected.leg3, palette.leg, 32);
-    pushSegment(commands, projected.leg3, projected.leg2, palette.leg, 28);
-    pushSegment(commands, projected.leg2, projected.leg1, palette.leg, 24);
-    pushSegment(commands, projected.leg1, projected.core, palette.leg, 36);
-    pushSegment(commands, projected.shoulder, projected.arm1, palette.arm, 26);
-    pushSegment(commands, projected.arm1, projected.arm2, palette.arm, 20);
-    pushSegment(commands, projected.arm2, projected.core, palette.arm, 16);
+    drawProjectedChain(commands, projected, legKeys, palette.leg, [22, 24, 22, 20, 24, 20, 18, 18, 16, 14, 10], 1);
+    drawProjectedChain(commands, projected, armKeys, palette.arm, [20, 18, 14], 1);
 
-    pushSphere(commands, projected.shoulder, 34, palette.shoulder);
-    pushSphere(commands, projected.arm1, 14, palette.arm);
-    pushSphere(commands, projected.arm2, 12, palette.arm);
-    pushSphere(commands, projected.core, 40, palette.core);
-    pushSphere(commands, projected.leg1, 28, palette.leg);
-    pushSphere(commands, projected.anchor, 12, palette.leg);
+    Object.entries(nodeStyles).forEach(([key, style]) => {
+      pushSphere(commands, projected[key], style.radius, style.color);
+    });
 
-    if (index === 0) {
-      commands.push({
-        type: "label",
-        point: projected.shoulder,
-        text: "Shoulder",
-        color: palette.shoulder,
-        depth: projected.shoulder.depth,
-        offsetX: 22,
-        offsetY: -22,
-      });
-      commands.push({
-        type: "label",
-        point: projected.arm1,
-        text: "Arm",
-        color: palette.arm,
-        depth: projected.arm1.depth,
-        offsetX: 16,
-        offsetY: 8,
-      });
-      commands.push({
-        type: "label",
-        point: projected.leg1,
-        text: "Leg",
-        color: palette.leg,
-        depth: projected.leg1.depth,
-        offsetX: 18,
-        offsetY: 12,
-      });
+    if (activeFactor < 0.72) {
+      pushSphere(commands, projected.hip, 38, palette.propeller, 0.08 * (1 - activeFactor));
+      pushSphere(commands, projected.hand, 20, palette.hand, 0.12 * (1 - activeFactor));
+    }
+
+    if (index === labelIndex) {
+      pushLabel(commands, projected.hand, "CATCH", palette.hand, 24, -16);
+      pushLabel(commands, projected.armDist, "FNIII-1/2", palette.arm, 26, 8);
+      pushLabel(commands, projected.shoulder, "YWTD-A", palette.propeller, 26, -22);
+      pushLabel(commands, projected.upper, "FNIII-3", palette.leg, 24, 12);
+      pushLabel(commands, projected.hip, "YWTD-B", palette.propeller, 24, 10);
+      pushLabel(commands, projected.mid1, "FNIII-4/5", palette.leg, 24, 12);
+      pushLabel(commands, projected.knee, "YWTD-C", palette.propeller, 24, 10);
+      pushLabel(commands, projected.low2, "FNIII-6-9", palette.leg, 26, 12);
     }
   });
 
-  const ligand = ligandGeometry(liveClustered, liveActive);
-  if (ligand) {
-    const top = project(ligand.top);
-    pushSphere(commands, top, 24 + 6 * ligand.visible, palette.ligand);
-    ligand.branches.forEach((branch) => {
-      const joint = project(branch.joint);
-      const tip = project(branch.tip);
-      pushSegment(commands, top, joint, palette.ligandSoft, 14, ligand.visible);
-      pushSegment(commands, joint, tip, palette.ligand, 16, ligand.visible);
-      pushSphere(commands, joint, 10, palette.ligandSoft, ligand.visible);
-    });
+  addLigand(commands, receptors, clusterFactor, activeFactor);
+
+  const pocketFactor = clamp(inactiveFactor + clusterFactor, 0, 1);
+  if (pocketFactor > 0.15) {
+    const receptor = receptors[labelIndex];
+    const hand = project(receptor.nodes.hand);
+    const hip = project(receptor.nodes.hip);
     commands.push({
-      type: "label",
-      point: top,
-      text: "NELL2 trimer",
-      color: palette.ligand,
-      depth: top.depth,
-      offsetX: 20,
-      offsetY: -22,
+      type: "callout",
+      a: hand,
+      b: hip,
+      color: palette.hand,
+      depth: (hand.depth + hip.depth) / 2,
+      alpha: 0.18 * pocketFactor,
     });
   }
 
@@ -470,10 +635,7 @@ function buildCommands(now) {
 }
 
 function drawSegment(command) {
-  const dx = command.b.x - command.a.x;
-  const dy = command.b.y - command.a.y;
   const widthPx = Math.max(2, ((command.a.scale + command.b.scale) * 0.5) * command.widthUnits);
-
   ctx.beginPath();
   ctx.moveTo(command.a.x, command.a.y);
   ctx.lineTo(command.b.x, command.b.y);
@@ -489,11 +651,9 @@ function drawSegment(command) {
   ctx.lineWidth = Math.max(1, widthPx * 0.62);
   ctx.stroke();
 
-  if (Math.abs(dx) + Math.abs(dy) > 0) {
-    ctx.strokeStyle = rgba("#ffffff", command.alpha * 0.15);
-    ctx.lineWidth = Math.max(1, widthPx * 0.2);
-    ctx.stroke();
-  }
+  ctx.strokeStyle = rgba("#ffffff", command.alpha * 0.14);
+  ctx.lineWidth = Math.max(1, widthPx * 0.18);
+  ctx.stroke();
 }
 
 function drawSphere(command) {
@@ -510,7 +670,7 @@ function drawSphere(command) {
   );
 
   gradient.addColorStop(0, rgba(tint(command.color, 0.28), command.alpha));
-  gradient.addColorStop(0.5, rgba(command.color, command.alpha));
+  gradient.addColorStop(0.52, rgba(command.color, command.alpha));
   gradient.addColorStop(1, rgba(tint(command.color, -0.18), command.alpha));
 
   ctx.beginPath();
@@ -532,9 +692,9 @@ function drawLabel(command) {
   const x = command.point.x + command.offsetX;
   const y = command.point.y + command.offsetY;
   const paddingX = 10;
+  const boxHeight = 28;
   const metrics = ctx.measureText(command.text);
   const boxWidth = metrics.width + paddingX * 2;
-  const boxHeight = 28;
 
   ctx.fillStyle = "rgba(255, 255, 255, 0.74)";
   ctx.beginPath();
@@ -567,9 +727,25 @@ function drawLabel(command) {
   ctx.restore();
 }
 
+function drawCallout(command) {
+  ctx.beginPath();
+  ctx.moveTo(command.a.x, command.a.y);
+  ctx.quadraticCurveTo(
+    (command.a.x + command.b.x) * 0.5 + 16,
+    Math.min(command.a.y, command.b.y) - 18,
+    command.b.x,
+    command.b.y
+  );
+  ctx.strokeStyle = rgba(command.color, command.alpha);
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 6]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
 function drawBackground(now) {
   const wash = ctx.createLinearGradient(0, 0, 0, height);
-  wash.addColorStop(0, "rgba(252, 252, 250, 0.96)");
+  wash.addColorStop(0, "rgba(252, 252, 250, 0.97)");
   wash.addColorStop(1, "rgba(220, 221, 224, 0.82)");
   ctx.fillStyle = wash;
   ctx.fillRect(0, 0, width, height);
@@ -601,6 +777,8 @@ function render(now) {
       drawSegment(command);
     } else if (command.type === "sphere") {
       drawSphere(command);
+    } else if (command.type === "callout") {
+      drawCallout(command);
     }
   });
 
@@ -646,10 +824,10 @@ function onWheel(event) {
 }
 
 function resetView() {
-  view.yaw = -0.42;
-  view.pitch = 0.17;
+  view.yaw = -0.4;
+  view.pitch = 0.18;
   view.zoom = 1;
-  view.autoYaw = -0.42;
+  view.autoYaw = -0.4;
 }
 
 stateButtons.forEach((button) => {

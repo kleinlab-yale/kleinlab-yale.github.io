@@ -11,14 +11,28 @@ into a rotatable 3D schematic.
 
 ## What it shows
 
-- `Unliganded`: bent, monomeric ROS1
-- `NELL2 site 1`: NELL2 clusters ROS1 without activation
-- `NELL2 sites 1/2/3`: arm release, increased leg dynamics, and active geometry
+- `Unliganded`: the small CATCH hand is tucked into the hip pocket and the ectodomain stays bent
+- `NELL2 site 1`: NELL2 clusters ROS1 without pulling the hand out of the hip pocket
+- `NELL2 sites 1/2/3`: the CATCH plus FNIII-1/2 block rotates about 130 degrees around YWTD-A, the hand exits the hip pocket, and the legs become dynamic and draw together
+
+## Domain layout encoded in the schematic
+
+- N-terminal `CATCH`
+- `FNIII-1` and `FNIII-2`
+- `YWTD-A`
+- `FNIII-3`
+- `YWTD-B`
+- `FNIII-4` and `FNIII-5`
+- `YWTD-C`
+- `FNIII-6`, `FNIII-7`, `FNIII-8`, and `FNIII-9`
+- the transmembrane segment at the membrane
 
 ## Structural basis
 
 This is a mechanistic cartoon based on the Nature Communications proof and the structures reported
 alongside it, especially PDB entries `9PVP`, `10FT`, `10GH`, `9DZ4`, and `9PWQ`.
+
+Paper link: <https://www.nature.com/articles/s41467-026-69630-7>
 
 ## Open it
 

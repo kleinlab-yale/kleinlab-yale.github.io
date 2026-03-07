@@ -4,27 +4,58 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ROS1 Activation by NELL2</title>
+  <meta
+    name="description"
+    content="Klein Lab at Yale mechanistic viewer for ROS1 activation by NELL2."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="shell">
     <section class="intro">
       <div class="intro-copy">
-        <p class="eyebrow">Mechanistic 3D Schematic</p>
+        <p class="eyebrow">Klein Lab at Yale • Mechanistic Viewer</p>
         <h1>ROS1 activation in response to NELL2</h1>
         <p class="lede">
           This viewer turns the mechanism from your figure panels into a rotatable 3D cartoon:
           unliganded ROS1, NELL2-driven clustering through site 1, and the fully active state
           after NELL2 engages sites 1, 2, and 3.
         </p>
+        <p class="hero-subtitle">
+          Based on the Klein Lab ROS1 study and styled to match the other KLAY web tools.
+        </p>
+        <div class="hero-actions">
+          <a
+            class="hero-link hero-link-primary"
+            href="https://www.nature.com/articles/s41467-026-69630-7"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Read the paper</a>
+          <a
+            class="hero-link"
+            href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11743138/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >PMC page</a>
+        </div>
       </div>
       <div class="legend">
+        <p class="legend-kicker">KLAY</p>
         <h2>Color key</h2>
         <ul>
-          <li><span class="swatch shoulder"></span> ROS1 shoulder</li>
-          <li><span class="swatch arm"></span> ROS1 arm</li>
+          <li><span class="swatch shoulder"></span> ROS1 YWTD propellers</li>
+          <li><span class="swatch hand"></span> ROS1 CATCH domain</li>
+          <li><span class="swatch arm"></span> ROS1 FNIII arm</li>
           <li><span class="swatch leg"></span> ROS1 leg</li>
           <li><span class="swatch ligand"></span> NELL2 trimer</li>
+          <li><span class="swatch rx5"></span> RX5 antibody</li>
+          <li><span class="swatch ctx"></span> CTX antibody</li>
           <li><span class="swatch membrane"></span> Membrane plane</li>
         </ul>
       </div>
@@ -39,6 +70,18 @@
         </div>
         <button id="resetView" class="secondary-button" type="button">Reset view</button>
       </div>
+      <div class="antibody-toolbar">
+        <span class="toolbar-label">Antibody blockade</span>
+        <div class="button-row antibody-row">
+          <button class="antibody-button is-active" data-antibody="none" type="button">None</button>
+          <button class="antibody-button" data-antibody="rx5" type="button">RX5</button>
+          <button class="antibody-button" data-antibody="ctx" type="button">CTX</button>
+        </div>
+        <p class="toolbar-note">
+          RX5 masks the NELL2 site-1 epitope. CTX binds between the FNIII arm and YWTD-A shoulder
+          and blocks arm release.
+        </p>
+      </div>
       <div class="canvas-wrap">
         <canvas id="scene" aria-label="3D schematic of ROS1 activation by NELL2"></canvas>
         <div class="hint">Drag to rotate. Scroll to zoom.</div>
@@ -46,8 +89,8 @@
       <div class="caption">
         <h2 id="stateTitle">Unliganded ROS1</h2>
         <p id="stateBody">
-          A bent ectodomain keeps the arm packed against the shoulder and the leg relatively rigid,
-          so ROS1 remains monomeric and inactive at the membrane.
+          A bent ectodomain tucks the small CATCH hand into a pocket around the YWTD-B hip domain.
+          The arm and hand move as one rigid unit, the leg stays constrained, and ROS1 remains inactive.
         </p>
       </div>
     </section>
@@ -59,7 +102,7 @@
       </article>
       <article class="status-card">
         <span class="status-label">Leg dynamics</span>
-        <strong id="metricLeg">Rigid</strong>
+        <strong id="metricLeg">Constrained</strong>
       </article>
       <article class="status-card">
         <span class="status-label">Oligomer</span>
@@ -75,17 +118,18 @@
       <article class="note-card">
         <h2>What the model encodes</h2>
         <p>
-          The model follows the logic in your uploaded schematics. Site 1 binding by NELL2
-          clusters ROS1 ectodomains but does not activate them. Full activation is shown only
-          after the arm peels away, the leg becomes more dynamic, and the receptors collapse
-          toward a common axis near the membrane.
+          The model now follows the exact ROS1 ectodomain order in your panel: CATCH, FNIII-1,
+          FNIII-2, YWTD-A, FNIII-3, YWTD-B, FNIII-4, FNIII-5, YWTD-C, FNIII-6, FNIII-7, FNIII-8,
+          FNIII-9, and then the transmembrane helix.
         </p>
       </article>
       <article class="note-card">
         <h2>Structural anchors</h2>
         <p>
           This is a mechanistic cartoon, not an atom-by-atom simulation. It is grounded in the
-          structures reported in the paper and linked PDB entries:
+          structures reported in
+          <a href="https://www.nature.com/articles/s41467-026-69630-7" target="_blank" rel="noopener noreferrer">your ROS1 paper</a>
+          and the linked PDB entries:
           <a href="https://www.rcsb.org/structure/9PVP">9PVP</a>,
           <a href="https://www.rcsb.org/structure/10FT">10FT</a>,
           <a href="https://www.rcsb.org/structure/10GH">10GH</a>,
@@ -94,11 +138,20 @@
         </p>
       </article>
       <article class="note-card">
-        <h2>How to use it</h2>
+        <h2>Mechanistic logic</h2>
         <p>
-          Open this page in a browser, rotate the scene, and switch between the three states.
-          If you want the next step, I can turn this into a real atomic viewer that loads the
-          PDB structures directly or export the schematic as a Blender-friendly mesh.
+          In the inactive and site-1 clustered states, the CATCH hand stays parked in the YWTD-B
+          hip pocket. In the active state, full NELL2 engagement rotates the CATCH plus FNIII-1/2
+          block roughly 130 degrees about YWTD-A, freeing the leg to fluctuate and allowing the
+          lower receptor regions to approach one another.
+        </p>
+      </article>
+      <article class="note-card">
+        <h2>Antibody blockade</h2>
+        <p>
+          RX5 blocks ligand epitope 1 and prevents productive NELL2 recruitment. CTX wedges
+          between the arm and shoulder so the arm-hand rigid body cannot lift out of the hip
+          pocket, trapping a pre-active clustered state.
         </p>
       </article>
     </section>
