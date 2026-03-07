@@ -40,6 +40,7 @@ alongside it, especially PDB entries `9PVP`, `10FT`, `10GH`, `9DZ4`, and `9PWQ`.
 The current geometry emphasizes the paper's mechanistic logic:
 
 - `NELL2` is shown as a rigid trimer scaffold with a central spine
+- the same rigid `NELL2` conformation is used whether ligand is bound or detached off to the side
 - `site 1` stays anchored on `YWTD-A`
 - the dominant conformational change is an about `130 degrees` shoulder-hinged swing of the rigid ROS1 arm
 - the leg is treated as released and more dynamic in the active state rather than as a completely new fixed conformation

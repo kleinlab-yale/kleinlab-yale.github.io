@@ -218,16 +218,16 @@ const clusteredLegLocal = {
 
 const activeLegLocal = {
   upper: [0, -72, 0],
-  hip: [2, -150, 0],
-  mid1: [14, -232, 2],
-  mid2: [22, -318, 4],
-  knee: [28, -398, 6],
-  low1: [30, -478, 7],
-  low2: [24, -554, 5],
-  low3: [16, -626, 2],
-  low4: [10, -692, 0],
-  tm: [4, -748, 0],
-  kinase: [6, -862, 0],
+  hip: [-6, -150, 0],
+  mid1: [-20, -232, -2],
+  mid2: [-38, -318, -4],
+  knee: [-52, -398, -5],
+  low1: [-66, -478, -6],
+  low2: [-76, -554, -7],
+  low3: [-84, -626, -8],
+  low4: [-90, -692, -8],
+  tm: [-94, -748, -8],
+  kinase: [-96, -862, -8],
 };
 
 const view = {
@@ -608,12 +608,10 @@ function ctxAnchor(nodes) {
   return mixVec(nodes.shoulder, nodes.armProx, 0.44);
 }
 
-function buildNell2Protomer(nodes, spineBaseWorld) {
-  const site1 = site1Anchor(nodes);
-  const site2 = site2Anchor(nodes);
-  const site3 = site3Anchor(nodes);
-  const outward = normalize([site1[0] - spineBaseWorld[0], 0, site1[2] - spineBaseWorld[2]]);
+function buildNell2Protomer(spineBaseWorld, angle) {
+  const outward = [Math.cos(angle), 0, Math.sin(angle)];
   const tangent = normalize([-outward[2], 0, outward[0]]);
+  const site1 = add(spineBaseWorld, add(scaleVec(outward, 18), [0, -190, 0]));
 
   const branch = add(spineBaseWorld, scaleVec(outward, 10));
   const stemTop = add(spineBaseWorld, add(scaleVec(outward, 6), [0, -20, 0]));
@@ -627,8 +625,6 @@ function buildNell2Protomer(nodes, spineBaseWorld) {
 
   return {
     site1,
-    site2,
-    site3,
     branch,
     stemTop,
     stemMid,
@@ -642,27 +638,7 @@ function buildNell2Protomer(nodes, spineBaseWorld) {
 }
 
 function buildDetachedNell2Protomer(spineBaseWorld, angle) {
-  const outward = [Math.cos(angle), 0, Math.sin(angle)];
-  const tangent = [-Math.sin(angle), 0, Math.cos(angle)];
-  const site1 = add(spineBaseWorld, add(scaleVec(outward, 18), [0, -190, 0]));
-  const branch = add(spineBaseWorld, scaleVec(outward, 10));
-  const stemTop = add(spineBaseWorld, add(scaleVec(outward, 6), [0, -20, 0]));
-  const stemMid = add(site1, add(scaleVec(outward, 8), [0, 132, 0]));
-  const stemBase = add(site1, add(scaleVec(outward, 8), [0, 76, 0]));
-  const bladeRoot = add(site1, add(scaleVec(outward, 10), [0, 16, 0]));
-  const bladeMid = add(bladeRoot, add(scaleVec(outward, 20), add([0, 56, 0], scaleVec(tangent, 10))));
-  const bladeTip = add(bladeRoot, add(scaleVec(outward, 30), add([0, 108, 0], scaleVec(tangent, 18))));
-
-  return {
-    site1,
-    branch,
-    stemTop,
-    stemMid,
-    stemBase,
-    bladeRoot,
-    bladeMid,
-    bladeTip,
-  };
+  return buildNell2Protomer(spineBaseWorld, angle);
 }
 
 function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
@@ -772,7 +748,8 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
   pushNell2Core(commands, head, spineBase, visible);
 
   receptors.forEach((receptor) => {
-    const protomer = buildNell2Protomer(receptor.nodes, spineBaseWorld);
+    const protomerAngle = receptor.index * ((Math.PI * 2) / 3) + Math.PI / 6;
+    const protomer = buildNell2Protomer(spineBaseWorld, protomerAngle);
     const branch = project(protomer.branch);
     const stemTop = project(protomer.stemTop);
     const stemMid = project(protomer.stemMid);
@@ -801,8 +778,8 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
     );
 
     if (fullFactor > 0.02) {
-      const site2 = project(protomer.site2);
-      const site3 = project(protomer.site3);
+      const site2 = project(site2Anchor(receptor.nodes));
+      const site3 = project(site3Anchor(receptor.nodes));
       pushFlatSegment(commands, ligandSite2, site2, palette.ligand, 5, fullFactor * 0.9);
       pushFlatSegment(commands, ligandSite3, site3, palette.ligand, 5, fullFactor * 0.9);
     }
@@ -1350,9 +1327,9 @@ function drawKinaseGlow(command) {
     command.point.y,
     radius
   );
-  gradient.addColorStop(0, `rgba(59, 127, 198, ${command.alpha * 1.2})`);
-  gradient.addColorStop(0.5, `rgba(59, 127, 198, ${command.alpha * 0.45})`);
-  gradient.addColorStop(1, "rgba(59, 127, 198, 0)");
+  gradient.addColorStop(0, `rgba(72, 212, 106, ${command.alpha * 1.2})`);
+  gradient.addColorStop(0.5, `rgba(72, 212, 106, ${command.alpha * 0.45})`);
+  gradient.addColorStop(1, "rgba(72, 212, 106, 0)");
   ctx.beginPath();
   ctx.arc(command.point.x, command.point.y, radius, 0, Math.PI * 2);
   ctx.fillStyle = gradient;
