@@ -270,10 +270,6 @@ h1 {
   --accent: var(--orange);
 }
 
-.accent-red {
-  --accent: #c44a3b;
-}
-
 .segment-group {
   display: grid;
   grid-template-columns: repeat(2, minmax(150px, 1fr));

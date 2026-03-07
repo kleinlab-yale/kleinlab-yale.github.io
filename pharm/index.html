@@ -320,7 +320,7 @@
               <p class="panel-step">Lesson 5</p>
               <h2>Partial agonists</h2>
             </div>
-            <p class="panel-summary">First compare the drugs alone, then see how increasing fixed partial-agonist concentrations can blunt the response to a full agonist by competing for the same receptor.</p>
+            <p class="panel-summary">First compare the drugs alone, then see how a fixed partial-agonist concentration can blunt the response to a full agonist by competing for the same receptor.</p>
           </div>
 
           <div class="controls-grid">
@@ -361,29 +361,15 @@
             </label>
           </div>
 
-          <p class="diagram-intro">Co-administration curves below show a full agonist response in the presence of increasing fixed partial-agonist concentrations, for example heroin in the presence of rising buprenorphine.</p>
+          <p class="diagram-intro">Co-administration curves below show a full agonist response in the presence of a fixed partial-agonist concentration, for example heroin in the presence of buprenorphine.</p>
 
           <div class="controls-grid">
             <label class="control accent-green">
               <span class="control-top">
-                <span class="control-label">Partial agonist level 1</span>
-                <output class="control-value" data-for="pa-mix1"></output>
+                <span class="control-label">Partial agonist concentration</span>
+                <output class="control-value" data-for="pa-mix"></output>
               </span>
-              <input id="pa-mix1" type="range" min="0.1" max="250" step="0.1" value="1" data-format="nm">
-            </label>
-            <label class="control accent-orange">
-              <span class="control-top">
-                <span class="control-label">Partial agonist level 2</span>
-                <output class="control-value" data-for="pa-mix2"></output>
-              </span>
-              <input id="pa-mix2" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
-            </label>
-            <label class="control accent-red">
-              <span class="control-top">
-                <span class="control-label">Partial agonist level 3</span>
-                <output class="control-value" data-for="pa-mix3"></output>
-              </span>
-              <input id="pa-mix3" type="range" min="0.1" max="250" step="0.1" value="100" data-format="nm">
+              <input id="pa-mix" type="range" min="0.1" max="250" step="0.1" value="30" data-format="nm">
             </label>
           </div>
 
