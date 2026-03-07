@@ -608,10 +608,9 @@ function ctxAnchor(nodes) {
   return mixVec(nodes.shoulder, nodes.armProx, 0.44);
 }
 
-function buildNell2Protomer(spineBaseWorld, angle) {
-  const outward = [Math.cos(angle), 0, Math.sin(angle)];
+function buildNell2Glyph(spineBaseWorld, site1) {
+  const outward = normalize([site1[0] - spineBaseWorld[0], 0, site1[2] - spineBaseWorld[2]]);
   const tangent = normalize([-outward[2], 0, outward[0]]);
-  const site1 = add(spineBaseWorld, add(scaleVec(outward, 18), [0, -190, 0]));
 
   const branch = add(spineBaseWorld, scaleVec(outward, 10));
   const stemTop = add(spineBaseWorld, add(scaleVec(outward, 6), [0, -20, 0]));
@@ -637,8 +636,21 @@ function buildNell2Protomer(spineBaseWorld, angle) {
   };
 }
 
+function buildNell2Protomer(nodes, spineBaseWorld) {
+  const site1 = site1Anchor(nodes);
+  const site2 = site2Anchor(nodes);
+  const site3 = site3Anchor(nodes);
+  return {
+    site2,
+    site3,
+    ...buildNell2Glyph(spineBaseWorld, site1),
+  };
+}
+
 function buildDetachedNell2Protomer(spineBaseWorld, angle) {
-  return buildNell2Protomer(spineBaseWorld, angle);
+  const outward = [Math.cos(angle), 0, Math.sin(angle)];
+  const site1 = add(spineBaseWorld, add(scaleVec(outward, 18), [0, -190, 0]));
+  return buildNell2Glyph(spineBaseWorld, site1);
 }
 
 function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
@@ -748,8 +760,7 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
   pushNell2Core(commands, head, spineBase, visible);
 
   receptors.forEach((receptor) => {
-    const protomerAngle = receptor.index * ((Math.PI * 2) / 3) + Math.PI / 6;
-    const protomer = buildNell2Protomer(spineBaseWorld, protomerAngle);
+    const protomer = buildNell2Protomer(receptor.nodes, spineBaseWorld);
     const branch = project(protomer.branch);
     const stemTop = project(protomer.stemTop);
     const stemMid = project(protomer.stemMid);
@@ -778,8 +789,8 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
     );
 
     if (fullFactor > 0.02) {
-      const site2 = project(site2Anchor(receptor.nodes));
-      const site3 = project(site3Anchor(receptor.nodes));
+      const site2 = project(protomer.site2);
+      const site3 = project(protomer.site3);
       pushFlatSegment(commands, ligandSite2, site2, palette.ligand, 5, fullFactor * 0.9);
       pushFlatSegment(commands, ligandSite3, site3, palette.ligand, 5, fullFactor * 0.9);
     }
