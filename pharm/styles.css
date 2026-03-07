@@ -485,6 +485,36 @@ h1 {
   color: var(--muted);
 }
 
+.detail-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.detail-highlight {
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(47, 99, 255, 0.08), rgba(211, 117, 34, 0.08));
+  border: 1px solid rgba(21, 37, 61, 0.08);
+}
+
+.detail-highlight-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+
+.detail-highlight-value {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
 .detail-list {
   margin: 0.9rem 0 0;
   padding-left: 1.2rem;

@@ -103,6 +103,8 @@ const ANTAGONIST_CLASS_DATA = {
   "competitive-antagonist": {
     title: "Competitive antagonist",
     summary: "A competitive antagonist reversibly occupies the active site and competes directly with the agonist.",
+    graphChange: "Parallel rightward shift of the agonist dose-response curve with preserved Emax.",
+    example: "Naloxone at opioid receptors; atropine at muscarinic receptors.",
     bullets: [
       "Agonist dose-response curve shifts to the right.",
       "Efficacy or Emax stays the same.",
@@ -114,6 +116,8 @@ const ANTAGONIST_CLASS_DATA = {
   "inverse-agonist": {
     title: "Inverse agonist",
     summary: "An inverse agonist binds the receptor and stabilizes the inactive state, reducing constitutive receptor activity below basal signaling.",
+    graphChange: "Reduces basal signaling below constitutive activity; the observed response starts from a lower baseline.",
+    example: "Many H1 antihistamines such as cetirizine behave as inverse agonists.",
     bullets: [
       "This is not just neutral blockade; it produces negative intrinsic efficacy.",
       "Basal activity falls even in the absence of agonist.",
@@ -125,6 +129,8 @@ const ANTAGONIST_CLASS_DATA = {
   "noncompetitive-active-site": {
     title: "Noncompetitive active-site antagonist",
     summary: "An irreversible active-site antagonist reduces the number of receptors available for agonist activation.",
+    graphChange: "Reduced Emax with insurmountable antagonism; adding agonist does not fully restore the maximum.",
+    example: "Phenoxybenzamine is a classic irreversible alpha-adrenoceptor antagonist.",
     bullets: [
       "Maximal response falls.",
       "The graph is not rescued fully by more agonist.",
@@ -136,6 +142,8 @@ const ANTAGONIST_CLASS_DATA = {
   "noncompetitive-allosteric": {
     title: "Noncompetitive allosteric antagonist",
     summary: "An allosteric antagonist reduces receptor activation from a separate site rather than by direct competition at the active site.",
+    graphChange: "Usually lowers Emax; some systems also show an apparent right shift, but the key change is reduced maximal effect.",
+    example: "Maraviroc is an allosteric antagonist at CCR5.",
     bullets: [
       "Efficacy usually falls, so the curve is lower.",
       "A right shift can occur, but the major teaching change is reduced maximal effect.",
@@ -147,6 +155,8 @@ const ANTAGONIST_CLASS_DATA = {
   "chemical-antagonist": {
     title: "Chemical antagonist",
     summary: "A chemical antagonist inactivates or sequesters the agonist before the agonist can act at the receptor.",
+    graphChange: "No single receptor-level shift rule; the apparent response falls because active agonist is chemically neutralized.",
+    example: "Protamine binds and neutralizes heparin.",
     bullets: [
       "This does not require occupation of the agonist receptor.",
       "The apparent agonist effect falls because active agonist is removed from the system.",
@@ -158,6 +168,8 @@ const ANTAGONIST_CLASS_DATA = {
   "physiologic-antagonist": {
     title: "Physiologic antagonist",
     summary: "A physiologic antagonist activates a different receptor system that produces an opposing tissue effect.",
+    graphChange: "No classic receptor-blockade shift pattern; the net tissue response is opposed by a separate signaling pathway.",
+    example: "Epinephrine can functionally oppose histamine-induced bronchoconstriction.",
     bullets: [
       "The original agonist receptor can remain completely unblocked.",
       "Net tissue response falls because two signaling pathways oppose each other.",
@@ -370,13 +382,21 @@ function renderAntagonistClasses() {
 
   const titleNode = document.getElementById("ant-class-title");
   const summaryNode = document.getElementById("ant-class-summary");
+  const graphBlock = document.getElementById("ant-class-graph-block");
+  const graphNode = document.getElementById("ant-class-graph");
+  const exampleBlock = document.getElementById("ant-class-example-block");
+  const exampleNode = document.getElementById("ant-class-example");
   const listNode = document.getElementById("ant-class-points");
-  if (!titleNode || !summaryNode || !listNode) {
+  if (!titleNode || !summaryNode || !listNode || !graphBlock || !graphNode || !exampleBlock || !exampleNode) {
     return;
   }
 
   titleNode.textContent = activeData.title;
   summaryNode.textContent = activeData.summary;
+  graphBlock.hidden = !activeData.graphChange;
+  graphNode.textContent = activeData.graphChange || "";
+  exampleBlock.hidden = !activeData.example;
+  exampleNode.textContent = activeData.example || "";
   listNode.replaceChildren(
     ...activeData.bullets.map((bullet) => {
       const item = document.createElement("li");
