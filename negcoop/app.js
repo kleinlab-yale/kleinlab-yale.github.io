@@ -104,6 +104,12 @@ const PRESETS = [
   },
 ];
 
+const COOPERATIVITY_PRESET_IDS = {
+  negative: "low-neg",
+  neutral: "neutral-burst",
+  positive: "positive-burst",
+};
+
 function pulseValue(time, amplitude) {
   return amplitude * inverseLogistic((time - FIXED_PULSE_DURATION) / 0.12);
 }
@@ -297,6 +303,10 @@ function clamp(value, min = 0, max = 1) {
 
 function effectiveDimerKd(params) {
   return params.dimerKd * COOPERATIVITY[params.cooperativity].kdMultiplier;
+}
+
+function presetById(presetId) {
+  return PRESETS.find((preset) => preset.id === presetId) || null;
 }
 
 applyCompatibilityOverrides();
@@ -606,7 +616,7 @@ function rewriteStaticCopy() {
   const cooperativityDescription = cooperativityBlock?.querySelector("p");
   if (cooperativityDescription) {
     cooperativityDescription.textContent =
-      "Kd1 is treated as a fixed ligand-capture term, conceptually around 200 nM. This toggle shifts the second-step dimerization term Kd2 relative to that fixed capture step, so negative cooperativity means weaker Kd2 and positive cooperativity means stronger Kd2.";
+      "Kd1 is treated as a fixed ligand-capture term, conceptually around 200 nM. This toggle shifts the second-step dimerization term Kd2 relative to that fixed capture step, so negative cooperativity means weaker Kd2 and positive cooperativity means stronger Kd2. Each button loads a representative regime preset.";
   }
 
   for (const heading of document.querySelectorAll(".card-heading h3")) {
@@ -703,9 +713,19 @@ function buildCooperativityButtons() {
     button.textContent = config.label;
     button.dataset.cooperativity = config.key;
     button.addEventListener("click", () => {
-      state.cooperativity = config.key;
+      const presetId = COOPERATIVITY_PRESET_IDS[config.key];
+      const preset = presetById(presetId);
+
+      if (preset) {
+        Object.assign(state, preset.values);
+        highlightPreset(preset.id);
+      } else {
+        state.cooperativity = config.key;
+        highlightPreset(null);
+      }
+
+      syncControlsFromState();
       syncCooperativityButtons();
-      highlightPreset(null);
       renderAll();
     });
     cooperativityButtons.append(button);
