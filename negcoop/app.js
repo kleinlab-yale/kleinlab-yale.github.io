@@ -226,16 +226,7 @@ function summarizeSeries(series, params) {
   const score = scoreScenario(summary);
   summary.score = score;
 
-  if (score <= -0.04) {
-    summary.fate = "differentiation";
-    summary.fateLabel = "Differentiation-like sustained signaling";
-  } else if (score >= 0.12) {
-    summary.fate = "growth";
-    summary.fateLabel = "Growth-like transient signaling";
-  } else {
-    summary.fate = "mixed";
-    summary.fateLabel = "Mixed or threshold regime";
-  }
+  Object.assign(summary, classifyFate(score));
 
   return summary;
 }
@@ -307,6 +298,25 @@ function effectiveDimerKd(params) {
 
 function presetById(presetId) {
   return PRESETS.find((preset) => preset.id === presetId) || null;
+}
+
+function classifyFate(score) {
+  if (score <= -0.04) {
+    return {
+      fate: "differentiation",
+      fateLabel: "Differentiation-like sustained signaling",
+    };
+  }
+  if (score >= 0.12) {
+    return {
+      fate: "growth",
+      fateLabel: "Growth-like transient signaling",
+    };
+  }
+  return {
+    fate: "mixed",
+    fateLabel: "Mixed or threshold regime",
+  };
 }
 
 applyCompatibilityOverrides();
@@ -852,19 +862,31 @@ function renderFromState() {
 function renderSummary(summary) {
   const peakDrive = summary.peakPoint.drive;
   const receptorLoss = summary.surfaceLossFraction * 100;
+  const legacyFateBadge = document.querySelector("#fateBadge");
+  const timecourseFateBadge = document.querySelector("#timecourseFateBadge");
+  const phaseFateBadge = document.querySelector("#phaseFateBadge");
+  const phaseSummary = simulate({
+    ...PHASE_MAP_BASELINE,
+    receptorLevel: state.receptorLevel,
+    dimerKd: clamp(
+      effectiveDimerKd(state),
+      PHASE_KD_RANGE.min,
+      PHASE_KD_RANGE.max
+    ),
+  });
+  const phaseFate = classifyFate(phaseSummary.score).fate;
 
   outcomeNodes.fateTitle.textContent = summary.fateLabel;
-  if (outcomeNodes.fateBadge) {
-    outcomeNodes.fateBadge.remove();
-    outcomeNodes.fateBadge = null;
+  if (legacyFateBadge) {
+    legacyFateBadge.remove();
   }
-  if (outcomeNodes.timecourseFateBadge) {
-    outcomeNodes.timecourseFateBadge.textContent = badgeLabel(summary.fate);
-    outcomeNodes.timecourseFateBadge.className = `fate-badge ${summary.fate}`;
+  if (timecourseFateBadge) {
+    timecourseFateBadge.textContent = badgeLabel(summary.fate);
+    timecourseFateBadge.className = `fate-badge ${summary.fate}`;
   }
-  if (outcomeNodes.phaseFateBadge) {
-    outcomeNodes.phaseFateBadge.textContent = phaseBadgeLabel(summary.fate);
-    outcomeNodes.phaseFateBadge.className = `fate-badge ${summary.fate}`;
+  if (phaseFateBadge) {
+    phaseFateBadge.textContent = phaseBadgeLabel(phaseFate);
+    phaseFateBadge.className = `fate-badge ${phaseFate}`;
   }
 
   outcomeNodes.insightText.textContent = buildInsight(summary, peakDrive);
