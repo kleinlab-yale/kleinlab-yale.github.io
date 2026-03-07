@@ -475,6 +475,8 @@ function formatControlValue(input) {
       return value.toFixed(2);
     case "fractionx":
       return `${value.toFixed(2)} x`;
+    case "fractionpercent":
+      return `${(value * 100).toFixed(0)}%`;
     default:
       return String(value);
   }
@@ -557,6 +559,23 @@ function renderBinding() {
     "binding-note",
     "At KD, fractional receptor occupancy [LR]/[R0] = 0.5. Binding is normalized so the maximal fractional occupancy is 1.0."
   );
+
+  const equationKdInput = document.getElementById("bind-eq-kd");
+  const equationConcInput = document.getElementById("bind-eq-conc");
+  const substitutionNode = document.getElementById("binding-eq-substitution");
+  const halfNode = document.getElementById("binding-eq-half");
+  if (!equationKdInput || !equationConcInput || !substitutionNode || !halfNode) {
+    return;
+  }
+
+  const equationKdNm = Math.max(Number(equationKdInput.value), CONC_MIN_NM);
+  const equationConcNm = Math.max(Number(equationConcInput.value), CONC_MIN_NM);
+  const occupancy = equationConcNm / (equationConcNm + equationKdNm);
+
+  substitutionNode.textContent = `[LR]/[R0] = [L]/([L] + KD) = ${fmtNm(equationConcNm)} / (${fmtNm(equationConcNm)} + ${fmtNm(
+    equationKdNm
+  )}) = ${occupancy.toFixed(2)}`;
+  halfNode.textContent = `When [D] = KD, the equation becomes [LR]/[R0] = 0.50, which is why KD sits at 50% receptor occupancy on the plot.`;
 }
 
 function renderEfficacy() {
@@ -627,6 +646,110 @@ function renderEfficacy() {
     "efficacy-note",
     "Effect is normalized to E/Emax, so the maximum effect is 1.0 and E/Emax = 0.5 at EC50."
   );
+
+  const stepPlotNode = document.getElementById("efficacy-twostep-plot");
+  const stepKdInput = document.getElementById("eff-step-kd");
+  const stepEfficacyInput = document.getElementById("eff-step-efficacy");
+  const stepConcInput = document.getElementById("eff-step-conc");
+  if (!stepPlotNode || !stepKdInput || !stepEfficacyInput || !stepConcInput) {
+    return;
+  }
+
+  const stepKdNm = Math.max(Number(stepKdInput.value), CONC_MIN_NM);
+  const stepEfficacy = Math.min(1.0, Math.max(Number(stepEfficacyInput.value), 0.0));
+  const stepConcNm = Math.max(Number(stepConcInput.value), CONC_MIN_NM);
+  const stepKdM = nmToM(stepKdNm);
+  const stepConcM = nmToM(stepConcNm);
+  const occupancyCurve = hillResponse(xLogM, 1.0, stepKdM, 1.0);
+  const activeCurve = occupancyCurve.map((value) => value * stepEfficacy);
+  const occupancyAtCurrent = stepConcM / (stepKdM + stepConcM);
+  const activeAtCurrent = occupancyAtCurrent * stepEfficacy;
+  const boundInactiveAtCurrent = occupancyAtCurrent - activeAtCurrent;
+  const freeAtCurrent = 1.0 - occupancyAtCurrent;
+
+  const stepTraces = [
+    {
+      x: xLogNm,
+      y: occupancyCurve,
+      mode: "lines",
+      name: "Bound receptor (LR)",
+      line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: xLogNm,
+      y: activeCurve,
+      mode: "lines",
+      name: "Active receptor (LR*)",
+      line: { width: 3, color: "seagreen", dash: "dash" },
+    },
+    {
+      x: [stepConcNm],
+      y: [occupancyAtCurrent],
+      mode: "markers",
+      showlegend: false,
+      marker: { size: 9, color: "royalblue" },
+      hovertemplate: "Current LR: %{y:.2f}<extra></extra>",
+    },
+    {
+      x: [stepConcNm],
+      y: [activeAtCurrent],
+      mode: "markers",
+      showlegend: false,
+      marker: { size: 9, color: "seagreen", symbol: "diamond" },
+      hovertemplate: "Current LR*: %{y:.2f}<extra></extra>",
+    },
+  ];
+
+  let stepLayout = baseLayout(
+    "Two-step model: binding then activation",
+    "Drug concentration [D] (nM, log scale)",
+    "Fraction of receptors",
+    true,
+    [0, 1.05],
+    [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
+  );
+  stepLayout = addReferenceLines(stepLayout, {
+    vlines: [
+      [stepKdNm, "KD", "royalblue"],
+      [stepConcNm, "Current [D]", "darkorange"],
+    ],
+    hlines: [[1.0, "max occupancy = 1", "gray"]],
+  });
+  stepLayout = legendBelow(stepLayout, 118);
+
+  plot("efficacy-twostep-plot", stepTraces, stepLayout);
+
+  const stepFreeNode = document.getElementById("eff-step-free");
+  const stepBoundNode = document.getElementById("eff-step-bound");
+  const stepActiveNode = document.getElementById("eff-step-active");
+  const stepKdLabelNode = document.getElementById("eff-step-kd-label");
+  const stepEfficacyLabelNode = document.getElementById("eff-step-efficacy-label");
+  const stepNoteNode = document.getElementById("efficacy-twostep-note");
+
+  if (stepFreeNode) {
+    stepFreeNode.textContent = `${(freeAtCurrent * 100).toFixed(1)}% free`;
+  }
+  if (stepBoundNode) {
+    stepBoundNode.textContent = `${(boundInactiveAtCurrent * 100).toFixed(1)}% bound`;
+  }
+  if (stepActiveNode) {
+    stepActiveNode.textContent = `${(activeAtCurrent * 100).toFixed(1)}% active`;
+  }
+  if (stepKdLabelNode) {
+    stepKdLabelNode.textContent = `KD = ${fmtNm(stepKdNm)} nM`;
+  }
+  if (stepEfficacyLabelNode) {
+    stepEfficacyLabelNode.textContent = `efficacy = ${(stepEfficacy * 100).toFixed(0)}%`;
+  }
+  if (stepNoteNode) {
+    stepNoteNode.textContent = `At [D] = ${fmtNm(stepConcNm)} nM, ${(
+      freeAtCurrent * 100
+    ).toFixed(1)}% of receptors are still free, ${(
+      boundInactiveAtCurrent * 100
+    ).toFixed(1)}% are bound but inactive (LR), and ${(
+      activeAtCurrent * 100
+    ).toFixed(1)}% are active (LR*). Lower KD shifts the binding curve left, while higher efficacy lifts LR* closer to LR.`;
+  }
 }
 
 function renderAntagonists() {

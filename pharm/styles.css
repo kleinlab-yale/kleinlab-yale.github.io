@@ -359,6 +359,277 @@ h1 {
   line-height: 1.65;
 }
 
+.feature-block {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(21, 37, 61, 0.08);
+}
+
+.feature-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 440px);
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1.15rem;
+}
+
+.feature-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.feature-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.feature-summary {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.equation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.equation-card {
+  padding: 1rem 1.05rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(21, 37, 61, 0.08);
+}
+
+.equation-card h4 {
+  margin-bottom: 0.8rem;
+  font-size: 1.18rem;
+}
+
+.equation-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.equation-chip,
+.axis-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(21, 37, 61, 0.06);
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.binding-scheme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.scheme-species {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(242, 246, 251, 0.95));
+  border: 1px solid rgba(21, 37, 61, 0.08);
+  font-family: "Newsreader", serif;
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.scheme-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.scheme-rate {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.scheme-arrow {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.equation-line,
+.equation-line-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 1.55rem;
+  line-height: 1.2;
+  font-family: "Newsreader", serif;
+}
+
+.math-frac {
+  display: inline-grid;
+  grid-template-rows: auto auto;
+  justify-items: center;
+  min-width: 3.4em;
+  vertical-align: middle;
+}
+
+.math-frac-top,
+.math-frac-bottom {
+  display: block;
+  padding: 0 0.18em;
+  white-space: nowrap;
+}
+
+.math-frac-top {
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 0.08em;
+}
+
+.math-frac-bottom {
+  padding-top: 0.08em;
+}
+
+.equation-steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  line-height: 1.75;
+}
+
+.axis-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.equation-substitution {
+  margin: 1rem 0 0;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.equation-substitution-muted {
+  margin-top: 0.5rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.two-step-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.two-step-card {
+  padding: 1rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(21, 37, 61, 0.08);
+}
+
+.two-step-card h3 {
+  margin-bottom: 0.85rem;
+  font-size: 1.3rem;
+}
+
+.two-step-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px minmax(0, 1fr) 104px minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: stretch;
+}
+
+.state-node {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.95rem 0.8rem;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(242, 246, 251, 0.95));
+  border: 1px solid rgba(21, 37, 61, 0.08);
+  text-align: center;
+}
+
+.state-node-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.state-node-name {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.state-node-formula {
+  font-family: "Newsreader", serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.state-node-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--blue);
+}
+
+.step-connector {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.35rem;
+  text-align: center;
+}
+
+.step-connector-label {
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.binding-step .step-connector-label,
+.binding-step .step-connector-rate {
+  color: #d39600;
+}
+
+.activation-step .step-connector-label,
+.activation-step .step-connector-rate {
+  color: var(--green);
+}
+
+.step-connector-arrow {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.step-connector-rate {
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .diagram-intro {
   margin: 0 0 1rem;
   color: var(--muted);
@@ -551,6 +822,14 @@ h1 {
   }
 
   .panel-header {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-header,
+  .equation-grid,
+  .two-step-layout,
+  .two-step-flow,
+  .binding-scheme {
     grid-template-columns: 1fr;
   }
 

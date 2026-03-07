@@ -90,6 +90,89 @@
           </div>
 
           <p id="binding-note" class="note"></p>
+
+          <section class="feature-block">
+            <div class="feature-header">
+              <div>
+                <p class="feature-kicker">Equation section</p>
+                <h3>From binding equilibrium to the plot axes</h3>
+              </div>
+              <p class="feature-summary">Start with the reversible binding scheme, define <code>KD</code>, then derive the plotted occupancy axis <code>[LR]/[R0]</code> as a function of drug concentration <code>[D]</code>.</p>
+            </div>
+
+            <div class="controls-grid">
+              <label class="control accent-blue">
+                <span class="control-top">
+                  <span class="control-label">Example KD</span>
+                  <output class="control-value" data-for="bind-eq-kd"></output>
+                </span>
+                <input id="bind-eq-kd" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+              </label>
+              <label class="control accent-orange">
+                <span class="control-top">
+                  <span class="control-label">Example concentration [D]</span>
+                  <output class="control-value" data-for="bind-eq-conc"></output>
+                </span>
+                <input id="bind-eq-conc" type="range" min="0.1" max="250" step="0.1" value="30" data-format="nm">
+              </label>
+            </div>
+
+            <div class="equation-grid">
+              <article class="equation-card">
+                <div class="equation-heading">
+                  <span class="equation-chip">L = D</span>
+                  <span class="equation-chip">Ligand = Drug</span>
+                </div>
+                <div class="binding-scheme">
+                  <span class="scheme-species">L + R</span>
+                  <div class="scheme-step">
+                    <span class="scheme-rate">k<sub>on</sub></span>
+                    <span class="scheme-arrow">&#8652;</span>
+                    <span class="scheme-rate">k<sub>off</sub></span>
+                  </div>
+                  <span class="scheme-species">LR</span>
+                </div>
+                <p class="equation-line">
+                  K<sub>D</sub> =
+                  <span class="math-frac">
+                    <span class="math-frac-top">[L][R]</span>
+                    <span class="math-frac-bottom">[LR]</span>
+                  </span>
+                </p>
+              </article>
+
+              <article class="equation-card">
+                <h4>Derive the y-axis</h4>
+                <ol class="equation-steps">
+                  <li>[R<sub>0</sub>] = [R] + [LR]</li>
+                  <li>From K<sub>D</sub> = [L][R]/[LR], then [R] = K<sub>D</sub>[LR]/[L]</li>
+                  <li>[R<sub>0</sub>] = K<sub>D</sub>[LR]/[L] + [LR]</li>
+                  <li>[R<sub>0</sub>] = [LR](K<sub>D</sub>/[L] + 1)</li>
+                  <li>
+                    <span class="equation-line-inline">
+                      <span class="math-frac">
+                        <span class="math-frac-top">[LR]</span>
+                        <span class="math-frac-bottom">[R<sub>0</sub>]</span>
+                      </span>
+                      =
+                      <span class="math-frac">
+                        <span class="math-frac-top">[L]</span>
+                        <span class="math-frac-bottom">[L] + K<sub>D</sub></span>
+                      </span>
+                    </span>
+                  </li>
+                </ol>
+
+                <div class="axis-summary">
+                  <span class="axis-chip">X-axis: [D] = [L]</span>
+                  <span class="axis-chip">Y-axis: [LR]/[R<sub>0</sub>]</span>
+                </div>
+
+                <p id="binding-eq-substitution" class="equation-substitution"></p>
+                <p id="binding-eq-half" class="equation-substitution equation-substitution-muted"></p>
+              </article>
+            </div>
+          </section>
         </section>
 
         <section class="lesson-panel" data-tab-panel="efficacy" hidden>
@@ -98,7 +181,7 @@
               <p class="panel-step">Lesson 2</p>
               <h2>Efficacy: idealized KD = EC50</h2>
             </div>
-            <p class="panel-summary">This idealized bridge shows how moving KD shifts EC50 when effect is displayed as the normalized fraction E/Emax.</p>
+            <p class="panel-summary">This idealized bridge shows how moving KD shifts EC50 when effect is displayed as the normalized fraction E/Emax. The interactive below separates the binding step from the activation step.</p>
           </div>
 
           <div class="controls-grid">
@@ -137,6 +220,83 @@
           </div>
 
           <p id="efficacy-note" class="note"></p>
+
+          <section class="feature-block">
+            <div class="feature-header">
+              <div>
+                <p class="feature-kicker">Two-step model</p>
+                <h3>Affinity and efficacy as separate steps</h3>
+              </div>
+              <p class="feature-summary">Binding determines how much <code>LR</code> forms. Efficacy determines what fraction of bound receptor becomes active <code>LR*</code>.</p>
+            </div>
+
+            <div class="controls-grid">
+              <label class="control accent-blue">
+                <span class="control-top">
+                  <span class="control-label">Binding KD</span>
+                  <output class="control-value" data-for="eff-step-kd"></output>
+                </span>
+                <input id="eff-step-kd" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+              </label>
+              <label class="control accent-green">
+                <span class="control-top">
+                  <span class="control-label">Activation efficacy</span>
+                  <output class="control-value" data-for="eff-step-efficacy"></output>
+                </span>
+                <input id="eff-step-efficacy" type="range" min="0.05" max="1.0" step="0.05" value="0.6" data-format="fractionpercent">
+              </label>
+              <label class="control accent-orange">
+                <span class="control-top">
+                  <span class="control-label">Current concentration</span>
+                  <output class="control-value" data-for="eff-step-conc"></output>
+                </span>
+                <input id="eff-step-conc" type="range" min="0.1" max="250" step="0.1" value="30" data-format="nm">
+              </label>
+            </div>
+
+            <div class="two-step-layout">
+              <article class="two-step-card">
+                <h3>2 steps: affinity then activation</h3>
+                <div class="two-step-flow">
+                  <div class="state-node">
+                    <span class="state-node-label">Receptor status</span>
+                    <strong class="state-node-name">Closed, inactive</strong>
+                    <span class="state-node-formula">L + R</span>
+                    <span id="eff-step-free" class="state-node-value">0%</span>
+                  </div>
+                  <div class="step-connector binding-step">
+                    <span class="step-connector-label">Binding step</span>
+                    <span class="step-connector-arrow">-&gt;</span>
+                    <span id="eff-step-kd-label" class="step-connector-rate">KD = 10 nM</span>
+                  </div>
+                  <div class="state-node">
+                    <span class="state-node-label">Receptor status</span>
+                    <strong class="state-node-name">Closed, inactive</strong>
+                    <span class="state-node-formula">LR</span>
+                    <span id="eff-step-bound" class="state-node-value">0%</span>
+                  </div>
+                  <div class="step-connector activation-step">
+                    <span class="step-connector-label">Activation step</span>
+                    <span class="step-connector-arrow">-&gt;</span>
+                    <span id="eff-step-efficacy-label" class="step-connector-rate">efficacy = 60%</span>
+                  </div>
+                  <div class="state-node">
+                    <span class="state-node-label">Receptor status</span>
+                    <strong class="state-node-name">Open, active</strong>
+                    <span class="state-node-formula">LR*</span>
+                    <span id="eff-step-active" class="state-node-value">0%</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="plot-card plot-card-feature">
+                <h3>Binding then activation</h3>
+                <div id="efficacy-twostep-plot" class="plot-frame-feature"></div>
+              </article>
+            </div>
+
+            <p id="efficacy-twostep-note" class="note"></p>
+          </section>
         </section>
 
         <section class="lesson-panel" data-tab-panel="antagonists" hidden>
