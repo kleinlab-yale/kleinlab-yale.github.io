@@ -12,13 +12,13 @@ into a rotatable 3D schematic.
 ## What it shows
 
 - `Unliganded`: the small CATCH hand is tucked into the hip pocket and the ectodomain stays bent
-- `NELL2 site 1`: NELL2 binds the strong site-1 interface on `YWTD-A`, but the arm has not yet flipped up to add sites 2 and 3
-- `NELL2 sites 1/2/3`: NELL2 remains bound at site 1 on `YWTD-A` while the `FNIII-1/2` arm flips up to add sites 2 and 3; `CATCH` just releases from the `YWTD-B` pocket and the transmembrane plus kinase regions draw together
+- `NELL2 site 1`: the rigid `NELL2` trimer binds the strong site-1 interface on `YWTD-A`, but the rigid ROS1 arm has not yet flipped up to add site 2 on `FNIII-2` and site 3 on `FNIII-1`
+- `NELL2 sites 1/2/3`: `NELL2` remains rigid and bound at site 1 on `YWTD-A` while the ROS1 arm swings upward as a rigid `CATCH + FNIII-1/2` body, adding site 2 on `FNIII-2` and site 3 on `FNIII-1`; `CATCH` just releases from the `YWTD-B` pocket and the transmembrane plus kinase regions draw together
 
 ## Antibody blockade
 
-- `RX5`: masks the site-1 epitope on `YWTD-A` and prevents productive engagement by NELL2
-- `CTX`: binds between the FNIII arm and `YWTD-A` shoulder and prevents the arm from flipping up to add sites 2 and 3
+- `RX5`: drawn as a full `IgG` capping the site-1 epitope on `YWTD-A`, preventing productive engagement by NELL2
+- `CTX`: drawn as a clamp-like `Fab` bound between the FNIII arm and `YWTD-A` shoulder, preventing the rigid arm-body from flipping up to add site 2 on `FNIII-2` and site 3 on `FNIII-1`
 
 ## Domain layout encoded in the schematic
 
@@ -36,6 +36,13 @@ into a rotatable 3D schematic.
 
 This is a mechanistic cartoon based on the Nature Communications proof and the structures reported
 alongside it, especially PDB entries `9PVP`, `10FT`, `10GH`, `9DZ4`, and `9PWQ`.
+
+The current geometry emphasizes the paper's mechanistic logic:
+
+- `NELL2` is shown as a rigid trimer scaffold with a central spine
+- `site 1` stays anchored on `YWTD-A`
+- the dominant conformational change is an about `130 degrees` shoulder-hinged swing of the rigid ROS1 arm
+- the leg is treated as released and more dynamic in the active state rather than as a completely new fixed conformation
 
 Paper link: <https://www.nature.com/articles/s41467-026-69630-7>
 
