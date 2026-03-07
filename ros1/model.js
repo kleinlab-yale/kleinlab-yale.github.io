@@ -267,6 +267,19 @@ function add(a, b) {
   return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 }
 
+function subtract(a, b) {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function scaleVec(vector, scalar) {
+  return [vector[0] * scalar, vector[1] * scalar, vector[2] * scalar];
+}
+
+function normalize(vector) {
+  const length = Math.hypot(vector[0], vector[1], vector[2]) || 1;
+  return [vector[0] / length, vector[1] / length, vector[2] / length];
+}
+
 function polar(radius, angle, y) {
   return [Math.cos(angle) * radius, y, Math.sin(angle) * radius];
 }
@@ -552,6 +565,29 @@ function ctxAnchor(nodes) {
   return mixVec(nodes.shoulder, nodes.armProx, 0.44);
 }
 
+function buildNell2Protomer(nodes, hubWorld, fullFactor) {
+  const site1 = site1Anchor(nodes);
+  const site2 = site2Anchor(nodes);
+  const site3 = site3Anchor(nodes);
+  const inward = normalize([hubWorld[0] - site1[0], 0, hubWorld[2] - site1[2]]);
+  const outward = scaleVec(inward, -1);
+
+  const stemBase = add(site1, add(scaleVec(inward, 18), [0, 32, 0]));
+  const relaxedMid = add(site1, add(scaleVec(outward, 52), [0, 78, 0]));
+  const relaxedTip = add(site1, add(scaleVec(outward, 84), [0, 140, 0]));
+  const activeMid = add(site2, add(scaleVec(outward, 8), [0, 8, 0]));
+  const activeTip = add(site3, add(scaleVec(outward, 12), [0, 10, 0]));
+
+  return {
+    site1,
+    site2,
+    site3,
+    stemBase,
+    bladeMid: mixVec(relaxedMid, activeMid, fullFactor),
+    bladeTip: mixVec(relaxedTip, activeTip, fullFactor),
+  };
+}
+
 function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
   commands.push({
     type: "fab",
@@ -585,27 +621,34 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
     return;
   }
 
-  const topWorld = [0, 288 + fullFactor * 14, 0];
+  const hubBase = receptors.reduce(
+    (sum, receptor) => add(sum, site1Anchor(receptor.nodes)),
+    [0, 0, 0]
+  ).map((value) => value / receptors.length);
+  const topWorld = [hubBase[0], hubBase[1] + 188 + fullFactor * 12, hubBase[2]];
   const top = project(topWorld);
   pushSphere(commands, top, 28, palette.ligand, visible);
 
   receptors.forEach((receptor, index) => {
-    const site1World = site1Anchor(receptor.nodes);
-    const jointWorld = mixVec(topWorld, site1World, 0.44);
-    jointWorld[1] += 18 - index * 2;
-    const joint = project(jointWorld);
-    const site1 = project(site1World);
-    pushSegment(commands, top, joint, palette.ligandSoft, 13, visible);
-    pushSegment(commands, joint, site1, palette.ligand, 15, visible);
-    pushSphere(commands, joint, 10, palette.ligandSoft, visible);
+    const protomer = buildNell2Protomer(receptor.nodes, topWorld, fullFactor);
+    const stemBase = project(protomer.stemBase);
+    const site1 = project(protomer.site1);
+    const bladeMid = project(protomer.bladeMid);
+    const bladeTip = project(protomer.bladeTip);
+
+    pushSegment(commands, top, stemBase, palette.ligand, 12, visible);
+    pushSegment(commands, stemBase, site1, palette.ligand, 10, visible);
+    pushSegment(commands, site1, bladeMid, palette.ligandSoft, 18, visible);
+    pushSegment(commands, bladeMid, bladeTip, palette.ligandSoft, 18, visible);
+    pushSphere(commands, stemBase, 8, palette.ligandSoft, visible);
 
     if (fullFactor > 0.02) {
-      const site2 = project(site2Anchor(receptor.nodes));
-      const site3 = project(site3Anchor(receptor.nodes));
-      pushSegment(commands, joint, site2, palette.ligand, 10, fullFactor);
-      pushSegment(commands, joint, site3, palette.ligand, 10, fullFactor);
-      pushSphere(commands, site2, 6, palette.ligandSoft, fullFactor * 0.8);
-      pushSphere(commands, site3, 6, palette.ligandSoft, fullFactor * 0.8);
+      const site2 = project(protomer.site2);
+      const site3 = project(protomer.site3);
+      pushSegment(commands, bladeMid, site2, palette.ligand, 8, fullFactor);
+      pushSegment(commands, bladeTip, site3, palette.ligand, 8, fullFactor);
+      pushSphere(commands, site2, 5, palette.ligandSoft, fullFactor * 0.75);
+      pushSphere(commands, site3, 5, palette.ligandSoft, fullFactor * 0.75);
     }
   });
 
@@ -617,19 +660,21 @@ function addBlockedLigand(commands, receptors, blockedFactor) {
     return;
   }
 
-  const topWorld = [0, 318, 0];
+  const receptor = receptors[labelIndex];
+  const base = site1Anchor(receptor.nodes);
+  const lift = [0, 26, 0];
+  const topWorld = [base[0] + 18, base[1] + 214, base[2]];
+  const protomer = buildNell2Protomer(receptor.nodes, topWorld, 0);
   const top = project(topWorld);
   pushSphere(commands, top, 26, palette.ligand, blockedFactor * 0.72);
-
-  receptors.forEach((receptor, index) => {
-    const blockedTarget = add(site1Anchor(receptor.nodes), [0, 22, 0]);
-    const jointWorld = mixVec(topWorld, blockedTarget, 0.5);
-    jointWorld[1] += 10 - index * 3;
-    const joint = project(jointWorld);
-    const target = project(blockedTarget);
-    pushSegment(commands, top, joint, palette.ligandSoft, 10, blockedFactor * 0.42);
-    pushSegment(commands, joint, target, palette.ligandSoft, 8, blockedFactor * 0.32);
-  });
+  const stemBase = project(add(protomer.stemBase, lift));
+  const site1 = project(add(protomer.site1, lift));
+  const bladeMid = project(add(protomer.bladeMid, lift));
+  const bladeTip = project(add(protomer.bladeTip, lift));
+  pushSegment(commands, top, stemBase, palette.ligand, 10, blockedFactor * 0.62);
+  pushSegment(commands, stemBase, site1, palette.ligand, 8, blockedFactor * 0.52);
+  pushSegment(commands, site1, bladeMid, palette.ligandSoft, 16, blockedFactor * 0.46);
+  pushSegment(commands, bladeMid, bladeTip, palette.ligandSoft, 16, blockedFactor * 0.46);
 
   pushLabel(commands, top, "NELL2 blocked", palette.ligand, 22, -24);
 }
