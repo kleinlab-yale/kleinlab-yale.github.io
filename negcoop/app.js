@@ -339,6 +339,7 @@ const phaseContext = phaseCanvas.getContext("2d");
 const outcomeNodes = {
   fateTitle: document.querySelector("#fateTitle"),
   fateBadge: document.querySelector("#fateBadge"),
+  timecourseFateBadge: document.querySelector("#timecourseFateBadge"),
   phaseFateBadge: document.querySelector("#phaseFateBadge"),
   insightText: document.querySelector("#insightText"),
   peakSignalMetric: document.querySelector("#peakSignalMetric"),
@@ -375,6 +376,7 @@ function applyCompatibilityOverrides() {
   normalizeHero();
   removeLegacyPulseDurationControl();
   rewriteStaticCopy();
+  ensureTimecourseStatusBadge();
   ensurePhaseMapStatusBadge();
 }
 
@@ -481,6 +483,12 @@ function injectCompatibilityStyles() {
       align-items: flex-end;
       gap: 10px;
     }
+    .timecourse-heading-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
     .phase-status-label {
       color: var(--muted);
       font-size: 0.72rem;
@@ -506,6 +514,9 @@ function injectCompatibilityStyles() {
         min-width: 0;
       }
       .phase-heading-meta {
+        align-items: flex-start;
+      }
+      .timecourse-heading-meta {
         align-items: flex-start;
       }
     }
@@ -642,6 +653,46 @@ function rewriteStaticCopy() {
     ?.closest(".chart-card")
     ?.querySelector(".card-heading .card-caption")
     ?.remove();
+}
+
+function ensureTimecourseStatusBadge() {
+  document.querySelector(".outcome-banner #fateBadge")?.remove();
+
+  const timecourseChartNode = document.querySelector("#timecourseChart");
+  const timecourseCard = timecourseChartNode?.closest(".chart-card");
+  const cardHeading = timecourseCard?.querySelector(".card-heading");
+
+  if (!cardHeading || document.querySelector("#timecourseFateBadge")) {
+    return;
+  }
+
+  let headingMeta = cardHeading.querySelector(".timecourse-heading-meta");
+  if (!headingMeta) {
+    headingMeta = document.createElement("div");
+    headingMeta.className = "timecourse-heading-meta";
+
+    const chartLegend = cardHeading.querySelector(".chart-legend");
+    if (chartLegend) {
+      headingMeta.append(chartLegend);
+    }
+
+    cardHeading.append(headingMeta);
+  }
+
+  const statusLabel = headingMeta.querySelector(".phase-status-label") || document.createElement("span");
+  statusLabel.className = "phase-status-label";
+  statusLabel.textContent = "Current trace";
+
+  const timecourseBadge = document.createElement("span");
+  timecourseBadge.id = "timecourseFateBadge";
+  timecourseBadge.className = "fate-badge";
+
+  if (headingMeta.firstChild) {
+    headingMeta.insertBefore(statusLabel, headingMeta.firstChild);
+    statusLabel.insertAdjacentElement("afterend", timecourseBadge);
+  } else {
+    headingMeta.append(statusLabel, timecourseBadge);
+  }
 }
 
 function ensurePhaseMapStatusBadge() {
@@ -803,10 +854,16 @@ function renderSummary(summary) {
   const receptorLoss = summary.surfaceLossFraction * 100;
 
   outcomeNodes.fateTitle.textContent = summary.fateLabel;
-  outcomeNodes.fateBadge.textContent = badgeLabel(summary.fate);
-  outcomeNodes.fateBadge.className = `fate-badge ${summary.fate}`;
+  if (outcomeNodes.fateBadge) {
+    outcomeNodes.fateBadge.remove();
+    outcomeNodes.fateBadge = null;
+  }
+  if (outcomeNodes.timecourseFateBadge) {
+    outcomeNodes.timecourseFateBadge.textContent = badgeLabel(summary.fate);
+    outcomeNodes.timecourseFateBadge.className = `fate-badge ${summary.fate}`;
+  }
   if (outcomeNodes.phaseFateBadge) {
-    outcomeNodes.phaseFateBadge.textContent = badgeLabel(summary.fate);
+    outcomeNodes.phaseFateBadge.textContent = phaseBadgeLabel(summary.fate);
     outcomeNodes.phaseFateBadge.className = `fate-badge ${summary.fate}`;
   }
 
@@ -821,7 +878,7 @@ function renderTimecourse(summary) {
   const { series } = summary;
   const width = 860;
   const height = 360;
-  const margin = { top: 22, right: 74, bottom: 38, left: 58 };
+  const margin = { top: 24, right: 88, bottom: 56, left: 76 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   const signalMax = niceMax(Math.max(...series.map((point) => point.signal), 0.1));
@@ -883,14 +940,28 @@ function renderTimecourse(summary) {
         (tick) => `
         <g>
           <line x1="${xAt(tick)}" y1="${margin.top}" x2="${xAt(tick)}" y2="${margin.top + chartHeight}" stroke="rgba(31,36,48,0.06)" stroke-width="1"></line>
-          <text x="${xAt(tick)}" y="${height - 12}" fill="#5f6470" font-size="12" text-anchor="middle">${tick}</text>
+          <text x="${xAt(tick)}" y="${height - 28}" fill="#5f6470" font-size="12" text-anchor="middle">${tick}</text>
         </g>
       `
       )
       .join("")}
-    <text x="${margin.left}" y="${height - 12}" fill="#5f6470" font-size="12">time (min)</text>
-    <text x="22" y="${margin.top - 4}" fill="#5f6470" font-size="12">signal (AU)</text>
-    <text x="${width - margin.right + 10}" y="${margin.top - 4}" fill="#5f6470" font-size="12">surface (%)</text>
+    <text x="${margin.left + chartWidth / 2}" y="${height - 8}" fill="#5f6470" font-size="12" text-anchor="middle">time (min)</text>
+    <text
+      x="22"
+      y="${margin.top + chartHeight / 2}"
+      fill="#5f6470"
+      font-size="12"
+      text-anchor="middle"
+      transform="rotate(-90 22 ${margin.top + chartHeight / 2})"
+    >signal (AU)</text>
+    <text
+      x="${width - 18}"
+      y="${margin.top + chartHeight / 2}"
+      fill="#5f6470"
+      font-size="12"
+      text-anchor="middle"
+      transform="rotate(90 ${width - 18} ${margin.top + chartHeight / 2})"
+    >surface receptor (%)</text>
     <path d="${ligandAreaPath}" fill="rgba(215,163,48,0.25)"></path>
     <path d="${surfacePath}" fill="none" stroke="#b7552d" stroke-width="3" stroke-dasharray="8 6"></path>
     <path d="${signalPath}" fill="none" stroke="#1c5d99" stroke-width="4" filter="url(#signalGlow)"></path>
@@ -898,8 +969,8 @@ function renderTimecourse(summary) {
     <text x="${xAt(summary.peakTime) + 12}" y="${ySignalAt(summary.peakSignal) - 10}" fill="#1f2430" font-size="12">peak ${summary.peakSignal.toFixed(
       2
     )}</text>
-    <text x="${width - margin.right + 12}" y="${margin.top + 4}" fill="#b7552d" font-size="12">100</text>
-    <text x="${width - margin.right + 12}" y="${margin.top + chartHeight + 4}" fill="#b7552d" font-size="12">0</text>
+    <text x="${width - margin.right + 14}" y="${margin.top + 4}" fill="#b7552d" font-size="12">100</text>
+    <text x="${width - margin.right + 14}" y="${margin.top + chartHeight + 4}" fill="#b7552d" font-size="12">0</text>
   `;
 }
 
@@ -1107,6 +1178,16 @@ function badgeLabel(fate) {
     return "Transient";
   }
   return "Borderline";
+}
+
+function phaseBadgeLabel(fate) {
+  if (fate === "differentiation") {
+    return "Differentiation";
+  }
+  if (fate === "growth") {
+    return "Growth";
+  }
+  return "Boundary";
 }
 
 function linePath(points, getX, getY) {

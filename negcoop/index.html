@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260307c" />
+    <link rel="stylesheet" href="./styles.css?v=20260307d" />
   </head>
   <body>
     <div class="page-shell">
@@ -246,7 +246,6 @@
               <p class="eyebrow">Current interpretation</p>
               <h2 id="fateTitle"></h2>
             </div>
-            <span id="fateBadge" class="fate-badge"></span>
           </section>
 
           <p id="insightText" class="insight-text"></p>
@@ -276,10 +275,14 @@
                 <p class="eyebrow">Time course</p>
                 <h3>Signal versus receptor availability</h3>
               </div>
-              <div class="chart-legend">
-                <span><i class="legend-swatch signal"></i> Signal</span>
-                <span><i class="legend-swatch surface"></i> Surface receptor</span>
-                <span><i class="legend-swatch ligand"></i> Ligand pulse</span>
+              <div class="timecourse-heading-meta">
+                <span class="phase-status-label">Current trace</span>
+                <span id="timecourseFateBadge" class="fate-badge"></span>
+                <div class="chart-legend">
+                  <span><i class="legend-swatch signal"></i> Signal</span>
+                  <span><i class="legend-swatch surface"></i> Surface receptor</span>
+                  <span><i class="legend-swatch ligand"></i> Ligand pulse</span>
+                </div>
               </div>
             </div>
             <svg
@@ -357,6 +360,6 @@
       </main>
     </div>
 
-    <script src="./app.js?v=20260307c"></script>
+    <script src="./app.js?v=20260307e"></script>
   </body>
 </html>
