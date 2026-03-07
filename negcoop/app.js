@@ -33,7 +33,7 @@ const PHASE_MAP_BASELINE = {
   ligandPulse: 1.5,
   internalizationRate: 0.045,
   recyclingRate: 0.008,
-  cooperativity: "neutral",
+  cooperativity: "negative",
 };
 
 const DEFAULTS = {
