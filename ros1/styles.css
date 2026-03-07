@@ -84,9 +84,6 @@ body {
 .intro {
   position: relative;
   overflow: hidden;
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
-  gap: 20px;
   padding: clamp(1.35rem, 2.8vw, 2.3rem);
   background:
     linear-gradient(120deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.92)),
@@ -105,22 +102,19 @@ body {
 }
 
 .intro-copy,
-.legend,
 .viewer-panel,
 .note-card {
   position: relative;
   z-index: 1;
 }
 
-.legend,
 .viewer-panel,
 .note-card {
   padding: 24px;
 }
 
 .eyebrow,
-.status-label,
-.legend-kicker {
+.status-label {
   margin: 0 0 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -128,8 +122,7 @@ body {
   font-size: 0.74rem;
 }
 
-.eyebrow,
-.legend-kicker {
+.eyebrow {
   color: var(--brand);
 }
 
@@ -161,6 +154,10 @@ h2 {
 
 .hero-subtitle {
   max-width: 58ch;
+}
+
+.intro-copy {
+  max-width: 70ch;
 }
 
 .hero-actions {
@@ -209,46 +206,6 @@ h2 {
   color: #fff;
   box-shadow: 0 12px 24px rgba(19, 78, 143, 0.22);
 }
-
-.legend {
-  align-self: stretch;
-  background: rgba(255, 255, 255, 0.76);
-  border-radius: 22px;
-  border: 1px solid rgba(16, 36, 62, 0.08);
-  box-shadow: 0 10px 24px rgba(21, 37, 61, 0.08);
-}
-
-.legend ul {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
-  display: grid;
-  gap: 12px;
-}
-
-.legend li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--ink-soft);
-}
-
-.swatch {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  flex: none;
-}
-
-.swatch.shoulder { background: var(--shoulder); }
-.swatch.hand { background: var(--hand); }
-.swatch.arm { background: var(--arm); }
-.swatch.leg { background: var(--leg); }
-.swatch.ligand { background: linear-gradient(135deg, var(--ligand), var(--ligand-soft)); }
-.swatch.rx5 { background: var(--rx5); }
-.swatch.ctx { background: var(--ctx); }
-.swatch.membrane { background: var(--membrane); }
 
 .viewer-panel {
   background: var(--card);
