@@ -250,6 +250,7 @@ const pointer = {
 const labelIndex = 1;
 const legKeys = ["shoulder", "upper", "hip", "mid1", "mid2", "knee", "low1", "low2", "low3", "low4", "tm", "tmBase"];
 const armKeys = ["shoulder", "armProx", "armDist", "hand"];
+const membraneY = -394;
 
 let activeState = "inactive";
 let fromState = "inactive";
@@ -289,9 +290,17 @@ function scaleVec(vector, scalar) {
   return [vector[0] * scalar, vector[1] * scalar, vector[2] * scalar];
 }
 
+function dot(a, b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
 function normalize(vector) {
   const length = Math.hypot(vector[0], vector[1], vector[2]) || 1;
   return [vector[0] / length, vector[1] / length, vector[2] / length];
+}
+
+function orthogonalize(vector, normal) {
+  return subtract(vector, scaleVec(normal, dot(vector, normal)));
 }
 
 function polar(radius, angle, y) {
@@ -385,7 +394,7 @@ function buildArmPoseLocal(liftFactor) {
 function buildInactiveReceptor(index) {
   const x = (index - labelIndex) * 260;
   const z = (index - labelIndex) * 22;
-  const shoulder = [x + 42, 150, z - 12];
+  const shoulder = [x + 42, membraneY - bentLocal.tm[1], z - 12];
   const yaw = Math.PI * 0.98;
   const nodes = { shoulder };
   Object.entries(bentLocal).forEach(([key, value]) => {
@@ -399,8 +408,8 @@ function buildBoundReceptor(state, index) {
   const theta = index * ((Math.PI * 2) / 3) + Math.PI / 6;
   const outward = [Math.cos(theta), 0, Math.sin(theta)];
   const tangent = [-Math.sin(theta), 0, Math.cos(theta)];
-  const shoulder = add(scaleVec(outward, 92), [0, 148, 0]);
   const legLocal = state === "active" ? activeLegLocal : clusteredLegLocal;
+  const shoulder = add(scaleVec(outward, 92), [0, membraneY - legLocal.tm[1], 0]);
   const armLocal = buildArmPoseLocal(state === "active" ? 1 : 0);
   const nodes = { shoulder };
 
@@ -517,10 +526,10 @@ function applyViewText() {
 
 function drawMembrane() {
   const corners = [
-    [-540, -394, -320],
-    [540, -394, -320],
-    [540, -394, 320],
-    [-540, -394, 320],
+    [-540, membraneY, -320],
+    [540, membraneY, -320],
+    [540, membraneY, 320],
+    [-540, membraneY, 320],
   ].map(project);
 
   ctx.beginPath();
@@ -665,27 +674,37 @@ function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
   });
 }
 
-function pushIgg(commands, point, color, angle, sizeUnits, alpha = 1) {
+function pushIgg(commands, points, color, alpha = 1) {
   commands.push({
     type: "antibodyY",
-    point,
+    ...points,
     color,
-    angle,
-    sizeUnits,
     alpha,
-    depth: point.depth,
+    depth:
+      (
+        points.contactTip.depth +
+        points.contactElbow.depth +
+        points.junction.depth +
+        points.freeFabTip.depth +
+        points.fcTip.depth
+      ) / 5,
   });
 }
 
-function pushClampFab(commands, point, color, angle, sizeUnits, alpha = 1) {
+function pushClampFab(commands, points, color, alpha = 1) {
   commands.push({
     type: "antibodyY",
-    point,
+    ...points,
     color,
-    angle,
-    sizeUnits,
     alpha,
-    depth: point.depth,
+    depth:
+      (
+        points.contactTip.depth +
+        points.contactElbow.depth +
+        points.junction.depth +
+        points.freeFabTip.depth +
+        points.fcTip.depth
+      ) / 5,
   });
 }
 
@@ -735,6 +754,35 @@ function pushKinaseGlow(commands, point, radiusUnits, alpha = 1) {
     alpha,
     depth: point.depth - 1,
   });
+}
+
+function projectAntibodyWorld(anchorWorld, awayDir, sideHint, size) {
+  const primary = normalize(awayDir);
+  let side = orthogonalize(sideHint, primary);
+
+  if (Math.hypot(side[0], side[1], side[2]) < 0.001) {
+    side = orthogonalize([0, 1, 0], primary);
+  }
+
+  if (Math.hypot(side[0], side[1], side[2]) < 0.001) {
+    side = orthogonalize([1, 0, 0], primary);
+  }
+
+  side = normalize(side);
+
+  const contactTip = anchorWorld;
+  const contactElbow = add(anchorWorld, add(scaleVec(primary, size * 0.28), scaleVec(side, size * 0.08)));
+  const junction = add(anchorWorld, add(scaleVec(primary, size * 0.72), scaleVec(side, size * 0.02)));
+  const freeFabTip = add(junction, add(scaleVec(primary, size * 0.54), scaleVec(side, size * 0.68)));
+  const fcTip = add(junction, add(scaleVec(primary, size * 0.52), scaleVec(side, -size * 0.7)));
+
+  return {
+    contactTip: project(contactTip),
+    contactElbow: project(contactElbow),
+    junction: project(junction),
+    freeFabTip: project(freeFabTip),
+    fcTip: project(fcTip),
+  };
 }
 
 function labelOffsets(point, distance, rise = 0) {
@@ -860,15 +908,14 @@ function addRx5(commands, receptors, visible) {
 
   receptors.forEach((receptor) => {
     const anchorWorld = site1Anchor(receptor.nodes);
-    const anchor = project(anchorWorld);
     const liftVector = normalize(subtract(anchorWorld, receptor.nodes.shoulder));
-    const awayWorld = add(anchorWorld, add(scaleVec(liftVector, 52), [0, 62, 0]));
-    const away = project(awayWorld);
-    const angle = Math.atan2(away.y - anchor.y, away.x - anchor.x);
-    pushIgg(commands, anchor, palette.rx5, angle, 92, visible);
+    const awayDir = normalize(add(scaleVec(liftVector, 1), [0, 0.95, 0]));
+    const sideHint = subtract(receptor.nodes.armProx, receptor.nodes.shoulder);
+    const points = projectAntibodyWorld(anchorWorld, awayDir, sideHint, 98);
+    pushIgg(commands, points, palette.rx5, visible);
 
     if (receptor.index === labelIndex) {
-      pushLabel(commands, anchor, "RX5", palette.rx5, 22, -22);
+      pushLabel(commands, points.contactTip, "RX5", palette.rx5, 22, -22);
     }
   });
 }
@@ -881,17 +928,15 @@ function addCtx(commands, receptors, visible) {
   receptors.forEach((receptor) => {
     const interfaceNormal = normalize(subtract(receptor.nodes.armProx, receptor.nodes.shoulder));
     const anchorWorld = add(ctxAnchor(receptor.nodes), scaleVec(interfaceNormal, 8));
-    const anchor = project(anchorWorld);
     const shoulderAway = normalize(subtract(anchorWorld, receptor.nodes.shoulder));
     const armAway = normalize(subtract(anchorWorld, receptor.nodes.armProx));
-    const combinedAway = normalize(add(shoulderAway, armAway));
-    const awayWorld = add(anchorWorld, add(scaleVec(combinedAway, 60), [0, 40, 0]));
-    const away = project(awayWorld);
-    const angle = Math.atan2(away.y - anchor.y, away.x - anchor.x);
-    pushClampFab(commands, anchor, palette.ctx, angle, 86, visible);
+    const combinedAway = normalize(add(add(shoulderAway, armAway), [0, 0.45, 0]));
+    const sideHint = subtract(receptor.nodes.armProx, receptor.nodes.shoulder);
+    const points = projectAntibodyWorld(anchorWorld, combinedAway, sideHint, 90);
+    pushClampFab(commands, points, palette.ctx, visible);
 
     if (receptor.index === labelIndex) {
-      pushLabel(commands, anchor, "CTX", palette.ctx, 20, -20);
+      pushLabel(commands, points.contactTip, "CTX", palette.ctx, 20, -20);
     }
   });
 }
@@ -1302,30 +1347,22 @@ function drawFab(command) {
 }
 
 function drawAntibodyY(command) {
-  const size = Math.max(18, command.sizeUnits * command.point.scale * 0.9);
-  const armWidth = Math.max(6, size * 0.22);
+  const avgScale =
+    (
+      command.contactTip.scale +
+      command.contactElbow.scale +
+      command.junction.scale +
+      command.freeFabTip.scale +
+      command.fcTip.scale
+    ) / 5;
+  const armWidth = Math.max(6, avgScale * 28);
 
-  function mapLocal(localX, localY) {
-    const cos = Math.cos(command.angle);
-    const sin = Math.sin(command.angle);
-    return {
-      x: command.point.x + localX * cos - localY * sin,
-      y: command.point.y + localX * sin + localY * cos,
-    };
-  }
-
-  const contactTip = mapLocal(0, 0);
-  const contactElbow = mapLocal(size * 0.3, -size * 0.08);
-  const junction = mapLocal(size * 0.7, 0);
-  const upperFabTip = mapLocal(size * 1.26, -size * 0.58);
-  const fcTip = mapLocal(size * 1.2, size * 0.76);
-
-  strokeRoundedPath([contactTip, contactElbow, junction], armWidth, command.color, command.alpha);
-  strokeRoundedPath([junction, upperFabTip], armWidth, command.color, command.alpha);
-  strokeRoundedPath([junction, fcTip], armWidth, command.color, command.alpha);
-  strokeRoundedPath([contactTip, contactElbow, junction], Math.max(2, armWidth * 0.26), tint(command.color, 0.22), command.alpha * 0.45);
-  strokeRoundedPath([junction, upperFabTip], Math.max(2, armWidth * 0.26), tint(command.color, 0.22), command.alpha * 0.45);
-  strokeRoundedPath([junction, fcTip], Math.max(2, armWidth * 0.26), tint(command.color, 0.22), command.alpha * 0.45);
+  strokeRoundedPath([command.contactTip, command.contactElbow, command.junction], armWidth, command.color, command.alpha);
+  strokeRoundedPath([command.junction, command.freeFabTip], armWidth, command.color, command.alpha);
+  strokeRoundedPath([command.junction, command.fcTip], armWidth, command.color, command.alpha);
+  strokeRoundedPath([command.contactTip, command.contactElbow, command.junction], Math.max(2, armWidth * 0.24), tint(command.color, 0.22), command.alpha * 0.45);
+  strokeRoundedPath([command.junction, command.freeFabTip], Math.max(2, armWidth * 0.24), tint(command.color, 0.22), command.alpha * 0.45);
+  strokeRoundedPath([command.junction, command.fcTip], Math.max(2, armWidth * 0.24), tint(command.color, 0.22), command.alpha * 0.45);
 }
 
 function drawKinaseGlow(command) {
