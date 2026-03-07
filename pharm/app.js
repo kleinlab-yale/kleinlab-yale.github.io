@@ -475,8 +475,6 @@ function formatControlValue(input) {
       return value.toFixed(2);
     case "fractionx":
       return `${value.toFixed(2)} x`;
-    case "fractionpercent":
-      return `${(value * 100).toFixed(0)}%`;
     default:
       return String(value);
   }
@@ -649,22 +647,28 @@ function renderEfficacy() {
 
   const stepPlotNode = document.getElementById("efficacy-twostep-plot");
   const stepKdInput = document.getElementById("eff-step-kd");
-  const stepEfficacyInput = document.getElementById("eff-step-efficacy");
+  const stepKbetaInput = document.getElementById("eff-step-kbeta");
+  const stepKalphaInput = document.getElementById("eff-step-kalpha");
   const stepConcInput = document.getElementById("eff-step-conc");
-  if (!stepPlotNode || !stepKdInput || !stepEfficacyInput || !stepConcInput) {
+  if (!stepPlotNode || !stepKdInput || !stepKbetaInput || !stepKalphaInput || !stepConcInput) {
     return;
   }
 
   const stepKdNm = Math.max(Number(stepKdInput.value), CONC_MIN_NM);
-  const stepEfficacy = Math.min(1.0, Math.max(Number(stepEfficacyInput.value), 0.0));
+  const stepKbeta = Math.max(Number(stepKbetaInput.value), EPS);
+  const stepKalpha = Math.max(Number(stepKalphaInput.value), EPS);
   const stepConcNm = Math.max(Number(stepConcInput.value), CONC_MIN_NM);
   const stepKdM = nmToM(stepKdNm);
   const stepConcM = nmToM(stepConcNm);
+  const activeFractionWithinBound = stepKbeta / (stepKbeta + stepKalpha);
+  const inactiveFractionWithinBound = stepKalpha / (stepKbeta + stepKalpha);
+  const activationEquilibrium = stepKbeta / stepKalpha;
   const occupancyCurve = hillResponse(xLogM, 1.0, stepKdM, 1.0);
-  const activeCurve = occupancyCurve.map((value) => value * stepEfficacy);
+  const inactiveCurve = occupancyCurve.map((value) => value * inactiveFractionWithinBound);
+  const activeCurve = occupancyCurve.map((value) => value * activeFractionWithinBound);
   const occupancyAtCurrent = stepConcM / (stepKdM + stepConcM);
-  const activeAtCurrent = occupancyAtCurrent * stepEfficacy;
-  const boundInactiveAtCurrent = occupancyAtCurrent - activeAtCurrent;
+  const activeAtCurrent = occupancyAtCurrent * activeFractionWithinBound;
+  const boundInactiveAtCurrent = occupancyAtCurrent * inactiveFractionWithinBound;
   const freeAtCurrent = 1.0 - occupancyAtCurrent;
 
   const stepTraces = [
@@ -672,8 +676,15 @@ function renderEfficacy() {
       x: xLogNm,
       y: occupancyCurve,
       mode: "lines",
-      name: "Bound receptor (LR)",
+      name: "Total bound receptor (LR + LR*)",
       line: { width: 3, color: "royalblue" },
+    },
+    {
+      x: xLogNm,
+      y: inactiveCurve,
+      mode: "lines",
+      name: "Inactive bound receptor (LR)",
+      line: { width: 3, color: "darkorange", dash: "dot" },
     },
     {
       x: xLogNm,
@@ -688,7 +699,15 @@ function renderEfficacy() {
       mode: "markers",
       showlegend: false,
       marker: { size: 9, color: "royalblue" },
-      hovertemplate: "Current LR: %{y:.2f}<extra></extra>",
+      hovertemplate: "Current total bound: %{y:.2f}<extra></extra>",
+    },
+    {
+      x: [stepConcNm],
+      y: [boundInactiveAtCurrent],
+      mode: "markers",
+      showlegend: false,
+      marker: { size: 9, color: "darkorange", symbol: "square" },
+      hovertemplate: "Current inactive LR: %{y:.2f}<extra></extra>",
     },
     {
       x: [stepConcNm],
@@ -723,32 +742,44 @@ function renderEfficacy() {
   const stepBoundNode = document.getElementById("eff-step-bound");
   const stepActiveNode = document.getElementById("eff-step-active");
   const stepKdLabelNode = document.getElementById("eff-step-kd-label");
-  const stepEfficacyLabelNode = document.getElementById("eff-step-efficacy-label");
+  const stepKbetaLabelNode = document.getElementById("eff-step-kbeta-label");
+  const stepKalphaLabelNode = document.getElementById("eff-step-kalpha-label");
+  const stepKactLabelNode = document.getElementById("eff-step-kact-label");
   const stepNoteNode = document.getElementById("efficacy-twostep-note");
 
   if (stepFreeNode) {
-    stepFreeNode.textContent = `${(freeAtCurrent * 100).toFixed(1)}% free`;
+    stepFreeNode.textContent = `${(freeAtCurrent * 100).toFixed(1)}% free R`;
   }
   if (stepBoundNode) {
-    stepBoundNode.textContent = `${(boundInactiveAtCurrent * 100).toFixed(1)}% bound`;
+    stepBoundNode.textContent = `${(boundInactiveAtCurrent * 100).toFixed(1)}% inactive LR`;
   }
   if (stepActiveNode) {
-    stepActiveNode.textContent = `${(activeAtCurrent * 100).toFixed(1)}% active`;
+    stepActiveNode.textContent = `${(activeAtCurrent * 100).toFixed(1)}% active LR*`;
   }
   if (stepKdLabelNode) {
     stepKdLabelNode.textContent = `KD = ${fmtNm(stepKdNm)} nM`;
   }
-  if (stepEfficacyLabelNode) {
-    stepEfficacyLabelNode.textContent = `efficacy = ${(stepEfficacy * 100).toFixed(0)}%`;
+  if (stepKbetaLabelNode) {
+    stepKbetaLabelNode.textContent = `kβ = ${stepKbeta.toFixed(2)}`;
+  }
+  if (stepKalphaLabelNode) {
+    stepKalphaLabelNode.textContent = `kα = ${stepKalpha.toFixed(2)}`;
+  }
+  if (stepKactLabelNode) {
+    stepKactLabelNode.textContent = `Kact = ${(activationEquilibrium).toFixed(2)}`;
   }
   if (stepNoteNode) {
     stepNoteNode.textContent = `At [D] = ${fmtNm(stepConcNm)} nM, ${(
       freeAtCurrent * 100
-    ).toFixed(1)}% of receptors are still free, ${(
+    ).toFixed(1)}% of receptors are still free, total occupancy is ${(
+      occupancyAtCurrent * 100
+    ).toFixed(1)}%, and the bound receptor pool splits into ${(
       boundInactiveAtCurrent * 100
-    ).toFixed(1)}% are bound but inactive (LR), and ${(
+    ).toFixed(1)}% inactive LR and ${(
       activeAtCurrent * 100
-    ).toFixed(1)}% are active (LR*). Lower KD shifts the binding curve left, while higher efficacy lifts LR* closer to LR.`;
+    ).toFixed(1)}% active LR*. The activation equilibrium is set by kβ/kα = ${activationEquilibrium.toFixed(
+      2
+    )}, so larger kβ or smaller kα favors the active state.`;
   }
 }
 

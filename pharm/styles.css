@@ -531,7 +531,7 @@ h1 {
 
 .two-step-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
   align-items: start;
 }
@@ -550,7 +550,7 @@ h1 {
 
 .two-step-flow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 104px minmax(0, 1fr) 104px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 140px minmax(0, 1fr) 140px minmax(0, 1fr);
   gap: 0.7rem;
   align-items: stretch;
 }

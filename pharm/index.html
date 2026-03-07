@@ -227,7 +227,7 @@
                 <p class="feature-kicker">Two-step model</p>
                 <h3>Affinity and efficacy as separate steps</h3>
               </div>
-              <p class="feature-summary">Binding determines how much <code>LR</code> forms. Efficacy determines what fraction of bound receptor becomes active <code>LR*</code>.</p>
+              <p class="feature-summary">Binding determines total receptor occupancy. The structural conversion <code>LR &harr; LR*</code> is then governed by the forward activation rate <code>k&beta;</code> and backward rate <code>k&alpha;</code>.</p>
             </div>
 
             <div class="controls-grid">
@@ -240,12 +240,19 @@
               </label>
               <label class="control accent-green">
                 <span class="control-top">
-                  <span class="control-label">Activation efficacy</span>
-                  <output class="control-value" data-for="eff-step-efficacy"></output>
+                  <span class="control-label">Activation k&beta;</span>
+                  <output class="control-value" data-for="eff-step-kbeta"></output>
                 </span>
-                <input id="eff-step-efficacy" type="range" min="0.05" max="1.0" step="0.05" value="0.6" data-format="fractionpercent">
+                <input id="eff-step-kbeta" type="range" min="0.05" max="2.00" step="0.05" value="1.00" data-format="decimal2">
               </label>
               <label class="control accent-orange">
+                <span class="control-top">
+                  <span class="control-label">Deactivation k&alpha;</span>
+                  <output class="control-value" data-for="eff-step-kalpha"></output>
+                </span>
+                <input id="eff-step-kalpha" type="range" min="0.05" max="2.00" step="0.05" value="0.50" data-format="decimal2">
+              </label>
+              <label class="control">
                 <span class="control-top">
                   <span class="control-label">Current concentration</span>
                   <output class="control-value" data-for="eff-step-conc"></output>
@@ -276,9 +283,11 @@
                     <span id="eff-step-bound" class="state-node-value">0%</span>
                   </div>
                   <div class="step-connector activation-step">
-                    <span class="step-connector-label">Activation step</span>
-                    <span class="step-connector-arrow">-&gt;</span>
-                    <span id="eff-step-efficacy-label" class="step-connector-rate">efficacy = 60%</span>
+                    <span class="step-connector-label">Structural conversion</span>
+                    <span class="step-connector-arrow">&harr;</span>
+                    <span id="eff-step-kbeta-label" class="step-connector-rate">k&beta; = 1.00</span>
+                    <span id="eff-step-kalpha-label" class="step-connector-rate">k&alpha; = 0.50</span>
+                    <span id="eff-step-kact-label" class="step-connector-rate">Kact = 2.00</span>
                   </div>
                   <div class="state-node">
                     <span class="state-node-label">Receptor status</span>
