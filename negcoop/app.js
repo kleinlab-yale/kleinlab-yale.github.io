@@ -9,22 +9,16 @@ const COOPERATIVITY = {
     key: "negative",
     label: "Negative",
     kdMultiplier: 1.18,
-    transientBias: -0.12,
-    sustainBias: 1,
   },
   neutral: {
     key: "neutral",
     label: "Neutral",
     kdMultiplier: 1,
-    transientBias: 0,
-    sustainBias: 0.18,
   },
   positive: {
     key: "positive",
     label: "Positive",
     kdMultiplier: 0.82,
-    transientBias: 0.12,
-    sustainBias: 0.04,
   },
 };
 
@@ -33,7 +27,7 @@ const PHASE_MAP_BASELINE = {
   ligandPulse: 1.5,
   internalizationRate: 0.045,
   recyclingRate: 0.008,
-  cooperativity: "negative",
+  cooperativity: "neutral",
 };
 
 const DEFAULTS = {
@@ -249,21 +243,19 @@ function deriveResponseProfile(params, config) {
     (params.receptorLevel - RECEPTOR_RANGE.min) /
     (RECEPTOR_RANGE.max - RECEPTOR_RANGE.min);
   const occupancyAtPulsePeak = params.ligandPulse / (params.ligandPulse + 0.7);
-  const drive =
-    (params.receptorLevel * occupancyAtPulsePeak) /
-    (params.dimerKd * config.kdMultiplier);
+  const effectiveKd2 = params.dimerKd * config.kdMultiplier;
+  const drive = (params.receptorLevel * occupancyAtPulsePeak) / effectiveKd2;
   const dimerizationResponse = logistic((drive - 1) * 4.6);
-  const weakKdBias = logistic((params.dimerKd - 95) / 18);
+  const weakKdBias = logistic((effectiveKd2 - 95) / 18);
   const thresholdDistance = (drive - 0.55) / 0.55;
   const nearThresholdWindow = Math.exp(-Math.pow(thresholdDistance, 2));
   const transientStrength = clamp(
-    0.62 * dimerizationResponse + 0.48 * receptorNorm + config.transientBias,
+    0.62 * dimerizationResponse + 0.48 * receptorNorm,
     0,
     1
   );
   const sustainedStrength = clamp(
-    config.sustainBias *
-      weakKdBias *
+    weakKdBias *
       nearThresholdWindow *
       (0.75 + 0.25 * (1 - receptorNorm)) *
       (1 - 0.55 * receptorNorm) *
