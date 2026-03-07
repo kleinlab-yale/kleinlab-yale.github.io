@@ -37,8 +37,8 @@
       <nav class="tab-bar" aria-label="Lesson sections">
         <button class="tab-button is-active" data-tab-target="binding" aria-selected="true">1. Binding</button>
         <button class="tab-button" data-tab-target="efficacy" aria-selected="false">2. Efficacy</button>
-        <button class="tab-button" data-tab-target="antagonists" aria-selected="false">3. Antagonists</button>
-        <button class="tab-button" data-tab-target="classes" aria-selected="false">4. Antagonist classes</button>
+        <button class="tab-button" data-tab-target="classes" aria-selected="false">3. Antagonist classes</button>
+        <button class="tab-button" data-tab-target="antagonists" aria-selected="false">4. Antagonists</button>
         <button class="tab-button" data-tab-target="partial" aria-selected="false">5. Partial agonists</button>
         <button class="tab-button" data-tab-target="spare" aria-selected="false">6. Spare receptors</button>
         <button class="tab-button" data-tab-target="quantal" aria-selected="false">7. Quantal dose</button>
@@ -142,7 +142,7 @@
         <section class="lesson-panel" data-tab-panel="antagonists" hidden>
           <div class="panel-header">
             <div>
-              <p class="panel-step">Lesson 3</p>
+              <p class="panel-step">Lesson 4</p>
               <h2>Antagonists</h2>
             </div>
             <p class="panel-summary">Compare competitive and noncompetitive antagonism while keeping the antagonist-alone line fixed at zero efficacy.</p>
@@ -219,10 +219,10 @@
         <section class="lesson-panel" data-tab-panel="classes" hidden>
           <div class="panel-header">
             <div>
-              <p class="panel-step">Lesson 4</p>
+              <p class="panel-step">Lesson 3</p>
               <h2>Antagonist classification</h2>
             </div>
-            <p class="panel-summary">Use the branch map to move from broad mechanism to specific antagonist class, then review the expected graph behavior for each one.</p>
+            <p class="panel-summary">Use the branch map to move from broad mechanism to specific antagonist class, including orthosteric special cases such as inverse agonists and partial agonists.</p>
           </div>
 
           <p class="diagram-intro">Click any box in the diagram. The card underneath updates with the mechanism and the expected dose-response change.</p>
@@ -230,66 +230,68 @@
           <div class="ant-class-layout">
             <div class="ant-class-wrap">
               <div class="ant-class-map" role="group" aria-label="Antagonist classification diagram">
-                <svg class="ant-class-lines" viewBox="0 0 1120 700" preserveAspectRatio="none" aria-hidden="true">
-                  <line x1="560" y1="96" x2="560" y2="126"></line>
-                  <line x1="336" y1="126" x2="907" y2="126"></line>
-                  <line x1="336" y1="126" x2="336" y2="143"></line>
-                  <line x1="907" y1="126" x2="907" y2="143"></line>
+                <svg class="ant-class-lines" viewBox="0 0 1200 720" preserveAspectRatio="none" aria-hidden="true">
+                  <line x1="600" y1="100" x2="600" y2="130"></line>
+                  <line x1="372" y1="130" x2="984" y2="130"></line>
+                  <line x1="372" y1="130" x2="372" y2="148"></line>
+                  <line x1="984" y1="130" x2="984" y2="148"></line>
 
-                  <line x1="336" y1="207" x2="336" y2="236"></line>
-                  <line x1="202" y1="236" x2="515" y2="236"></line>
-                  <line x1="202" y1="236" x2="202" y2="263"></line>
-                  <line x1="515" y1="236" x2="515" y2="263"></line>
+                  <line x1="372" y1="212" x2="372" y2="240"></line>
+                  <line x1="228" y1="240" x2="612" y2="240"></line>
+                  <line x1="228" y1="240" x2="228" y2="268"></line>
+                  <line x1="612" y1="240" x2="612" y2="268"></line>
 
-                  <line x1="202" y1="326" x2="202" y2="350"></line>
-                  <line x1="123" y1="350" x2="291" y2="350"></line>
-                  <line x1="123" y1="350" x2="123" y2="372"></line>
-                  <line x1="291" y1="350" x2="291" y2="372"></line>
+                  <line x1="228" y1="332" x2="228" y2="356"></line>
+                  <line x1="132" y1="356" x2="336" y2="356"></line>
+                  <line x1="132" y1="356" x2="132" y2="382"></line>
+                  <line x1="336" y1="356" x2="336" y2="382"></line>
 
-                  <line x1="123" y1="426" x2="123" y2="452"></line>
-                  <line x1="78" y1="452" x2="213" y2="452"></line>
-                  <line x1="78" y1="452" x2="78" y2="546"></line>
-                  <line x1="213" y1="452" x2="213" y2="546"></line>
+                  <line x1="132" y1="438" x2="132" y2="462"></line>
+                  <line x1="54" y1="462" x2="282" y2="462"></line>
+                  <line x1="54" y1="462" x2="54" y2="560"></line>
+                  <line x1="168" y1="462" x2="168" y2="560"></line>
+                  <line x1="282" y1="462" x2="282" y2="560"></line>
 
-                  <line x1="291" y1="426" x2="291" y2="452"></line>
-                  <line x1="291" y1="452" x2="353" y2="452"></line>
-                  <line x1="353" y1="452" x2="353" y2="546"></line>
+                  <line x1="336" y1="438" x2="336" y2="462"></line>
+                  <line x1="336" y1="462" x2="432" y2="462"></line>
+                  <line x1="432" y1="462" x2="432" y2="560"></line>
 
-                  <line x1="515" y1="326" x2="515" y2="350"></line>
-                  <line x1="448" y1="350" x2="594" y2="350"></line>
-                  <line x1="448" y1="350" x2="448" y2="372"></line>
-                  <line x1="594" y1="350" x2="594" y2="372"></line>
+                  <line x1="612" y1="332" x2="612" y2="356"></line>
+                  <line x1="516" y1="356" x2="684" y2="356"></line>
+                  <line x1="516" y1="356" x2="516" y2="382"></line>
+                  <line x1="684" y1="356" x2="684" y2="382"></line>
 
-                  <line x1="448" y1="426" x2="448" y2="452"></line>
-                  <line x1="594" y1="426" x2="594" y2="452"></line>
-                  <line x1="448" y1="452" x2="515" y2="452"></line>
-                  <line x1="594" y1="452" x2="515" y2="452"></line>
-                  <line x1="515" y1="452" x2="515" y2="546"></line>
+                  <line x1="516" y1="438" x2="516" y2="462"></line>
+                  <line x1="684" y1="438" x2="684" y2="462"></line>
+                  <line x1="516" y1="462" x2="612" y2="462"></line>
+                  <line x1="684" y1="462" x2="612" y2="462"></line>
+                  <line x1="612" y1="462" x2="612" y2="560"></line>
 
-                  <line x1="907" y1="207" x2="907" y2="460"></line>
-                  <line x1="818" y1="460" x2="986" y2="460"></line>
-                  <line x1="818" y1="460" x2="818" y2="546"></line>
-                  <line x1="986" y1="460" x2="986" y2="546"></line>
+                  <line x1="984" y1="212" x2="984" y2="470"></line>
+                  <line x1="900" y1="470" x2="1068" y2="470"></line>
+                  <line x1="900" y1="470" x2="900" y2="560"></line>
+                  <line x1="1068" y1="470" x2="1068" y2="560"></line>
                 </svg>
 
                 <button class="ant-class-node tier-root" data-ant-class-key="antagonists-overview" style="--x:50%; --y:9%; --w:17%;">Antagonists</button>
-                <button class="ant-class-node tier-group" data-ant-class-key="receptor-antagonists" style="--x:30%; --y:25%; --w:21%;">Receptor antagonists</button>
-                <button class="ant-class-node tier-group" data-ant-class-key="nonreceptor-antagonists" style="--x:81%; --y:25%; --w:18%;">Nonreceptor antagonists</button>
+                <button class="ant-class-node tier-group" data-ant-class-key="receptor-antagonists" style="--x:31%; --y:25%; --w:21%;">Receptor antagonists</button>
+                <button class="ant-class-node tier-group" data-ant-class-key="nonreceptor-antagonists" style="--x:82%; --y:25%; --w:18%;">Nonreceptor antagonists</button>
 
-                <button class="ant-class-node tier-branch" data-ant-class-key="active-site-binding" style="--x:18%; --y:42%; --w:16%;">Active site binding</button>
-                <button class="ant-class-node tier-branch" data-ant-class-key="allosteric-binding" style="--x:46%; --y:42%; --w:16%;">Allosteric binding</button>
+                <button class="ant-class-node tier-branch" data-ant-class-key="active-site-binding" style="--x:19%; --y:42%; --w:16%;">Active site binding</button>
+                <button class="ant-class-node tier-branch" data-ant-class-key="allosteric-binding" style="--x:51%; --y:42%; --w:16%;">Allosteric binding</button>
 
                 <button class="ant-class-node tier-step" data-ant-class-key="active-site-reversible" style="--x:11%; --y:57%; --w:11%;">Reversible</button>
-                <button class="ant-class-node tier-step" data-ant-class-key="active-site-irreversible" style="--x:26%; --y:57%; --w:11%;">Irreversible</button>
-                <button class="ant-class-node tier-step" data-ant-class-key="allosteric-reversible" style="--x:40%; --y:57%; --w:11%;">Reversible</button>
-                <button class="ant-class-node tier-step" data-ant-class-key="allosteric-irreversible" style="--x:53%; --y:57%; --w:11%;">Irreversible</button>
+                <button class="ant-class-node tier-step" data-ant-class-key="active-site-irreversible" style="--x:28%; --y:57%; --w:11%;">Irreversible</button>
+                <button class="ant-class-node tier-step" data-ant-class-key="allosteric-reversible" style="--x:43%; --y:57%; --w:11%;">Reversible</button>
+                <button class="ant-class-node tier-step" data-ant-class-key="allosteric-irreversible" style="--x:57%; --y:57%; --w:11%;">Irreversible</button>
 
-                <button class="ant-class-node tier-leaf" data-ant-class-key="competitive-antagonist" style="--x:7%; --y:83%; --w:9.5%;">Competitive antagonist</button>
-                <button class="ant-class-node tier-leaf" data-ant-class-key="inverse-agonist" style="--x:19%; --y:83%; --w:9.5%;">Inverse agonist</button>
-                <button class="ant-class-node tier-leaf" data-ant-class-key="noncompetitive-active-site" style="--x:31.5%; --y:83%; --w:12.5%;">Noncompetitive active-site antagonist</button>
-                <button class="ant-class-node tier-leaf" data-ant-class-key="noncompetitive-allosteric" style="--x:46%; --y:83%; --w:14.5%;">Noncompetitive allosteric antagonist</button>
-                <button class="ant-class-node tier-leaf" data-ant-class-key="chemical-antagonist" style="--x:73%; --y:83%; --w:13%;">Chemical antagonist</button>
-                <button class="ant-class-node tier-leaf" data-ant-class-key="physiologic-antagonist" style="--x:88%; --y:83%; --w:13%;">Physiologic antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="competitive-antagonist" style="--x:4.5%; --y:83%; --w:8.5%;">Competitive antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="inverse-agonist" style="--x:14%; --y:83%; --w:8.5%;">Inverse agonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="partial-agonist" style="--x:23.5%; --y:83%; --w:9.5%;">Partial agonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="noncompetitive-active-site" style="--x:36%; --y:83%; --w:13%;">Noncompetitive active-site antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="noncompetitive-allosteric" style="--x:51%; --y:83%; --w:14%;">Noncompetitive allosteric antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="chemical-antagonist" style="--x:75%; --y:83%; --w:13%;">Chemical antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="physiologic-antagonist" style="--x:89%; --y:83%; --w:13%;">Physiologic antagonist</button>
               </div>
             </div>
 

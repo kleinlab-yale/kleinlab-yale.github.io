@@ -376,8 +376,8 @@ h1 {
 
 .ant-class-map {
   position: relative;
-  min-width: 1120px;
-  min-height: 700px;
+  min-width: 1200px;
+  min-height: 720px;
   border-radius: 24px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 248, 252, 0.94)),

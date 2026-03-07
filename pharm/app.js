@@ -12,7 +12,7 @@ const PLOT_CONFIG = {
   displaylogo: false,
 };
 
-const TAB_IDS = ["binding", "efficacy", "antagonists", "classes", "partial", "spare", "quantal"];
+const TAB_IDS = ["binding", "efficacy", "classes", "antagonists", "partial", "spare", "quantal"];
 const dirtyTabs = Object.fromEntries(TAB_IDS.map((tabId) => [tabId, true]));
 let activeTabId = "binding";
 let selectedAntagonistClassKey = "competitive-antagonist";
@@ -60,7 +60,7 @@ const ANTAGONIST_CLASS_DATA = {
     bullets: [
       "This usually produces noncompetitive behavior.",
       "Efficacy often falls because the agonist cannot fully activate the receptor system.",
-      "Potency may also change, but the key teaching pattern is that added agonist does not fully overcome the block.",
+      "The key teaching pattern is reduced maximal effect that is not fully overcome by more agonist.",
     ],
   },
   "active-site-reversible": {
@@ -68,7 +68,7 @@ const ANTAGONIST_CLASS_DATA = {
     summary: "A reversible antagonist at the active site competes with the agonist for occupancy of the same receptor site.",
     bullets: [
       "This is the classic setup for competitive antagonism.",
-      "A related orthosteric ligand can also behave as an inverse agonist if it has negative intrinsic efficacy.",
+      "Orthosteric ligands at this site can also behave as inverse agonists or partial agonists depending on intrinsic efficacy.",
       "The agonist curve shifts right as more agonist is required to reach the same response.",
       "Efficacy stays the same because enough agonist can still outcompete the antagonist.",
     ],
@@ -87,8 +87,8 @@ const ANTAGONIST_CLASS_DATA = {
     summary: "A reversible negative allosteric antagonist changes receptor behavior from a separate site.",
     bullets: [
       "It is usually not overcome completely by simply adding more agonist.",
-      "Graph changes often include reduced efficacy and sometimes altered apparent potency.",
-      "The teaching pattern is generally noncompetitive rather than a pure right shift.",
+      "Graph teaching should focus on reduced efficacy rather than a simple shift in potency.",
+      "The teaching pattern is generally noncompetitive with loss of maximal effect.",
     ],
   },
   "allosteric-irreversible": {
@@ -126,6 +126,19 @@ const ANTAGONIST_CLASS_DATA = {
       "Teaching pearl: a competitive antagonist blocks agonist effect, while an inverse agonist pushes receptor signaling in the opposite direction.",
     ],
   },
+  "partial-agonist": {
+    title: "Partial agonist",
+    summary: "A partial agonist binds the same active site as the full agonist but has lower intrinsic efficacy, so it can function as a competitive antagonist when both drugs are present.",
+    graphChange: "In the presence of a full agonist, the net response is pulled down toward the lower partial-agonist Emax because receptor occupancy is shared by a less efficacious ligand.",
+    example: "Buprenorphine is a classic partial agonist at the mu-opioid receptor.",
+    bullets: [
+      "It competes reversibly at the same orthosteric site as the full agonist.",
+      "Unlike a neutral antagonist, it has efficacy greater than zero but less than the full agonist.",
+      "When it displaces a full agonist, the observed tissue response falls because the receptor is now occupied by a less efficacious drug.",
+      "Example: buprenorphine is a classic partial agonist at the mu-opioid receptor.",
+      "Teaching pearl: this is a useful special case of competitive antagonism because occupancy is competitive, but the blocker itself still produces some effect.",
+    ],
+  },
   "noncompetitive-active-site": {
     title: "Noncompetitive active-site antagonist",
     summary: "An irreversible active-site antagonist reduces the number of receptors available for agonist activation.",
@@ -142,12 +155,12 @@ const ANTAGONIST_CLASS_DATA = {
   "noncompetitive-allosteric": {
     title: "Noncompetitive allosteric antagonist",
     summary: "An allosteric antagonist reduces receptor activation from a separate site rather than by direct competition at the active site.",
-    graphChange: "Usually lowers Emax; some systems also show an apparent right shift, but the key change is reduced maximal effect.",
+    graphChange: "Reduced efficacy with a lower maximal effect (reduced Emax).",
     example: "Maraviroc is an allosteric antagonist at CCR5.",
     bullets: [
       "Efficacy usually falls, so the curve is lower.",
-      "A right shift can occur, but the major teaching change is reduced maximal effect.",
       "More agonist does not fully overcome the block.",
+      "Teach this as loss of maximal effect rather than as a right-shift pattern.",
       "Example: maraviroc is an allosteric antagonist at CCR5.",
       "Teaching pearl: allosteric antagonism often changes both receptor performance and observed efficacy.",
     ],
