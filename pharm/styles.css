@@ -402,6 +402,7 @@ h1 {
 
 .ant-class-node {
   position: absolute;
+  z-index: 1;
   left: var(--x);
   top: var(--y);
   width: var(--w);
@@ -429,6 +430,7 @@ h1 {
 }
 
 .ant-class-node.is-selected {
+  z-index: 2;
   border-color: rgba(21, 37, 61, 0.58);
   box-shadow: 0 16px 34px rgba(21, 37, 61, 0.18);
   transform: translate(-50%, calc(-50% - 2px));
