@@ -38,9 +38,10 @@
         <button class="tab-button is-active" data-tab-target="binding" aria-selected="true">1. Binding</button>
         <button class="tab-button" data-tab-target="efficacy" aria-selected="false">2. Efficacy</button>
         <button class="tab-button" data-tab-target="antagonists" aria-selected="false">3. Antagonists</button>
-        <button class="tab-button" data-tab-target="partial" aria-selected="false">4. Partial agonists</button>
-        <button class="tab-button" data-tab-target="spare" aria-selected="false">5. Spare receptors</button>
-        <button class="tab-button" data-tab-target="quantal" aria-selected="false">6. Quantal dose</button>
+        <button class="tab-button" data-tab-target="classes" aria-selected="false">4. Antagonist classes</button>
+        <button class="tab-button" data-tab-target="partial" aria-selected="false">5. Partial agonists</button>
+        <button class="tab-button" data-tab-target="spare" aria-selected="false">6. Spare receptors</button>
+        <button class="tab-button" data-tab-target="quantal" aria-selected="false">7. Quantal dose</button>
       </nav>
 
       <main>
@@ -215,10 +216,87 @@
           <p id="ant-note" class="note"></p>
         </section>
 
-        <section class="lesson-panel" data-tab-panel="partial" hidden>
+        <section class="lesson-panel" data-tab-panel="classes" hidden>
           <div class="panel-header">
             <div>
               <p class="panel-step">Lesson 4</p>
+              <h2>Antagonist classification</h2>
+            </div>
+            <p class="panel-summary">Use the branch map to move from broad mechanism to specific antagonist class, then review the expected graph behavior for each one.</p>
+          </div>
+
+          <p class="diagram-intro">Click any box in the diagram. The card underneath updates with the mechanism and the expected dose-response change.</p>
+
+          <div class="ant-class-layout">
+            <div class="ant-class-wrap">
+              <div class="ant-class-map" role="group" aria-label="Antagonist classification diagram">
+                <svg class="ant-class-lines" viewBox="0 0 1000 640" preserveAspectRatio="none" aria-hidden="true">
+                  <line x1="500" y1="84" x2="500" y2="118"></line>
+                  <line x1="300" y1="118" x2="790" y2="118"></line>
+                  <line x1="300" y1="118" x2="300" y2="148"></line>
+                  <line x1="790" y1="118" x2="790" y2="148"></line>
+
+                  <line x1="300" y1="204" x2="300" y2="230"></line>
+                  <line x1="170" y1="230" x2="450" y2="230"></line>
+                  <line x1="170" y1="230" x2="170" y2="264"></line>
+                  <line x1="450" y1="230" x2="450" y2="264"></line>
+
+                  <line x1="170" y1="336" x2="170" y2="360"></line>
+                  <line x1="100" y1="360" x2="240" y2="360"></line>
+                  <line x1="100" y1="360" x2="100" y2="392"></line>
+                  <line x1="240" y1="360" x2="240" y2="392"></line>
+                  <line x1="100" y1="446" x2="100" y2="480"></line>
+                  <line x1="240" y1="446" x2="240" y2="480"></line>
+
+                  <line x1="450" y1="336" x2="450" y2="360"></line>
+                  <line x1="370" y1="360" x2="530" y2="360"></line>
+                  <line x1="370" y1="360" x2="370" y2="392"></line>
+                  <line x1="530" y1="360" x2="530" y2="392"></line>
+                  <line x1="370" y1="446" x2="370" y2="470"></line>
+                  <line x1="530" y1="446" x2="530" y2="470"></line>
+                  <line x1="370" y1="470" x2="450" y2="470"></line>
+                  <line x1="530" y1="470" x2="450" y2="470"></line>
+                  <line x1="450" y1="470" x2="450" y2="504"></line>
+
+                  <line x1="790" y1="204" x2="790" y2="432"></line>
+                  <line x1="700" y1="432" x2="880" y2="432"></line>
+                  <line x1="700" y1="432" x2="700" y2="468"></line>
+                  <line x1="880" y1="432" x2="880" y2="468"></line>
+                </svg>
+
+                <button class="ant-class-node tier-root" data-ant-class-key="antagonists-overview" style="--x:50%; --y:9%; --w:19%;">Antagonists</button>
+                <button class="ant-class-node tier-group" data-ant-class-key="receptor-antagonists" style="--x:30%; --y:26%; --w:20%;">Receptor antagonists</button>
+                <button class="ant-class-node tier-group" data-ant-class-key="nonreceptor-antagonists" style="--x:79%; --y:26%; --w:21%;">Nonreceptor antagonists</button>
+
+                <button class="ant-class-node tier-branch" data-ant-class-key="active-site-binding" style="--x:17%; --y:42%; --w:18%;">Active site binding</button>
+                <button class="ant-class-node tier-branch" data-ant-class-key="allosteric-binding" style="--x:45%; --y:42%; --w:18%;">Allosteric binding</button>
+
+                <button class="ant-class-node tier-step" data-ant-class-key="active-site-reversible" style="--x:10%; --y:56%; --w:12%;">Reversible</button>
+                <button class="ant-class-node tier-step" data-ant-class-key="active-site-irreversible" style="--x:24%; --y:56%; --w:12%;">Irreversible</button>
+                <button class="ant-class-node tier-step" data-ant-class-key="allosteric-reversible" style="--x:37%; --y:56%; --w:12%;">Reversible</button>
+                <button class="ant-class-node tier-step" data-ant-class-key="allosteric-irreversible" style="--x:53%; --y:56%; --w:12%;">Irreversible</button>
+
+                <button class="ant-class-node tier-leaf" data-ant-class-key="competitive-antagonist" style="--x:10%; --y:84%; --w:15%;">Competitive antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="noncompetitive-active-site" style="--x:24%; --y:84%; --w:16%;">Noncompetitive active-site antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="noncompetitive-allosteric" style="--x:45%; --y:84%; --w:18%;">Noncompetitive allosteric antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="chemical-antagonist" style="--x:70%; --y:84%; --w:14%;">Chemical antagonist</button>
+                <button class="ant-class-node tier-leaf" data-ant-class-key="physiologic-antagonist" style="--x:88%; --y:84%; --w:14%;">Physiologic antagonist</button>
+              </div>
+            </div>
+
+            <article class="ant-class-detail">
+              <p class="detail-kicker">Selected class</p>
+              <h3 id="ant-class-title">Competitive antagonist</h3>
+              <p id="ant-class-summary" class="detail-summary"></p>
+              <ul id="ant-class-points" class="detail-list"></ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="lesson-panel" data-tab-panel="partial" hidden>
+          <div class="panel-header">
+            <div>
+              <p class="panel-step">Lesson 5</p>
               <h2>Partial agonists</h2>
             </div>
             <p class="panel-summary">Full agonist Emax stays fixed at 100 while intrinsic efficacy and EC50 shape the partial agonist curve.</p>
@@ -279,7 +357,7 @@
         <section class="lesson-panel" data-tab-panel="spare" hidden>
           <div class="panel-header">
             <div>
-              <p class="panel-step">Lesson 5</p>
+              <p class="panel-step">Lesson 6</p>
               <h2>Spare receptors</h2>
             </div>
             <p class="panel-summary">Occupancy and effect share the same 0 to 100 percent scale so receptor reserve shows up as a leftward shift in effect.</p>
@@ -319,7 +397,7 @@
         <section class="lesson-panel" data-tab-panel="quantal" hidden>
           <div class="panel-header">
             <div>
-              <p class="panel-step">Lesson 6</p>
+              <p class="panel-step">Lesson 7</p>
               <h2>Quantal dose-response</h2>
             </div>
             <p class="panel-summary">Cumulative curves are logistic CDFs on a log-dose axis. The bell-shaped frequency curves are the derivatives scaled to percent in each dose interval.</p>
@@ -371,6 +449,7 @@
         <h2>Teaching notes</h2>
         <ul>
           <li>Tabs 1 and 2 are normalized to fractions: binding uses `[LR]/[R0]` and efficacy uses `E/Emax`.</li>
+          <li>The antagonist classification tab links mechanism families to the expected shape changes on dose-response curves.</li>
           <li>Concentration sliders use linear nM controls from 0.1 to 250 while the plotted x-axes stay fixed for comparison.</li>
           <li>Linear concentration plots cap at 1000 nM. Quantal dose uses mg/kg on a log x-axis from 1 to 200.</li>
         </ul>

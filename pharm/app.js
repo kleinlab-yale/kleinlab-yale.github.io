@@ -12,9 +12,144 @@ const PLOT_CONFIG = {
   displaylogo: false,
 };
 
-const TAB_IDS = ["binding", "efficacy", "antagonists", "partial", "spare", "quantal"];
+const TAB_IDS = ["binding", "efficacy", "antagonists", "classes", "partial", "spare", "quantal"];
 const dirtyTabs = Object.fromEntries(TAB_IDS.map((tabId) => [tabId, true]));
 let activeTabId = "binding";
+let selectedAntagonistClassKey = "competitive-antagonist";
+
+const ANTAGONIST_CLASS_DATA = {
+  "antagonists-overview": {
+    title: "Antagonists",
+    summary: "Antagonists reduce agonist responses either by interacting with the receptor itself or by opposing the agonist through nonreceptor mechanisms.",
+    bullets: [
+      "Receptor antagonists change signaling at the same receptor system as the agonist.",
+      "Nonreceptor antagonists reduce the final tissue response without occupying that receptor.",
+      "The dose-response graph changes differently depending on the mechanism.",
+    ],
+  },
+  "receptor-antagonists": {
+    title: "Receptor antagonists",
+    summary: "These antagonists act through the same receptor system used by the agonist.",
+    bullets: [
+      "They can bind the active site or an allosteric site on the receptor.",
+      "Some are surmountable, while others reduce the maximal possible response.",
+      "Graph interpretation usually focuses on changes in potency, efficacy, or both.",
+    ],
+  },
+  "nonreceptor-antagonists": {
+    title: "Nonreceptor antagonists",
+    summary: "These reduce agonist effect without blocking the agonist at the receptor binding site.",
+    bullets: [
+      "The mechanism is outside classic receptor competition.",
+      "They often do not produce the simple receptor-level right-shift pattern.",
+      "Chemical and physiologic antagonism are the main teaching examples.",
+    ],
+  },
+  "active-site-binding": {
+    title: "Active site binding",
+    summary: "The antagonist occupies the receptor's agonist binding site, also called the orthosteric or active site.",
+    bullets: [
+      "Reversible active-site antagonism typically behaves as competitive antagonism.",
+      "Irreversible active-site antagonism usually lowers maximal response.",
+      "The major graph question is whether Emax is preserved or lost.",
+    ],
+  },
+  "allosteric-binding": {
+    title: "Allosteric binding",
+    summary: "The antagonist binds a different site on the receptor and changes receptor activation from a distance.",
+    bullets: [
+      "This usually produces noncompetitive behavior.",
+      "Efficacy often falls because the agonist cannot fully activate the receptor system.",
+      "Potency may also change, but the key teaching pattern is that added agonist does not fully overcome the block.",
+    ],
+  },
+  "active-site-reversible": {
+    title: "Reversible active-site binding",
+    summary: "A reversible antagonist at the active site competes with the agonist for occupancy of the same receptor site.",
+    bullets: [
+      "This is the classic setup for competitive antagonism.",
+      "The agonist curve shifts right as more agonist is required to reach the same response.",
+      "Efficacy stays the same because enough agonist can still outcompete the antagonist.",
+    ],
+  },
+  "active-site-irreversible": {
+    title: "Irreversible active-site binding",
+    summary: "An irreversible active-site antagonist removes receptors from the available pool by long-lasting orthosteric binding.",
+    bullets: [
+      "This behaves as noncompetitive active-site antagonism.",
+      "The maximal response falls because fewer functional receptors remain.",
+      "Higher agonist concentration does not fully restore Emax.",
+    ],
+  },
+  "allosteric-reversible": {
+    title: "Reversible allosteric binding",
+    summary: "A reversible negative allosteric antagonist changes receptor behavior from a separate site.",
+    bullets: [
+      "It is usually not overcome completely by simply adding more agonist.",
+      "Graph changes often include reduced efficacy and sometimes altered apparent potency.",
+      "The teaching pattern is generally noncompetitive rather than a pure right shift.",
+    ],
+  },
+  "allosteric-irreversible": {
+    title: "Irreversible allosteric binding",
+    summary: "Persistent allosteric inhibition locks the receptor into a less responsive state from a separate binding site.",
+    bullets: [
+      "The agonist cannot fully recover receptor function with more concentration alone.",
+      "Efficacy falls because receptor signaling capacity is reduced.",
+      "This is another noncompetitive pattern, often with a durable loss of response.",
+    ],
+  },
+  "competitive-antagonist": {
+    title: "Competitive antagonist",
+    summary: "A competitive antagonist reversibly occupies the active site and competes directly with the agonist.",
+    bullets: [
+      "Agonist dose-response curve shifts to the right.",
+      "Efficacy or Emax stays the same.",
+      "More agonist can overcome the antagonism.",
+      "Teaching pearl: competitive antagonism primarily changes potency, not maximal efficacy.",
+    ],
+  },
+  "noncompetitive-active-site": {
+    title: "Noncompetitive active-site antagonist",
+    summary: "An irreversible active-site antagonist reduces the number of receptors available for agonist activation.",
+    bullets: [
+      "Maximal response falls.",
+      "The graph is not rescued fully by more agonist.",
+      "Potency may not change much, but efficacy is reduced.",
+      "Teaching pearl: this is insurmountable antagonism caused by receptor loss.",
+    ],
+  },
+  "noncompetitive-allosteric": {
+    title: "Noncompetitive allosteric antagonist",
+    summary: "An allosteric antagonist reduces receptor activation from a separate site rather than by direct competition at the active site.",
+    bullets: [
+      "Efficacy usually falls, so the curve is lower.",
+      "A right shift can occur, but the major teaching change is reduced maximal effect.",
+      "More agonist does not fully overcome the block.",
+      "Teaching pearl: allosteric antagonism often changes both receptor performance and observed efficacy.",
+    ],
+  },
+  "chemical-antagonist": {
+    title: "Chemical antagonist",
+    summary: "A chemical antagonist inactivates or sequesters the agonist before the agonist can act at the receptor.",
+    bullets: [
+      "This does not require occupation of the agonist receptor.",
+      "The apparent agonist effect falls because active agonist is removed from the system.",
+      "The graph change depends on how much agonist is neutralized, not on receptor competition itself.",
+      "Teaching pearl: think direct chemical neutralization rather than receptor blockade.",
+    ],
+  },
+  "physiologic-antagonist": {
+    title: "Physiologic antagonist",
+    summary: "A physiologic antagonist activates a different receptor system that produces an opposing tissue effect.",
+    bullets: [
+      "The original agonist receptor can remain completely unblocked.",
+      "Net tissue response falls because two signaling pathways oppose each other.",
+      "This is not a classic receptor-level right shift or noncompetitive blockade pattern.",
+      "Teaching pearl: the antagonism is functional at the level of the organ response.",
+    ],
+  },
+};
 
 function fmtNm(valueNm) {
   if (valueNm >= 100) {
@@ -208,6 +343,30 @@ function getRadioValue(name) {
 
 function setNote(id, text) {
   document.getElementById(id).textContent = text;
+}
+
+function renderAntagonistClasses() {
+  const activeData = ANTAGONIST_CLASS_DATA[selectedAntagonistClassKey] || ANTAGONIST_CLASS_DATA["competitive-antagonist"];
+  document.querySelectorAll(".ant-class-node").forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.antClassKey === selectedAntagonistClassKey);
+  });
+
+  const titleNode = document.getElementById("ant-class-title");
+  const summaryNode = document.getElementById("ant-class-summary");
+  const listNode = document.getElementById("ant-class-points");
+  if (!titleNode || !summaryNode || !listNode) {
+    return;
+  }
+
+  titleNode.textContent = activeData.title;
+  summaryNode.textContent = activeData.summary;
+  listNode.replaceChildren(
+    ...activeData.bullets.map((bullet) => {
+      const item = document.createElement("li");
+      item.textContent = bullet;
+      return item;
+    })
+  );
 }
 
 function logisticQuantal(logDose, mu, sigma) {
@@ -883,6 +1042,7 @@ const renderers = {
   binding: renderBinding,
   efficacy: renderEfficacy,
   antagonists: renderAntagonists,
+  classes: renderAntagonistClasses,
   partial: renderPartial,
   spare: renderSpare,
   quantal: renderQuantal,
@@ -949,6 +1109,14 @@ function bindControls() {
   document.querySelectorAll(".tab-button").forEach((button) => {
     button.addEventListener("click", () => {
       activateTab(button.dataset.tabTarget);
+    });
+  });
+
+  document.querySelectorAll(".ant-class-node").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedAntagonistClassKey = button.dataset.antClassKey;
+      renderAntagonistClasses();
+      dirtyTabs.classes = false;
     });
   });
 }
