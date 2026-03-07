@@ -229,6 +229,29 @@ function hillResponse(concentrations, emax, ec50, hillN = 1.0) {
   });
 }
 
+function competitiveMixedAgonistResponse(fullConcentrations, fullEc50, fullHill, partialConcentration, partialEc50, partialHill, partialIntrinsic) {
+  const safeFullEc50 = Math.max(fullEc50, EPS);
+  const safeFullHill = Math.max(fullHill, EPS);
+  const safePartialEc50 = Math.max(partialEc50, EPS);
+  const safePartialHill = Math.max(partialHill, EPS);
+  const safeIntrinsic = Math.max(partialIntrinsic, 0);
+  const partialTerm =
+    Math.max(partialConcentration, 0) > 0
+      ? (Math.max(partialConcentration, 0) / safePartialEc50) ** safePartialHill
+      : 0;
+
+  return fullConcentrations.map((fullConcentration) => {
+    const fullTerm =
+      Math.max(fullConcentration, 0) > 0
+        ? (Math.max(fullConcentration, 0) / safeFullEc50) ** safeFullHill
+        : 0;
+    const denominator = 1 + fullTerm + partialTerm;
+    const fractionalFull = fullTerm / denominator;
+    const fractionalPartial = partialTerm / denominator;
+    return EMAX_FIXED * (fractionalFull + safeIntrinsic * fractionalPartial);
+  });
+}
+
 function concentrationGridsNm(points = 500) {
   return {
     xLogNm: logspace(Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM), points),
@@ -791,6 +814,11 @@ function renderPartial() {
   const partialIntrinsic = getInputValue("pa-intrinsic");
   const partialEc50Nm = Math.max(getInputValue("pa-partial-ec50"), CONC_MIN_NM);
   const partialHill = getInputValue("pa-partial-hill");
+  const partialMixLevelsNm = [
+    Math.max(getInputValue("pa-mix1"), CONC_MIN_NM),
+    Math.max(getInputValue("pa-mix2"), CONC_MIN_NM),
+    Math.max(getInputValue("pa-mix3"), CONC_MIN_NM),
+  ];
   const partialEmax = EMAX_FIXED * partialIntrinsic;
   const fullEc50M = nmToM(fullEc50Nm);
   const partialEc50M = nmToM(partialEc50Nm);
@@ -803,6 +831,29 @@ function renderPartial() {
   const partialLogCurve = hillResponse(xLogM, partialEmax, partialEc50M, partialHill);
   const fullLinearCurve = hillResponse(xLinearM, EMAX_FIXED, fullEc50M, fullHill);
   const partialLinearCurve = hillResponse(xLinearM, partialEmax, partialEc50M, partialHill);
+  const mixColors = ["seagreen", "darkorange", "#c44a3b"];
+  const mixLogCurves = partialMixLevelsNm.map((partialLevelNm) =>
+    competitiveMixedAgonistResponse(
+      xLogM,
+      fullEc50M,
+      fullHill,
+      nmToM(partialLevelNm),
+      partialEc50M,
+      partialHill,
+      partialIntrinsic
+    )
+  );
+  const mixLinearCurves = partialMixLevelsNm.map((partialLevelNm) =>
+    competitiveMixedAgonistResponse(
+      xLinearM,
+      fullEc50M,
+      fullHill,
+      nmToM(partialLevelNm),
+      partialEc50M,
+      partialHill,
+      partialIntrinsic
+    )
+  );
 
   const logTraces = [
     {
@@ -821,6 +872,23 @@ function renderPartial() {
     },
   ];
 
+  const mixLogTraces = [
+    {
+      x: xLogNm,
+      y: fullLogCurve,
+      mode: "lines",
+      name: "No partial agonist",
+      line: { width: 3, color: "royalblue" },
+    },
+    ...mixLogCurves.map((curve, index) => ({
+      x: xLogNm,
+      y: curve,
+      mode: "lines",
+      name: `+ ${fmtNm(partialMixLevelsNm[index])} nM partial agonist`,
+      line: { width: 3, color: mixColors[index] },
+    })),
+  ];
+
   const linearTraces = [
     {
       x: xLinearNm,
@@ -836,6 +904,23 @@ function renderPartial() {
       name: "Partial agonist",
       line: { width: 3, color: "seagreen", dash: "dash" },
     },
+  ];
+
+  const mixLinearTraces = [
+    {
+      x: xLinearNm,
+      y: fullLinearCurve,
+      mode: "lines",
+      name: "No partial agonist",
+      line: { width: 3, color: "royalblue" },
+    },
+    ...mixLinearCurves.map((curve, index) => ({
+      x: xLinearNm,
+      y: curve,
+      mode: "lines",
+      name: `+ ${fmtNm(partialMixLevelsNm[index])} nM partial agonist`,
+      line: { width: 3, color: mixColors[index] },
+    })),
   ];
 
   let logLayout = baseLayout(
@@ -878,11 +963,39 @@ function renderPartial() {
   });
   linearLayout = legendBelow(linearLayout, 120);
 
+  let mixLogLayout = baseLayout(
+    "Full Agonist Response with Partial Agonist Present (Log X)",
+    "Full agonist concentration (nM, log scale)",
+    "Effect (%)",
+    true,
+    [0, 100],
+    [Math.log10(CONC_MIN_NM), Math.log10(CONC_MAX_NM)]
+  );
+  mixLogLayout = addReferenceLines(mixLogLayout, {
+    hlines: [[EMAX_FIXED, "Emax=efficacy", "gray"]],
+  });
+  mixLogLayout = legendBelow(mixLogLayout, 142);
+
+  let mixLinearLayout = baseLayout(
+    "Full Agonist Response with Partial Agonist Present (Linear X)",
+    "Full agonist concentration (nM, linear scale)",
+    "Effect (%)",
+    false,
+    [0, 100],
+    [0, LINEAR_MAX_NM]
+  );
+  mixLinearLayout = addReferenceLines(mixLinearLayout, {
+    hlines: [[EMAX_FIXED, "Emax=efficacy", "gray"]],
+  });
+  mixLinearLayout = legendBelow(mixLinearLayout, 142);
+
   plot("partial-log", logTraces, logLayout);
   plot("partial-linear", linearTraces, linearLayout);
+  plot("partial-mix-log", mixLogTraces, mixLogLayout);
+  plot("partial-mix-linear", mixLinearTraces, mixLinearLayout);
   setNote(
     "partial-note",
-    `Full EC50 = ${fmtNm(fullEc50Nm)} nM, Partial EC50 = ${fmtNm(partialEc50Nm)} nM. Full Emax=efficacy is fixed at ${EMAX_FIXED.toFixed(0)}; Partial Emax = ${partialEmax.toFixed(1)}% (${partialIntrinsic.toFixed(2)} x full).`
+    `Full EC50 = ${fmtNm(fullEc50Nm)} nM, Partial EC50 = ${fmtNm(partialEc50Nm)} nM. Full Emax=efficacy is fixed at ${EMAX_FIXED.toFixed(0)}; Partial Emax = ${partialEmax.toFixed(1)}% (${partialIntrinsic.toFixed(2)} x full). The co-administration plots use a shared-receptor competition model, so increasing fixed partial agonist levels (${partialMixLevelsNm.map((value) => `${fmtNm(value)} nM`).join(", ")}) lowers the response to a given full agonist dose while still allowing enough full agonist to approach Emax at the far right of the curve. This is meant to approximate a heroin-plus-buprenorphine teaching example.`
   );
 }
 

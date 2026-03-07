@@ -320,7 +320,7 @@
               <p class="panel-step">Lesson 5</p>
               <h2>Partial agonists</h2>
             </div>
-            <p class="panel-summary">Full agonist Emax stays fixed at 100 while intrinsic efficacy and EC50 shape the partial agonist curve.</p>
+            <p class="panel-summary">First compare the drugs alone, then see how increasing fixed partial-agonist concentrations can blunt the response to a full agonist by competing for the same receptor.</p>
           </div>
 
           <div class="controls-grid">
@@ -361,14 +361,51 @@
             </label>
           </div>
 
+          <p class="diagram-intro">Co-administration curves below show a full agonist response in the presence of increasing fixed partial-agonist concentrations, for example heroin in the presence of rising buprenorphine.</p>
+
+          <div class="controls-grid">
+            <label class="control accent-green">
+              <span class="control-top">
+                <span class="control-label">Partial agonist level 1</span>
+                <output class="control-value" data-for="pa-mix1"></output>
+              </span>
+              <input id="pa-mix1" type="range" min="0.1" max="250" step="0.1" value="1" data-format="nm">
+            </label>
+            <label class="control accent-orange">
+              <span class="control-top">
+                <span class="control-label">Partial agonist level 2</span>
+                <output class="control-value" data-for="pa-mix2"></output>
+              </span>
+              <input id="pa-mix2" type="range" min="0.1" max="250" step="0.1" value="10" data-format="nm">
+            </label>
+            <label class="control accent-red">
+              <span class="control-top">
+                <span class="control-label">Partial agonist level 3</span>
+                <output class="control-value" data-for="pa-mix3"></output>
+              </span>
+              <input id="pa-mix3" type="range" min="0.1" max="250" step="0.1" value="100" data-format="nm">
+            </label>
+          </div>
+
           <div class="plots-grid">
             <article class="plot-card">
-              <h3>Log plot</h3>
+              <h3>Agonists alone: log plot</h3>
               <div id="partial-log" class="plot-frame"></div>
             </article>
             <article class="plot-card">
-              <h3>Linear plot</h3>
+              <h3>Agonists alone: linear plot</h3>
               <div id="partial-linear" class="plot-frame"></div>
+            </article>
+          </div>
+
+          <div class="plots-grid">
+            <article class="plot-card">
+              <h3>Full agonist with partial agonist present: log plot</h3>
+              <div id="partial-mix-log" class="plot-frame"></div>
+            </article>
+            <article class="plot-card">
+              <h3>Full agonist with partial agonist present: linear plot</h3>
+              <div id="partial-mix-linear" class="plot-frame"></div>
             </article>
           </div>
 
