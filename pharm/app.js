@@ -814,7 +814,10 @@ function renderPartial() {
   const partialIntrinsic = getInputValue("pa-intrinsic");
   const partialEc50Nm = Math.max(getInputValue("pa-partial-ec50"), CONC_MIN_NM);
   const partialHill = getInputValue("pa-partial-hill");
-  const partialMixNm = Math.max(getInputValue("pa-mix"), CONC_MIN_NM);
+  const partialMixInput = document.getElementById("pa-mix");
+  const partialMixNm = partialMixInput ? Math.max(Number(partialMixInput.value), CONC_MIN_NM) : 30.0;
+  const mixLogNode = document.getElementById("partial-mix-log");
+  const mixLinearNode = document.getElementById("partial-mix-linear");
   const partialEmax = EMAX_FIXED * partialIntrinsic;
   const fullEc50M = nmToM(fullEc50Nm);
   const partialEc50M = nmToM(partialEc50Nm);
@@ -982,8 +985,10 @@ function renderPartial() {
 
   plot("partial-log", logTraces, logLayout);
   plot("partial-linear", linearTraces, linearLayout);
-  plot("partial-mix-log", mixLogTraces, mixLogLayout);
-  plot("partial-mix-linear", mixLinearTraces, mixLinearLayout);
+  if (mixLogNode && mixLinearNode) {
+    plot("partial-mix-log", mixLogTraces, mixLogLayout);
+    plot("partial-mix-linear", mixLinearTraces, mixLinearLayout);
+  }
   setNote(
     "partial-note",
     `Full EC50 = ${fmtNm(fullEc50Nm)} nM, Partial EC50 = ${fmtNm(partialEc50Nm)} nM. Full Emax=efficacy is fixed at ${EMAX_FIXED.toFixed(0)}; Partial Emax = ${partialEmax.toFixed(1)}% (${partialIntrinsic.toFixed(2)} x full). The co-administration plots use a shared-receptor competition model, so a fixed partial agonist level of ${fmtNm(partialMixNm)} nM lowers the response to a given full agonist dose while still allowing enough full agonist to approach Emax at the far right of the curve. This is meant to approximate a heroin-plus-buprenorphine teaching example.`
