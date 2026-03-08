@@ -182,6 +182,131 @@ const nodeStyles = {
   hand: { radius: 12, color: palette.hand },
 };
 
+const structureScale = 2.4;
+const structureTmDrop = 56;
+const structureKinaseDrop = 116;
+
+const clusteredStructureRaw = {
+  hand: [75.2, -57.0, -8.6],
+  armDist: [54.9, -57.7, 0.0],
+  armProx: [20.8, -4.6, 13.6],
+  site1: [34.7, -56.5, -32.0],
+  shoulder: [0.0, 0.0, 0.0],
+  upper: [22.4, 0.6, 11.3],
+  hip: [7.4, 64.6, 6.8],
+  mid1: [40.2, 58.9, -17.8],
+  mid2: [38.5, 116.2, -23.6],
+  knee: [43.3, 153.1, -35.4],
+  low1: [15.3, 159.5, -55.2],
+  low2: [34.7, 164.6, -45.3],
+  low3: [14.1, 226.0, -15.7],
+  low4: [0.0, 238.4, 0.0],
+};
+
+const activeProtomer1Raw = {
+  hand: [103.7, -76.3, -17.6],
+  armDist: [103.0, -63.7, 0.0],
+  armProx: [5.5, -3.7, 24.5],
+  site1: [42.8, -55.9, -26.0],
+  shoulder: [0.0, 0.0, 0.0],
+  upper: [27.8, -29.9, -67.2],
+  hip: [100.7, 59.7, -29.9],
+  mid1: [-11.3, 26.9, -61.4],
+  mid2: [88.4, 82.5, -96.1],
+  knee: [-41.7, 111.8, -69.4],
+  low1: [58.2, 155.1, -26.9],
+  low2: [-42.7, 125.4, -69.6],
+  low3: [-55.2, 170.2, -130.1],
+  low4: [0.0, 237.9, 0.0],
+};
+
+const activeProtomer2Raw = {
+  hand: [100.8, -79.0, -18.1],
+  armDist: [99.8, -67.2, -0.0],
+  armProx: [4.1, -3.7, 24.8],
+  site1: [78.1, -43.6, 2.5],
+  shoulder: [0.0, 0.0, 0.0],
+  upper: [33.9, -29.3, -71.4],
+  hip: [3.0, 61.0, 4.8],
+  mid1: [98.2, 36.7, -59.0],
+  mid2: [49.6, 114.6, 7.3],
+  knee: [87.7, 104.6, -118.0],
+  low1: [-19.5, 130.6, -75.3],
+  low2: [-39.9, 124.2, -79.3],
+  low3: [-44.6, 170.9, -139.5],
+  low4: [0.0, 237.9, 0.0],
+};
+
+const activeProtomer3Raw = {
+  hand: [98.9, -81.0, -17.8],
+  armDist: [98.9, -68.7, 0.0],
+  armProx: [3.0, -3.7, 25.0],
+  site1: [30.4, -41.4, 17.9],
+  shoulder: [0.0, 0.0, 0.0],
+  upper: [34.9, -30.5, -68.5],
+  hip: [27.9, 27.4, -89.5],
+  mid1: [39.0, 62.9, 24.9],
+  mid2: [-18.6, 78.4, -72.7],
+  knee: [63.4, 148.0, 5.7],
+  low1: [67.1, 121.8, -112.7],
+  low2: [-36.9, 124.1, -73.2],
+  low3: [-45.6, 169.8, -133.7],
+  low4: [-0.0, 237.9, -0.0],
+};
+
+const nell2TrimerModel = {
+  A: [
+    [55.858, 26.472, 34.383],
+    [73.002, 21.444, 32.157],
+    [103.384, 13.763, 21.25],
+    [97.781, 20.22, 12.307],
+    [85.094, 22.8, 11.439],
+    [55.943, 37.904, 16.233],
+    [51.151, 27.683, 0.72],
+    [23.317, 23.968, 1.316],
+  ],
+  B: [
+    [35.148, 28.919, 54.639],
+    [38.48, 46.476, 56.384],
+    [37.627, 79.405, 60.45],
+    [26.235, 75.042, 62.621],
+    [21.489, 63.265, 59.403],
+    [15.489, 30.76, 61.706],
+    [2.822, 34.55, 47.773],
+    [-1.431, 10.732, 33.602],
+  ],
+  C: [
+    [49.503, 3.841, 51.828],
+    [47.533, 0.096, 69.225],
+    [41.519, -12.828, 99.052],
+    [41.81, -22.105, 90.967],
+    [41.187, -21.296, 77.902],
+    [50.847, -17.088, 46.369],
+    [33.39, -24.324, 42.52],
+    [26.104, -15.948, 16.434],
+  ],
+};
+
+function finalizeStructureLocal(raw) {
+  const local = {};
+
+  Object.entries(raw).forEach(([key, point]) => {
+    local[key] = [point[0] * structureScale, -point[1] * structureScale, point[2] * structureScale];
+  });
+
+  local.tm = [local.low4[0], local.low4[1] - structureTmDrop, local.low4[2]];
+  local.kinase = [local.tm[0], local.tm[1] - structureKinaseDrop, local.tm[2]];
+
+  return local;
+}
+
+const clusteredStructureLocal = finalizeStructureLocal(clusteredStructureRaw);
+const activeStructureLocals = [
+  finalizeStructureLocal(activeProtomer1Raw),
+  finalizeStructureLocal(activeProtomer2Raw),
+  finalizeStructureLocal(activeProtomer3Raw),
+];
+
 const armExtendedLocal = {
   armProx: [26, 18, 20],
   armDist: [58, 72, 28],
@@ -305,6 +430,14 @@ function dot(a, b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
+function cross(a, b) {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+}
+
 function normalize(vector) {
   const length = Math.hypot(vector[0], vector[1], vector[2]) || 1;
   return [vector[0] / length, vector[1] / length, vector[2] / length];
@@ -419,20 +552,20 @@ function buildBoundReceptor(state, index) {
   const theta = index * ((Math.PI * 2) / 3) + Math.PI / 6;
   const outward = [Math.cos(theta), 0, Math.sin(theta)];
   const tangent = [-Math.sin(theta), 0, Math.cos(theta)];
-  const legLocal = state === "active" ? activeLegLocal : clusteredLegLocal;
-  const shoulder = add(scaleVec(outward, 92), [0, membraneY - legLocal.tm[1], 0]);
-  const armLocal = buildArmPoseLocal(state === "active" ? 1 : 0);
+  const structureLocal = state === "active" ? activeStructureLocals[index] : clusteredStructureLocal;
+  const shoulder = add(scaleVec(outward, 92), [0, membraneY - structureLocal.tm[1], 0]);
   const nodes = { shoulder };
 
-  Object.entries(legLocal).forEach(([key, value]) => {
+  Object.entries(structureLocal).forEach(([key, value]) => {
     nodes[key] = basisPoint(shoulder, outward, tangent, value);
   });
 
-  Object.entries(armLocal).forEach(([key, value]) => {
-    nodes[key] = basisPoint(shoulder, outward, tangent, value);
-  });
-
-  nodes.tmBase = basisPoint(shoulder, outward, tangent, [legLocal.tm[0], legLocal.tm[1] - 28, legLocal.tm[2]]);
+  nodes.tmBase = basisPoint(
+    shoulder,
+    outward,
+    tangent,
+    [structureLocal.tm[0], structureLocal.tm[1] - 28, structureLocal.tm[2]]
+  );
   return { nodes };
 }
 
@@ -445,8 +578,11 @@ function buildReceptor(state, index) {
 
 function mixReceptor(a, b, t) {
   const nodes = {};
-  Object.keys(a.nodes).forEach((key) => {
-    nodes[key] = mixVec(a.nodes[key], b.nodes[key], t);
+  const keys = new Set([...Object.keys(a.nodes), ...Object.keys(b.nodes)]);
+  keys.forEach((key) => {
+    const fromNode = a.nodes[key] || b.nodes[key];
+    const toNode = b.nodes[key] || a.nodes[key];
+    nodes[key] = mixVec(fromNode, toNode, t);
   });
   return { nodes };
 }
@@ -618,6 +754,9 @@ function drawProjectedChain(commands, projected, keys, color, widths, alpha) {
 }
 
 function site1Anchor(nodes) {
+  if (nodes.site1) {
+    return nodes.site1;
+  }
   const lift = normalize(subtract(nodes.shoulder, nodes.upper));
   return add(nodes.shoulder, scaleVec(lift, 18));
 }
@@ -632,6 +771,72 @@ function site3Anchor(nodes) {
 
 function ct4Anchor(nodes) {
   return mixVec(nodes.shoulder, nodes.armProx, 0.44);
+}
+
+function averagePoint(points) {
+  return points.reduce((sum, point) => add(sum, point), [0, 0, 0]).map((value) => value / points.length);
+}
+
+function buildTriangleFrame(points) {
+  const origin = averagePoint(points);
+  const xAxis = normalize(subtract(points[0], points[2]));
+  let zAxis = cross(subtract(points[1], points[0]), subtract(points[2], points[0]));
+
+  if (Math.hypot(zAxis[0], zAxis[1], zAxis[2]) < 0.001) {
+    zAxis = [0, 0, 1];
+  }
+
+  zAxis = normalize(zAxis);
+  const yAxis = normalize(cross(zAxis, xAxis));
+
+  return { origin, xAxis, yAxis, zAxis };
+}
+
+function pointToFrameLocal(frame, point, scale = 1) {
+  const delta = subtract(point, frame.origin);
+  return [
+    dot(delta, frame.xAxis) * scale,
+    dot(delta, frame.yAxis) * scale,
+    dot(delta, frame.zAxis) * scale,
+  ];
+}
+
+function pointFromFrameLocal(frame, local) {
+  return add(
+    frame.origin,
+    add(
+      scaleVec(frame.xAxis, local[0]),
+      add(scaleVec(frame.yAxis, local[1]), scaleVec(frame.zAxis, local[2]))
+    )
+  );
+}
+
+const nell2ProtomerOrder = ["A", "B", "C"];
+const nell2ModelSite1Points = nell2ProtomerOrder.map((key) => nell2TrimerModel[key][1]);
+const nell2ModelFrame = buildTriangleFrame(nell2ModelSite1Points);
+
+function transformNell2Trimer(site1Targets, offset = [0, 0, 0]) {
+  const targetFrame = buildTriangleFrame(site1Targets);
+
+  return nell2ProtomerOrder.map((key) => {
+    const trace = nell2TrimerModel[key].map((point) => {
+      const local = pointToFrameLocal(nell2ModelFrame, point, structureScale);
+      return add(pointFromFrameLocal(targetFrame, local), offset);
+    });
+
+    return {
+      key,
+      trace,
+      branch: trace[0],
+      site1: trace[1],
+      stemTop: trace[1],
+      stemMid: trace[2],
+      stemBase: trace[3],
+      bladeRoot: trace[4],
+      bladeMid: trace[5],
+      bladeTip: trace[7],
+    };
+  });
 }
 
 function buildNell2Glyph(spineBaseWorld, site1) {
@@ -820,43 +1025,33 @@ function labelOffsets(point, distance, rise = 0) {
 
 function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
   const visible = clamp(site1Factor + fullFactor, 0, 1);
-  if (visible < 0.02 || !receptors.length) {
+  if (visible < 0.02 || receptors.length < 3) {
     return;
   }
 
-  const hubBase = receptors.reduce(
-    (sum, receptor) => add(sum, site1Anchor(receptor.nodes)),
-    [0, 0, 0]
-  ).map((value) => value / receptors.length);
-  const spineBaseWorld = [hubBase[0], hubBase[1] + 196, hubBase[2]];
-  const headWorld = [hubBase[0], hubBase[1] + 338, hubBase[2]];
+  const site1Targets = receptors.map((receptor) => site1Anchor(receptor.nodes));
+  const protomers = transformNell2Trimer(site1Targets);
+  const branchCentroid = averagePoint(protomers.map((protomer) => protomer.branch));
+  const spineBaseWorld = branchCentroid;
+  const headWorld = add(branchCentroid, [0, 134, 0]);
   const head = project(headWorld);
   const spineBase = project(spineBaseWorld);
 
   pushNell2Core(commands, head, spineBase, visible);
 
-  receptors.forEach((receptor) => {
-    const protomer = buildNell2Protomer(receptor.nodes, spineBaseWorld);
-    const branch = project(protomer.branch);
-    const stemTop = project(protomer.stemTop);
-    const stemMid = project(protomer.stemMid);
-    const stemBase = project(protomer.stemBase);
-    const site1 = project(protomer.site1);
-    const bladeRoot = project(protomer.bladeRoot);
-    const bladeMid = project(protomer.bladeMid);
-    const bladeTip = project(protomer.bladeTip);
+  protomers.forEach((protomer) => {
     pushNell2Protomer(
       commands,
       {
         spineBase,
-        branch,
-        stemTop,
-        stemMid,
-        stemBase,
-        site1,
-        bladeRoot,
-        bladeMid,
-        bladeTip,
+        branch: project(protomer.branch),
+        stemTop: project(protomer.stemTop),
+        stemMid: project(protomer.stemMid),
+        stemBase: project(protomer.stemBase),
+        site1: project(protomer.site1),
+        bladeRoot: project(protomer.bladeRoot),
+        bladeMid: project(protomer.bladeMid),
+        bladeTip: project(protomer.bladeTip),
       },
       visible
     );
@@ -865,58 +1060,61 @@ function addBoundLigand(commands, receptors, site1Factor, fullFactor) {
   pushLabel(commands, head, "NELL2 trimer", palette.ligand, 22, -24);
 }
 
-function addDetachedLigand(commands, headWorld, alpha, labelText) {
+function addDetachedLigand(commands, protomers, alpha, labelText) {
+  if (alpha < 0.02) {
+    return;
+  }
+
+  const branchCentroid = averagePoint(protomers.map((protomer) => protomer.branch));
+  const headWorld = add(branchCentroid, [0, 134, 0]);
   const head = project(headWorld);
-  const spineBaseWorld = add(headWorld, [0, -146, 0]);
-  const spineBase = project(spineBaseWorld);
+  const spineBase = project(branchCentroid);
 
   pushNell2Core(commands, head, spineBase, alpha);
 
-  for (let index = 0; index < 3; index += 1) {
-    const angle = -Math.PI / 2 + index * ((Math.PI * 2) / 3);
-    const protomer = buildDetachedNell2Protomer(spineBaseWorld, angle);
-    const branch = project(protomer.branch);
-    const stemTop = project(protomer.stemTop);
-    const stemMid = project(protomer.stemMid);
-    const stemBase = project(protomer.stemBase);
-    const site1 = project(protomer.site1);
-    const bladeRoot = project(protomer.bladeRoot);
-    const bladeMid = project(protomer.bladeMid);
-    const bladeTip = project(protomer.bladeTip);
+  protomers.forEach((protomer) => {
     pushNell2Protomer(
       commands,
       {
         spineBase,
-        branch,
-        stemTop,
-        stemMid,
-        stemBase,
-        site1,
-        bladeRoot,
-        bladeMid,
-        bladeTip,
+        branch: project(protomer.branch),
+        stemTop: project(protomer.stemTop),
+        stemMid: project(protomer.stemMid),
+        stemBase: project(protomer.stemBase),
+        site1: project(protomer.site1),
+        bladeRoot: project(protomer.bladeRoot),
+        bladeMid: project(protomer.bladeMid),
+        bladeTip: project(protomer.bladeTip),
       },
-      alpha * 0.9
+      alpha
     );
-  }
+  });
 
   pushLabel(commands, head, labelText, palette.ligand, 22, -24);
 }
 
 function addBlockedLigand(commands, receptors, blockedFactor) {
-  if (blockedFactor < 0.02 || !receptors.length) {
+  if (blockedFactor < 0.02) {
     return;
   }
 
-  const receptor = receptors.find((entry) => entry.index === labelIndex) || receptors[0];
-  const armSide = normalize([
-    receptor.nodes.armDist[0] - receptor.nodes.shoulder[0],
-    0,
-    receptor.nodes.armDist[2] - receptor.nodes.shoulder[2],
-  ]);
-  const sideDirection = Math.hypot(armSide[0], armSide[2]) > 0.01 ? armSide : [1, 0, 0];
-  const headWorld = add(receptor.nodes.shoulder, add(scaleVec(sideDirection, 270), [0, 250, 0]));
-  addDetachedLigand(commands, headWorld, blockedFactor * 0.82, "NELL2 unbound");
+  const templateReceptors = [0, 1, 2].map((index) => ({ nodes: buildReceptor("clustered", index).nodes, index }));
+  const boundProtomers = transformNell2Trimer(
+    templateReceptors.map((receptor) => site1Anchor(receptor.nodes))
+  );
+  const shift = [260, 26, -10];
+  const detachedProtomers = boundProtomers.map((protomer) => ({
+    ...protomer,
+    branch: add(protomer.branch, shift),
+    site1: add(protomer.site1, shift),
+    stemTop: add(protomer.stemTop, shift),
+    stemMid: add(protomer.stemMid, shift),
+    stemBase: add(protomer.stemBase, shift),
+    bladeRoot: add(protomer.bladeRoot, shift),
+    bladeMid: add(protomer.bladeMid, shift),
+    bladeTip: add(protomer.bladeTip, shift),
+  }));
+  addDetachedLigand(commands, detachedProtomers, blockedFactor * 0.9, "NELL2 unbound");
 }
 
 function addRx5(commands, receptors, visible) {
