@@ -330,6 +330,22 @@ const bentLocal = {
   ...buildArmPoseLocal(0),
 };
 
+const inactiveLegScale = 1.44;
+const inactiveBentLocal = {
+  ...bentLocal,
+  upper: scaleVec(bentLocal.upper, inactiveLegScale),
+  hip: scaleVec(bentLocal.hip, inactiveLegScale),
+  mid1: scaleVec(bentLocal.mid1, inactiveLegScale),
+  mid2: scaleVec(bentLocal.mid2, inactiveLegScale),
+  knee: scaleVec(bentLocal.knee, inactiveLegScale),
+  low1: scaleVec(bentLocal.low1, inactiveLegScale),
+  low2: scaleVec(bentLocal.low2, inactiveLegScale),
+  low3: scaleVec(bentLocal.low3, inactiveLegScale),
+  low4: scaleVec(bentLocal.low4, inactiveLegScale),
+  tm: scaleVec(bentLocal.tm, inactiveLegScale),
+  kinase: scaleVec(bentLocal.kinase, inactiveLegScale),
+};
+
 const clusteredLegLocal = {
   upper: [0, -72, 0],
   hip: [2, -150, 0],
@@ -538,13 +554,13 @@ function buildArmPoseLocal(liftFactor) {
 function buildInactiveReceptor(index) {
   const x = (index - labelIndex) * 260;
   const z = (index - labelIndex) * 22;
-  const shoulder = [x + 42, membraneY - bentLocal.tm[1], z - 12];
+  const shoulder = [x + 42, membraneY - inactiveBentLocal.tm[1], z - 12];
   const yaw = Math.PI * 0.98;
   const nodes = { shoulder };
-  Object.entries(bentLocal).forEach(([key, value]) => {
+  Object.entries(inactiveBentLocal).forEach(([key, value]) => {
     nodes[key] = transformLocal(shoulder, value, yaw);
   });
-  nodes.tmBase = transformLocal(shoulder, add(bentLocal.tm, [0, -26, 0]), yaw);
+  nodes.tmBase = transformLocal(shoulder, add(inactiveBentLocal.tm, [0, -26, 0]), yaw);
   return { nodes };
 }
 
