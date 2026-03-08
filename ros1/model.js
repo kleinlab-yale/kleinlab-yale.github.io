@@ -1163,13 +1163,19 @@ function addCt4(commands, receptors, visible) {
   }
 
   receptors.forEach((receptor) => {
+    const site1World = site1Anchor(receptor.nodes);
     const interfaceNormal = normalize(subtract(receptor.nodes.armProx, receptor.nodes.shoulder));
-    const anchorWorld = add(ct4Anchor(receptor.nodes), scaleVec(interfaceNormal, 8));
-    const shoulderAway = normalize(subtract(anchorWorld, receptor.nodes.shoulder));
-    const armAway = normalize(subtract(anchorWorld, receptor.nodes.armProx));
-    const combinedAway = normalize(add(add(shoulderAway, armAway), [0, 0.45, 0]));
-    const sideHint = subtract(receptor.nodes.armProx, receptor.nodes.shoulder);
-    const points = projectAntibodyWorld(anchorWorld, combinedAway, sideHint, 90);
+    const interfacePoint = add(ct4Anchor(receptor.nodes), scaleVec(interfaceNormal, 8));
+    const ligandAway = normalize(subtract(interfacePoint, site1World));
+    const lateral = cross(interfaceNormal, ligandAway);
+    const combinedAway = normalize(
+      add(add(scaleVec(ligandAway, 1.35), scaleVec(interfaceNormal, 0.55)), [0, 0.12, 0])
+    );
+    const sideHint =
+      Math.hypot(lateral[0], lateral[1], lateral[2]) > 0.001
+        ? lateral
+        : subtract(receptor.nodes.armDist, receptor.nodes.armProx);
+    const points = projectAntibodyWorld(interfacePoint, combinedAway, sideHint, 88);
     pushClampFab(commands, points, palette.ct4, visible);
 
     if (receptor.index === labelIndex) {
