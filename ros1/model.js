@@ -552,11 +552,16 @@ function buildBoundReceptor(state, index) {
   const theta = index * ((Math.PI * 2) / 3) + Math.PI / 6;
   const outward = [Math.cos(theta), 0, Math.sin(theta)];
   const tangent = [-Math.sin(theta), 0, Math.cos(theta)];
-  const structureLocal = state === "active" ? activeStructureLocals[index] : clusteredStructureLocal;
-  const shoulder = add(scaleVec(outward, 92), [0, membraneY - structureLocal.tm[1], 0]);
+  const legLocal = state === "active" ? activeLegLocal : clusteredLegLocal;
+  const shoulder = add(scaleVec(outward, 92), [0, membraneY - legLocal.tm[1], 0]);
+  const armLocal = buildArmPoseLocal(state === "active" ? 1 : 0);
   const nodes = { shoulder };
 
-  Object.entries(structureLocal).forEach(([key, value]) => {
+  Object.entries(legLocal).forEach(([key, value]) => {
+    nodes[key] = basisPoint(shoulder, outward, tangent, value);
+  });
+
+  Object.entries(armLocal).forEach(([key, value]) => {
     nodes[key] = basisPoint(shoulder, outward, tangent, value);
   });
 
@@ -564,7 +569,7 @@ function buildBoundReceptor(state, index) {
     shoulder,
     outward,
     tangent,
-    [structureLocal.tm[0], structureLocal.tm[1] - 28, structureLocal.tm[2]]
+    [legLocal.tm[0], legLocal.tm[1] - 28, legLocal.tm[2]]
   );
   return { nodes };
 }
