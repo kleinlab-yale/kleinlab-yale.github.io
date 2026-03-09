@@ -661,15 +661,16 @@ function pushKinaseGlow(commands, point, radiusUnits, alpha = 1) {
   });
 }
 
-function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
+function pushFab(commands, tip, elbow, base, color, sizeUnits, alpha = 1) {
   commands.push({
     type: "fab",
-    point,
+    tip,
+    elbow,
+    base,
     color,
-    angle,
     sizeUnits,
     alpha,
-    depth: point.depth,
+    depth: (tip.depth + elbow.depth + base.depth) / 3,
   });
 }
 
@@ -700,6 +701,80 @@ function pushLabel(labels, point, text, color, offsetX, offsetY) {
 function labelOffsets(point, distance, rise = 0) {
   const direction = point.x < width * 0.5 ? -1 : 1;
   return [direction * distance, rise];
+}
+
+function withProjectedMeta(reference, x, y, depthOffset = 0) {
+  return {
+    x,
+    y,
+    scale: reference.scale,
+    depth: reference.depth + depthOffset,
+  };
+}
+
+function buildSingleTipAntibody(contactPoint, side, sizeUnits) {
+  const size = Math.max(20, sizeUnits * contactPoint.scale * 0.84);
+  const tipOffset = size * 0.76;
+  const armRise = size * 0.72;
+  const stemLength = size * 0.9;
+  const hubX = side === "left" ? contactPoint.x - tipOffset : contactPoint.x + tipOffset;
+  const hubY = contactPoint.y - armRise;
+  const freeTipX = side === "left" ? hubX - tipOffset : hubX + tipOffset;
+  const junction = withProjectedMeta(contactPoint, hubX, hubY);
+  const stemTip = withProjectedMeta(junction, hubX, hubY - stemLength, -4);
+
+  if (side === "left") {
+    return {
+      leftTip: withProjectedMeta(contactPoint, freeTipX, contactPoint.y),
+      rightTip: contactPoint,
+      junction,
+      stemTip,
+    };
+  }
+
+  return {
+    leftTip: contactPoint,
+    rightTip: withProjectedMeta(contactPoint, freeTipX, contactPoint.y),
+    junction,
+    stemTip,
+  };
+}
+
+function buildBridgeAntibody(leftPoint, rightPoint, sizeUnits) {
+  const avgScale = (leftPoint.scale + rightPoint.scale) * 0.5;
+  const avgDepth = (leftPoint.depth + rightPoint.depth) * 0.5;
+  const size = Math.max(20, sizeUnits * avgScale * 0.84);
+  const bridgeReference = {
+    x: (leftPoint.x + rightPoint.x) * 0.5,
+    y: (leftPoint.y + rightPoint.y) * 0.5,
+    scale: avgScale,
+    depth: avgDepth,
+  };
+  const junction = withProjectedMeta(
+    bridgeReference,
+    (leftPoint.x + rightPoint.x) * 0.5,
+    Math.min(leftPoint.y, rightPoint.y) - size * 0.72
+  );
+  const stemTip = withProjectedMeta(junction, junction.x, junction.y - size * 0.9, -4);
+  return {
+    leftTip: leftPoint,
+    rightTip: rightPoint,
+    junction,
+    stemTip,
+  };
+}
+
+function buildFabArm(contactPoint, side, sizeUnits) {
+  const size = Math.max(18, sizeUnits * contactPoint.scale * 0.84);
+  const elbowX = side === "left" ? contactPoint.x - size * 0.74 : contactPoint.x + size * 0.74;
+  const elbowY = contactPoint.y - size * 0.7;
+  const baseX = elbowX;
+  const baseY = elbowY - size * 0.58;
+  return {
+    tip: contactPoint,
+    elbow: withProjectedMeta(contactPoint, elbowX, elbowY),
+    base: withProjectedMeta(contactPoint, baseX, baseY, -3),
+  };
 }
 
 function measureLabel(text) {
@@ -971,43 +1046,16 @@ function drawKinaseGlow(command) {
 }
 
 function drawFab(command) {
-  const size = Math.max(12, command.sizeUnits * command.point.scale * 0.85);
-  const branch = size * 0.82;
-  const stem = size * 0.78;
-  const spread = Math.PI / 3.2;
+  const avgScale = (command.tip.scale + command.elbow.scale + command.base.scale) / 3;
+  const size = Math.max(12, command.sizeUnits * avgScale * 0.85);
   const armWidth = Math.max(4, size * 0.22);
-
-  function mapLocal(localX, localY) {
-    const cos = Math.cos(command.angle);
-    const sin = Math.sin(command.angle);
-    return {
-      x: command.point.x + localX * cos - localY * sin,
-      y: command.point.y + localX * sin + localY * cos,
-    };
-  }
-
-  const contact = mapLocal(0, stem * 0.56);
-  const hub = mapLocal(0, 0);
-  const left = mapLocal(Math.cos(-spread) * branch, Math.sin(-spread) * branch);
-  const right = mapLocal(Math.cos(spread) * branch, Math.sin(spread) * branch);
-
-  ctx.beginPath();
-  ctx.moveTo(contact.x, contact.y);
-  ctx.lineTo(hub.x, hub.y);
-  ctx.lineTo(left.x, left.y);
-  ctx.moveTo(hub.x, hub.y);
-  ctx.lineTo(right.x, right.y);
-  ctx.lineCap = "round";
-  ctx.strokeStyle = rgba(command.color, command.alpha);
-  ctx.lineWidth = armWidth;
-  ctx.stroke();
-
-  const gloss = ctx.createLinearGradient(contact.x, contact.y, left.x, left.y);
-  gloss.addColorStop(0, rgba(tint(command.color, 0.2), command.alpha * 0.6));
-  gloss.addColorStop(1, rgba(tint(command.color, -0.18), command.alpha * 0.7));
-  ctx.strokeStyle = gloss;
-  ctx.lineWidth = Math.max(2, armWidth * 0.55);
-  ctx.stroke();
+  strokeRoundedPath([command.tip, command.elbow, command.base], armWidth, command.color, command.alpha);
+  strokeRoundedPath(
+    [command.tip, command.elbow, command.base],
+    Math.max(2, armWidth * 0.24),
+    tint(command.color, 0.22),
+    command.alpha * 0.45
+  );
 }
 
 function drawAntibodyY(command) {
@@ -1133,8 +1181,13 @@ function buildCommands(now) {
   const kinaseGlow = lerp(fromProfile.kinaseGlow, toProfile.kinaseGlow, progress);
   const cdx123Alpha = lerp(fromProfile.showCDX123 ? 1 : 0, toProfile.showCDX123 ? 1 : 0, progress);
   const fab125Alpha = lerp(fromProfile.showFAB125 ? 1 : 0, toProfile.showFAB125 ? 1 : 0, progress);
-  const cdx125Alpha = lerp(fromProfile.showCDX125 ? 1 : 0, toProfile.showCDX125 ? 1 : 0, progress);
-  const antibodySizeUnits = 46;
+  const cdx125Entering = !fromProfile.showCDX125 && toProfile.showCDX125;
+  const cdx125Visibility = cdx125Entering
+    ? smoothstep(clamp((progressRaw - 0.62) / 0.28, 0, 1))
+    : 1;
+  const cdx125Alpha = lerp(fromProfile.showCDX125 ? 1 : 0, toProfile.showCDX125 ? 1 : 0, progress) * cdx125Visibility;
+  const fullAntibodySizeUnits = 38;
+  const fabSizeUnits = 38;
   const interfaceLigands = ligandAlpha > 0.02 ? buildInterfaceLigands(receptors) : [];
 
   receptors.forEach((receptor, index) => {
@@ -1231,8 +1284,18 @@ function buildCommands(now) {
     }
 
     if (cdx123Alpha > 0.02) {
-      const angle = index === 0 ? Math.PI * 0.22 : -Math.PI * 0.22;
-      pushFab(commands, projected.pxl, palette.cdx123, angle, antibodySizeUnits, cdx123Alpha);
+      const side = projected.pxl.x < width * 0.5 ? "left" : "right";
+      const antibody = buildSingleTipAntibody(projected.pxl, side, fullAntibodySizeUnits);
+      pushAntibodyY(
+        commands,
+        antibody.leftTip,
+        antibody.rightTip,
+        antibody.junction,
+        antibody.stemTip,
+        palette.cdx123,
+        fullAntibodySizeUnits,
+        cdx123Alpha
+      );
       if (index === labelIndex) {
         const [fabX, fabY] = labelOffsets(projected.pxl, 144, 50);
         pushLabel(labels, projected.pxl, "CDX123", palette.cdx123, fabX, fabY);
@@ -1240,8 +1303,9 @@ function buildCommands(now) {
     }
 
     if (fab125Alpha > 0.02) {
-      const angle = index === 0 ? Math.PI * 1.18 : -Math.PI * 0.18;
-      pushFab(commands, projected.handle, palette.fab125, angle, antibodySizeUnits, fab125Alpha);
+      const side = projected.handle.x < width * 0.5 ? "left" : "right";
+      const fab = buildFabArm(projected.handle, side, fabSizeUnits);
+      pushFab(commands, fab.tip, fab.elbow, fab.base, palette.fab125, fabSizeUnits, fab125Alpha);
       if (index === labelIndex) {
         const [fabX, fabY] = labelOffsets(projected.handle, 148, -42);
         pushLabel(labels, projected.handle, "FAB125", palette.fab125, fabX, fabY);
@@ -1273,24 +1337,19 @@ function buildCommands(now) {
   if (cdx125Alpha > 0.02 && projectedReceptors.length === 2) {
     const leftHandle = projectedReceptors[0].handle;
     const rightHandle = projectedReceptors[1].handle;
-    const antibodyScale = (leftHandle.scale + rightHandle.scale) * 0.5;
-    const armRise = Math.max(18, antibodyScale * 34);
-    const stemLength = Math.max(30, antibodyScale * 58);
-    const junction = {
-      x: (leftHandle.x + rightHandle.x) * 0.5,
-      y: Math.min(leftHandle.y, rightHandle.y) - armRise,
-      scale: (leftHandle.scale + rightHandle.scale) * 0.5,
-      depth: (leftHandle.depth + rightHandle.depth) * 0.5,
-    };
-    const stemTip = {
-      x: junction.x,
-      y: junction.y - stemLength,
-      scale: junction.scale,
-      depth: junction.depth - 4,
-    };
-    pushAntibodyY(commands, leftHandle, rightHandle, junction, stemTip, palette.cdx125, antibodySizeUnits, cdx125Alpha);
-    const [abX, abY] = labelOffsets(stemTip, 120, -8);
-    pushLabel(labels, stemTip, "CDX125", palette.cdx125, abX, abY);
+    const antibody = buildBridgeAntibody(leftHandle, rightHandle, fullAntibodySizeUnits);
+    pushAntibodyY(
+      commands,
+      antibody.leftTip,
+      antibody.rightTip,
+      antibody.junction,
+      antibody.stemTip,
+      palette.cdx125,
+      fullAntibodySizeUnits,
+      cdx125Alpha
+    );
+    const [abX, abY] = labelOffsets(antibody.stemTip, 120, -8);
+    pushLabel(labels, antibody.stemTip, "CDX125", palette.cdx125, abX, abY);
   }
 
   if (receptors[labelIndex]) {
