@@ -22,7 +22,7 @@ const COOPERATIVITY = {
   },
 };
 
-const PHASE_KD_RANGE = { min: 10, max: 220 };
+const PHASE_KD_RANGE = { min: KD_RANGE.min, max: KD_RANGE.max };
 const PHASE_MAP_BASELINE = {
   ligandPulse: 1.5,
   internalizationRate: 0.045,
@@ -639,7 +639,7 @@ function rewriteStaticCopy() {
       heading.textContent.includes("Receptor abundance") ||
       heading.textContent.includes("dimerization Kd")
     ) {
-      heading.textContent = "Effective Kd2 versus receptor abundance";
+      heading.textContent = "Dimerization Kd2 versus receptor abundance";
     }
   }
 
@@ -860,11 +860,7 @@ function renderSummary(summary) {
   const phaseSummary = simulate({
     ...PHASE_MAP_BASELINE,
     receptorLevel: state.receptorLevel,
-    dimerKd: clamp(
-      effectiveDimerKd(state),
-      PHASE_KD_RANGE.min,
-      PHASE_KD_RANGE.max
-    ),
+    dimerKd: clamp(state.dimerKd, PHASE_KD_RANGE.min, PHASE_KD_RANGE.max),
   });
   const phaseFate = classifyFate(phaseSummary.score).fate;
 
@@ -1085,11 +1081,7 @@ function renderPhaseMap() {
 
   drawPhaseAxes(phaseContext, margin, plotWidth, plotHeight);
 
-  const phaseDotKd = clamp(
-    effectiveDimerKd(state),
-    PHASE_KD_RANGE.min,
-    PHASE_KD_RANGE.max
-  );
+  const phaseDotKd = clamp(state.dimerKd, PHASE_KD_RANGE.min, PHASE_KD_RANGE.max);
   const dotX =
     margin.left +
     ((phaseDotKd - PHASE_KD_RANGE.min) / (PHASE_KD_RANGE.max - PHASE_KD_RANGE.min)) *
@@ -1112,7 +1104,7 @@ function renderPhaseMap() {
 
 function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
   const receptorTicks = [50, 100, 150, 200, 250, 300];
-  const kdTicks = [20, 60, 100, 140, 180, 220];
+  const kdTicks = [20, 60, 100, 140, 180];
 
   context.fillStyle = "#5f6470";
   context.font = '12px "Space Grotesk", sans-serif';
@@ -1151,7 +1143,7 @@ function drawPhaseAxes(context, margin, plotWidth, plotHeight) {
   context.fillStyle = "#5f6470";
   context.textAlign = "center";
   context.fillText(
-    "effective Kd2 (AU)",
+    "dimerization Kd2 (AU)",
     margin.left + plotWidth / 2,
     margin.top + plotHeight + 34
   );
