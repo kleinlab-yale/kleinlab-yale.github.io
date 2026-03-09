@@ -159,8 +159,8 @@ const sceneSpecs = {
     contactAlpha: 0,
     kinaseGlow: 0,
     receptors: [
-      { anchor: [-72, membraneY, 0], yaw: -0.08, direction: 1, pose: "boundLeft" },
-      { anchor: [72, membraneY, 0], yaw: 0.08, direction: -1, pose: "boundRight" },
+      { anchor: [-98, membraneY, 0], yaw: -0.08, direction: 1, pose: "boundLeft" },
+      { anchor: [98, membraneY, 0], yaw: 0.08, direction: -1, pose: "boundRight" },
     ],
   },
   dimer: {
