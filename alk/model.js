@@ -15,13 +15,13 @@ const viewerBadgeLabel = document.getElementById("viewerBadgeLabel");
 const palette = {
   grd: "#d6b05e",
   egf: "#78c6d8",
-  tnf: "#df8a71",
+  handle: "#df8a71",
   pole: "#f0d99a",
   pxl: "#cb7aa0",
   tm: "#8f90ef",
   kinase: "#185c73",
-  ligand: "#2f3137",
-  ligandSoft: "#a0a5ae",
+  ligand: "#43a85f",
+  ligandSoft: "#b6e2c1",
   membrane: "#d7d25d",
   contact: "#4f6a79",
 };
@@ -30,7 +30,7 @@ const stateMeta = {
   apo: {
     title: "Unliganded ALK",
     body:
-      "Before ligand binding, ALK is shown as separated monomers whose ectodomains are not yet organized into the membrane-parallel signaling arrangement. The membrane pocket that later accepts ALKAL is not productively formed, the EGF-like spacer has not yet repositioned, and no symmetric dimer interface is created.",
+      "Before ligand binding, ALK is shown as separated monomers whose handle-pole-PXL GRD is not yet organized into the membrane-parallel signaling arrangement. The membrane pocket that later accepts ALKAL is not productively formed, the EGF-like spacer has not yet repositioned, and no symmetric dimer interface is created.",
     metrics: {
       ligand: "None",
       pose: "Undocked",
@@ -44,7 +44,7 @@ const stateMeta = {
   bound: {
     title: "ALKAL binds in the membrane gap",
     body:
-      "The EGF-like domain acts as a spacer between the membrane and the glycine-rich domain, creating a narrow pocket where ALKAL can nest. In this ligand-bound state the GRD lies broadly parallel to the membrane, the ligand also helps stabilize that membrane-facing pose, and the receptor pair is only poised for signaling until partner contact is made.",
+      "The EGF-like domain acts as a spacer between the membrane and the handle, creating a narrow pocket where ALKAL can nest. In this ligand-bound state the handle, pole, and PXL lie broadly parallel to the membrane, while the ligand projects orthogonally from that GRD axis and poises the receptor pair for partner contact.",
     metrics: {
       ligand: "ALKAL bound",
       pose: "Membrane-parallel",
@@ -58,7 +58,7 @@ const stateMeta = {
   dimer: {
     title: "A small exposed ligand patch helps build the symmetric dimer",
     body:
-      "With both GRDs lying flat over the membrane, a small exposed part of each bound ALKAL can help contact the neighboring ALK complex through the opposite PXL side and stabilize a nearly symmetric dimer. That geometry pulls the transmembrane helices together and turns signaling on.",
+      "With both GRDs lying flat over the membrane, each bound ALKAL projects orthogonally from its handle-pole-PXL axis and helps stitch across to the neighboring GRD through the opposite side. That nearly symmetric geometry pulls the transmembrane helices together and turns signaling on.",
     metrics: {
       ligand: "ALKAL x2",
       pose: "Parallel + locked",
@@ -79,51 +79,39 @@ const localPoses = {
     tmBase: [0, -40, 0],
     tm: [0, 0, 0],
     egfBase: [0, 24, 0],
-    egfTop: [14, 70, 10],
-    grdBase: [28, 118, 22],
-    grdMid: [44, 174, 40],
-    grdTip: [62, 228, 60],
-    tnf: [84, 266, 74],
-    pole: [48, 190, 92],
-    pxl: [78, 164, 110],
-    pocket: [54, 138, 44],
-    ligandBase: [58, 122, 34],
-    ligandMid: [72, 144, 50],
-    ligandTip: [84, 164, 60],
+    egfTop: [10, 72, 8],
+    handle: [26, 116, 18],
+    pole: [20, 166, 54],
+    pxl: [14, 190, 92],
+    ligandBase: [36, 126, 14],
+    ligandMid: [58, 128, 14],
+    ligandTip: [82, 130, 14],
   },
   bound: {
     kinase: [0, -132, 0],
     tmBase: [0, -40, 0],
     tm: [0, 0, 0],
     egfBase: [0, 24, 0],
-    egfTop: [0, 70, 0],
-    grdBase: [28, 92, 2],
-    grdMid: [76, 96, 6],
-    grdTip: [128, 94, 10],
-    tnf: [156, 100, 18],
-    pole: [86, 114, 32],
-    pxl: [106, 98, 36],
-    pocket: [66, 84, 8],
-    ligandBase: [30, 58, -10],
-    ligandMid: [64, 72, -2],
-    ligandTip: [100, 84, 10],
+    egfTop: [0, 74, 0],
+    handle: [18, 94, 0],
+    pole: [18, 96, 30],
+    pxl: [18, 92, 60],
+    ligandBase: [20, 90, 6],
+    ligandMid: [54, 92, 6],
+    ligandTip: [88, 94, 6],
   },
   dimer: {
     kinase: [0, -132, 0],
     tmBase: [0, -40, 0],
     tm: [0, 0, 0],
     egfBase: [0, 24, 0],
-    egfTop: [0, 72, 0],
-    grdBase: [24, 90, 0],
-    grdMid: [68, 92, 2],
-    grdTip: [116, 90, 4],
-    tnf: [144, 96, 10],
-    pole: [78, 108, 26],
-    pxl: [98, 92, 30],
-    pocket: [62, 80, 4],
-    ligandBase: [28, 58, -12],
-    ligandMid: [60, 72, -4],
-    ligandTip: [92, 82, 8],
+    egfTop: [8, 78, 0],
+    handle: [24, 92, 0],
+    pole: [24, 94, 26],
+    pxl: [24, 92, 50],
+    ligandBase: [28, 90, 4],
+    ligandMid: [62, 92, 4],
+    ligandTip: [98, 94, 4],
   },
 };
 
@@ -146,8 +134,8 @@ const sceneSpecs = {
     contactAlpha: 0,
     kinaseGlow: 0,
     receptors: [
-      { anchor: [-188, membraneY, -28], yaw: -0.24, direction: 1 },
-      { anchor: [188, membraneY, 28], yaw: 0.24, direction: -1 },
+      { anchor: [-158, membraneY, -28], yaw: -0.24, direction: 1 },
+      { anchor: [158, membraneY, 28], yaw: 0.24, direction: -1 },
     ],
   },
   dimer: {
@@ -157,8 +145,8 @@ const sceneSpecs = {
     contactAlpha: 1,
     kinaseGlow: 1,
     receptors: [
-      { anchor: [-126, membraneY, -18], yaw: -0.08, direction: 1 },
-      { anchor: [126, membraneY, 18], yaw: 0.08, direction: -1 },
+      { anchor: [-84, membraneY, -18], yaw: -0.08, direction: 1 },
+      { anchor: [84, membraneY, 18], yaw: 0.08, direction: -1 },
     ],
   },
 };
@@ -169,12 +157,9 @@ const nodeStyles = {
   tm: { radius: 10, color: palette.tm },
   egfBase: { radius: 10, color: palette.egf },
   egfTop: { radius: 13, color: palette.egf },
-  grdBase: { radius: 17, color: palette.grd },
-  grdMid: { radius: 21, color: palette.grd },
-  grdTip: { radius: 17, color: palette.grd },
-  tnf: { radius: 14, color: palette.tnf },
-  pole: { radius: 12, color: palette.pole },
-  pxl: { radius: 11, color: palette.pxl },
+  handle: { radius: 18, color: palette.handle },
+  pole: { radius: 14, color: palette.pole },
+  pxl: { radius: 13, color: palette.pxl },
 };
 
 const defaultView = Object.freeze({
@@ -207,6 +192,7 @@ let transitionDuration = 900;
 let width = 0;
 let height = 0;
 let deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+const labelIndex = 0;
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -783,7 +769,7 @@ function buildCommands(now) {
   const contactAlpha = lerp(fromScene.contactAlpha, toScene.contactAlpha, progress);
   const kinaseGlow = lerp(fromScene.kinaseGlow, toScene.kinaseGlow, progress);
 
-  receptors.forEach((receptor) => {
+  receptors.forEach((receptor, index) => {
     const projected = {};
     Object.entries(receptor.nodes).forEach(([key, value]) => {
       projected[key] = project(value);
@@ -793,12 +779,9 @@ function buildCommands(now) {
     pushSegment(commands, projected.tmBase, projected.tm, palette.tm, 10, 0.94);
     pushSegment(commands, projected.tm, projected.egfBase, palette.egf, 10, 0.94);
     pushSegment(commands, projected.egfBase, projected.egfTop, palette.egf, 12, 0.96);
-    pushSegment(commands, projected.egfTop, projected.grdBase, palette.egf, 8, 0.82);
-    pushSegment(commands, projected.grdBase, projected.grdMid, palette.grd, 19, 0.96);
-    pushSegment(commands, projected.grdMid, projected.grdTip, palette.grd, 17, 0.96);
-    pushSegment(commands, projected.grdMid, projected.tnf, palette.tnf, 11, 0.92);
-    pushSegment(commands, projected.grdMid, projected.pole, palette.pole, 10, 0.9);
-    pushSegment(commands, projected.grdMid, projected.pxl, palette.pxl, 10, 0.92);
+    pushSegment(commands, projected.egfTop, projected.handle, palette.egf, 8, 0.88);
+    pushSegment(commands, projected.handle, projected.pole, palette.grd, 16, 0.96);
+    pushSegment(commands, projected.pole, projected.pxl, palette.grd, 15, 0.96);
 
     Object.entries(nodeStyles).forEach(([key, style]) => {
       pushSphere(commands, projected[key], style.radius, style.color);
@@ -807,10 +790,10 @@ function buildCommands(now) {
     if (gapAlpha > 0.02) {
       const gapCenterWorld = averagePoint([
         receptor.nodes.ligandMid,
-        receptor.nodes.pocket,
-        mixVec(receptor.nodes.tm, receptor.nodes.grdBase, 0.5),
+        receptor.nodes.handle,
+        mixVec(receptor.nodes.tm, receptor.nodes.handle, 0.5),
       ]);
-      const gapAxisWorld = subtract(receptor.nodes.grdTip, receptor.nodes.grdBase);
+      const gapAxisWorld = subtract(receptor.nodes.pxl, receptor.nodes.handle);
       const gapCenter = project(gapCenterWorld);
       const axisPoint = project(add(gapCenterWorld, scaleVec(normalize(gapAxisWorld), 40)));
       pushGapHalo(
@@ -834,9 +817,9 @@ function buildCommands(now) {
 
     hoverCandidates.push(
       {
-        point: projected.grdMid,
-        text: "Handle / GRD",
-        color: palette.grd,
+        point: projected.handle,
+        text: "Handle",
+        color: palette.handle,
         threshold: 32,
       },
       {
@@ -845,18 +828,13 @@ function buildCommands(now) {
         color: palette.egf,
       },
       {
-        point: projected.tnf,
-        text: "Ligand-binding face",
-        color: palette.tnf,
-      },
-      {
         point: projected.pole,
-        text: "Rigid pole",
-        color: palette.grd,
+        text: "Pole",
+        color: palette.pole,
       },
       {
         point: projected.pxl,
-        text: "PXL sensor",
+        text: "PXL",
         color: palette.pxl,
       },
       {
@@ -874,25 +852,53 @@ function buildCommands(now) {
     if (kinaseGlow > 0.02) {
       pushKinaseGlow(commands, projected.kinase, 42, kinaseGlow * 0.28);
     }
+
+    if (index === labelIndex) {
+      const [egfX, egfY] = labelOffsets(projected.egfTop, 128, -34);
+      const [handleX, handleY] = labelOffsets(projected.handle, 138, -10);
+      const [poleX, poleY] = labelOffsets(projected.pole, 132, 6);
+      const [pxlX, pxlY] = labelOffsets(projected.pxl, 126, 26);
+      const [tmX, tmY] = labelOffsets(projected.tm, 116, 10);
+      const [kinaseX, kinaseY] = labelOffsets(projected.kinase, 116, 22);
+
+      pushLabel(labels, projected.egfTop, "EGF-like spacer", palette.egf, egfX, egfY);
+      pushLabel(labels, projected.handle, "Handle", palette.handle, handleX, handleY);
+      pushLabel(labels, projected.pole, "Pole", palette.pole, poleX, poleY);
+      pushLabel(labels, projected.pxl, "PXL", palette.pxl, pxlX, pxlY);
+      pushLabel(labels, projected.tm, "TM helix", palette.tm, tmX, tmY);
+      pushLabel(labels, projected.kinase, "Kinase", palette.kinase, kinaseX, kinaseY);
+
+      if (ligandAlpha > 0.02) {
+        const [ligandX, ligandY] = labelOffsets(projected.ligandMid, 138, -26);
+        pushLabel(labels, projected.ligandMid, "ALKAL", palette.ligand, ligandX, ligandY);
+      }
+    }
   });
+
+  if (receptors[labelIndex]) {
+    const membranePoint = project([-250, membraneY, 0]);
+    pushLabel(labels, membranePoint, "Membrane", palette.membrane, -12, -16);
+  }
 
   if (contactAlpha > 0.02) {
     const left = receptors[0].nodes;
     const right = receptors[1].nodes;
     const leftTip = project(left.ligandTip);
     const rightTip = project(right.ligandTip);
-    const leftPocket = project(left.pocket);
-    const rightPocket = project(right.pocket);
-    pushBridge(commands, leftTip, rightPocket, contactAlpha * 0.9);
-    pushBridge(commands, rightTip, leftPocket, contactAlpha * 0.9);
+    const leftGrdTarget = project(averagePoint([left.handle, left.pole, left.pxl]));
+    const rightGrdTarget = project(averagePoint([right.handle, right.pole, right.pxl]));
+    pushBridge(commands, leftTip, rightGrdTarget, contactAlpha * 0.9);
+    pushBridge(commands, rightTip, leftGrdTarget, contactAlpha * 0.9);
 
-    const interfacePoint = project(averagePoint([left.ligandTip, right.ligandTip, left.pocket, right.pocket]));
+    const interfacePoint = project(averagePoint([left.ligandTip, right.ligandTip, left.handle, right.handle]));
     hoverCandidates.push({
       point: interfacePoint,
-      text: "Symmetric dimer interface",
+      text: "Ligand stitch",
       color: palette.contact,
       threshold: 38,
     });
+
+    pushLabel(labels, interfacePoint, "Ligand stitch", palette.contact, 24, -30);
   }
 
   hoverLabel(labels, hoverCandidates);
