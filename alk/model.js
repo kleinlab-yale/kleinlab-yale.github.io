@@ -58,7 +58,7 @@ const stateMeta = {
   dimer: {
     title: "A small exposed ligand patch helps build the symmetric dimer",
     body:
-      "With both GRDs lying flat over the membrane, each bound ALKAL projects orthogonally from its handle-pole-PXL axis and helps stitch across to the neighboring GRD through the opposite side. That nearly symmetric geometry pulls the transmembrane helices together and turns signaling on.",
+      "With both GRDs lying flat over the membrane, the two complexes line up antiparallel so the handle of one sits beside the PXL of the other. Each ALKAL then spans the interface from its own handle to the opposite protomer's PXL, pulling the transmembrane helices together and turning signaling on.",
     metrics: {
       ligand: "ALKAL x2",
       pose: "Parallel + locked",
@@ -100,18 +100,31 @@ const localPoses = {
     ligandMid: [54, 92, 6],
     ligandTip: [88, 94, 6],
   },
-  dimer: {
+  dimerLeft: {
     kinase: [0, -132, 0],
     tmBase: [0, -40, 0],
     tm: [0, 0, 0],
     egfBase: [0, 24, 0],
-    egfTop: [8, 78, 0],
-    handle: [24, 92, 0],
-    pole: [24, 94, 26],
-    pxl: [24, 92, 50],
-    ligandBase: [28, 90, 4],
-    ligandMid: [62, 92, 4],
-    ligandTip: [98, 94, 4],
+    egfTop: [22, 78, -18],
+    handle: [34, 92, -24],
+    pole: [34, 94, 0],
+    pxl: [34, 92, 24],
+    ligandBase: [38, 90, -24],
+    ligandMid: [66, 92, -24],
+    ligandTip: [96, 94, -24],
+  },
+  dimerRight: {
+    kinase: [0, -132, 0],
+    tmBase: [0, -40, 0],
+    tm: [0, 0, 0],
+    egfBase: [0, 24, 0],
+    egfTop: [22, 78, 18],
+    handle: [34, 92, 24],
+    pole: [34, 94, 0],
+    pxl: [34, 92, -24],
+    ligandBase: [38, 90, 24],
+    ligandMid: [66, 92, 24],
+    ligandTip: [96, 94, 24],
   },
 };
 
@@ -139,14 +152,13 @@ const sceneSpecs = {
     ],
   },
   dimer: {
-    pose: "dimer",
     ligandAlpha: 1,
     gapAlpha: 1,
     contactAlpha: 1,
     kinaseGlow: 1,
     receptors: [
-      { anchor: [-84, membraneY, -18], yaw: -0.08, direction: 1 },
-      { anchor: [84, membraneY, 18], yaw: 0.08, direction: -1 },
+      { anchor: [-58, membraneY, 0], yaw: -0.08, direction: 1, pose: "dimerLeft" },
+      { anchor: [58, membraneY, 0], yaw: 0.08, direction: -1, pose: "dimerRight" },
     ],
   },
 };
@@ -344,7 +356,7 @@ function buildScene(stateName) {
     gapAlpha: spec.gapAlpha,
     contactAlpha: spec.contactAlpha,
     kinaseGlow: spec.kinaseGlow,
-    receptors: spec.receptors.map((receptor) => buildReceptor(receptor, spec.pose)),
+    receptors: spec.receptors.map((receptor) => buildReceptor(receptor, receptor.pose || spec.pose)),
   };
 }
 
@@ -806,7 +818,7 @@ function buildCommands(now) {
       );
     }
 
-    if (ligandAlpha > 0.02) {
+    if (ligandAlpha > 0.02 && contactAlpha < 0.02) {
       pushLigand(commands, projected.ligandBase, projected.ligandMid, projected.ligandTip, ligandAlpha);
       hoverCandidates.push({
         point: projected.ligandMid,
@@ -868,7 +880,7 @@ function buildCommands(now) {
       pushLabel(labels, projected.tm, "TM helix", palette.tm, tmX, tmY);
       pushLabel(labels, projected.kinase, "Kinase", palette.kinase, kinaseX, kinaseY);
 
-      if (ligandAlpha > 0.02) {
+      if (ligandAlpha > 0.02 && contactAlpha < 0.02) {
         const [ligandX, ligandY] = labelOffsets(projected.ligandMid, 138, -26);
         pushLabel(labels, projected.ligandMid, "ALKAL", palette.ligand, ligandX, ligandY);
       }
@@ -883,22 +895,34 @@ function buildCommands(now) {
   if (contactAlpha > 0.02) {
     const left = receptors[0].nodes;
     const right = receptors[1].nodes;
-    const leftTip = project(left.ligandTip);
-    const rightTip = project(right.ligandTip);
-    const leftGrdTarget = project(averagePoint([left.handle, left.pole, left.pxl]));
-    const rightGrdTarget = project(averagePoint([right.handle, right.pole, right.pxl]));
-    pushBridge(commands, leftTip, rightGrdTarget, contactAlpha * 0.9);
-    pushBridge(commands, rightTip, leftGrdTarget, contactAlpha * 0.9);
+    const leftLigandBase = project(left.handle);
+    const leftLigandMid = project(mixVec(left.handle, right.pxl, 0.52));
+    const leftLigandTip = project(right.pxl);
+    const rightLigandBase = project(right.handle);
+    const rightLigandMid = project(mixVec(right.handle, left.pxl, 0.52));
+    const rightLigandTip = project(left.pxl);
+    pushLigand(commands, leftLigandBase, leftLigandMid, leftLigandTip, ligandAlpha);
+    pushLigand(commands, rightLigandBase, rightLigandMid, rightLigandTip, ligandAlpha);
 
-    const interfacePoint = project(averagePoint([left.ligandTip, right.ligandTip, left.handle, right.handle]));
-    hoverCandidates.push({
-      point: interfacePoint,
-      text: "Ligand stitch",
-      color: palette.contact,
-      threshold: 38,
-    });
+    hoverCandidates.push(
+      {
+        point: leftLigandMid,
+        text: "ALKAL",
+        color: palette.ligand,
+        threshold: 34,
+      },
+      {
+        point: rightLigandMid,
+        text: "ALKAL",
+        color: palette.ligand,
+        threshold: 34,
+      }
+    );
 
-    pushLabel(labels, interfacePoint, "Ligand stitch", palette.contact, 24, -30);
+    if (receptors[labelIndex]) {
+      const [ligandX, ligandY] = labelOffsets(leftLigandMid, 138, -24);
+      pushLabel(labels, leftLigandMid, "ALKAL", palette.ligand, ligandX, ligandY);
+    }
   }
 
   hoverLabel(labels, hoverCandidates);
