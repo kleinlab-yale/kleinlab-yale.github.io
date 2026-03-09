@@ -44,7 +44,7 @@ const stateMeta = {
   bound: {
     title: "ALKAL binds in the membrane gap",
     body:
-      "The EGF-like domain acts as a spacer between the membrane and the handle, creating a narrow pocket where ALKAL can nest. In this ligand-bound state the handle, pole, and PXL lie broadly parallel to the membrane, while the ligand projects orthogonally from that GRD axis and poises the receptor pair for partner contact.",
+      "The EGF-like domain acts as a spacer between the membrane and the handle, creating a narrow pocket where ALKAL can nest. In this ligand-bound state the two complexes are already arranged as an antiparallel pre-dimer, with the handle of one facing the other protomer's PXL, so only a modest closing motion is needed for signaling.",
     metrics: {
       ligand: "ALKAL bound",
       pose: "Membrane-parallel",
@@ -87,25 +87,12 @@ const localPoses = {
     ligandMid: [58, 128, 14],
     ligandTip: [82, 130, 14],
   },
-  bound: {
+  boundLeft: {
     kinase: [0, -132, 0],
     tmBase: [0, -40, 0],
     tm: [0, 0, 0],
     egfBase: [0, 24, 0],
-    egfTop: [0, 74, 0],
-    handle: [18, 94, 0],
-    pole: [18, 96, 30],
-    pxl: [18, 92, 60],
-    ligandBase: [20, 90, 6],
-    ligandMid: [54, 92, 6],
-    ligandTip: [88, 94, 6],
-  },
-  dimerLeft: {
-    kinase: [0, -132, 0],
-    tmBase: [0, -40, 0],
-    tm: [0, 0, 0],
-    egfBase: [0, 24, 0],
-    egfTop: [22, 78, -18],
+    egfTop: [16, 76, -18],
     handle: [34, 92, -24],
     pole: [34, 94, 0],
     pxl: [34, 92, 24],
@@ -113,18 +100,44 @@ const localPoses = {
     ligandMid: [66, 92, -24],
     ligandTip: [96, 94, -24],
   },
-  dimerRight: {
+  boundRight: {
     kinase: [0, -132, 0],
     tmBase: [0, -40, 0],
     tm: [0, 0, 0],
     egfBase: [0, 24, 0],
-    egfTop: [22, 78, 18],
+    egfTop: [16, 76, 18],
     handle: [34, 92, 24],
     pole: [34, 94, 0],
     pxl: [34, 92, -24],
     ligandBase: [38, 90, 24],
     ligandMid: [66, 92, 24],
     ligandTip: [96, 94, 24],
+  },
+  dimerLeft: {
+    kinase: [16, -132, 0],
+    tmBase: [12, -40, 0],
+    tm: [10, 0, 0],
+    egfBase: [12, 24, 0],
+    egfTop: [30, 78, -18],
+    handle: [42, 92, -24],
+    pole: [42, 94, 0],
+    pxl: [42, 92, 24],
+    ligandBase: [46, 90, -24],
+    ligandMid: [74, 92, -24],
+    ligandTip: [104, 94, -24],
+  },
+  dimerRight: {
+    kinase: [16, -132, 0],
+    tmBase: [12, -40, 0],
+    tm: [10, 0, 0],
+    egfBase: [12, 24, 0],
+    egfTop: [30, 78, 18],
+    handle: [42, 92, 24],
+    pole: [42, 94, 0],
+    pxl: [42, 92, -24],
+    ligandBase: [46, 90, 24],
+    ligandMid: [74, 92, 24],
+    ligandTip: [104, 94, 24],
   },
 };
 
@@ -141,14 +154,13 @@ const sceneSpecs = {
     ],
   },
   bound: {
-    pose: "bound",
     ligandAlpha: 1,
     gapAlpha: 1,
     contactAlpha: 0,
     kinaseGlow: 0,
     receptors: [
-      { anchor: [-158, membraneY, -28], yaw: -0.24, direction: 1 },
-      { anchor: [158, membraneY, 28], yaw: 0.24, direction: -1 },
+      { anchor: [-72, membraneY, 0], yaw: -0.08, direction: 1, pose: "boundLeft" },
+      { anchor: [72, membraneY, 0], yaw: 0.08, direction: -1, pose: "boundRight" },
     ],
   },
   dimer: {
@@ -157,8 +169,8 @@ const sceneSpecs = {
     contactAlpha: 1,
     kinaseGlow: 1,
     receptors: [
-      { anchor: [-58, membraneY, 0], yaw: -0.08, direction: 1, pose: "dimerLeft" },
-      { anchor: [58, membraneY, 0], yaw: 0.08, direction: -1, pose: "dimerRight" },
+      { anchor: [-56, membraneY, 0], yaw: -0.08, direction: 1, pose: "dimerLeft" },
+      { anchor: [56, membraneY, 0], yaw: 0.08, direction: -1, pose: "dimerRight" },
     ],
   },
 };
@@ -205,6 +217,7 @@ let width = 0;
 let height = 0;
 let deviceScale = Math.min(window.devicePixelRatio || 1, 2);
 const labelIndex = 0;
+const ligandLength = 52;
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -358,6 +371,23 @@ function buildScene(stateName) {
     kinaseGlow: spec.kinaseGlow,
     receptors: spec.receptors.map((receptor) => buildReceptor(receptor, receptor.pose || spec.pose)),
   };
+}
+
+function buildInterfaceLigands(receptors) {
+  if (receptors.length !== 2) {
+    return [];
+  }
+
+  return receptors.map((receptor, index) => {
+    const base = receptor.nodes.handle;
+    const target = receptors[(index + 1) % 2].nodes.pxl;
+    const direction = normalize(subtract(target, base));
+    return {
+      base,
+      mid: add(base, scaleVec(direction, ligandLength * 0.54)),
+      tip: add(base, scaleVec(direction, ligandLength)),
+    };
+  });
 }
 
 function mixReceptor(a, b, t) {
@@ -780,12 +810,21 @@ function buildCommands(now) {
   const gapAlpha = lerp(fromScene.gapAlpha, toScene.gapAlpha, progress);
   const contactAlpha = lerp(fromScene.contactAlpha, toScene.contactAlpha, progress);
   const kinaseGlow = lerp(fromScene.kinaseGlow, toScene.kinaseGlow, progress);
+  const interfaceLigands = ligandAlpha > 0.02 ? buildInterfaceLigands(receptors) : [];
 
   receptors.forEach((receptor, index) => {
     const projected = {};
     Object.entries(receptor.nodes).forEach(([key, value]) => {
       projected[key] = project(value);
     });
+    const ligand = interfaceLigands[index] || null;
+    const projectedLigand = ligand
+      ? {
+          base: project(ligand.base),
+          mid: project(ligand.mid),
+          tip: project(ligand.tip),
+        }
+      : null;
 
     pushSegment(commands, projected.kinase, projected.tmBase, palette.kinase, 22, 0.88);
     pushSegment(commands, projected.tmBase, projected.tm, palette.tm, 10, 0.94);
@@ -801,7 +840,7 @@ function buildCommands(now) {
 
     if (gapAlpha > 0.02) {
       const gapCenterWorld = averagePoint([
-        receptor.nodes.ligandMid,
+        ligand ? ligand.mid : receptor.nodes.handle,
         receptor.nodes.handle,
         mixVec(receptor.nodes.tm, receptor.nodes.handle, 0.5),
       ]);
@@ -818,10 +857,10 @@ function buildCommands(now) {
       );
     }
 
-    if (ligandAlpha > 0.02 && contactAlpha < 0.02) {
-      pushLigand(commands, projected.ligandBase, projected.ligandMid, projected.ligandTip, ligandAlpha);
+    if (projectedLigand) {
+      pushLigand(commands, projectedLigand.base, projectedLigand.mid, projectedLigand.tip, ligandAlpha);
       hoverCandidates.push({
-        point: projected.ligandMid,
+        point: projectedLigand.mid,
         text: "ALKAL",
         color: palette.ligand,
       });
@@ -836,7 +875,7 @@ function buildCommands(now) {
       },
       {
         point: projected.egfTop,
-        text: "EGF-like spacer",
+        text: "EGF-like domain",
         color: palette.egf,
       },
       {
@@ -873,16 +912,16 @@ function buildCommands(now) {
       const [tmX, tmY] = labelOffsets(projected.tm, 116, 10);
       const [kinaseX, kinaseY] = labelOffsets(projected.kinase, 116, 22);
 
-      pushLabel(labels, projected.egfTop, "EGF-like spacer", palette.egf, egfX, egfY);
+      pushLabel(labels, projected.egfTop, "EGF-like domain", palette.egf, egfX, egfY);
       pushLabel(labels, projected.handle, "Handle", palette.handle, handleX, handleY);
       pushLabel(labels, projected.pole, "Pole", palette.pole, poleX, poleY);
       pushLabel(labels, projected.pxl, "PXL", palette.pxl, pxlX, pxlY);
       pushLabel(labels, projected.tm, "TM helix", palette.tm, tmX, tmY);
       pushLabel(labels, projected.kinase, "Kinase", palette.kinase, kinaseX, kinaseY);
 
-      if (ligandAlpha > 0.02 && contactAlpha < 0.02) {
-        const [ligandX, ligandY] = labelOffsets(projected.ligandMid, 138, -26);
-        pushLabel(labels, projected.ligandMid, "ALKAL", palette.ligand, ligandX, ligandY);
+      if (projectedLigand) {
+        const [ligandX, ligandY] = labelOffsets(projectedLigand.mid, 138, -26);
+        pushLabel(labels, projectedLigand.mid, "ALKAL", palette.ligand, ligandX, ligandY);
       }
     }
   });
@@ -890,39 +929,6 @@ function buildCommands(now) {
   if (receptors[labelIndex]) {
     const membranePoint = project([-250, membraneY, 0]);
     pushLabel(labels, membranePoint, "Membrane", palette.membrane, -12, -16);
-  }
-
-  if (contactAlpha > 0.02) {
-    const left = receptors[0].nodes;
-    const right = receptors[1].nodes;
-    const leftLigandBase = project(left.handle);
-    const leftLigandMid = project(mixVec(left.handle, right.pxl, 0.52));
-    const leftLigandTip = project(right.pxl);
-    const rightLigandBase = project(right.handle);
-    const rightLigandMid = project(mixVec(right.handle, left.pxl, 0.52));
-    const rightLigandTip = project(left.pxl);
-    pushLigand(commands, leftLigandBase, leftLigandMid, leftLigandTip, ligandAlpha);
-    pushLigand(commands, rightLigandBase, rightLigandMid, rightLigandTip, ligandAlpha);
-
-    hoverCandidates.push(
-      {
-        point: leftLigandMid,
-        text: "ALKAL",
-        color: palette.ligand,
-        threshold: 34,
-      },
-      {
-        point: rightLigandMid,
-        text: "ALKAL",
-        color: palette.ligand,
-        threshold: 34,
-      }
-    );
-
-    if (receptors[labelIndex]) {
-      const [ligandX, ligandY] = labelOffsets(leftLigandMid, 138, -24);
-      pushLabel(labels, leftLigandMid, "ALKAL", palette.ligand, ligandX, ligandY);
-    }
   }
 
   hoverLabel(labels, hoverCandidates);
