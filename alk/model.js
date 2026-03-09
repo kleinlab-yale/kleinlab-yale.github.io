@@ -24,6 +24,7 @@ const palette = {
   ligand: "#43a85f",
   ligandSoft: "#b6e2c1",
   cdx123: "#ff5f6d",
+  fab125: "#f3b15b",
   cdx125: "#f18d27",
   membrane: "#d7d25d",
   contact: "#4f6a79",
@@ -442,6 +443,7 @@ function buildProfile(state, antibody) {
         badgeLabel: "Blocked monomers",
         badgeTone: "inactive",
         showCDX123: true,
+        showFAB125: false,
         showCDX125: false,
         ...baseSceneProfile("apo"),
       };
@@ -461,8 +463,30 @@ function buildProfile(state, antibody) {
       badgeLabel: "Blocked pre-dimer",
       badgeTone: "inactive",
       showCDX123: true,
+      showFAB125: false,
       showCDX125: false,
       ...baseSceneProfile("bound"),
+    };
+  }
+
+  if (antibody === "fab125") {
+    return {
+      title: "FAB125 blocks the handle without driving dimerization",
+      body:
+        "FAB125 occupies the handle and prevents ALKAL binding, but as a monovalent Fab it cannot bridge two ALK receptors. The receptors therefore remain separated and inactive instead of being driven into an activating dimer.",
+      metrics: {
+        ligand: "FAB125 bound",
+        pose: "Handle-capped",
+        contact: "No",
+        activity: "Off",
+      },
+      badgeStatus: "Inactive",
+      badgeLabel: "Fab-blocked monomers",
+      badgeTone: "inactive",
+      showCDX123: false,
+      showFAB125: true,
+      showCDX125: false,
+      ...baseSceneProfile("apo"),
     };
   }
 
@@ -481,6 +505,7 @@ function buildProfile(state, antibody) {
       badgeLabel: "Antibody dimer",
       badgeTone: "active",
       showCDX123: false,
+      showFAB125: false,
       showCDX125: true,
       ...baseSceneProfile("cdx125"),
     };
@@ -489,6 +514,7 @@ function buildProfile(state, antibody) {
   return {
     ...stateMeta[state],
     showCDX123: false,
+    showFAB125: false,
     showCDX125: false,
     ...baseSceneProfile(state),
   };
@@ -647,7 +673,7 @@ function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
   });
 }
 
-function pushAntibodyY(commands, leftTip, rightTip, junction, stemTip, color, alpha = 1) {
+function pushAntibodyY(commands, leftTip, rightTip, junction, stemTip, color, sizeUnits, alpha = 1) {
   commands.push({
     type: "antibodyY",
     leftTip,
@@ -655,6 +681,7 @@ function pushAntibodyY(commands, leftTip, rightTip, junction, stemTip, color, al
     junction,
     stemTip,
     color,
+    sizeUnits,
     alpha,
     depth: (leftTip.depth + rightTip.depth + junction.depth + stemTip.depth) / 4,
   });
@@ -991,7 +1018,8 @@ function drawAntibodyY(command) {
       command.junction.scale +
       command.stemTip.scale
     ) / 4;
-  const armWidth = Math.max(6, avgScale * 28);
+  const size = Math.max(12, command.sizeUnits * avgScale * 0.85);
+  const armWidth = Math.max(4, size * 0.22);
 
   strokeRoundedPath([command.leftTip, command.junction, command.rightTip], armWidth, command.color, command.alpha);
   strokeRoundedPath([command.junction, command.stemTip], armWidth, command.color, command.alpha);
@@ -1104,7 +1132,9 @@ function buildCommands(now) {
   const contactAlpha = lerp(fromProfile.contactAlpha, toProfile.contactAlpha, progress);
   const kinaseGlow = lerp(fromProfile.kinaseGlow, toProfile.kinaseGlow, progress);
   const cdx123Alpha = lerp(fromProfile.showCDX123 ? 1 : 0, toProfile.showCDX123 ? 1 : 0, progress);
+  const fab125Alpha = lerp(fromProfile.showFAB125 ? 1 : 0, toProfile.showFAB125 ? 1 : 0, progress);
   const cdx125Alpha = lerp(fromProfile.showCDX125 ? 1 : 0, toProfile.showCDX125 ? 1 : 0, progress);
+  const antibodySizeUnits = 46;
   const interfaceLigands = ligandAlpha > 0.02 ? buildInterfaceLigands(receptors) : [];
 
   receptors.forEach((receptor, index) => {
@@ -1202,10 +1232,19 @@ function buildCommands(now) {
 
     if (cdx123Alpha > 0.02) {
       const angle = index === 0 ? Math.PI * 0.22 : -Math.PI * 0.22;
-      pushFab(commands, projected.pxl, palette.cdx123, angle, 30, cdx123Alpha);
+      pushFab(commands, projected.pxl, palette.cdx123, angle, antibodySizeUnits, cdx123Alpha);
       if (index === labelIndex) {
         const [fabX, fabY] = labelOffsets(projected.pxl, 144, 50);
         pushLabel(labels, projected.pxl, "CDX123", palette.cdx123, fabX, fabY);
+      }
+    }
+
+    if (fab125Alpha > 0.02) {
+      const angle = index === 0 ? Math.PI * 1.18 : -Math.PI * 0.18;
+      pushFab(commands, projected.handle, palette.fab125, angle, antibodySizeUnits, fab125Alpha);
+      if (index === labelIndex) {
+        const [fabX, fabY] = labelOffsets(projected.handle, 148, -42);
+        pushLabel(labels, projected.handle, "FAB125", palette.fab125, fabX, fabY);
       }
     }
 
@@ -1234,21 +1273,24 @@ function buildCommands(now) {
   if (cdx125Alpha > 0.02 && projectedReceptors.length === 2) {
     const leftHandle = projectedReceptors[0].handle;
     const rightHandle = projectedReceptors[1].handle;
+    const antibodyScale = (leftHandle.scale + rightHandle.scale) * 0.5;
+    const armRise = Math.max(18, antibodyScale * 34);
+    const stemLength = Math.max(30, antibodyScale * 58);
     const junction = {
       x: (leftHandle.x + rightHandle.x) * 0.5,
-      y: Math.max(leftHandle.y, rightHandle.y) + 34,
+      y: Math.min(leftHandle.y, rightHandle.y) - armRise,
       scale: (leftHandle.scale + rightHandle.scale) * 0.5,
       depth: (leftHandle.depth + rightHandle.depth) * 0.5,
     };
     const stemTip = {
       x: junction.x,
-      y: junction.y + 78,
+      y: junction.y - stemLength,
       scale: junction.scale,
       depth: junction.depth - 4,
     };
-    pushAntibodyY(commands, leftHandle, rightHandle, junction, stemTip, palette.cdx125, cdx125Alpha);
-    const [abX, abY] = labelOffsets(junction, 120, 32);
-    pushLabel(labels, junction, "CDX125", palette.cdx125, abX, abY);
+    pushAntibodyY(commands, leftHandle, rightHandle, junction, stemTip, palette.cdx125, antibodySizeUnits, cdx125Alpha);
+    const [abX, abY] = labelOffsets(stemTip, 120, -8);
+    pushLabel(labels, stemTip, "CDX125", palette.cdx125, abX, abY);
   }
 
   if (receptors[labelIndex]) {
