@@ -21,6 +21,8 @@
   --pxl: #cb7aa0;
   --tm: #8f90ef;
   --kinase: #185c73;
+  --cdx123: #ff5f6d;
+  --cdx125: #f18d27;
   --ligand: #2f3137;
   --ligand-soft: #a0a5ae;
   --membrane: #d7d25d;
@@ -252,6 +254,16 @@ h2 {
   background: var(--brand);
   color: #fff;
   box-shadow: 0 12px 24px rgba(24, 92, 115, 0.22);
+}
+
+.antibody-button.is-active[data-antibody="cdx123"] {
+  background: var(--cdx123);
+  box-shadow: 0 12px 24px rgba(255, 95, 109, 0.26);
+}
+
+.antibody-button.is-active[data-antibody="cdx125"] {
+  background: var(--cdx125);
+  box-shadow: 0 12px 24px rgba(241, 141, 39, 0.28);
 }
 
 .antibody-button:disabled {

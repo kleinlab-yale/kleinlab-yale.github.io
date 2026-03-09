@@ -60,8 +60,8 @@
         <span class="toolbar-label">Antibody blockade</span>
         <div class="button-row antibody-row">
           <button class="antibody-button is-active" data-antibody="none" type="button">None</button>
-          <button class="antibody-button" type="button" disabled>Antibody 1</button>
-          <button class="antibody-button" type="button" disabled>Antibody 2</button>
+          <button class="antibody-button" data-antibody="cdx123" type="button">CDX123</button>
+          <button class="antibody-button" data-antibody="cdx125" type="button">CDX125</button>
         </div>
       </div>
       <div class="canvas-wrap">
@@ -77,7 +77,7 @@
         <p id="stateBody">
           Before ligand binding, ALK is shown as separated monomers whose handle-pole-PXL GRD is not
           yet organized into the membrane-parallel signaling arrangement. The membrane pocket that
-          later accepts ALKAL is not productively formed, the EGF-like spacer has not yet
+          later accepts ALKAL is not productively formed, the EGF-like domain has not yet
           repositioned, and no symmetric dimer interface is created.
         </p>
       </div>
@@ -150,6 +150,15 @@
           the membrane-parallel GRD pose and the nearly symmetric dimerization logic immediately
           legible in the same visual style as the ROS1 site, while using a single generic ALKAL
           depiction for the family of activating ligands.
+        </p>
+      </article>
+      <article class="note-card">
+        <h2>Antibody logic</h2>
+        <p>
+          CDX123 is drawn as a PXL-binding blocker that still permits ALKAL engagement at the handle
+          but prevents the dimerization step. CDX125 is drawn as a handle-binding agonist antibody:
+          its two Fab tips bind two handles at once, cross-link the receptors, exclude ALKAL, and
+          activate ALK.
         </p>
       </article>
     </section>
