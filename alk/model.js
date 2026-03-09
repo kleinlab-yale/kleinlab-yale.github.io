@@ -1,6 +1,7 @@
 const canvas = document.getElementById("scene");
 const ctx = canvas.getContext("2d");
 const stateButtons = [...document.querySelectorAll(".state-button")];
+const antibodyButtons = [...document.querySelectorAll(".antibody-button")];
 const resetViewButton = document.getElementById("resetView");
 const stateTitle = document.getElementById("stateTitle");
 const stateBody = document.getElementById("stateBody");
@@ -22,6 +23,8 @@ const palette = {
   kinase: "#185c73",
   ligand: "#43a85f",
   ligandSoft: "#b6e2c1",
+  cdx123: "#ff5f6d",
+  cdx125: "#f18d27",
   membrane: "#d7d25d",
   contact: "#4f6a79",
 };
@@ -30,7 +33,7 @@ const stateMeta = {
   apo: {
     title: "Unliganded ALK",
     body:
-      "Before ligand binding, ALK is shown as separated monomers whose handle-pole-PXL GRD is not yet organized into the membrane-parallel signaling arrangement. The membrane pocket that later accepts ALKAL is not productively formed, the EGF-like spacer has not yet repositioned, and no symmetric dimer interface is created.",
+      "Before ligand binding, ALK is shown as separated monomers whose handle-pole-PXL GRD is not yet organized into the membrane-parallel signaling arrangement. The membrane pocket that later accepts ALKAL is not productively formed, the EGF-like domain has not yet repositioned, and no symmetric dimer interface is created.",
     metrics: {
       ligand: "None",
       pose: "Undocked",
@@ -139,6 +142,32 @@ const localPoses = {
     ligandMid: [74, 92, 24],
     ligandTip: [104, 94, 24],
   },
+  cdx125Left: {
+    kinase: [54, -132, 0],
+    tmBase: [50, -40, 0],
+    tm: [52, 0, 0],
+    egfBase: [48, 24, 0],
+    egfTop: [40, 78, -8],
+    handle: [34, 92, -8],
+    pole: [48, 94, 8],
+    pxl: [62, 92, 28],
+    ligandBase: [34, 92, -8],
+    ligandMid: [34, 92, -8],
+    ligandTip: [34, 92, -8],
+  },
+  cdx125Right: {
+    kinase: [54, -132, 0],
+    tmBase: [50, -40, 0],
+    tm: [52, 0, 0],
+    egfBase: [48, 24, 0],
+    egfTop: [40, 78, 8],
+    handle: [34, 92, 8],
+    pole: [48, 94, -8],
+    pxl: [62, 92, -28],
+    ligandBase: [34, 92, 8],
+    ligandMid: [34, 92, 8],
+    ligandTip: [34, 92, 8],
+  },
 };
 
 const sceneSpecs = {
@@ -171,6 +200,16 @@ const sceneSpecs = {
     receptors: [
       { anchor: [-56, membraneY, 0], yaw: -0.08, direction: 1, pose: "dimerLeft" },
       { anchor: [56, membraneY, 0], yaw: 0.08, direction: -1, pose: "dimerRight" },
+    ],
+  },
+  cdx125: {
+    ligandAlpha: 0,
+    gapAlpha: 0,
+    contactAlpha: 0,
+    kinaseGlow: 1,
+    receptors: [
+      { anchor: [-56, membraneY, 0], yaw: -0.08, direction: 1, pose: "cdx125Left" },
+      { anchor: [56, membraneY, 0], yaw: 0.08, direction: -1, pose: "cdx125Right" },
     ],
   },
 };
@@ -211,6 +250,8 @@ const pointer = {
 
 let activeState = "apo";
 let fromState = "apo";
+let activeAntibody = "none";
+let fromAntibody = "none";
 let transitionStart = 0;
 let transitionDuration = 900;
 let width = 0;
@@ -373,6 +414,86 @@ function buildScene(stateName) {
   };
 }
 
+function baseSceneProfile(sceneKey) {
+  const scene = buildScene(sceneKey);
+  return {
+    geometryState: sceneKey,
+    ligandAlpha: scene.ligandAlpha,
+    gapAlpha: scene.gapAlpha,
+    contactAlpha: scene.contactAlpha,
+    kinaseGlow: scene.kinaseGlow,
+  };
+}
+
+function buildProfile(state, antibody) {
+  if (antibody === "cdx123") {
+    if (state === "apo") {
+      return {
+        title: "CDX123 caps PXL",
+        body:
+          "CDX123 binds the PXL region and blocks the dimerization surface before ligand engagement. ALKAL is absent here, so the receptor remains separated and inactive.",
+        metrics: {
+          ligand: "CDX123 bound",
+          pose: "PXL-capped",
+          contact: "No",
+          activity: "Off",
+        },
+        badgeStatus: "Inactive",
+        badgeLabel: "Blocked monomers",
+        badgeTone: "inactive",
+        showCDX123: true,
+        showCDX125: false,
+        ...baseSceneProfile("apo"),
+      };
+    }
+
+    return {
+      title: "CDX123 permits ALKAL binding but blocks dimerization",
+      body:
+        "ALKAL can still bind the handle, but CDX123 occupies PXL and prevents the cross-interface dimer step. The receptors remain trapped in the antiparallel pre-dimer rather than closing into the active state.",
+      metrics: {
+        ligand: "ALKAL + CDX123",
+        pose: "Antiparallel pre-dimer",
+        contact: "Blocked",
+        activity: "Off",
+      },
+      badgeStatus: "Inactive",
+      badgeLabel: "Blocked pre-dimer",
+      badgeTone: "inactive",
+      showCDX123: true,
+      showCDX125: false,
+      ...baseSceneProfile("bound"),
+    };
+  }
+
+  if (antibody === "cdx125") {
+    return {
+      title: "CDX125 cross-links two handles and activates ALK",
+      body:
+        "CDX125 binds the handle and excludes ALKAL, but its two Fab tips can engage two handles at once. That antibody bridge dimerizes the receptors directly and drives an active signaling geometry.",
+      metrics: {
+        ligand: "CDX125 bound",
+        pose: "Handle-crosslinked",
+        contact: "Yes",
+        activity: "On",
+      },
+      badgeStatus: "Active",
+      badgeLabel: "Antibody dimer",
+      badgeTone: "active",
+      showCDX123: false,
+      showCDX125: true,
+      ...baseSceneProfile("cdx125"),
+    };
+  }
+
+  return {
+    ...stateMeta[state],
+    showCDX123: false,
+    showCDX125: false,
+    ...baseSceneProfile(state),
+  };
+}
+
 function buildInterfaceLigands(receptors) {
   if (receptors.length !== 2) {
     return [];
@@ -409,6 +530,7 @@ function setState(nextState) {
   }
 
   fromState = activeState;
+  fromAntibody = activeAntibody;
   activeState = nextState;
   transitionStart = performance.now();
   applyViewText();
@@ -417,8 +539,23 @@ function setState(nextState) {
   });
 }
 
+function setAntibody(nextAntibody) {
+  if (nextAntibody === activeAntibody) {
+    return;
+  }
+
+  fromState = activeState;
+  fromAntibody = activeAntibody;
+  activeAntibody = nextAntibody;
+  transitionStart = performance.now();
+  applyViewText();
+  antibodyButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.antibody === nextAntibody);
+  });
+}
+
 function applyViewText() {
-  const meta = stateMeta[activeState];
+  const meta = buildProfile(activeState, activeAntibody);
   stateTitle.textContent = meta.title;
   stateBody.textContent = meta.body;
   metricLigand.textContent = meta.metrics.ligand;
@@ -498,6 +635,31 @@ function pushKinaseGlow(commands, point, radiusUnits, alpha = 1) {
   });
 }
 
+function pushFab(commands, point, color, angle, sizeUnits, alpha = 1) {
+  commands.push({
+    type: "fab",
+    point,
+    color,
+    angle,
+    sizeUnits,
+    alpha,
+    depth: point.depth,
+  });
+}
+
+function pushAntibodyY(commands, leftTip, rightTip, junction, stemTip, color, alpha = 1) {
+  commands.push({
+    type: "antibodyY",
+    leftTip,
+    rightTip,
+    junction,
+    stemTip,
+    color,
+    alpha,
+    depth: (leftTip.depth + rightTip.depth + junction.depth + stemTip.depth) / 4,
+  });
+}
+
 function pushLabel(labels, point, text, color, offsetX, offsetY) {
   labels.push({
     point,
@@ -511,6 +673,78 @@ function pushLabel(labels, point, text, color, offsetX, offsetY) {
 function labelOffsets(point, distance, rise = 0) {
   const direction = point.x < width * 0.5 ? -1 : 1;
   return [direction * distance, rise];
+}
+
+function measureLabel(text) {
+  ctx.save();
+  ctx.font = "600 16px Avenir Next, Segoe UI, sans-serif";
+  const metrics = ctx.measureText(text);
+  ctx.restore();
+  return {
+    width: metrics.width + 20,
+    height: 28,
+  };
+}
+
+function layoutLabels(labels) {
+  const gap = 6;
+  const marginX = 12;
+  const marginY = 14;
+  const paddingX = 10;
+  const laidOut = labels.map((label) => {
+    const size = measureLabel(label.text);
+    const x = label.point.x + label.offsetX;
+    const y = label.point.y + label.offsetY;
+    return {
+      ...label,
+      layoutX: x,
+      layoutY: y,
+      boxWidth: size.width,
+      boxHeight: size.height,
+      side: x < width * 0.5 ? "left" : "right",
+    };
+  });
+
+  ["left", "right"].forEach((side) => {
+    const group = laidOut
+      .filter((label) => label.side === side)
+      .sort((a, b) => a.layoutY - b.layoutY);
+
+    let currentBottom = marginY;
+    group.forEach((label) => {
+      const halfHeight = label.boxHeight * 0.5;
+      label.layoutY = Math.max(label.layoutY, currentBottom + halfHeight);
+      currentBottom = label.layoutY + halfHeight + gap;
+    });
+
+    if (group.length > 0) {
+      const last = group[group.length - 1];
+      const overflow = last.layoutY + last.boxHeight * 0.5 - (height - marginY);
+      if (overflow > 0) {
+        for (let index = group.length - 1; index >= 0; index -= 1) {
+          const label = group[index];
+          const minY = marginY + label.boxHeight * 0.5;
+          label.layoutY = Math.max(minY, label.layoutY - overflow);
+        }
+
+        for (let index = group.length - 2; index >= 0; index -= 1) {
+          const current = group[index];
+          const next = group[index + 1];
+          const maxAllowed = next.layoutY - (next.boxHeight + current.boxHeight) * 0.5 - gap;
+          const minY = marginY + current.boxHeight * 0.5;
+          current.layoutY = Math.max(minY, Math.min(current.layoutY, maxAllowed));
+        }
+      }
+    }
+  });
+
+  laidOut.forEach((label) => {
+    const minX = marginX + paddingX;
+    const maxX = width - label.boxWidth - marginX + paddingX;
+    label.layoutX = clamp(label.layoutX, minX, Math.max(minX, maxX));
+  });
+
+  return laidOut;
 }
 
 function drawMembrane() {
@@ -709,12 +943,68 @@ function drawKinaseGlow(command) {
   ctx.fill();
 }
 
+function drawFab(command) {
+  const size = Math.max(12, command.sizeUnits * command.point.scale * 0.85);
+  const branch = size * 0.82;
+  const stem = size * 0.78;
+  const spread = Math.PI / 3.2;
+  const armWidth = Math.max(4, size * 0.22);
+
+  function mapLocal(localX, localY) {
+    const cos = Math.cos(command.angle);
+    const sin = Math.sin(command.angle);
+    return {
+      x: command.point.x + localX * cos - localY * sin,
+      y: command.point.y + localX * sin + localY * cos,
+    };
+  }
+
+  const contact = mapLocal(0, stem * 0.56);
+  const hub = mapLocal(0, 0);
+  const left = mapLocal(Math.cos(-spread) * branch, Math.sin(-spread) * branch);
+  const right = mapLocal(Math.cos(spread) * branch, Math.sin(spread) * branch);
+
+  ctx.beginPath();
+  ctx.moveTo(contact.x, contact.y);
+  ctx.lineTo(hub.x, hub.y);
+  ctx.lineTo(left.x, left.y);
+  ctx.moveTo(hub.x, hub.y);
+  ctx.lineTo(right.x, right.y);
+  ctx.lineCap = "round";
+  ctx.strokeStyle = rgba(command.color, command.alpha);
+  ctx.lineWidth = armWidth;
+  ctx.stroke();
+
+  const gloss = ctx.createLinearGradient(contact.x, contact.y, left.x, left.y);
+  gloss.addColorStop(0, rgba(tint(command.color, 0.2), command.alpha * 0.6));
+  gloss.addColorStop(1, rgba(tint(command.color, -0.18), command.alpha * 0.7));
+  ctx.strokeStyle = gloss;
+  ctx.lineWidth = Math.max(2, armWidth * 0.55);
+  ctx.stroke();
+}
+
+function drawAntibodyY(command) {
+  const avgScale =
+    (
+      command.leftTip.scale +
+      command.rightTip.scale +
+      command.junction.scale +
+      command.stemTip.scale
+    ) / 4;
+  const armWidth = Math.max(6, avgScale * 28);
+
+  strokeRoundedPath([command.leftTip, command.junction, command.rightTip], armWidth, command.color, command.alpha);
+  strokeRoundedPath([command.junction, command.stemTip], armWidth, command.color, command.alpha);
+  strokeRoundedPath([command.leftTip, command.junction, command.rightTip], Math.max(2, armWidth * 0.24), tint(command.color, 0.22), command.alpha * 0.45);
+  strokeRoundedPath([command.junction, command.stemTip], Math.max(2, armWidth * 0.24), tint(command.color, 0.22), command.alpha * 0.45);
+}
+
 function drawLabel(command) {
   ctx.save();
   ctx.font = "600 16px Avenir Next, Segoe UI, sans-serif";
   ctx.textBaseline = "middle";
-  const x = command.point.x + command.offsetX;
-  const y = command.point.y + command.offsetY;
+  const x = command.layoutX ?? command.point.x + command.offsetX;
+  const y = command.layoutY ?? command.point.y + command.offsetY;
   const paddingX = 10;
   const boxHeight = 28;
   const metrics = ctx.measureText(command.text);
@@ -800,16 +1090,21 @@ function hoverLabel(commands, hoverCandidates) {
 function buildCommands(now) {
   const progressRaw = clamp((now - transitionStart) / transitionDuration, 0, 1);
   const progress = smoothstep(progressRaw);
-  const fromScene = buildScene(fromState);
-  const toScene = buildScene(activeState);
+  const fromProfile = buildProfile(fromState, fromAntibody);
+  const toProfile = buildProfile(activeState, activeAntibody);
+  const fromScene = buildScene(fromProfile.geometryState);
+  const toScene = buildScene(toProfile.geometryState);
   const commands = [];
   const labels = [];
   const hoverCandidates = [];
+  const projectedReceptors = [];
   const receptors = fromScene.receptors.map((receptor, index) => mixReceptor(receptor, toScene.receptors[index], progress));
-  const ligandAlpha = lerp(fromScene.ligandAlpha, toScene.ligandAlpha, progress);
-  const gapAlpha = lerp(fromScene.gapAlpha, toScene.gapAlpha, progress);
-  const contactAlpha = lerp(fromScene.contactAlpha, toScene.contactAlpha, progress);
-  const kinaseGlow = lerp(fromScene.kinaseGlow, toScene.kinaseGlow, progress);
+  const ligandAlpha = lerp(fromProfile.ligandAlpha, toProfile.ligandAlpha, progress);
+  const gapAlpha = lerp(fromProfile.gapAlpha, toProfile.gapAlpha, progress);
+  const contactAlpha = lerp(fromProfile.contactAlpha, toProfile.contactAlpha, progress);
+  const kinaseGlow = lerp(fromProfile.kinaseGlow, toProfile.kinaseGlow, progress);
+  const cdx123Alpha = lerp(fromProfile.showCDX123 ? 1 : 0, toProfile.showCDX123 ? 1 : 0, progress);
+  const cdx125Alpha = lerp(fromProfile.showCDX125 ? 1 : 0, toProfile.showCDX125 ? 1 : 0, progress);
   const interfaceLigands = ligandAlpha > 0.02 ? buildInterfaceLigands(receptors) : [];
 
   receptors.forEach((receptor, index) => {
@@ -817,6 +1112,7 @@ function buildCommands(now) {
     Object.entries(receptor.nodes).forEach(([key, value]) => {
       projected[key] = project(value);
     });
+    projectedReceptors[index] = projected;
     const ligand = interfaceLigands[index] || null;
     const projectedLigand = ligand
       ? {
@@ -904,6 +1200,15 @@ function buildCommands(now) {
       pushKinaseGlow(commands, projected.kinase, 42, kinaseGlow * 0.28);
     }
 
+    if (cdx123Alpha > 0.02) {
+      const angle = index === 0 ? Math.PI * 0.22 : -Math.PI * 0.22;
+      pushFab(commands, projected.pxl, palette.cdx123, angle, 30, cdx123Alpha);
+      if (index === labelIndex) {
+        const [fabX, fabY] = labelOffsets(projected.pxl, 144, 50);
+        pushLabel(labels, projected.pxl, "CDX123", palette.cdx123, fabX, fabY);
+      }
+    }
+
     if (index === labelIndex) {
       const [egfX, egfY] = labelOffsets(projected.egfTop, 128, -34);
       const [handleX, handleY] = labelOffsets(projected.handle, 138, -10);
@@ -926,6 +1231,26 @@ function buildCommands(now) {
     }
   });
 
+  if (cdx125Alpha > 0.02 && projectedReceptors.length === 2) {
+    const leftHandle = projectedReceptors[0].handle;
+    const rightHandle = projectedReceptors[1].handle;
+    const junction = {
+      x: (leftHandle.x + rightHandle.x) * 0.5,
+      y: Math.max(leftHandle.y, rightHandle.y) + 34,
+      scale: (leftHandle.scale + rightHandle.scale) * 0.5,
+      depth: (leftHandle.depth + rightHandle.depth) * 0.5,
+    };
+    const stemTip = {
+      x: junction.x,
+      y: junction.y + 78,
+      scale: junction.scale,
+      depth: junction.depth - 4,
+    };
+    pushAntibodyY(commands, leftHandle, rightHandle, junction, stemTip, palette.cdx125, cdx125Alpha);
+    const [abX, abY] = labelOffsets(junction, 120, 32);
+    pushLabel(labels, junction, "CDX125", palette.cdx125, abX, abY);
+  }
+
   if (receptors[labelIndex]) {
     const membranePoint = project([-250, membraneY, 0]);
     pushLabel(labels, membranePoint, "Membrane", palette.membrane, -12, -16);
@@ -941,6 +1266,7 @@ function render(now) {
   drawBackground(now);
   drawMembrane();
   const { commands, labels } = buildCommands(now);
+  const laidOutLabels = layoutLabels(labels);
 
   commands.forEach((command) => {
     if (command.type === "segment") {
@@ -951,6 +1277,10 @@ function render(now) {
       drawGapHalo(command);
     } else if (command.type === "ligand") {
       drawLigand(command);
+    } else if (command.type === "fab") {
+      drawFab(command);
+    } else if (command.type === "antibodyY") {
+      drawAntibodyY(command);
     } else if (command.type === "bridge") {
       drawBridge(command);
     } else if (command.type === "kinaseGlow") {
@@ -958,7 +1288,7 @@ function render(now) {
     }
   });
 
-  labels.forEach(drawLabel);
+  laidOutLabels.forEach(drawLabel);
   requestAnimationFrame(render);
 }
 
@@ -1018,6 +1348,10 @@ function resetView() {
 
 stateButtons.forEach((button) => {
   button.addEventListener("click", () => setState(button.dataset.state));
+});
+
+antibodyButtons.forEach((button) => {
+  button.addEventListener("click", () => setAntibody(button.dataset.antibody));
 });
 
 resetViewButton.addEventListener("click", resetView);
