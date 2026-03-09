@@ -1,1 +1,148 @@
-test
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mechanism of ALK Activation by ALKAL</title>
+  <meta
+    name="description"
+    content="Klein Lab at Yale mechanistic viewer for ALK activation by ALKAL."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="intro">
+      <div class="intro-copy">
+        <p class="eyebrow">Klein Lab at Yale • Mechanistic Viewer</p>
+        <h1>Mechanism of ALK activation by ALKAL</h1>
+        <p class="intro-body">
+          A mechanistic cartoon of how the ALK glycine-rich domain settles parallel to the membrane,
+          how the EGF-like spacer creates the ligand pocket, and how a small exposed ligand surface
+          can help form the symmetric signaling dimer.
+        </p>
+        <div class="hero-actions">
+          <a
+            class="hero-link hero-link-primary"
+            href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8639777/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Read the structural paper</a>
+          <a
+            class="hero-link"
+            href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8639797/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Read the activation paper</a>
+          <a
+            class="hero-link"
+            href="https://news.yale.edu/2021/11/24/receptor-structure-reveals-new-targets-cancer-treatment"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Yale News explainer</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="viewer-panel">
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <span class="toolbar-label">Activation sequence</span>
+          <div class="button-row">
+            <button class="state-button is-active" data-state="apo" type="button">Unliganded</button>
+            <button class="state-button" data-state="bound" type="button">ALKAL in gap</button>
+            <button class="state-button" data-state="dimer" type="button">Symmetric dimer</button>
+          </div>
+        </div>
+        <button id="resetView" class="secondary-button" type="button">Reset view</button>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="scene" aria-label="3D schematic of ALK activation by ALKAL"></canvas>
+        <div id="viewerBadge" class="state-badge state-badge--inactive" aria-live="polite">
+          <span id="viewerBadgeStatus" class="state-badge-status">Inactive</span>
+          <strong id="viewerBadgeLabel" class="state-badge-label">Separated monomers</strong>
+        </div>
+        <div class="hint">Drag to rotate. Scroll to zoom. Hover for domain labels.</div>
+      </div>
+      <div class="caption">
+        <h2 id="stateTitle">Unliganded ALK</h2>
+        <p id="stateBody">
+          Before ligand binding, ALK is shown as separated monomers whose ectodomains are not yet
+          organized into the membrane-parallel signaling arrangement. The membrane pocket that later
+          accepts ALKAL is not productively formed, the EGF-like spacer has not yet repositioned,
+          and no symmetric dimer interface is created.
+        </p>
+      </div>
+    </section>
+
+    <section class="status-grid" aria-label="Mechanistic summary">
+      <article class="status-card">
+        <span class="status-label">Ligand</span>
+        <strong id="metricLigand">None</strong>
+      </article>
+      <article class="status-card">
+        <span class="status-label">GRD pose</span>
+        <strong id="metricPose">Undocked</strong>
+      </article>
+      <article class="status-card">
+        <span class="status-label">Partner contact</span>
+        <strong id="metricContact">No</strong>
+      </article>
+      <article class="status-card">
+        <span class="status-label">Activity</span>
+        <strong id="metricActivity">Off</strong>
+      </article>
+    </section>
+
+    <section class="notes">
+      <article class="note-card">
+        <h2>What the model encodes</h2>
+        <p>
+          The ALK cartoon is reduced to the features you described as decisive: the membrane,
+          the EGF-like spacer, the GRD ligand-binding surface, the small ALKAL ligand, and the
+          symmetric dimer contact that turns signaling on. It also follows the Yale “protein
+          selfie-stick” framing of a ligand-binding handle, a rigid pole, and a PXL sensor that
+          helps capture the second receptor.
+        </p>
+      </article>
+      <article class="note-card">
+        <h2>Structural anchors</h2>
+        <p>
+          The viewer is grounded in the ligand-reception paper
+          <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8639777/" target="_blank" rel="noopener noreferrer">The structural basis for ALK1 and LTK receptor recognition and activation by ALKALs</a>
+          and the membrane-orientation / activation paper
+          <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8639797/" target="_blank" rel="noopener noreferrer">Mechanism for the activation of the anaplastic lymphoma kinase receptor</a>.
+        </p>
+      </article>
+      <article class="note-card">
+        <h2>Mechanistic logic</h2>
+        <p>
+          In the ALKAL-bound view, the EGF-like domain acts as a spacer that lifts the GRD off the
+          membrane and creates a narrow ligand pocket. The GRD then lies broadly parallel to the
+          membrane surface, while a small exposed part of the bound ligand remains available to help
+          contact the neighboring ALK complex. The activation paper further argues that this
+          EGF-like repositioning is required because the linker to the transmembrane helix is too
+          short to support productive dimerization without that movement.
+        </p>
+      </article>
+      <article class="note-card">
+        <h2>Scope</h2>
+        <p>
+          This is a mechanistic viewer, not an atom-by-atom reconstruction. It is intended to make
+          the membrane-parallel GRD pose and the nearly symmetric dimerization logic immediately
+          legible in the same visual style as the ROS1 site, while using a single generic ALKAL
+          depiction for the family of activating ligands.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <script src="model.js"></script>
+</body>
+</html>
