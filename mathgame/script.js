@@ -5,6 +5,12 @@ const PROFILE_SAVE_PREFIX = "math-pet-evolution-profile-save-v1:";
 const MAX_PROFILE_COUNT = 6;
 const MAX_PROFILE_NAME_LENGTH = 18;
 const FIRST_HATCH_SOLVED_TARGET = 4;
+const QUEST_SEQUENCE = ["multiplication", "fractions", "geometry"];
+const QUEST_BUTTON_LABELS = {
+  multiplication: "Start Number Quest",
+  fractions: "Cross the Bridge",
+  geometry: "Build Upgrade",
+};
 
 const EGG_TYPES = {
   sun: {
@@ -270,6 +276,7 @@ function createFreshState() {
       fractions: 0,
       geometry: 0,
     },
+    questPathStep: 0,
     activeQuest: null,
     activeQuestion: null,
     cycleLength: 0,
@@ -304,6 +311,7 @@ function hydrateState(savedState) {
       ...fresh.cycleHistory,
       ...(savedState.cycleHistory || {}),
     },
+    questPathStep: clamp(savedState.questPathStep ?? fresh.questPathStep, 0, QUEST_SEQUENCE.length),
     lastRewards: {
       ...fresh.lastRewards,
       ...(savedState.lastRewards || {}),
@@ -616,8 +624,7 @@ function currentZone() {
 }
 
 function bossReady() {
-  const balancedPractice = Object.values(state.cycleHistory).every((count) => count >= 1);
-  return state.evolution >= 100 && balancedPractice;
+  return state.questPathStep >= QUEST_SEQUENCE.length && state.evolution >= 100;
 }
 
 function addMilestone(text) {
@@ -696,6 +703,46 @@ function formatQuestTitle(key) {
   return "Math Quest";
 }
 
+function nextQuestInPath() {
+  return QUEST_SEQUENCE[state.questPathStep] || null;
+}
+
+function questStepIndex(type) {
+  return QUEST_SEQUENCE.indexOf(type);
+}
+
+function resetQuestPath() {
+  state.questPathStep = 0;
+  state.cycleHistory = { multiplication: 0, fractions: 0, geometry: 0 };
+}
+
+function advanceQuestPath(type) {
+  if (type === nextQuestInPath()) {
+    state.questPathStep = Math.min(QUEST_SEQUENCE.length, state.questPathStep + 1);
+  }
+}
+
+function questCardState(type) {
+  if (!currentProfileId || !state.petName) {
+    return "locked";
+  }
+
+  if (state.activeQuest === type) {
+    return "active";
+  }
+
+  const stepIndex = questStepIndex(type);
+  if (stepIndex !== -1 && stepIndex < state.questPathStep) {
+    return "completed";
+  }
+
+  if (!state.activeQuest && type === nextQuestInPath()) {
+    return "available";
+  }
+
+  return "locked";
+}
+
 function totalSolvedCount() {
   return Object.values(state.questHistory).reduce((sum, count) => sum + count, 0);
 }
@@ -759,6 +806,26 @@ function idleQuestState() {
     };
   }
 
+  const nextQuest = nextQuestInPath();
+  if (nextQuest) {
+    const nextQuestTitle = formatQuestTitle(nextQuest);
+    return {
+      counter: `${totalSolved} solved`,
+      prompt: `${state.petName} should do ${nextQuestTitle} next. Finish it to unlock the next quest in the path.`,
+      type: "Quest path",
+      text: `${nextQuestTitle} is the current quest to play.`,
+    };
+  }
+
+  if (!bossReady()) {
+    return {
+      counter: `${totalSolved} solved`,
+      prompt: `${state.petName} finished the three quest paths. Keep solving to charge the boss gate to 100%.`,
+      type: "Boss charging",
+      text: "All three quests are complete for this round. Fill evolution to unlock the boss challenge.",
+    };
+  }
+
   if (bossReady()) {
     return {
       counter: `${totalSolved} solved`,
@@ -784,6 +851,39 @@ function startQuest(type) {
 
   if (!state.petName) {
     openSetup();
+    return;
+  }
+
+  if (state.activeQuest === type) {
+    return;
+  }
+
+  if (state.activeQuest) {
+    state.feedbackMessage = `Finish ${formatQuestTitle(state.activeQuest)} before starting another quest.`;
+    state.feedbackTone = "bad";
+    renderFeedback();
+    renderBossState();
+    return;
+  }
+
+  if (type === "boss") {
+    if (!bossReady()) {
+      const nextQuest = nextQuestInPath();
+      state.feedbackMessage = nextQuest
+        ? `Finish ${formatQuestTitle(nextQuest)} next. The boss quest unlocks after all three quest paths are complete and evolution reaches 100%.`
+        : `The boss path is unlocked, but evolution is only at ${state.evolution}%. Keep solving to charge it to 100%.`;
+      state.feedbackTone = "bad";
+      renderFeedback();
+      renderBossState();
+      return;
+    }
+  } else if (questCardState(type) !== "available") {
+    const nextQuest = nextQuestInPath();
+    state.feedbackMessage = nextQuest
+      ? `${formatQuestTitle(nextQuest)} is the next quest in the path.`
+      : "This quest is locked until the next round begins.";
+    state.feedbackTone = "bad";
+    renderFeedback();
     return;
   }
 
@@ -1309,18 +1409,22 @@ function finishQuest() {
       clearBoss();
     } else {
       state.evolution = 70;
-      state.cycleHistory = { multiplication: 0, fractions: 0, geometry: 0 };
+      resetQuestPath();
       addMilestone(`Boss challenge attempt complete. ${state.petName} needs more balanced practice before evolving.`);
       state.feedbackMessage =
-        `Boss challenge complete with ${state.currentQuestCorrect} out of ${state.cycleLength} correct. Train across all three quest types and try again.`;
+        `Boss challenge complete with ${state.currentQuestCorrect} out of ${state.cycleLength} correct. The quest path resets to Number Forge for another training round.`;
       state.feedbackTone = "bad";
       state.petSpeech = `${state.petName} wants one more balanced training round before evolving.`;
     }
   } else {
     const title = formatQuestTitle(type);
+    advanceQuestPath(type);
     if (!triggerFirstHatch()) {
+      const nextQuest = nextQuestInPath();
       addMilestone(`${title} complete. ${state.petName} gained confidence and world energy.`);
-      state.feedbackMessage = `${title} complete. Rewards were added to your pet's meters.`;
+      state.feedbackMessage = nextQuest
+        ? `${title} complete. ${formatQuestTitle(nextQuest)} is now ready.`
+        : `${title} complete. The boss path is built. Fill evolution to 100% to unlock it.`;
       state.feedbackTone = "good";
       state.petSpeech = makePetSpeech(true);
     }
@@ -1344,7 +1448,7 @@ function clearBoss() {
   state.hunger = clamp(state.hunger + 10);
   state.energy = clamp(state.energy + 12);
   state.mood = clamp(state.mood + 14);
-  state.cycleHistory = { multiplication: 0, fractions: 0, geometry: 0 };
+  resetQuestPath();
   state.zoneIndex = Math.min(unlockedZones().length - 1, state.zoneIndex + 1);
 
   if (state.stageIndex > beforeStage) {
@@ -1430,6 +1534,18 @@ function nextUnlockText() {
     };
   }
 
+  const nextQuest = nextQuestInPath();
+  if (nextQuest) {
+    const nextQuestTitle = formatQuestTitle(nextQuest);
+    const afterQuest = QUEST_SEQUENCE[state.questPathStep + 1];
+    return {
+      line: nextQuestTitle,
+      hint: afterQuest
+        ? `Complete ${nextQuestTitle} to unlock ${formatQuestTitle(afterQuest)}.`
+        : `Complete ${nextQuestTitle} to build the boss path.`,
+    };
+  }
+
   if (bossReady()) {
     return {
       line: "Boss challenge ready",
@@ -1437,17 +1553,9 @@ function nextUnlockText() {
     };
   }
 
-  const nextZone = ZONES.find((zone) => zone.unlockBosses === state.bossesCleared + 1);
-  if (nextZone) {
-    return {
-      line: nextZone.name,
-      hint: "Balance the three quest types and fill evolution to unlock it.",
-    };
-  }
-
   return {
-    line: "Rare sparkle rewards",
-    hint: "Your pet is fully evolved. Keep practicing for extra decorations.",
+    line: "Boss challenge",
+    hint: `All three quest paths are complete. Fill evolution to 100%. Current growth: ${state.evolution}%.`,
   };
 }
 
@@ -1534,6 +1642,78 @@ function renderQuestInterface() {
   }
 }
 
+function renderQuestOptions() {
+  document.querySelectorAll(".quest-button").forEach((button) => {
+    const type = button.dataset.quest;
+    const stateLabel = questCardState(type);
+    const card = button.closest("[data-quest-card]");
+    const statusLine = card?.querySelector("[data-quest-status]");
+    const defaultLabel = QUEST_BUTTON_LABELS[type] || "Start Quest";
+    const previousQuest = QUEST_SEQUENCE[Math.max(questStepIndex(type) - 1, 0)];
+
+    if (card) {
+      card.classList.remove("is-available", "is-locked", "is-completed", "is-active");
+      card.classList.add(`is-${stateLabel}`);
+    }
+
+    if (!currentProfileId) {
+      button.disabled = true;
+      button.textContent = defaultLabel;
+      if (statusLine) {
+        statusLine.textContent = "Choose a player first.";
+      }
+      return;
+    }
+
+    if (!state.petName) {
+      button.disabled = true;
+      button.textContent = defaultLabel;
+      if (statusLine) {
+        statusLine.textContent = "Choose and name an egg first.";
+      }
+      return;
+    }
+
+    if (stateLabel === "active") {
+      button.disabled = true;
+      button.textContent = "Quest In Progress";
+      if (statusLine) {
+        statusLine.textContent = "Finish this quest to unlock the next one.";
+      }
+      return;
+    }
+
+    if (stateLabel === "completed") {
+      button.disabled = true;
+      button.textContent = "Completed This Round";
+      if (statusLine) {
+        statusLine.textContent = "Done for this round. The path moves forward.";
+      }
+      return;
+    }
+
+    if (stateLabel === "available") {
+      button.disabled = false;
+      button.textContent = defaultLabel;
+      if (statusLine) {
+        const upcomingQuest = QUEST_SEQUENCE[state.questPathStep + 1];
+        statusLine.textContent = upcomingQuest
+          ? `Ready now. Complete it to unlock ${formatQuestTitle(upcomingQuest)}.`
+          : "Ready now. Complete it to build the boss path.";
+      }
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Locked";
+    if (statusLine) {
+      statusLine.textContent = state.activeQuest
+        ? `Finish ${formatQuestTitle(state.activeQuest)} first.`
+        : `Locked until ${formatQuestTitle(previousQuest)} is complete.`;
+    }
+  });
+}
+
 function renderRewards() {
   const { food, energy, mood, sparkles } = state.lastRewards;
   DOM.rewardStrip.innerHTML = [
@@ -1604,6 +1784,22 @@ function renderBossState() {
     return;
   }
 
+  if (!state.petName) {
+    DOM.bossTitle.textContent = "Name your egg first";
+    DOM.bossHint.textContent = "The boss quest appears after the quest path opens.";
+    DOM.bossButton.disabled = true;
+    DOM.bossButton.textContent = "Boss Locked";
+    return;
+  }
+
+  if (state.activeQuest === "boss") {
+    DOM.bossTitle.textContent = "Boss quest in progress";
+    DOM.bossHint.textContent = "Finish the mixed challenge to trigger the next evolution step.";
+    DOM.bossButton.disabled = true;
+    DOM.bossButton.textContent = "Boss In Progress";
+    return;
+  }
+
   if (bossReady()) {
     DOM.bossTitle.textContent = "World boss awakened";
     DOM.bossHint.textContent =
@@ -1613,15 +1809,11 @@ function renderBossState() {
     return;
   }
 
-  const questsNeeded = ["multiplication", "fractions", "geometry"]
-    .filter((key) => state.cycleHistory[key] < 1)
-    .map(formatQuestTitle);
-
-  DOM.bossTitle.textContent = "Not ready yet";
-  DOM.bossHint.textContent =
-    state.evolution < 100
-      ? `Fill the evolution meter first. Current growth: ${state.evolution}%.`
-      : `Complete one more round of: ${questsNeeded.join(", ")}.`;
+  const nextQuest = nextQuestInPath();
+  DOM.bossTitle.textContent = nextQuest ? "Quest path still building" : "Boss gate charging";
+  DOM.bossHint.textContent = nextQuest
+    ? `Finish ${formatQuestTitle(nextQuest)} next. The boss unlocks only after Number Forge, Fraction Bridge, and Geometry Workshop are all complete.`
+    : `All three quest paths are complete. Fill evolution to 100%. Current growth: ${state.evolution}%.`;
   DOM.bossButton.disabled = true;
   DOM.bossButton.textContent = "Boss Locked";
 }
@@ -1674,6 +1866,7 @@ function renderNoProfileState() {
   renderHabitatTheme();
   renderDecorations();
   renderQuestInterface();
+  renderQuestOptions();
   renderRewards();
   renderZones();
   renderFeedback();
@@ -1787,6 +1980,7 @@ function render() {
   renderHabitatTheme();
   renderDecorations();
   renderQuestInterface();
+  renderQuestOptions();
   renderRewards();
   renderZones();
   renderMilestones();
