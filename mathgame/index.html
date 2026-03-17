@@ -198,37 +198,24 @@
             <p id="unlockHint">Solve quests to restore the next zone.</p>
           </article>
         </div>
-
-        <div class="boss-card" id="bossCard">
-          <div>
-            <p class="section-kicker">Boss quest</p>
-            <h3 id="bossTitle">Not ready yet</h3>
-          </div>
-          <p id="bossHint">
-            Fill the evolution meter and complete each quest type to awaken the
-            boss challenge.
-          </p>
-          <button class="boss-button" id="bossButton" type="button" disabled>
-            Boss Locked
-          </button>
-        </div>
       </section>
 
       <section class="panel quests-panel">
         <div class="panel-heading">
           <div>
             <p class="section-kicker">Math quests</p>
-            <h2>Choose what your pet needs</h2>
+            <h2>Follow the quest path</h2>
           </div>
         </div>
 
         <div class="quest-grid">
-          <article class="quest-card quest-food">
+          <article class="quest-card quest-food" data-quest-card="multiplication">
             <div class="quest-icon">×</div>
             <div>
               <h3>Number Forge</h3>
               <p>Use multiplication, multi-digit products, and division to power food and energy.</p>
             </div>
+            <p class="quest-state-line" data-quest-status="multiplication">Start here first.</p>
             <ul class="quest-rewards">
               <li>Feeds hunger</li>
               <li>Boosts energy</li>
@@ -239,12 +226,13 @@
             </button>
           </article>
 
-          <article class="quest-card quest-bridge">
+          <article class="quest-card quest-bridge" data-quest-card="fractions">
             <div class="quest-icon">&frac12;</div>
             <div>
               <h3>Fraction Bridge</h3>
               <p>Compare, match, and reason about fractions to rebuild paths into new worlds.</p>
             </div>
+            <p class="quest-state-line" data-quest-status="fractions">Locked until Number Forge is complete.</p>
             <ul class="quest-rewards">
               <li>Opens new zones</li>
               <li>Raises mood</li>
@@ -255,12 +243,13 @@
             </button>
           </article>
 
-          <article class="quest-card quest-shape">
+          <article class="quest-card quest-shape" data-quest-card="geometry">
             <div class="quest-icon">△</div>
             <div>
               <h3>Geometry Workshop</h3>
               <p>Use shape, area, perimeter, and measurement skills to upgrade the habitat.</p>
             </div>
+            <p class="quest-state-line" data-quest-status="geometry">Locked until Fraction Bridge is complete.</p>
             <ul class="quest-rewards">
               <li>Unlocks decor</li>
               <li>Improves habitat</li>
@@ -270,6 +259,20 @@
               Build Upgrade
             </button>
           </article>
+        </div>
+
+        <div class="boss-card quest-boss-card" id="bossCard">
+          <div>
+            <p class="section-kicker">Boss quest</p>
+            <h3 id="bossTitle">Not ready yet</h3>
+          </div>
+          <p id="bossHint">
+            Finish the three quest paths in order, then fill evolution to awaken
+            the boss challenge.
+          </p>
+          <button class="boss-button" id="bossButton" type="button" disabled>
+            Boss Locked
+          </button>
         </div>
       </section>
 
