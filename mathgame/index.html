@@ -1,1 +1,347 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Pet Evolution</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="sky-glow sky-glow-left"></div>
+    <div class="sky-glow sky-glow-right"></div>
+
+    <header class="topbar shell">
+      <div>
+        <p class="eyebrow">Math-powered pet adventure</p>
+        <h1>Math Pet Evolution</h1>
+        <p class="subtitle">
+          Solve, earn, unlock, evolve. Feed a creature, rebuild habitats, and
+          stretch 4th grade math skills along the way.
+        </p>
+      </div>
+      <div class="topbar-actions">
+        <button class="ghost-button" id="helpButton" type="button">How to Play</button>
+        <button class="ghost-button danger-button" id="resetButton" type="button">
+          New Egg
+        </button>
+      </div>
+    </header>
+
+    <main class="shell page-grid">
+      <section class="panel habitat-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Habitat</p>
+            <h2 id="habitatName">Sunny Nest</h2>
+          </div>
+          <div class="chip-row">
+            <span class="chip" id="stageChip">Egg</span>
+            <span class="chip" id="zoneChip">Zone 1</span>
+          </div>
+        </div>
+
+        <div class="habitat-scene" id="habitatScene">
+          <div class="scene-backdrop">
+            <div class="sun"></div>
+            <div class="cloud cloud-left"></div>
+            <div class="cloud cloud-right"></div>
+            <div class="sparkle sparkle-one"></div>
+            <div class="sparkle sparkle-two"></div>
+            <div class="sparkle sparkle-three"></div>
+          </div>
+          <div class="pet-area">
+            <div class="pet-speech" id="petSpeech">Choose an egg to begin.</div>
+            <div class="pet-shell">
+              <div class="pet" id="petAvatar" aria-hidden="true">
+                <div class="pet-body">
+                  <div class="pet-eyes">
+                    <span></span>
+                    <span></span>
+                  </div>
+                  <div class="pet-mouth"></div>
+                </div>
+                <div class="pet-accessory pet-accessory-star"></div>
+                <div class="pet-accessory pet-accessory-leaf"></div>
+                <div class="pet-shadow"></div>
+              </div>
+            </div>
+            <div class="pet-caption">
+              <h3 id="petNameLabel">Mystery Egg</h3>
+              <p id="petMoodLine">A future friend is waiting to hatch.</p>
+            </div>
+          </div>
+          <div class="scene-decorations" id="sceneDecorations" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section class="panel status-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Care meters</p>
+            <h2>Your pet today</h2>
+          </div>
+          <div class="spark-counter">
+            <span class="spark-counter-value" id="sparkValue">0</span>
+            <span class="spark-counter-label">Sparkles</span>
+          </div>
+        </div>
+
+        <div class="meter-list">
+          <div class="meter-block">
+            <div class="meter-label-row">
+              <span>Hunger</span>
+              <strong id="hungerValue">0%</strong>
+            </div>
+            <div class="meter-track hunger-track"><div id="hungerMeter"></div></div>
+          </div>
+          <div class="meter-block">
+            <div class="meter-label-row">
+              <span>Energy</span>
+              <strong id="energyValue">0%</strong>
+            </div>
+            <div class="meter-track energy-track"><div id="energyMeter"></div></div>
+          </div>
+          <div class="meter-block">
+            <div class="meter-label-row">
+              <span>Mood</span>
+              <strong id="moodValue">0%</strong>
+            </div>
+            <div class="meter-track mood-track"><div id="moodMeter"></div></div>
+          </div>
+          <div class="meter-block">
+            <div class="meter-label-row">
+              <span>Evolution</span>
+              <strong id="evolutionValue">0%</strong>
+            </div>
+            <div class="meter-track evolution-track"><div id="evolutionMeter"></div></div>
+          </div>
+        </div>
+
+        <div class="progress-notes">
+          <article class="mini-card">
+            <p class="mini-card-title">Quest streak</p>
+            <strong id="streakValue">0</strong>
+            <p id="streakLine">Answer correctly to build a chain.</p>
+          </article>
+          <article class="mini-card">
+            <p class="mini-card-title">Next unlock</p>
+            <strong id="unlockLine">Fraction Bridge</strong>
+            <p id="unlockHint">Solve quests to restore the next zone.</p>
+          </article>
+        </div>
+
+        <div class="boss-card" id="bossCard">
+          <div>
+            <p class="section-kicker">Boss quest</p>
+            <h3 id="bossTitle">Not ready yet</h3>
+          </div>
+          <p id="bossHint">
+            Fill the evolution meter and complete each quest type to awaken the
+            boss challenge.
+          </p>
+          <button class="boss-button" id="bossButton" type="button" disabled>
+            Boss Locked
+          </button>
+        </div>
+      </section>
+
+      <section class="panel quests-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Math quests</p>
+            <h2>Choose what your pet needs</h2>
+          </div>
+        </div>
+
+        <div class="quest-grid">
+          <article class="quest-card quest-food">
+            <div class="quest-icon">×</div>
+            <div>
+              <h3>Multiplication Chain</h3>
+              <p>Grow snacks and charge fireflies with fast fact practice.</p>
+            </div>
+            <ul class="quest-rewards">
+              <li>Feeds hunger</li>
+              <li>Boosts energy</li>
+              <li>Builds streaks</li>
+            </ul>
+            <button class="quest-button" data-quest="multiplication" type="button">
+              Start Food Quest
+            </button>
+          </article>
+
+          <article class="quest-card quest-bridge">
+            <div class="quest-icon">&frac12;</div>
+            <div>
+              <h3>Fraction Bridge</h3>
+              <p>Compare fractions to rebuild paths into new parts of the world.</p>
+            </div>
+            <ul class="quest-rewards">
+              <li>Opens new zones</li>
+              <li>Raises mood</li>
+              <li>Improves exploration</li>
+            </ul>
+            <button class="quest-button" data-quest="fractions" type="button">
+              Cross the Bridge
+            </button>
+          </article>
+
+          <article class="quest-card quest-shape">
+            <div class="quest-icon">△</div>
+            <div>
+              <h3>Geometry Workshop</h3>
+              <p>Use shape, area, and perimeter skills to upgrade the habitat.</p>
+            </div>
+            <ul class="quest-rewards">
+              <li>Unlocks decor</li>
+              <li>Improves habitat</li>
+              <li>Adds sparkle rewards</li>
+            </ul>
+            <button class="quest-button" data-quest="geometry" type="button">
+              Build Upgrade
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel challenge-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Active challenge</p>
+            <h2 id="challengeTitle">Pick a quest to begin</h2>
+          </div>
+          <span class="chip" id="questionCounter">0 / 0</span>
+        </div>
+
+        <div class="challenge-body">
+          <p class="challenge-intro" id="challengePrompt">
+            Each quest turns math into something useful for your pet. Start with
+            multiplication for a quick hatch boost.
+          </p>
+
+          <div class="question-card">
+            <p class="question-type" id="questionType">Quest ready</p>
+            <h3 class="question-text" id="questionText">
+              Your pet is waiting for its first math-powered adventure.
+            </h3>
+            <div class="fraction-visuals" id="fractionVisuals"></div>
+            <div class="choice-grid" id="choiceGrid"></div>
+
+            <form class="answer-form" id="answerForm">
+              <label class="visually-hidden" for="answerInput">Answer</label>
+              <input
+                autocomplete="off"
+                id="answerInput"
+                inputmode="text"
+                placeholder="Type your answer"
+                type="text"
+              />
+              <button class="primary-button" type="submit">Check Answer</button>
+            </form>
+          </div>
+
+          <div class="feedback-card" id="feedbackCard">
+            <p class="feedback-text" id="feedbackText">
+              Your pet will react here after each answer.
+            </p>
+          </div>
+
+          <div class="reward-strip" id="rewardStrip">
+            <div class="reward-pill">Food +0</div>
+            <div class="reward-pill">Energy +0</div>
+            <div class="reward-pill">Mood +0</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel world-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">World map</p>
+            <h2>Recovered habitats</h2>
+          </div>
+        </div>
+
+        <div class="zone-list" id="zoneList"></div>
+
+        <div class="journal">
+          <div class="journal-heading">
+            <h3>Milestones</h3>
+            <span id="milestoneCount">0 moments</span>
+          </div>
+          <ul id="milestoneList"></ul>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="modal" id="setupModal">
+      <form class="modal-card" id="setupForm" method="dialog">
+        <p class="section-kicker">Step 1</p>
+        <h2>Choose a mystery egg</h2>
+        <p class="modal-copy">
+          Each egg has a different personality spark. Pick one, give it a name,
+          and begin the first hatch quest.
+        </p>
+
+        <div class="egg-grid" id="eggGrid">
+          <button class="egg-option" data-egg="sun" type="button">
+            <span class="egg-visual egg-sun"></span>
+            <strong>Sunbeam Egg</strong>
+            <span>Cheerful and brave</span>
+          </button>
+          <button class="egg-option" data-egg="tide" type="button">
+            <span class="egg-visual egg-tide"></span>
+            <strong>Tide Egg</strong>
+            <span>Curious and calm</span>
+          </button>
+          <button class="egg-option" data-egg="grove" type="button">
+            <span class="egg-visual egg-grove"></span>
+            <strong>Grove Egg</strong>
+            <span>Creative and bold</span>
+          </button>
+        </div>
+
+        <label class="field-label" for="petNameInput">Pet name</label>
+        <input
+          class="name-input"
+          id="petNameInput"
+          maxlength="18"
+          placeholder="Pick a name"
+          required
+          type="text"
+        />
+
+        <div class="modal-actions">
+          <button class="primary-button" id="startGameButton" type="submit">
+            Start Adventure
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="helpModal">
+      <div class="modal-card help-card">
+        <p class="section-kicker">How it works</p>
+        <h2>Math powers every part of the world</h2>
+        <div class="help-points">
+          <p><strong>Multiplication</strong> fills food and energy.</p>
+          <p><strong>Fractions</strong> rebuild bridges and boost mood.</p>
+          <p><strong>Geometry</strong> adds decorations and habitat upgrades.</p>
+          <p>
+            <strong>Boss quests</strong> unlock evolutions after enough balanced
+            practice.
+          </p>
+        </div>
+        <button class="primary-button" id="closeHelpButton" type="button">Back to Game</button>
+      </div>
+    </dialog>
+
+    <script src="script.js"></script>
+  </body>
+</html>
