@@ -11,6 +11,38 @@ const QUEST_BUTTON_LABELS = {
   fractions: "Cross the Bridge",
   geometry: "Build Upgrade",
 };
+const LESSONS = {
+  fractionCompare: {
+    title: "Compare Fractions",
+    chip: "3/4 vs 5/8",
+    intro: "Example: compare 3/4 and 5/8 by changing them to the same denominator.",
+    steps: [
+      "Change 3/4 into eighths: 3/4 = 6/8.",
+      "Now compare 6/8 and 5/8. Since 6 eighths is more than 5 eighths, 3/4 > 5/8.",
+      "Matching denominators makes it easier to see which fraction is greater.",
+    ],
+  },
+  longDivision: {
+    title: "Long Division",
+    chip: "84 ÷ 4",
+    intro: "Example: solve 84 divided by 4 one place value at a time.",
+    steps: [
+      "4 goes into 8 two times, so write 2 in the tens place.",
+      "Subtract 8, bring down the 4, then 4 goes into 4 one time.",
+      "The answer is 21. Check with 21 x 4 = 84.",
+    ],
+  },
+  geometryMeasure: {
+    title: "Area and Perimeter",
+    chip: "6 by 4 rectangle",
+    intro: "Example: use the same rectangle to tell the difference between area and perimeter.",
+    steps: [
+      "Area means the space inside, so 6 x 4 = 24 square units.",
+      "Perimeter means the distance around, so 6 + 6 + 4 + 4 = 20 units.",
+      "Ask: does the question want inside space or distance around the outside?",
+    ],
+  },
+};
 
 const EGG_TYPES = {
   sun: {
@@ -222,6 +254,11 @@ const DOM = {
   feedbackCard: document.getElementById("feedbackCard"),
   feedbackText: document.getElementById("feedbackText"),
   rewardStrip: document.getElementById("rewardStrip"),
+  lessonCard: document.getElementById("lessonCard"),
+  lessonTitle: document.getElementById("lessonTitle"),
+  lessonChip: document.getElementById("lessonChip"),
+  lessonIntro: document.getElementById("lessonIntro"),
+  lessonSteps: document.getElementById("lessonSteps"),
   zoneList: document.getElementById("zoneList"),
   milestoneList: document.getElementById("milestoneList"),
   milestoneCount: document.getElementById("milestoneCount"),
@@ -1642,6 +1679,73 @@ function renderQuestInterface() {
   }
 }
 
+function lessonForQuestion(question) {
+  if (!question) {
+    return null;
+  }
+
+  const promptText = `${question.prompt || ""} ${question.helper || ""}`.toLowerCase();
+  const categoryText = String(question.category || "").toLowerCase();
+
+  if (promptText.includes("÷") || promptText.includes("long division")) {
+    return LESSONS.longDivision;
+  }
+
+  if (categoryText.includes("fraction")) {
+    return LESSONS.fractionCompare;
+  }
+
+  if (categoryText.includes("geometry")) {
+    return LESSONS.geometryMeasure;
+  }
+
+  return null;
+}
+
+function currentLesson() {
+  const activeLesson = lessonForQuestion(state.activeQuestion);
+  if (activeLesson) {
+    return activeLesson;
+  }
+
+  if (!currentProfileId || !state.petName || state.activeQuest) {
+    return null;
+  }
+
+  const nextQuest = nextQuestInPath();
+  if (nextQuest === "fractions") {
+    return LESSONS.fractionCompare;
+  }
+
+  if (nextQuest === "geometry") {
+    return LESSONS.geometryMeasure;
+  }
+
+  if (nextQuest === "multiplication" && cycleDifficulty() >= 6) {
+    return LESSONS.longDivision;
+  }
+
+  return null;
+}
+
+function renderLesson() {
+  const lesson = currentLesson();
+  DOM.lessonCard.hidden = !lesson;
+
+  if (!lesson) {
+    DOM.lessonTitle.textContent = "Worked example";
+    DOM.lessonChip.textContent = "Example";
+    DOM.lessonIntro.textContent = "A worked example will appear here for harder topics.";
+    DOM.lessonSteps.innerHTML = "";
+    return;
+  }
+
+  DOM.lessonTitle.textContent = lesson.title;
+  DOM.lessonChip.textContent = lesson.chip;
+  DOM.lessonIntro.textContent = lesson.intro;
+  DOM.lessonSteps.innerHTML = lesson.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
+}
+
 function renderQuestOptions() {
   document.querySelectorAll(".quest-button").forEach((button) => {
     const type = button.dataset.quest;
@@ -1868,6 +1972,7 @@ function renderNoProfileState() {
   renderQuestInterface();
   renderQuestOptions();
   renderRewards();
+  renderLesson();
   renderZones();
   renderFeedback();
   renderBossState();
@@ -1982,6 +2087,7 @@ function render() {
   renderQuestInterface();
   renderQuestOptions();
   renderRewards();
+  renderLesson();
   renderZones();
   renderMilestones();
   renderFeedback();
