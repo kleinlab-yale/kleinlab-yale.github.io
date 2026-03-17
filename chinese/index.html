@@ -1,1 +1,450 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mandarin Lantern Journey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="paper-glow paper-glow-left"></div>
+    <div class="paper-glow paper-glow-right"></div>
+
+    <header class="topbar shell">
+      <div>
+        <p class="eyebrow">Intro Mandarin course game</p>
+        <h1>Mandarin Lantern Journey</h1>
+        <p class="subtitle">
+          Learn pinyin, tones, simplified characters, and simple sentences with
+          a friendly study guide and short interactive practice loops.
+        </p>
+      </div>
+      <div class="topbar-actions">
+        <span class="chip player-chip" id="playerChip">Choose Player</span>
+        <button class="ghost-button" id="switchPlayerButton" type="button">
+          Switch Player
+        </button>
+        <button class="ghost-button" id="helpButton" type="button">How to Study</button>
+        <button class="ghost-button danger-button" id="resetButton" type="button">
+          Reset Course
+        </button>
+      </div>
+    </header>
+
+    <main class="shell page-grid">
+      <section class="panel scene-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Study district</p>
+            <h2 id="districtName">Sound Garden</h2>
+          </div>
+          <div class="chip-row">
+            <span class="chip" id="stageChip">Starter</span>
+            <span class="chip" id="unitChip">Unit 1</span>
+          </div>
+        </div>
+
+        <div class="study-scene" id="studyScene">
+          <div class="scene-backdrop">
+            <div class="sky-circle"></div>
+            <div class="lantern lantern-left"></div>
+            <div class="lantern lantern-center"></div>
+            <div class="lantern lantern-right"></div>
+            <div class="hill hill-back"></div>
+            <div class="hill hill-front"></div>
+          </div>
+
+          <div class="guide-area">
+            <div class="guide-speech" id="guideSpeech">Choose a player to begin.</div>
+            <div class="guide-shell">
+              <div class="guide-avatar" data-guide="panda" id="guideAvatar" aria-hidden="true">
+                <div class="guide-halo"></div>
+                <div class="guide-ears">
+                  <span></span>
+                  <span></span>
+                </div>
+                <div class="guide-body">
+                  <div class="guide-face">
+                    <div class="guide-eyes">
+                      <span></span>
+                      <span></span>
+                    </div>
+                    <div class="guide-cheeks">
+                      <span></span>
+                      <span></span>
+                    </div>
+                    <div class="guide-mouth"></div>
+                  </div>
+                </div>
+                <div class="guide-badge"></div>
+                <div class="guide-shadow"></div>
+              </div>
+            </div>
+            <div class="guide-caption">
+              <h3 id="guideNameLabel">Lantern Panda</h3>
+              <p id="guideMoodLine">A patient guide is waiting to start the course.</p>
+            </div>
+          </div>
+
+          <aside class="focus-panel">
+            <p class="mini-kicker">Tone map</p>
+            <div class="tone-legend">
+              <div class="tone-card">
+                <strong>1</strong>
+                <span>high</span>
+              </div>
+              <div class="tone-card">
+                <strong>2</strong>
+                <span>rising</span>
+              </div>
+              <div class="tone-card">
+                <strong>3</strong>
+                <span>dip-rise</span>
+              </div>
+              <div class="tone-card">
+                <strong>4</strong>
+                <span>falling</span>
+              </div>
+              <div class="tone-card">
+                <strong>5</strong>
+                <span>neutral</span>
+              </div>
+            </div>
+
+            <div class="phrase-card">
+              <p class="mini-kicker" id="focusMeaning">Phrase of the moment</p>
+              <div class="focus-hanzi" id="focusHanzi">你好</div>
+              <p class="focus-pinyin" id="focusPinyin">nǐ hǎo</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel challenge-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Active practice</p>
+            <h2 id="challengeTitle">Pick a lesson to begin</h2>
+          </div>
+          <span class="chip" id="questionCounter">0 / 0</span>
+        </div>
+
+        <div class="challenge-body">
+          <p class="challenge-intro" id="lessonPrompt">
+            Start with Pinyin Path to learn how Mandarin sounds are written.
+          </p>
+
+          <div class="question-card">
+            <p class="question-type" id="questionType">Lesson ready</p>
+            <h3 class="question-text" id="questionText">
+              Your guide is waiting to begin the first Mandarin practice set.
+            </h3>
+            <div class="lesson-visuals" id="lessonVisuals"></div>
+            <div class="choice-grid" id="choiceGrid"></div>
+
+            <form class="answer-form" id="answerForm">
+              <label class="visually-hidden" for="answerInput">Answer</label>
+              <input
+                autocomplete="off"
+                id="answerInput"
+                inputmode="text"
+                placeholder="Type your answer"
+                type="text"
+              />
+              <button class="primary-button" id="answerButton" type="submit">
+                Check Answer
+              </button>
+            </form>
+          </div>
+
+          <div class="feedback-card" id="feedbackCard">
+            <p class="feedback-text" id="feedbackText">
+              Your guide will react here after each answer.
+            </p>
+          </div>
+
+          <div class="reward-strip" id="rewardStrip">
+            <div class="reward-pill">Pinyin +0</div>
+            <div class="reward-pill">Tones +0</div>
+            <div class="reward-pill">Hanzi +0</div>
+            <div class="reward-pill">Sentences +0</div>
+            <div class="reward-pill">Lanterns +0</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel lessons-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Course paths</p>
+            <h2>Choose today’s practice</h2>
+          </div>
+        </div>
+
+        <div class="lesson-grid">
+          <article class="lesson-card lesson-card-pinyin">
+            <div class="lesson-icon">Zi</div>
+            <div>
+              <h3>Pinyin Path</h3>
+              <p>Match sounds to spellings and read beginner pinyin with tone marks.</p>
+            </div>
+            <ul class="lesson-rewards">
+              <li>Builds pronunciation reading</li>
+              <li>Introduces tone-marked syllables</li>
+              <li>Starts core greeting words</li>
+            </ul>
+            <button class="lesson-button" data-lesson="pinyin" type="button">
+              Start Pinyin Path
+            </button>
+          </article>
+
+          <article class="lesson-card lesson-card-tones">
+            <div class="lesson-icon">Mā</div>
+            <div>
+              <h3>Tone Trail</h3>
+              <p>Practice the five Mandarin tone patterns with quick visual checks.</p>
+            </div>
+            <ul class="lesson-rewards">
+              <li>Recognizes tone numbers</li>
+              <li>Matches marks to contours</li>
+              <li>Strengthens listening prep</li>
+            </ul>
+            <button class="lesson-button" data-lesson="tones" type="button">
+              Start Tone Trail
+            </button>
+          </article>
+
+          <article class="lesson-card lesson-card-characters">
+            <div class="lesson-icon">汉</div>
+            <div>
+              <h3>Hanzi Match</h3>
+              <p>Learn simplified characters for hello, thanks, pronouns, and school words.</p>
+            </div>
+            <ul class="lesson-rewards">
+              <li>Builds character memory</li>
+              <li>Links hanzi to pinyin</li>
+              <li>Adds reading confidence</li>
+            </ul>
+            <button class="lesson-button" data-lesson="characters" type="button">
+              Start Hanzi Match
+            </button>
+          </article>
+
+          <article class="lesson-card lesson-card-sentences">
+            <div class="lesson-icon">你好</div>
+            <div>
+              <h3>Sentence Studio</h3>
+              <p>Work with short greetings and self-introduction sentences in context.</p>
+            </div>
+            <ul class="lesson-rewards">
+              <li>Builds simple sentence sense</li>
+              <li>Connects words into meaning</li>
+              <li>Supports conversation starters</li>
+            </ul>
+            <button class="lesson-button" data-lesson="sentences" type="button">
+              Start Sentence Studio
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel progress-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Skill meters</p>
+            <h2>Your course progress</h2>
+          </div>
+          <div class="lantern-counter">
+            <span class="lantern-counter-value" id="lanternValue">0</span>
+            <span class="lantern-counter-label">Lanterns</span>
+          </div>
+        </div>
+
+        <div class="meter-list">
+          <div class="meter-block">
+            <div class="meter-label-row">
+              <span>Pinyin</span>
+              <strong id="pinyinValue">0%</strong>
+            </div>
+            <div class="meter-track meter-track-pinyin"><div id="pinyinMeter"></div></div>
+          </div>
+
+          <div class="meter-block">
+            <div class="meter-label-row">
+              <span>Tones</span>
+              <strong id="toneValue">0%</strong>
+            </div>
+            <div class="meter-track meter-track-tones"><div id="toneMeter"></div></div>
+          </div>
+
+          <div class="meter-block">
+            <div class="meter-label-row">
+              <span>Hanzi</span>
+              <strong id="characterValue">0%</strong>
+            </div>
+            <div class="meter-track meter-track-characters"><div id="characterMeter"></div></div>
+          </div>
+
+          <div class="meter-block">
+            <div class="meter-label-row">
+              <span>Sentences</span>
+              <strong id="sentenceValue">0%</strong>
+            </div>
+            <div class="meter-track meter-track-sentences"><div id="sentenceMeter"></div></div>
+          </div>
+        </div>
+
+        <div class="progress-notes">
+          <article class="mini-card">
+            <p class="mini-card-title">Practice streak</p>
+            <strong id="streakValue">0</strong>
+            <p id="streakLine">Correct answers in a row will build momentum.</p>
+          </article>
+          <article class="mini-card">
+            <p class="mini-card-title">Next unlock</p>
+            <strong id="unlockLine">Tone Bridge</strong>
+            <p id="unlockHint">Balance all four lesson paths to unlock the checkpoint.</p>
+          </article>
+        </div>
+
+        <div class="checkpoint-card" id="checkpointCard">
+          <div class="checkpoint-topline">
+            <div>
+              <p class="section-kicker">Checkpoint review</p>
+              <h3 id="checkpointTitle">Not ready yet</h3>
+            </div>
+            <div class="checkpoint-meter">
+              <span class="checkpoint-meter-value" id="checkpointMeterValue">0%</span>
+              <span class="checkpoint-meter-label">review</span>
+            </div>
+          </div>
+          <p id="checkpointHint">
+            Finish some practice in pinyin, tones, characters, and sentences to unlock the mixed review.
+          </p>
+          <button class="boss-button" id="checkpointButton" type="button" disabled>
+            Checkpoint Locked
+          </button>
+        </div>
+      </section>
+
+      <section class="panel world-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Course map</p>
+            <h2>Unlocked districts</h2>
+          </div>
+        </div>
+
+        <div class="zone-list" id="zoneList"></div>
+
+        <div class="journal">
+          <div class="journal-heading">
+            <h3>Milestones</h3>
+            <span id="milestoneCount">0 moments</span>
+          </div>
+          <ul id="milestoneList"></ul>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="modal" id="profileModal">
+      <div class="modal-card profile-modal-card">
+        <p class="section-kicker">Player profiles</p>
+        <h2>Who is studying today?</h2>
+        <p class="modal-copy">
+          Profiles stay on this browser. Each learner keeps separate Mandarin progress,
+          checkpoints, and guide settings.
+        </p>
+
+        <div class="profile-list" id="profileList"></div>
+        <p class="empty-state" id="profileEmptyState">
+          No learners yet. Create the first profile to begin.
+        </p>
+
+        <form class="profile-create-form" id="profileCreateForm">
+          <label class="field-label" for="profileNameInput">Learner name</label>
+          <div class="profile-create-row">
+            <input
+              class="name-input"
+              id="profileNameInput"
+              maxlength="18"
+              placeholder="Add a learner"
+              required
+              type="text"
+            />
+            <button class="primary-button" id="createProfileButton" type="submit">
+              Add Learner
+            </button>
+          </div>
+          <p class="form-hint" id="profileHint">
+            Each learner gets a separate save slot on this browser.
+          </p>
+        </form>
+
+        <div class="modal-actions">
+          <button class="ghost-button" hidden id="closeProfileButton" type="button">
+            Back to Course
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="modal" id="setupModal">
+      <form class="modal-card" id="setupForm" method="dialog">
+        <p class="section-kicker">Step 1</p>
+        <h2>Choose a Mandarin guide</h2>
+        <p class="modal-copy">
+          Each guide uses the same intro course. The choice changes the companion style
+          and the little encouragement lines during practice.
+        </p>
+
+        <div class="guide-grid" id="guideGrid">
+          <button class="guide-option selected" data-guide="panda" type="button">
+            <span class="guide-option-badge">P</span>
+            <strong>Lantern Panda</strong>
+            <span>Steady and warm</span>
+          </button>
+          <button class="guide-option" data-guide="crane" type="button">
+            <span class="guide-option-badge">C</span>
+            <strong>Jade Crane</strong>
+            <span>Precise and calm</span>
+          </button>
+          <button class="guide-option" data-guide="otter" type="button">
+            <span class="guide-option-badge">O</span>
+            <strong>River Otter</strong>
+            <span>Playful and quick</span>
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button class="primary-button" id="startCourseButton" type="submit">
+            Start Learning
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="helpModal">
+      <div class="modal-card help-card">
+        <p class="section-kicker">How it works</p>
+        <h2>Four practice paths build one intro course</h2>
+        <div class="help-points">
+          <p><strong>Pinyin Path</strong> teaches how beginner Mandarin sounds are spelled.</p>
+          <p><strong>Tone Trail</strong> teaches 1st, 2nd, 3rd, 4th, and neutral tone patterns.</p>
+          <p><strong>Hanzi Match</strong> teaches simplified characters linked to pinyin and meaning.</p>
+          <p><strong>Sentence Studio</strong> teaches short greeting and identity sentences.</p>
+          <p><strong>Checkpoint review</strong> unlocks the next district after balanced practice.</p>
+        </div>
+        <button class="primary-button" id="closeHelpButton" type="button">Back to Course</button>
+      </div>
+    </dialog>
+
+    <script src="script.js"></script>
+  </body>
+</html>
