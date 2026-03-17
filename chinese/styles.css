@@ -429,10 +429,22 @@ h3 {
   background: radial-gradient(circle, rgba(255, 242, 204, 0.84), transparent 70%);
 }
 
+.guide-tail,
 .guide-ears span,
 .guide-body,
 .guide-badge {
   position: absolute;
+}
+
+.guide-tail {
+  left: 50%;
+  bottom: 48px;
+  width: 84px;
+  height: 28px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), var(--guide-secondary));
+  transform: translateX(-50%) rotate(-10deg);
+  z-index: 0;
 }
 
 .guide-ears span {
@@ -475,10 +487,11 @@ h3 {
   transform: translateX(-50%);
   width: 126px;
   height: 132px;
-  border-radius: 58px 58px 42px 42px;
+  border-radius: 60px 60px 48px 48px;
   background: linear-gradient(180deg, var(--guide-primary), rgba(255, 255, 255, 0.9));
   border: 6px solid rgba(255, 255, 255, 0.6);
   box-shadow: inset 0 -18px 28px rgba(80, 112, 111, 0.08);
+  overflow: hidden;
 }
 
 .guide-avatar[data-guide="crane"] .guide-body {
@@ -490,6 +503,55 @@ h3 {
   width: 138px;
 }
 
+.guide-belly,
+.guide-paws,
+.guide-feet {
+  position: absolute;
+}
+
+.guide-belly {
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.guide-paws {
+  inset: auto 0 24px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+
+.guide-paws span,
+.guide-feet span {
+  display: block;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 -6px 10px rgba(95, 116, 112, 0.08);
+}
+
+.guide-paws span {
+  width: 24px;
+  height: 20px;
+  border-radius: 16px;
+}
+
+.guide-feet {
+  inset: auto 0 8px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.guide-feet span {
+  width: 28px;
+  height: 16px;
+  border-radius: 16px 16px 12px 12px;
+}
+
 .guide-face {
   position: absolute;
   inset: 34px 20px 20px;
@@ -498,14 +560,26 @@ h3 {
 .guide-eyes {
   display: flex;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 12px;
 }
 
 .guide-eyes span {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 18px;
+  height: 22px;
+  border-radius: 999px;
   background: var(--ink);
+  position: relative;
+}
+
+.guide-eyes span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .guide-cheeks {
@@ -522,14 +596,14 @@ h3 {
 }
 
 .guide-mouth {
-  width: 26px;
-  height: 14px;
+  width: 22px;
+  height: 12px;
   border: 3px solid var(--ink);
   border-top: 0;
   border-left-color: transparent;
   border-right-color: transparent;
   border-radius: 0 0 26px 26px;
-  margin: 10px auto 0;
+  margin: 8px auto 0;
 }
 
 .guide-badge {
@@ -547,9 +621,29 @@ h3 {
   border-radius: 12px;
 }
 
+.guide-avatar[data-guide="crane"] .guide-tail {
+  width: 66px;
+  bottom: 54px;
+  transform: translateX(-50%) rotate(-24deg);
+}
+
+.guide-avatar[data-guide="crane"] .guide-belly {
+  width: 58px;
+}
+
+.guide-avatar[data-guide="crane"] .guide-paws span {
+  width: 18px;
+}
+
 .guide-avatar[data-guide="otter"] .guide-badge {
   width: 48px;
   border-radius: 18px;
+}
+
+.guide-avatar[data-guide="otter"] .guide-tail {
+  width: 98px;
+  bottom: 40px;
+  transform: translateX(-50%) rotate(8deg);
 }
 
 .guide-shadow {
@@ -678,6 +772,23 @@ h3 {
   font-weight: 800;
   color: var(--paper-red);
   margin: 0 0 8px;
+}
+
+.study-visual .visual-main {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+}
+
+.study-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.study-row {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink-soft);
 }
 
 .tone-visual-main {

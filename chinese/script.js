@@ -7,15 +7,15 @@ const MAX_PROFILE_NAME_LENGTH = 18;
 const GUIDE_TYPES = {
   panda: {
     label: "Lantern Panda",
-    personality: "A steady guide who keeps pinyin and first phrases calm and clear.",
+    personality: "A steady study pet who keeps pinyin and first phrases calm and clear.",
   },
   crane: {
     label: "Jade Crane",
-    personality: "A precise guide who loves clean tones and tidy character reading.",
+    personality: "A precise study pet who loves clean tones and tidy character reading.",
   },
   otter: {
     label: "River Otter",
-    personality: "A playful guide who keeps short sentences quick and lively.",
+    personality: "A playful study pet who keeps short sentences quick and lively.",
   },
 };
 
@@ -144,21 +144,94 @@ const VOCAB = [
 ];
 
 const SENTENCES = [
-  { hanzi: "你好。", pinyin: "Nǐ hǎo.", english: "Hello.", words: ["你", "好"] },
-  { hanzi: "你好吗？", pinyin: "Nǐ hǎo ma?", english: "How are you?", words: ["你", "好", "吗"] },
-  { hanzi: "我很好。", pinyin: "Wǒ hěn hǎo.", english: "I am very well.", words: ["我", "很", "好"] },
-  { hanzi: "谢谢你。", pinyin: "Xiè xie nǐ.", english: "Thank you.", words: ["谢谢", "你"] },
-  { hanzi: "再见。", pinyin: "Zài jiàn.", english: "Goodbye.", words: ["再见"] },
-  { hanzi: "我是学生。", pinyin: "Wǒ shì xué sheng.", english: "I am a student.", words: ["我", "是", "学生"] },
-  { hanzi: "他是老师。", pinyin: "Tā shì lǎo shī.", english: "He is a teacher.", words: ["他", "是", "老师"] },
-  { hanzi: "她是老师。", pinyin: "Tā shì lǎo shī.", english: "She is a teacher.", words: ["她", "是", "老师"] },
+  { id: "hello", hanzi: "你好。", pinyin: "Nǐ hǎo.", english: "Hello.", words: ["你", "好"] },
+  { id: "how_are_you", hanzi: "你好吗？", pinyin: "Nǐ hǎo ma?", english: "How are you?", words: ["你", "好", "吗"] },
+  { id: "im_fine", hanzi: "我很好。", pinyin: "Wǒ hěn hǎo.", english: "I am very well.", words: ["我", "很", "好"] },
+  { id: "thanks", hanzi: "谢谢你。", pinyin: "Xiè xie nǐ.", english: "Thank you.", words: ["谢谢", "你"] },
+  { id: "goodbye", hanzi: "再见。", pinyin: "Zài jiàn.", english: "Goodbye.", words: ["再见"] },
+  { id: "im_student", hanzi: "我是学生。", pinyin: "Wǒ shì xué sheng.", english: "I am a student.", words: ["我", "是", "学生"] },
+  { id: "he_teacher", hanzi: "他是老师。", pinyin: "Tā shì lǎo shī.", english: "He is a teacher.", words: ["他", "是", "老师"] },
+  { id: "she_teacher", hanzi: "她是老师。", pinyin: "Tā shì lǎo shī.", english: "She is a teacher.", words: ["她", "是", "老师"] },
 ];
+
+const LESSON_PACKS = {
+  pinyin: [
+    {
+      title: "Lesson 1: Hello sounds",
+      summary: "Meet your first sound spellings for hello, you, I, and the question particle ma.",
+      items: ["ni", "hao", "nihao", "wo", "ma"],
+    },
+    {
+      title: "Lesson 2: Helpful everyday words",
+      summary: "Add very, to be, thank you, and goodbye.",
+      items: ["hen", "shi", "xiexie", "zaijian", "bu"],
+    },
+    {
+      title: "Lesson 3: Name and school words",
+      summary: "Add name, student, teacher, and the pronoun tā.",
+      items: ["jiao", "xuesheng", "laoshi", "ta-he", "ta-she"],
+    },
+  ],
+  tones: [
+    {
+      title: "Lesson 1: Tone marks on hello words",
+      summary: "See how tone marks change the look of ma, ni, and hao.",
+      series: ["ma", "ni", "hao"],
+    },
+    {
+      title: "Lesson 2: Tone marks in useful words",
+      summary: "Read tone marks on everyday words like wǒ, hěn, shì, and xiè.",
+      series: ["wo", "hen", "shi", "xie"],
+    },
+    {
+      title: "Lesson 3: Tone marks in school words",
+      summary: "Practice longer syllables used in goodbye, student, teacher, and name words.",
+      series: ["zai", "jian", "jiao", "xue", "lao", "ta"],
+    },
+  ],
+  characters: [
+    {
+      title: "Lesson 1: First characters",
+      summary: "Learn the key characters used in hello and simple question sentences.",
+      items: ["ni", "hao", "ma", "wo", "hen"],
+    },
+    {
+      title: "Lesson 2: Courteous words",
+      summary: "Add character forms for thank you, goodbye, and to be.",
+      items: ["xiexie", "zaijian", "shi", "bu"],
+    },
+    {
+      title: "Lesson 3: School and people words",
+      summary: "Add characters for student, teacher, and the he / she pronouns.",
+      items: ["xuesheng", "laoshi", "ta-he", "ta-she", "jiao"],
+    },
+  ],
+  sentences: [
+    {
+      title: "Lesson 1: Hello and how are you?",
+      summary: "Read short greeting sentences and how to answer them.",
+      sentences: ["hello", "how_are_you", "im_fine"],
+    },
+    {
+      title: "Lesson 2: Thanks and goodbye",
+      summary: "Read polite everyday sentences for thanks and goodbye.",
+      sentences: ["thanks", "goodbye"],
+    },
+    {
+      title: "Lesson 3: I am a student",
+      summary: "Read simple identity sentences using student and teacher words.",
+      sentences: ["im_student", "he_teacher", "she_teacher"],
+    },
+  ],
+};
 
 const TONE_SERIES = [
   { base: "ma", forms: ["mā", "má", "mǎ", "mà", "ma"] },
   { base: "shi", forms: ["shī", "shí", "shǐ", "shì", "shi"] },
   { base: "ni", forms: ["nī", "ní", "nǐ", "nì", "ni"] },
   { base: "hao", forms: ["hāo", "háo", "hǎo", "hào", "hao"] },
+  { base: "wo", forms: ["wō", "wó", "wǒ", "wò", "wo"] },
+  { base: "hen", forms: ["hēn", "hén", "hěn", "hèn", "hen"] },
   { base: "xie", forms: ["xiē", "xié", "xiě", "xiè", "xie"] },
   { base: "zai", forms: ["zāi", "zái", "zǎi", "zài", "zai"] },
   { base: "jian", forms: ["jiān", "jián", "jiǎn", "jiàn", "jian"] },
@@ -193,6 +266,10 @@ const ACCENT_MAP = {
   v: ["ǖ", "ǘ", "ǚ", "ǜ", "ü"],
   ü: ["ǖ", "ǘ", "ǚ", "ǜ", "ü"],
 };
+
+const VOCAB_BY_ID = Object.fromEntries(VOCAB.map((item) => [item.id, item]));
+const SENTENCES_BY_ID = Object.fromEntries(SENTENCES.map((sentence) => [sentence.id, sentence]));
+const TONE_SERIES_BY_BASE = Object.fromEntries(TONE_SERIES.map((series) => [series.base, series]));
 
 const DOM = {
   playerChip: document.getElementById("playerChip"),
@@ -292,9 +369,12 @@ function createFreshState() {
       "A new intro Mandarin course is ready. Pick a guide and begin with pinyin.",
     ],
     lessonHistory: createLessonCounterMap(),
+    lessonCompletions: createLessonCounterMap(),
     cycleHistory: createLessonCounterMap(),
     activeLesson: null,
+    activeLessonPhase: null,
     activeQuestion: null,
+    activePackIndex: 0,
     cycleLength: 0,
     questionIndex: 0,
     currentLessonCorrect: 0,
@@ -326,6 +406,10 @@ function hydrateState(savedState) {
       ...fresh.lessonHistory,
       ...(savedState.lessonHistory || {}),
     },
+    lessonCompletions: {
+      ...fresh.lessonCompletions,
+      ...(savedState.lessonCompletions || {}),
+    },
     cycleHistory: {
       ...fresh.cycleHistory,
       ...(savedState.cycleHistory || {}),
@@ -344,6 +428,13 @@ function hydrateState(savedState) {
     stageIndex: clamp(savedState.stageIndex ?? fresh.stageIndex, 0, STAGES.length - 1),
     zoneIndex: clamp(savedState.zoneIndex ?? fresh.zoneIndex, 0, DISTRICTS.length - 1),
     checkpointsCleared: clamp(savedState.checkpointsCleared ?? fresh.checkpointsCleared, 0, DISTRICTS.length - 1),
+    activeLesson: fresh.activeLesson,
+    activeLessonPhase: fresh.activeLessonPhase,
+    activeQuestion: fresh.activeQuestion,
+    activePackIndex: fresh.activePackIndex,
+    cycleLength: fresh.cycleLength,
+    questionIndex: fresh.questionIndex,
+    currentLessonCorrect: fresh.currentLessonCorrect,
     feedbackMessage: savedState.feedbackMessage || fresh.feedbackMessage,
     feedbackTone: savedState.feedbackTone || fresh.feedbackTone,
   };
@@ -452,7 +543,7 @@ function profileSummary(profileId) {
   const profileState = loadProfileState(profileId);
   const stage = STAGES[profileState.stageIndex] || STAGES[0];
   if (!profileState.guideType) {
-    return "Guide not chosen yet.";
+    return "Study pet not chosen yet.";
   }
 
   return `${GUIDE_TYPES[profileState.guideType].label} - ${stage.name} - ${profileState.lanterns} lanterns`;
@@ -619,6 +710,69 @@ function sampleOne(items) {
   return items[randomInt(0, items.length - 1)];
 }
 
+function lessonPackIndexForStart(lessonType) {
+  const packs = LESSON_PACKS[lessonType] || [];
+  if (!packs.length) {
+    return 0;
+  }
+
+  return Math.min(state.lessonCompletions[lessonType] || 0, packs.length - 1);
+}
+
+function activeLessonPack(lessonType) {
+  const packs = LESSON_PACKS[lessonType] || [];
+  if (!packs.length) {
+    return null;
+  }
+
+  return packs[Math.min(state.activePackIndex || 0, packs.length - 1)] || packs[0];
+}
+
+function introducedPackCount(lessonType) {
+  const packs = LESSON_PACKS[lessonType] || [];
+  if (!packs.length) {
+    return 0;
+  }
+
+  const completed = state.lessonCompletions[lessonType] || 0;
+  return Math.min(Math.max(completed, 1), packs.length);
+}
+
+function introducedPacks(lessonType) {
+  return (LESSON_PACKS[lessonType] || []).slice(0, introducedPackCount(lessonType));
+}
+
+function vocabPoolFromPack(pack) {
+  return (pack?.items || []).map((id) => VOCAB_BY_ID[id]).filter(Boolean);
+}
+
+function tonePoolFromPack(pack) {
+  return (pack?.series || []).map((base) => TONE_SERIES_BY_BASE[base]).filter(Boolean);
+}
+
+function sentencePoolFromPack(pack) {
+  return (pack?.sentences || []).map((id) => SENTENCES_BY_ID[id]).filter(Boolean);
+}
+
+function reviewVocabPool(lessonType) {
+  if (lessonType === "sentences") {
+    return introducedPacks("sentences")
+      .flatMap((pack) => sentencePoolFromPack(pack))
+      .flatMap((sentence) => sentence.words)
+      .filter(Boolean);
+  }
+
+  return introducedPacks(lessonType).flatMap((pack) => vocabPoolFromPack(pack));
+}
+
+function reviewSentencePool() {
+  return introducedPacks("sentences").flatMap((pack) => sentencePoolFromPack(pack));
+}
+
+function reviewTonePool() {
+  return introducedPacks("tones").flatMap((pack) => tonePoolFromPack(pack));
+}
+
 function normalizePinyin(value) {
   const replacements = Object.entries(ACCENT_MAP).flatMap(([plain, forms]) =>
     forms.map((form) => [form, plain]),
@@ -737,10 +891,10 @@ function collectUnique(items, keyFn, count) {
   return collected.slice(0, count);
 }
 
-function pinyinChoiceOptions(answerItem) {
+function pinyinChoiceOptions(answerItem, pool) {
   const distractors = collectUnique(
     shuffleArray(
-      VOCAB.filter((item) => normalizePinyin(item.pinyin) !== normalizePinyin(answerItem.pinyin)),
+      pool.filter((item) => normalizePinyin(item.pinyin) !== normalizePinyin(answerItem.pinyin)),
     ),
     (item) => normalizePinyin(item.pinyin),
     3,
@@ -752,9 +906,9 @@ function pinyinChoiceOptions(answerItem) {
   ]);
 }
 
-function englishChoiceOptions(answerItem) {
+function englishChoiceOptions(answerItem, pool) {
   const distractors = collectUnique(
-    shuffleArray(VOCAB.filter((item) => item.english !== answerItem.english)),
+    shuffleArray(pool.filter((item) => item.english !== answerItem.english)),
     (item) => item.english,
     3,
   );
@@ -765,9 +919,9 @@ function englishChoiceOptions(answerItem) {
   ]);
 }
 
-function hanziChoiceOptions(answerItem) {
+function hanziChoiceOptions(answerItem, pool) {
   const distractors = collectUnique(
-    shuffleArray(VOCAB.filter((item) => item.hanzi !== answerItem.hanzi)),
+    shuffleArray(pool.filter((item) => item.hanzi !== answerItem.hanzi)),
     (item) => item.hanzi,
     3,
   );
@@ -778,9 +932,9 @@ function hanziChoiceOptions(answerItem) {
   ]);
 }
 
-function sentenceTranslationOptions(answerSentence) {
+function sentenceTranslationOptions(answerSentence, pool) {
   const distractors = collectUnique(
-    shuffleArray(SENTENCES.filter((sentence) => sentence.english !== answerSentence.english)),
+    shuffleArray(pool.filter((sentence) => sentence.english !== answerSentence.english)),
     (sentence) => sentence.english,
     3,
   );
@@ -791,9 +945,9 @@ function sentenceTranslationOptions(answerSentence) {
   ]);
 }
 
-function sentenceWordPool() {
+function sentenceWordPool(pool = SENTENCES) {
   const words = [];
-  SENTENCES.forEach((sentence) => {
+  pool.forEach((sentence) => {
     sentence.words.forEach((word) => {
       if (!words.includes(word)) {
         words.push(word);
@@ -803,8 +957,9 @@ function sentenceWordPool() {
   return words;
 }
 
-function createPinyinQuestion() {
-  const item = sampleOne(VOCAB);
+function createPinyinQuestion(pack) {
+  const pool = vocabPoolFromPack(pack);
+  const item = sampleOne(pool);
 
   if (Math.random() < 0.55) {
     return {
@@ -813,7 +968,7 @@ function createPinyinQuestion() {
       text: `Which pinyin matches ${item.hanzi}?`,
       prompt: `${item.hanzi} means "${item.english}".`,
       mode: "choice",
-      choices: pinyinChoiceOptions(item),
+      choices: pinyinChoiceOptions(item, pool),
       answer: item.pinyin,
       judge: (value) => normalizePinyin(value) === normalizePinyin(item.pinyin),
       visual: {
@@ -851,9 +1006,10 @@ function createPinyinQuestion() {
   };
 }
 
-function createToneQuestion() {
+function createToneQuestion(pack) {
+  const pool = tonePoolFromPack(pack);
   if (Math.random() < 0.5) {
-    const series = sampleOne(TONE_SERIES);
+    const series = sampleOne(pool);
     const tone = randomInt(1, 4);
     const answer = series.forms[tone - 1];
     const choices = shuffleArray(
@@ -886,7 +1042,7 @@ function createToneQuestion() {
     };
   }
 
-  const series = sampleOne(TONE_SERIES);
+  const series = sampleOne(pool);
   const tone = randomInt(0, 4);
   const marked = series.forms[tone === 0 ? 4 : tone - 1];
   const choices = shuffleArray(
@@ -920,8 +1076,9 @@ function createToneQuestion() {
   };
 }
 
-function createCharacterQuestion() {
-  const item = sampleOne(VOCAB);
+function createCharacterQuestion(pack) {
+  const pool = vocabPoolFromPack(pack);
+  const item = sampleOne(pool);
 
   if (Math.random() < 0.5) {
     return {
@@ -930,7 +1087,7 @@ function createCharacterQuestion() {
       text: `Which simplified character matches ${item.pinyin}?`,
       prompt: `Meaning: "${item.english}".`,
       mode: "choice",
-      choices: hanziChoiceOptions(item),
+      choices: hanziChoiceOptions(item, pool),
       answer: item.hanzi,
       judge: (value) => value === item.hanzi,
       visual: {
@@ -952,7 +1109,7 @@ function createCharacterQuestion() {
     text: `What does ${item.hanzi} mean?`,
     prompt: `Use the pinyin clue if you already know it.`,
     mode: "choice",
-    choices: englishChoiceOptions(item),
+    choices: englishChoiceOptions(item, pool),
     answer: item.english,
     judge: (value) => value === item.english,
     visual: {
@@ -968,16 +1125,17 @@ function createCharacterQuestion() {
   };
 }
 
-function createSentenceQuestion() {
+function createSentenceQuestion(pack) {
+  const pool = sentencePoolFromPack(pack);
   if (Math.random() < 0.5) {
-    const sentence = sampleOne(SENTENCES);
+    const sentence = sampleOne(pool);
     return {
       sourceLesson: "sentences",
       typeLabel: "Sentence meaning",
       text: "What does this sentence mean?",
       prompt: `Read the hanzi first, then use the pinyin for support.`,
       mode: "choice",
-      choices: sentenceTranslationOptions(sentence),
+      choices: sentenceTranslationOptions(sentence, pool),
       answer: sentence.english,
       judge: (value) => value === sentence.english,
       visual: {
@@ -994,7 +1152,7 @@ function createSentenceQuestion() {
     };
   }
 
-  const sentence = sampleOne(SENTENCES.filter((entry) => entry.words.length >= 2));
+  const sentence = sampleOne(pool.filter((entry) => entry.words.length >= 2));
   const missingIndex = randomInt(0, sentence.words.length - 1);
   const answer = sentence.words[missingIndex];
   const masked = sentence.words
@@ -1003,7 +1161,7 @@ function createSentenceQuestion() {
   const choices = shuffleArray([
     { label: answer, value: answer },
     ...collectUnique(
-      shuffleArray(sentenceWordPool().filter((word) => word !== answer)),
+      shuffleArray(sentenceWordPool(pool).filter((word) => word !== answer)),
       (word) => word,
       3,
     ).map((word) => ({ label: word, value: word })),
@@ -1033,8 +1191,28 @@ function createSentenceQuestion() {
 }
 
 function createCheckpointQuestion() {
-  const builders = [createPinyinQuestion, createToneQuestion, createCharacterQuestion, createSentenceQuestion];
-  const question = sampleOne(builders)();
+  const lessonType = sampleOne(["pinyin", "tones", "characters", "sentences"]);
+  const packs = {
+    pinyin: {
+      items: collectUnique(reviewVocabPool("pinyin"), (item) => item.id, 12).map((item) => item.id),
+    },
+    tones: {
+      series: collectUnique(reviewTonePool(), (item) => item.base, 12).map((item) => item.base),
+    },
+    characters: {
+      items: collectUnique(reviewVocabPool("characters"), (item) => item.id, 12).map((item) => item.id),
+    },
+    sentences: {
+      sentences: collectUnique(reviewSentencePool(), (item) => item.id, 12).map((item) => item.id),
+    },
+  };
+  const builders = {
+    pinyin: createPinyinQuestion,
+    tones: createToneQuestion,
+    characters: createCharacterQuestion,
+    sentences: createSentenceQuestion,
+  };
+  const question = builders[lessonType](packs[lessonType]);
   return {
     ...question,
     typeLabel: `Checkpoint • ${question.typeLabel}`,
@@ -1048,18 +1226,94 @@ function createCheckpointQuestion() {
 
 function buildQuestionForLesson(lessonType) {
   if (lessonType === "pinyin") {
-    return createPinyinQuestion();
+    return createPinyinQuestion(activeLessonPack("pinyin"));
   }
   if (lessonType === "tones") {
-    return createToneQuestion();
+    return createToneQuestion(activeLessonPack("tones"));
   }
   if (lessonType === "characters") {
-    return createCharacterQuestion();
+    return createCharacterQuestion(activeLessonPack("characters"));
   }
   if (lessonType === "sentences") {
-    return createSentenceQuestion();
+    return createSentenceQuestion(activeLessonPack("sentences"));
   }
   return createCheckpointQuestion();
+}
+
+function lessonStudyVisual(lessonType, pack) {
+  if (!pack) {
+    return {
+      kind: "sentence",
+      kicker: "Mini lesson",
+      hanzi: "你好",
+      pinyin: "nǐ hǎo",
+      note: "This lesson will teach a few items first, then use only those in practice.",
+    };
+  }
+
+  if (lessonType === "pinyin" || lessonType === "characters") {
+    const rows = vocabPoolFromPack(pack)
+      .slice(0, 4)
+      .map((item) => `${item.hanzi} • ${item.pinyin} • ${item.english}`);
+    return {
+      kind: "study",
+      kicker: "Mini lesson",
+      title: pack.title,
+      summary: `${pack.summary} Practice will only use these items.`,
+      rows,
+    };
+  }
+
+  if (lessonType === "tones") {
+    const rows = tonePoolFromPack(pack)
+      .slice(0, 4)
+      .map((series) => `${series.forms[0]} / ${series.forms[1]} / ${series.forms[2]} / ${series.forms[3]}`);
+    return {
+      kind: "study",
+      kicker: "Mini lesson",
+      title: pack.title,
+      summary: `${pack.summary} Watch the mark shape before you answer.`,
+      rows,
+    };
+  }
+
+  if (lessonType === "sentences") {
+    const rows = sentencePoolFromPack(pack)
+      .slice(0, 3)
+      .map((sentence) => `${sentence.hanzi} • ${sentence.english}`);
+    return {
+      kind: "study",
+      kicker: "Mini lesson",
+      title: pack.title,
+      summary: `${pack.summary} Practice will stay inside these sentence patterns.`,
+      rows,
+    };
+  }
+
+  const rows = [
+    "Pinyin, tones, hanzi, and sentences are all in this mixed review.",
+    "Checkpoint questions only use material already taught in earlier mini lessons.",
+  ];
+  return {
+    kind: "study",
+    kicker: "Review first",
+    title: "Checkpoint review",
+    summary: "Nothing new appears here. This is mixed review of introduced material only.",
+    rows,
+  };
+}
+
+function beginPracticeRound() {
+  state.activeLessonPhase = "quiz";
+  state.questionIndex = 0;
+  state.currentLessonCorrect = 0;
+  state.activeQuestion = buildQuestionForLesson(state.activeLesson);
+  state.guideSpeech = "Mini lesson complete. Now the practice round will stay inside what you just learned.";
+  state.focusCard = state.activeQuestion.focus || state.focusCard;
+  selectedChoiceValue = "";
+  DOM.answerInput.value = "";
+  saveState();
+  render();
 }
 
 function startLesson(lessonType) {
@@ -1084,12 +1338,17 @@ function startLesson(lessonType) {
   }
 
   state.activeLesson = lessonType;
+  state.activeLessonPhase = "study";
+  state.activePackIndex = lessonType === "checkpoint" ? 0 : lessonPackIndexForStart(lessonType);
   state.cycleLength = LESSONS[lessonType].length;
   state.questionIndex = 0;
   state.currentLessonCorrect = 0;
-  state.activeQuestion = buildQuestionForLesson(lessonType);
-  state.guideSpeech = guideLine("intro", lessonType);
-  state.focusCard = state.activeQuestion.focus || state.focusCard;
+  state.activeQuestion = null;
+  state.guideSpeech =
+    lessonType === "checkpoint"
+      ? "Quick lesson first, then mixed review. No unseen material will appear in the checkpoint."
+      : "Mini lesson first, then a short practice round that only uses the taught items.";
+  state.focusCard = currentDistrict().focus;
   DOM.answerInput.value = "";
   selectedChoiceValue = "";
   saveState();
@@ -1149,6 +1408,20 @@ function finishLesson() {
       setFeedback(`Checkpoint result: ${scoreLine}. Do one more balanced review round first.`, "bad");
     }
   } else {
+    const packs = LESSON_PACKS[lessonType] || [];
+    const canAdvancePack =
+      state.currentLessonCorrect >= 3
+      && (state.lessonCompletions[lessonType] || 0) === state.activePackIndex
+      && (state.lessonCompletions[lessonType] || 0) < packs.length;
+
+    if (canAdvancePack) {
+      state.lessonCompletions[lessonType] += 1;
+      const nextPack = packs[Math.min(state.lessonCompletions[lessonType], packs.length - 1)];
+      if (nextPack && state.lessonCompletions[lessonType] < packs.length) {
+        addMilestone(`${lesson.title} mastered. ${nextPack.title} is ready next time.`);
+      }
+    }
+
     addMilestone(`${lesson.title} complete: ${scoreLine}.`);
     if (checkpointReady()) {
       state.guideSpeech = "Balanced practice is complete. The checkpoint review is open.";
@@ -1160,7 +1433,9 @@ function finishLesson() {
   }
 
   state.activeLesson = null;
+  state.activeLessonPhase = null;
   state.activeQuestion = null;
+  state.activePackIndex = 0;
   state.questionIndex = 0;
   state.cycleLength = 0;
   state.currentLessonCorrect = 0;
@@ -1171,6 +1446,11 @@ function finishLesson() {
 }
 
 function submitCurrentAnswer() {
+  if (state.activeLessonPhase === "study") {
+    beginPracticeRound();
+    return;
+  }
+
   if (!state.activeQuestion) {
     setFeedback("Choose a lesson first.", "bad");
     render();
@@ -1243,7 +1523,7 @@ function selectGuide(guideId) {
 
 function beginCourseWithGuide() {
   state.guideType = selectedGuide;
-  state.guideSpeech = `${GUIDE_TYPES[selectedGuide].label} is ready. Start with pinyin or tone practice.`;
+  state.guideSpeech = `${GUIDE_TYPES[selectedGuide].label} is ready. Start with the mini lesson in pinyin or tones.`;
   state.focusCard = currentDistrict().focus;
   saveState();
   closeGuideSetup();
@@ -1263,11 +1543,11 @@ function idleChallengeState() {
 
   if (!state.guideType) {
     return {
-      title: "Choose a guide to begin",
+      title: "Choose a study pet to begin",
       counter: "0 / 0",
-      prompt: "Pick a guide companion, then start with Pinyin Path.",
+      prompt: "Pick a study pet, then start with Pinyin Path.",
       type: "Setup ready",
-      text: "Your first study guide is waiting in the setup card.",
+      text: "Each lesson path begins with a mini lesson before any questions appear.",
     };
   }
 
@@ -1288,7 +1568,7 @@ function idleChallengeState() {
     return {
       title: "Begin with Pinyin Path",
       counter: "0 solved",
-      prompt: "Start with pinyin to learn how Mandarin beginner sounds are written.",
+      prompt: "Start with pinyin. The game will teach a small set first, then quiz only that set.",
       type: "First lesson",
       text: "Your guide recommends learning the writing system before the rest of the course.",
     };
@@ -1307,6 +1587,21 @@ function idleChallengeState() {
 function renderVisual(visual) {
   if (!visual) {
     return "";
+  }
+
+  if (visual.kind === "study") {
+    return `
+      <div class="visual-card study-visual">
+        <p class="visual-kicker">${escapeHtml(visual.kicker)}</p>
+        <div class="visual-main">${escapeHtml(visual.title)}</div>
+        <p class="visual-sub">${escapeHtml(visual.summary)}</p>
+        <div class="study-list">
+          ${visual.rows
+            .map((row) => `<div class="study-row">${escapeHtml(row)}</div>`)
+            .join("")}
+        </div>
+      </div>
+    `;
   }
 
   if (visual.kind === "tone") {
@@ -1357,6 +1652,29 @@ function renderChoices(choices) {
 }
 
 function renderLessonInterface() {
+  if (state.activeLesson && state.activeLessonPhase === "study") {
+    const lesson = LESSONS[state.activeLesson];
+    const studyVisual = lessonStudyVisual(state.activeLesson, activeLessonPack(state.activeLesson));
+    DOM.challengeTitle.textContent = lesson.title;
+    DOM.questionCounter.textContent = "Lesson first";
+    DOM.lessonPrompt.textContent =
+      state.activeLesson === "checkpoint"
+        ? "This review only uses material already taught in earlier mini lessons."
+        : "Mini lesson first. Practice starts after you review these items.";
+    DOM.questionType.textContent = "Mini lesson";
+    DOM.questionText.textContent =
+      state.activeLesson === "checkpoint"
+        ? "Review the summary, then begin the mixed checkpoint."
+        : "Read the new material first, then start the short practice round.";
+    DOM.lessonVisuals.innerHTML = renderVisual(studyVisual);
+    DOM.choiceGrid.innerHTML = "";
+    DOM.answerInput.classList.add("hidden");
+    DOM.answerInput.disabled = true;
+    DOM.answerButton.textContent = state.activeLesson === "checkpoint" ? "Start Review" : "Start Practice";
+    DOM.answerButton.disabled = false;
+    return;
+  }
+
   if (!state.activeQuestion || !state.activeLesson) {
     const idle = idleChallengeState();
     DOM.challengeTitle.textContent = idle.title;
@@ -1542,6 +1860,11 @@ function renderLessonButtons() {
 }
 
 function updateAnswerButtonState() {
+  if (state.activeLessonPhase === "study") {
+    DOM.answerButton.disabled = false;
+    return;
+  }
+
   if (!state.activeQuestion || !state.activeLesson) {
     DOM.answerButton.disabled = true;
     return;

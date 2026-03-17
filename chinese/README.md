@@ -25,6 +25,8 @@ Then open `http://localhost:8000`.
 
 ## Course loop
 
+- Each lesson path starts with a mini lesson that introduces a small set of material first.
+- Practice questions only use the words, tones, characters, or sentences from that mini lesson.
 - `Pinyin Path`: sound spelling and tone-marked reading
 - `Tone Trail`: tone number and tone mark recognition
 - `Hanzi Match`: simplified character matching with pinyin and meaning
