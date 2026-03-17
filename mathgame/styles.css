@@ -113,6 +113,7 @@ h3 {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .ghost-button,
@@ -158,6 +159,12 @@ h3 {
   box-shadow: none;
 }
 
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
 .ghost-button:hover,
 .primary-button:hover,
 .quest-button:hover,
@@ -168,7 +175,7 @@ h3 {
 
 .page-grid {
   display: grid;
-  grid-template-columns: 1.3fr 0.9fr;
+  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
   gap: 18px;
   padding: 10px 0 32px;
 }
@@ -185,15 +192,31 @@ h3 {
   animation: rise-in 520ms ease both;
 }
 
-.habitat-panel,
-.quests-panel,
-.world-panel {
+.habitat-panel {
   grid-column: 1 / 2;
+  grid-row: 1;
 }
 
-.status-panel,
 .challenge-panel {
   grid-column: 2 / 3;
+  grid-row: 1;
+  align-self: start;
+}
+
+.quests-panel {
+  grid-column: 1 / 2;
+  grid-row: 2;
+}
+
+.status-panel {
+  grid-column: 2 / 3;
+  grid-row: 2;
+  align-self: start;
+}
+
+.world-panel {
+  grid-column: 1 / -1;
+  grid-row: 3;
 }
 
 .quests-panel,
@@ -225,6 +248,12 @@ h3 {
   padding: 8px 12px;
   font-weight: 800;
   color: var(--ink-soft);
+}
+
+.player-chip {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  box-shadow: 0 10px 20px rgba(66, 85, 86, 0.08);
 }
 
 .spark-counter {
@@ -379,6 +408,35 @@ h3 {
   animation: bob 3.4s ease-in-out infinite;
   --pet-top: #ffefb0;
   --pet-bottom: #ffbb79;
+  --pet-cream: #fff6d8;
+}
+
+.pet-tail {
+  position: absolute;
+  width: 84px;
+  height: 46px;
+  left: 112px;
+  top: 96px;
+  border-radius: 999px 999px 999px 18px;
+  background: linear-gradient(180deg, var(--pet-top), var(--pet-bottom));
+  transform: rotate(22deg);
+  transform-origin: left center;
+  box-shadow: 0 12px 24px rgba(94, 126, 134, 0.14);
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.pet-tail::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  right: -4px;
+  top: 8px;
+  background: linear-gradient(180deg, #ffe08a, #ff9c58);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  transform: rotate(24deg);
 }
 
 .pet-body {
@@ -389,6 +447,7 @@ h3 {
   box-shadow:
     inset 0 -12px 16px rgba(255, 255, 255, 0.16),
     0 20px 40px rgba(94, 126, 134, 0.2);
+  z-index: 2;
 }
 
 .pet::before,
@@ -400,6 +459,7 @@ h3 {
   top: 12px;
   background: linear-gradient(180deg, var(--pet-top), var(--pet-bottom));
   border-radius: 60% 60% 20% 20%;
+  z-index: 1;
 }
 
 .pet::before {
@@ -413,18 +473,150 @@ h3 {
 }
 
 .pet[data-stage="egg"] .pet-body {
-  border-radius: 46% 46% 42% 42%;
+  inset: 10px 24px 12px;
+  border-radius: 48% 48% 42% 42% / 60% 60% 34% 34%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.86), transparent 14%),
+    radial-gradient(circle at 62% 52%, rgba(255, 247, 188, 0.78), transparent 18%),
+    linear-gradient(180deg, var(--pet-top), var(--pet-bottom));
 }
 
 .pet[data-stage="egg"]::before,
 .pet[data-stage="egg"]::after,
+.pet[data-stage="egg"] .pet-eyes,
+.pet[data-stage="egg"] .pet-mouth,
+.pet[data-stage="egg"] .pet-belly,
+.pet[data-stage="egg"] .pet-horns,
+.pet[data-stage="egg"] .pet-tail,
+.pet[data-stage="egg"] .pet-shell-fragment,
 .pet[data-stage="egg"] .pet-accessory {
   display: none;
 }
 
+.pet-belly {
+  position: absolute;
+  width: 76px;
+  height: 88px;
+  left: 50%;
+  top: 48px;
+  transform: translateX(-50%);
+  border-radius: 48% 48% 42% 42%;
+  background: linear-gradient(180deg, var(--pet-cream), rgba(255, 235, 186, 0.92));
+  box-shadow: inset 0 -8px 10px rgba(255, 255, 255, 0.28);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.pet-horns {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.pet-horns span {
+  position: absolute;
+  width: 18px;
+  height: 28px;
+  top: 16px;
+  background: linear-gradient(180deg, #fffce8, #ffd98f);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.pet-horns span:first-child {
+  left: 56px;
+  transform: rotate(-22deg);
+}
+
+.pet-horns span:last-child {
+  right: 56px;
+  transform: rotate(22deg);
+}
+
+.pet-shell-fragment {
+  position: absolute;
+  bottom: 2px;
+  width: 54px;
+  height: 36px;
+  background:
+    radial-gradient(circle at 34% 32%, rgba(255, 255, 255, 0.72), transparent 14%),
+    linear-gradient(180deg, var(--pet-top), var(--pet-bottom));
+  box-shadow: 0 10px 20px rgba(94, 126, 134, 0.12);
+  opacity: 0;
+  transition: opacity 220ms ease;
+  z-index: 4;
+}
+
+.pet-shell-fragment-left {
+  left: 8px;
+  border-radius: 46% 64% 18% 42%;
+  transform: rotate(-18deg);
+}
+
+.pet-shell-fragment-center {
+  left: 50%;
+  width: 48px;
+  transform: translateX(-50%);
+  border-radius: 52% 52% 16% 16%;
+}
+
+.pet-shell-fragment-right {
+  right: 10px;
+  border-radius: 64% 46% 42% 18%;
+  transform: rotate(18deg);
+}
+
+.pet[data-stage="hatchling"] .pet-body,
+.pet[data-stage="sprout"] .pet-body,
+.pet[data-stage="glider"] .pet-body,
+.pet[data-stage="hatchling"] .pet-belly,
+.pet[data-stage="sprout"] .pet-belly,
+.pet[data-stage="glider"] .pet-belly,
+.pet[data-stage="hatchling"] .pet-tail,
+.pet[data-stage="sprout"] .pet-tail,
+.pet[data-stage="glider"] .pet-tail,
+.pet[data-stage="hatchling"] .pet-horns span,
+.pet[data-stage="sprout"] .pet-horns span,
+.pet[data-stage="glider"] .pet-horns span {
+  opacity: 1;
+}
+
+.pet[data-stage="hatchling"] .pet-body {
+  inset: 26px 22px 18px;
+  border-radius: 46% 46% 40% 40%;
+}
+
+.pet[data-stage="hatchling"]::before,
+.pet[data-stage="hatchling"]::after {
+  width: 38px;
+  height: 52px;
+  top: 62px;
+  border-radius: 78% 78% 18% 42%;
+}
+
+.pet[data-stage="hatchling"] .pet-tail {
+  width: 74px;
+  top: 102px;
+  left: 112px;
+}
+
+.pet[data-stage="hatchling"] .pet-shell-fragment {
+  opacity: 1;
+}
+
 .pet[data-stage="sprout"]::before,
 .pet[data-stage="sprout"]::after {
-  height: 68px;
+  width: 46px;
+  height: 66px;
+  top: 52px;
+  border-radius: 80% 80% 20% 38%;
+}
+
+.pet[data-stage="sprout"] .pet-tail {
+  width: 86px;
+  top: 96px;
+  left: 114px;
 }
 
 .pet[data-stage="glider"]::before,
@@ -433,6 +625,18 @@ h3 {
   height: 80px;
   top: 32px;
   border-radius: 70% 70% 20% 20%;
+}
+
+.pet[data-stage="glider"] .pet-tail {
+  width: 100px;
+  top: 88px;
+  left: 106px;
+}
+
+.pet[data-stage="glider"] .pet-horns span {
+  width: 22px;
+  height: 34px;
+  top: 10px;
 }
 
 .pet-eyes {
@@ -527,6 +731,7 @@ h3 {
   left: 50%;
   transform: translateX(-50%);
   filter: blur(6px);
+  z-index: 0;
 }
 
 .pet-caption {
@@ -728,11 +933,19 @@ h3 {
 
 .challenge-body {
   margin-top: 16px;
+  display: grid;
+  gap: 14px;
 }
 
 .question-card {
   padding: 18px;
   margin-top: 14px;
+}
+
+.challenge-body .question-card,
+.challenge-body .feedback-card,
+.challenge-body .reward-strip {
+  margin-top: 0;
 }
 
 .question-text {
@@ -916,6 +1129,97 @@ h3 {
   width: min(520px, calc(100vw - 24px));
 }
 
+.profile-modal-card {
+  width: min(720px, calc(100vw - 24px));
+}
+
+.profile-list {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 14px;
+}
+
+.profile-option {
+  border: 1px solid rgba(36, 66, 75, 0.1);
+  border-radius: 22px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.82);
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  box-shadow: 0 12px 24px rgba(66, 85, 86, 0.08);
+}
+
+.profile-option.active {
+  border-color: rgba(255, 140, 66, 0.58);
+  box-shadow: 0 18px 30px rgba(255, 140, 66, 0.16);
+}
+
+.profile-option-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.profile-option-name {
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.profile-option-summary {
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+
+.profile-status-chip {
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: rgba(255, 203, 71, 0.24);
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.empty-state,
+.form-hint {
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.empty-state {
+  margin: 0 0 16px;
+}
+
+.profile-create-form {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-create-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.profile-create-row .name-input {
+  flex: 1 1 260px;
+}
+
+.form-hint {
+  margin: 0;
+}
+
+.form-hint.bad {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.form-hint.good {
+  color: var(--success);
+  font-weight: 800;
+}
+
 .egg-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1079,6 +1383,7 @@ h3 {
   .status-panel,
   .challenge-panel {
     grid-column: auto;
+    grid-row: auto;
   }
 
   .quest-grid {
@@ -1104,6 +1409,15 @@ h3 {
   .egg-grid,
   .fraction-visuals {
     grid-template-columns: 1fr;
+  }
+
+  .profile-create-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-create-row .primary-button {
+    width: 100%;
   }
 
   .zone-card {

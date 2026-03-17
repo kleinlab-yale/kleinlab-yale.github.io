@@ -1,6 +1,6 @@
 # Math Pet Evolution
 
-A static HTML math game designed for GitHub Pages. The player names a mystery egg, solves 4th grade math quests, and helps a pet evolve by feeding it, restoring habitats, and unlocking upgrades.
+A static HTML math game designed for GitHub Pages. The player names a mystery egg, solves 4th grade math quests, then grows into harder worlds with multiplication, division, fractions, area, perimeter, and mixed challenge upgrades.
 
 ## Files
 
@@ -28,10 +28,16 @@ Then open `http://localhost:8000`.
 
 ## Game loop
 
-- `Multiplication Chain`: feeds hunger and restores energy
-- `Fraction Bridge`: improves mood and opens world progression
-- `Geometry Workshop`: unlocks decorations and habitat growth
-- `Boss Challenge`: mixed review that triggers evolution after balanced practice
+- `Number Forge`: feeds hunger and restores energy with multiplication and division
+- `Fraction Bridge`: improves mood and opens world progression with comparison and equivalence work
+- `Geometry Workshop`: unlocks decorations and habitat growth with area, perimeter, and measurement
+- `Boss Challenge`: mixed review that triggers evolution and unlocks later worlds after balanced practice
+
+## Profiles
+
+- Each player can create a separate same-device profile from the in-game player chooser.
+- Profiles are stored locally in the browser, so they work well for a shared family laptop or tablet.
+- Profiles do not sync between devices because the site is still fully static on GitHub Pages.
 
 ## Save data
 

@@ -1,4 +1,10 @@
-const STORAGE_KEY = "math-pet-evolution-save-v1";
+const LEGACY_STORAGE_KEY = "math-pet-evolution-save-v1";
+const PROFILE_INDEX_KEY = "math-pet-evolution-profiles-v1";
+const ACTIVE_PROFILE_KEY = "math-pet-evolution-active-profile-v1";
+const PROFILE_SAVE_PREFIX = "math-pet-evolution-profile-save-v1:";
+const MAX_PROFILE_COUNT = 6;
+const MAX_PROFILE_NAME_LENGTH = 18;
+const FIRST_HATCH_SOLVED_TARGET = 4;
 
 const EGG_TYPES = {
   sun: {
@@ -27,32 +33,48 @@ const STAGES = [
     name: "Mystery Egg",
     chip: "Egg",
     petClass: "egg",
-    minBosses: 0,
-    reaction: "The egg wiggles when math energy reaches it.",
   },
   {
     id: "hatchling",
-    name: "Glow Hatchling",
-    chip: "Hatchling",
+    name: "Glow Dragonling",
+    chip: "Dragonling",
     petClass: "hatchling",
-    minBosses: 1,
-    reaction: "Your hatchling bounces after every correct answer.",
   },
   {
     id: "sprout",
-    name: "Trail Sprout",
-    chip: "Explorer",
+    name: "Trail Drake",
+    chip: "Drake",
     petClass: "sprout",
-    minBosses: 2,
-    reaction: "Your pet is exploring farther and showing more personality.",
   },
   {
     id: "glider",
-    name: "Sky Glider",
-    chip: "Guardian",
+    name: "Sky Wyvern",
+    chip: "Wyvern",
     petClass: "glider",
-    minBosses: 3,
-    reaction: "Your fully evolved friend protects every restored habitat.",
+  },
+  {
+    id: "sage",
+    name: "Prism Sage",
+    chip: "Sage",
+    petClass: "glider",
+  },
+  {
+    id: "nova",
+    name: "Nova Runner",
+    chip: "Nova",
+    petClass: "glider",
+  },
+  {
+    id: "aurora",
+    name: "Aurora Starwing",
+    chip: "Mythic",
+    petClass: "glider",
+  },
+  {
+    id: "legend",
+    name: "Celestial Legend",
+    chip: "Legend",
+    petClass: "glider",
   },
 ];
 
@@ -60,34 +82,82 @@ const ZONES = [
   {
     id: "nest",
     name: "Sunny Nest",
-    icon: "☀",
+    icon: "Sun",
     color: "linear-gradient(135deg, #ffad50, #ffd65b)",
     unlockBosses: 0,
     summary: "The first cozy home where the egg waits to hatch.",
+    sceneGradient:
+      "linear-gradient(180deg, rgba(255, 245, 205, 0.68), rgba(139, 210, 255, 0.7)), linear-gradient(180deg, #fff5c3, #9edbff)",
   },
   {
     id: "bridge",
     name: "Fraction Bridge",
-    icon: "≶",
+    icon: "vs",
     color: "linear-gradient(135deg, #47c5e7, #7fd8ff)",
     unlockBosses: 1,
     summary: "A sparkling crossing rebuilt with smart fraction choices.",
+    sceneGradient:
+      "linear-gradient(180deg, rgba(219, 246, 255, 0.76), rgba(120, 196, 255, 0.78)), linear-gradient(180deg, #eaf8ff, #8ac4ff)",
   },
   {
     id: "grove",
     name: "Shape Grove",
-    icon: "△",
+    icon: "Tri",
     color: "linear-gradient(135deg, #72c46e, #c3f38a)",
     unlockBosses: 2,
     summary: "A habitat filled with geometry towers and playful patterns.",
+    sceneGradient:
+      "linear-gradient(180deg, rgba(239, 255, 214, 0.76), rgba(156, 223, 150, 0.78)), linear-gradient(180deg, #fbffd9, #8adf89)",
   },
   {
     id: "sky",
     name: "Starfall Sky",
-    icon: "✦",
+    icon: "*",
     color: "linear-gradient(135deg, #ff8d7e, #ffc65f)",
     unlockBosses: 3,
-    summary: "The final region where advanced mixed quests shine.",
+    summary: "A high-altitude world where harder mixed quests begin to shine.",
+    sceneGradient:
+      "linear-gradient(180deg, rgba(255, 235, 198, 0.82), rgba(255, 159, 131, 0.72)), linear-gradient(180deg, #fff5d8, #ffae7c)",
+  },
+  {
+    id: "dunes",
+    name: "Division Dunes",
+    icon: "Div",
+    color: "linear-gradient(135deg, #f5b15e, #ffe59a)",
+    unlockBosses: 4,
+    summary: "Ancient sand wheels spin when long division answers are exact.",
+    sceneGradient:
+      "linear-gradient(180deg, rgba(255, 239, 196, 0.78), rgba(237, 196, 111, 0.78)), linear-gradient(180deg, #fff6d9, #e6b867)",
+  },
+  {
+    id: "caverns",
+    name: "Crystal Caverns",
+    icon: "Gem",
+    color: "linear-gradient(135deg, #59bfc2, #9fe6dc)",
+    unlockBosses: 5,
+    summary: "Echoing tunnels reward equivalent fractions and hidden number patterns.",
+    sceneGradient:
+      "linear-gradient(180deg, rgba(214, 252, 249, 0.8), rgba(95, 185, 183, 0.82)), linear-gradient(180deg, #effffd, #72cbc5)",
+  },
+  {
+    id: "meadow",
+    name: "Measure Meadow",
+    icon: "Met",
+    color: "linear-gradient(135deg, #89c86a, #dcf59f)",
+    unlockBosses: 6,
+    summary: "Perimeter trails and composite gardens stretch every measurement skill.",
+    sceneGradient:
+      "linear-gradient(180deg, rgba(235, 255, 215, 0.8), rgba(151, 216, 117, 0.82)), linear-gradient(180deg, #f7ffe4, #97d86e)",
+  },
+  {
+    id: "citadel",
+    name: "Aurora Citadel",
+    icon: "Arc",
+    color: "linear-gradient(135deg, #ff8d78, #ffd772)",
+    unlockBosses: 7,
+    summary: "The final world blends advanced multiplication, division, fractions, and geometry in master quests.",
+    sceneGradient:
+      "linear-gradient(180deg, rgba(255, 234, 215, 0.82), rgba(255, 176, 126, 0.82)), linear-gradient(180deg, #fff9ea, #ffb46d)",
   },
 ];
 
@@ -98,9 +168,17 @@ const DECORATIONS = [
   { id: "flower-two", label: "Starlight bloom", type: "flower" },
   { id: "crystal-two", label: "Moon crystal", type: "crystal" },
   { id: "mushroom-two", label: "Forest mushroom", type: "mushroom" },
+  { id: "flower-three", label: "Dune blossom", type: "flower" },
+  { id: "crystal-three", label: "Cavern shard", type: "crystal" },
+  { id: "mushroom-three", label: "Meadow toadstool", type: "mushroom" },
+  { id: "flower-four", label: "Aurora bloom", type: "flower" },
+  { id: "crystal-four", label: "Citadel prism", type: "crystal" },
+  { id: "mushroom-four", label: "Starlit mushroom", type: "mushroom" },
 ];
 
 const DOM = {
+  playerChip: document.getElementById("playerChip"),
+  switchPlayerButton: document.getElementById("switchPlayerButton"),
   habitatName: document.getElementById("habitatName"),
   stageChip: document.getElementById("stageChip"),
   zoneChip: document.getElementById("zoneChip"),
@@ -141,6 +219,14 @@ const DOM = {
   zoneList: document.getElementById("zoneList"),
   milestoneList: document.getElementById("milestoneList"),
   milestoneCount: document.getElementById("milestoneCount"),
+  profileModal: document.getElementById("profileModal"),
+  profileList: document.getElementById("profileList"),
+  profileEmptyState: document.getElementById("profileEmptyState"),
+  profileCreateForm: document.getElementById("profileCreateForm"),
+  profileNameInput: document.getElementById("profileNameInput"),
+  profileHint: document.getElementById("profileHint"),
+  createProfileButton: document.getElementById("createProfileButton"),
+  closeProfileButton: document.getElementById("closeProfileButton"),
   setupModal: document.getElementById("setupModal"),
   setupForm: document.getElementById("setupForm"),
   petNameInput: document.getElementById("petNameInput"),
@@ -150,9 +236,11 @@ const DOM = {
   resetButton: document.getElementById("resetButton"),
 };
 
-const state = hydrateState(loadState());
+const state = createFreshState();
 
-let selectedEgg = state.eggType || "sun";
+let profiles = [];
+let currentProfileId = "";
+let selectedEgg = "sun";
 let selectedChoiceValue = "";
 
 function createFreshState() {
@@ -188,6 +276,8 @@ function createFreshState() {
     questionIndex: 0,
     currentQuestCorrect: 0,
     petSpeech: "Choose an egg to begin.",
+    feedbackMessage: "Your pet will react here after each answer.",
+    feedbackTone: "neutral",
     lastRewards: {
       food: 0,
       energy: 0,
@@ -222,20 +312,287 @@ function hydrateState(savedState) {
     milestoneLog: Array.isArray(savedState.milestoneLog) ? savedState.milestoneLog : fresh.milestoneLog,
     stageIndex: clamp(savedState.stageIndex ?? fresh.stageIndex, 0, STAGES.length - 1),
     zoneIndex: Math.max(0, savedState.zoneIndex ?? fresh.zoneIndex),
+    feedbackMessage: savedState.feedbackMessage || fresh.feedbackMessage,
+    feedbackTone: savedState.feedbackTone || fresh.feedbackTone,
   };
 }
 
-function loadState() {
+function replaceState(nextState) {
+  const hydrated = hydrateState(nextState);
+  Object.keys(state).forEach((key) => {
+    delete state[key];
+  });
+  Object.assign(state, hydrated);
+}
+
+function loadJSON(key) {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : null;
   } catch (error) {
     return null;
   }
 }
 
+function saveJSON(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => {
+    const replacements = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return replacements[character];
+  });
+}
+
+function createProfileId() {
+  const stamp = Date.now().toString(36);
+  const random = Math.random().toString(36).slice(2, 7);
+  return `player-${stamp}-${random}`;
+}
+
+function profileSaveKey(profileId) {
+  return `${PROFILE_SAVE_PREFIX}${profileId}`;
+}
+
+function loadProfilesIndex() {
+  const savedProfiles = loadJSON(PROFILE_INDEX_KEY);
+  if (!Array.isArray(savedProfiles)) {
+    return [];
+  }
+
+  return savedProfiles.filter((profile) => profile && typeof profile.id === "string" && typeof profile.name === "string");
+}
+
+function saveProfilesIndex() {
+  saveJSON(PROFILE_INDEX_KEY, profiles);
+}
+
+function loadActiveProfileId() {
+  return localStorage.getItem(ACTIVE_PROFILE_KEY) || "";
+}
+
+function setActiveProfileId(profileId) {
+  currentProfileId = profileId;
+  if (profileId) {
+    localStorage.setItem(ACTIVE_PROFILE_KEY, profileId);
+  } else {
+    localStorage.removeItem(ACTIVE_PROFILE_KEY);
+  }
+}
+
+function getProfileById(profileId) {
+  return profiles.find((profile) => profile.id === profileId) || null;
+}
+
+function getCurrentProfile() {
+  return getProfileById(currentProfileId);
+}
+
+function touchCurrentProfile() {
+  const currentProfile = getCurrentProfile();
+  if (!currentProfile) {
+    return;
+  }
+
+  currentProfile.lastPlayedAt = new Date().toISOString();
+  saveProfilesIndex();
+}
+
+function loadProfileState(profileId) {
+  return hydrateState(loadJSON(profileSaveKey(profileId)));
+}
+
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (!currentProfileId) {
+    return;
+  }
+
+  saveJSON(profileSaveKey(currentProfileId), state);
+  touchCurrentProfile();
+}
+
+function migrateLegacySaveIfNeeded() {
+  if (loadProfilesIndex().length > 0) {
+    return;
+  }
+
+  const legacyState = loadJSON(LEGACY_STORAGE_KEY);
+  if (!legacyState) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const migratedProfile = {
+    id: createProfileId(),
+    name: "Player 1",
+    createdAt: now,
+    lastPlayedAt: now,
+  };
+
+  saveJSON(PROFILE_INDEX_KEY, [migratedProfile]);
+  localStorage.setItem(ACTIVE_PROFILE_KEY, migratedProfile.id);
+  saveJSON(profileSaveKey(migratedProfile.id), hydrateState(legacyState));
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
+}
+
+function profileSummary(profileId) {
+  const profileState = loadProfileState(profileId);
+  if (!profileState.petName) {
+    return "No pet yet. Pick an egg to begin.";
+  }
+
+  const stage = STAGES[profileState.stageIndex] || STAGES[0];
+  return `${profileState.petName} - ${stage.chip} - ${profileState.sparkles} sparkles`;
+}
+
+function setProfileHint(text, tone = "neutral") {
+  DOM.profileHint.textContent = text;
+  DOM.profileHint.classList.remove("good", "bad");
+  if (tone === "good" || tone === "bad") {
+    DOM.profileHint.classList.add(tone);
+  }
+}
+
+function renderProfileChooser() {
+  const limitReached = profiles.length >= MAX_PROFILE_COUNT;
+
+  DOM.profileList.innerHTML = profiles
+    .map((profile) => {
+      const isActive = profile.id === currentProfileId;
+      const statusLabel = isActive ? "Playing now" : "Open save";
+      const profileClass = isActive ? "profile-option active" : "profile-option";
+      return `
+        <button class="${profileClass}" data-profile-id="${profile.id}" type="button">
+          <span class="profile-option-top">
+            <span class="profile-option-name">${escapeHtml(profile.name)}</span>
+            <span class="profile-status-chip">${statusLabel}</span>
+          </span>
+          <span class="profile-option-summary">${escapeHtml(profileSummary(profile.id))}</span>
+        </button>
+      `;
+    })
+    .join("");
+
+  DOM.profileEmptyState.hidden = profiles.length > 0;
+  DOM.createProfileButton.disabled = limitReached;
+  DOM.profileNameInput.disabled = limitReached;
+  DOM.closeProfileButton.hidden = !currentProfileId;
+
+  if (limitReached) {
+    setProfileHint(`This browser already has ${MAX_PROFILE_COUNT} player profiles.`, "bad");
+  } else {
+    setProfileHint("Each player gets a separate save slot on this browser.");
+  }
+}
+
+function closeSetup() {
+  if (DOM.setupModal.open) {
+    DOM.setupModal.close();
+  }
+}
+
+function openProfileChooser() {
+  closeSetup();
+  renderProfileChooser();
+  if (!DOM.profileModal.open) {
+    DOM.profileModal.showModal();
+  }
+}
+
+function closeProfileChooser() {
+  if (DOM.profileModal.open) {
+    DOM.profileModal.close();
+  }
+}
+
+function activateProfile(profileId) {
+  if (!getProfileById(profileId)) {
+    return;
+  }
+
+  closeProfileChooser();
+  setActiveProfileId(profileId);
+  replaceState(loadProfileState(profileId));
+  selectedEgg = state.eggType || "sun";
+  selectedChoiceValue = "";
+  DOM.profileNameInput.value = "";
+  DOM.petNameInput.value = state.petName || "";
+  saveState();
+  render();
+}
+
+function createProfile(profileName) {
+  const normalizedName = profileName.trim().replace(/\s+/g, " ").slice(0, MAX_PROFILE_NAME_LENGTH);
+
+  if (!normalizedName) {
+    setProfileHint("Enter a player name first.", "bad");
+    DOM.profileNameInput.focus();
+    return;
+  }
+
+  if (profiles.length >= MAX_PROFILE_COUNT) {
+    setProfileHint(`This browser already has ${MAX_PROFILE_COUNT} player profiles.`, "bad");
+    return;
+  }
+
+  const duplicate = profiles.find(
+    (profile) => profile.name.toLowerCase() === normalizedName.toLowerCase(),
+  );
+  if (duplicate) {
+    setProfileHint("That player name already exists. Pick a different one.", "bad");
+    DOM.profileNameInput.focus();
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const profile = {
+    id: createProfileId(),
+    name: normalizedName,
+    createdAt: now,
+    lastPlayedAt: now,
+  };
+
+  profiles = [...profiles, profile];
+  saveProfilesIndex();
+  setActiveProfileId(profile.id);
+  replaceState(createFreshState());
+  selectedEgg = "sun";
+  selectedChoiceValue = "";
+  DOM.profileNameInput.value = "";
+  DOM.petNameInput.value = "";
+  saveState();
+  closeProfileChooser();
+  render();
+}
+
+function initializeGame() {
+  migrateLegacySaveIfNeeded();
+  profiles = loadProfilesIndex();
+
+  const storedActiveProfileId = loadActiveProfileId();
+  const fallbackProfileId = profiles[0] ? profiles[0].id : "";
+  const nextActiveProfileId = profiles.some((profile) => profile.id === storedActiveProfileId)
+    ? storedActiveProfileId
+    : fallbackProfileId;
+
+  setActiveProfileId(nextActiveProfileId);
+
+  if (currentProfileId) {
+    replaceState(loadProfileState(currentProfileId));
+  } else {
+    replaceState(createFreshState());
+  }
+
+  selectedEgg = state.eggType || "sun";
+  selectedChoiceValue = "";
+  render();
 }
 
 function clamp(value, min = 0, max = 100) {
@@ -284,8 +641,8 @@ function bumpNeeds({
 }
 
 function cycleDifficulty() {
-  const totalSolved = Object.values(state.questHistory).reduce((sum, count) => sum + count, 0);
-  return Math.min(4, state.stageIndex + 1 + Math.floor(totalSolved / 12));
+  const totalSolved = totalSolvedCount();
+  return Math.min(8, 1 + state.bossesCleared + Math.floor(totalSolved / 10));
 }
 
 function compareFractions(aNum, aDen, bNum, bDen) {
@@ -297,9 +654,35 @@ function compareFractions(aNum, aDen, bNum, bDen) {
   return left > right ? ">" : "<";
 }
 
+function greatestCommonDivisor(a, b) {
+  let left = Math.abs(a);
+  let right = Math.abs(b);
+
+  while (right !== 0) {
+    const next = left % right;
+    left = right;
+    right = next;
+  }
+
+  return left || 1;
+}
+
+function shuffleArray(items) {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = randomInt(0, index);
+    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+  }
+  return copy;
+}
+
+function toImproperFraction(whole, numerator, denominator) {
+  return whole * denominator + numerator;
+}
+
 function formatQuestTitle(key) {
   if (key === "multiplication") {
-    return "Multiplication Chain";
+    return "Number Forge";
   }
   if (key === "fractions") {
     return "Fraction Bridge";
@@ -313,7 +696,92 @@ function formatQuestTitle(key) {
   return "Math Quest";
 }
 
+function totalSolvedCount() {
+  return Object.values(state.questHistory).reduce((sum, count) => sum + count, 0);
+}
+
+function hatchAnswersRemaining() {
+  return Math.max(FIRST_HATCH_SOLVED_TARGET - totalSolvedCount(), 0);
+}
+
+function readyToHatch() {
+  return Boolean(state.petName) && state.stageIndex === 0 && hatchAnswersRemaining() === 0;
+}
+
+function triggerFirstHatch() {
+  if (!readyToHatch()) {
+    return false;
+  }
+
+  state.stageIndex = 1;
+  state.hunger = clamp(state.hunger + 8);
+  state.energy = clamp(state.energy + 10);
+  state.mood = clamp(state.mood + 14);
+  addMilestone(`Crack! ${state.petName} hatched into a ${currentStage().name}.`);
+  state.feedbackMessage = `Crack! ${state.petName} hatched into a ${currentStage().name}. Your baby dragon is finally here.`;
+  state.feedbackTone = "good";
+  state.petSpeech = `${state.petName} squeaks, flaps tiny dragon wings, and looks around the habitat in surprise.`;
+  return true;
+}
+
+function idleQuestState() {
+  const totalSolved = totalSolvedCount();
+  const recentMilestone = state.milestoneLog[0] || "A new adventure is waiting.";
+
+  if (!state.petName) {
+    return {
+      counter: "0 solved",
+      prompt: "Each quest turns math into something useful for your pet. Start with Number Forge for a quick hatch boost.",
+      type: "First quest ready",
+      text: "Your pet is waiting for its first math-powered adventure.",
+    };
+  }
+
+  if (totalSolved === 0) {
+    return {
+      counter: "0 solved",
+      prompt: `${state.petName} is ready to hatch. Start with a short Number Forge quest for a quick win.`,
+      type: "First quest ready",
+      text: `${state.petName} is ready for the first math-powered adventure.`,
+    };
+  }
+
+  if (state.stageIndex === 0) {
+    const remaining = hatchAnswersRemaining();
+    return {
+      counter: `${totalSolved} solved`,
+      prompt:
+        remaining > 0
+          ? `${state.petName}'s egg is wobbling. Solve ${remaining} more correct answer${remaining === 1 ? "" : "s"} to hatch your dragon.`
+          : `${state.petName}'s shell is cracking. Finish the current quest to hatch your dragon.`,
+      type: "Egg progress",
+      text: `${state.petName} is still inside the egg, but the shell is starting to crack.`,
+    };
+  }
+
+  if (bossReady()) {
+    return {
+      counter: `${totalSolved} solved`,
+      prompt: `${state.petName} is ready for a boss challenge. Recent milestone: ${recentMilestone}`,
+      type: "Boss ready",
+      text: `${state.petName} has already solved ${totalSolved} math challenge${totalSolved === 1 ? "" : "s"}. Choose a boss quest or keep training.`,
+    };
+  }
+
+  return {
+    counter: `${totalSolved} solved`,
+    prompt: `Recent milestone: ${recentMilestone}`,
+    type: "Adventure continues",
+    text: `${state.petName} has already solved ${totalSolved} math challenge${totalSolved === 1 ? "" : "s"}. Pick the next quest to keep evolving.`,
+  };
+}
+
 function startQuest(type) {
+  if (!currentProfileId) {
+    openProfileChooser();
+    return;
+  }
+
   if (!state.petName) {
     openSetup();
     return;
@@ -325,6 +793,8 @@ function startQuest(type) {
   state.streak = 0;
   state.currentQuestCorrect = 0;
   selectedChoiceValue = "";
+  state.feedbackMessage = `${state.petName} is ready. Solve the next problem to help your pet grow.`;
+  state.feedbackTone = "neutral";
   nextQuestion();
   saveState();
   render();
@@ -357,28 +827,151 @@ function nextQuestion() {
 }
 
 function generateMultiplicationQuestion(difficulty) {
+  if (difficulty <= 2) {
+    return generateBasicMultiplicationQuestion(difficulty);
+  }
+
+  if (difficulty <= 4) {
+    return shuffleArray([
+      generateBasicMultiplicationQuestion(difficulty + 1),
+      generateScaledMultiplicationQuestion(difficulty),
+      generateMissingFactorQuestion(difficulty),
+    ])[0];
+  }
+
+  if (difficulty <= 6) {
+    return shuffleArray([
+      generateScaledMultiplicationQuestion(difficulty + 1),
+      generateMultiDigitMultiplicationQuestion(difficulty),
+      generateDivisionQuestion(difficulty, false),
+    ])[0];
+  }
+
+  return shuffleArray([
+    generateMultiDigitMultiplicationQuestion(difficulty + 1),
+    generateDivisionQuestion(difficulty, true),
+    generateLargeNumberStoryQuestion(difficulty),
+  ])[0];
+}
+
+function generateBasicMultiplicationQuestion(difficulty) {
   const a = randomInt(2, 4 + difficulty * 2);
   const b = randomInt(2, 5 + difficulty * 2);
   const variants = [
     {
-      prompt: `${a} × ${b}`,
+      prompt: `${a} x ${b}`,
       answer: String(a * b),
       helper: `Link ${state.questionIndex + 1}: grow a snack bundle with repeated groups.`,
     },
     {
       prompt: `A basket has ${a} rows with ${b} fruit stars in each row. How many fruit stars?`,
       answer: String(a * b),
-      helper: `Multiply rows by stars in each row.`,
+      helper: "Multiply rows by stars in each row.",
     },
   ];
+
   return {
     kind: "numeric",
-    category: "Multiplication",
+    category: "Number Forge",
     ...variants[randomInt(0, variants.length - 1)],
   };
 }
 
+function generateScaledMultiplicationQuestion(difficulty) {
+  const a = randomInt(12, 18 + difficulty * 4);
+  const b = randomInt(3, 6 + Math.floor(difficulty / 2));
+  return {
+    kind: "numeric",
+    category: "Number Forge",
+    prompt: `${a} x ${b}`,
+    answer: String(a * b),
+    helper: "Break the bigger factor apart into tens and ones, then multiply each part.",
+  };
+}
+
+function generateMissingFactorQuestion(difficulty) {
+  const factor = randomInt(4, 9 + difficulty);
+  const hidden = randomInt(3, 7 + difficulty);
+  return {
+    kind: "numeric",
+    category: "Number Forge",
+    prompt: `A snack machine made ${factor * hidden} glowberries in ${factor} equal groups. How many glowberries were in each group?`,
+    answer: String(hidden),
+    helper: "Use the related division fact to find the missing factor.",
+  };
+}
+
+function generateMultiDigitMultiplicationQuestion(difficulty) {
+  if (difficulty >= 7) {
+    const a = randomInt(24, 68);
+    const b = randomInt(12, 29);
+    return {
+      kind: "numeric",
+      category: "Number Forge",
+      prompt: `${a} x ${b}`,
+      answer: String(a * b),
+      helper: "Use partial products or the standard algorithm for multi-digit multiplication.",
+    };
+  }
+
+  const a = randomInt(14, 39);
+  const b = randomInt(11, 19);
+  return {
+    kind: "numeric",
+    category: "Number Forge",
+    prompt: `${a} x ${b}`,
+    answer: String(a * b),
+    helper: "Split one factor into tens and ones to multiply in parts.",
+  };
+}
+
+function generateDivisionQuestion(difficulty, allowTwoDigitDivisor) {
+  const divisor = allowTwoDigitDivisor ? randomInt(6, 12) : randomInt(3, 9);
+  const quotient = allowTwoDigitDivisor ? randomInt(12, 48) : randomInt(8, 36);
+  const dividend = divisor * quotient;
+  return {
+    kind: "numeric",
+    category: "Number Forge",
+    prompt: `${dividend} ÷ ${divisor}`,
+    answer: String(quotient),
+    helper: allowTwoDigitDivisor
+      ? "Use long division carefully. Each step should divide exactly with no remainder."
+      : "Use multiplication facts to check the quotient.",
+  };
+}
+
+function generateLargeNumberStoryQuestion(difficulty) {
+  const packs = randomInt(14, 28);
+  const itemsPerPack = randomInt(16, 36);
+  return {
+    kind: "numeric",
+    category: "Number Forge",
+    prompt: `A supply cart holds ${packs} boxes with ${itemsPerPack} lanterns in each box. How many lanterns are there in all?`,
+    answer: String(packs * itemsPerPack),
+    helper: "This is a larger multiplication problem. Organize the tens and ones before multiplying.",
+  };
+}
+
 function generateFractionQuestion(difficulty) {
+  if (difficulty <= 3) {
+    return generateFractionComparisonQuestion(difficulty, false);
+  }
+
+  if (difficulty <= 5) {
+    return shuffleArray([
+      generateFractionComparisonQuestion(difficulty, true),
+      generateEquivalentFractionQuestion(difficulty),
+    ])[0];
+  }
+
+  return shuffleArray([
+    generateFractionComparisonQuestion(difficulty, true),
+    generateEquivalentFractionQuestion(difficulty + 1),
+    generateMixedNumberComparisonQuestion(difficulty),
+  ])[0];
+}
+
+function generateFractionComparisonQuestion(difficulty, advanced) {
   const denominatorPool = difficulty < 3 ? [2, 3, 4, 6, 8] : [3, 4, 5, 6, 8, 10, 12];
   let leftDen = denominatorPool[randomInt(0, denominatorPool.length - 1)];
   let rightDen = denominatorPool[randomInt(0, denominatorPool.length - 1)];
@@ -395,6 +988,16 @@ function generateFractionQuestion(difficulty) {
     rightNum = Math.max(1, Math.floor(rightDen / 2));
   }
 
+  if (advanced && randomInt(0, 2) === 0) {
+    leftNum += leftDen;
+  }
+
+  if (advanced && randomInt(0, 2) === 1) {
+    rightNum += rightDen;
+  }
+
+  const showVisuals = leftNum <= leftDen && rightNum <= rightDen;
+
   return {
     kind: "choice",
     category: "Fractions",
@@ -402,14 +1005,85 @@ function generateFractionQuestion(difficulty) {
     answer: compareFractions(leftNum, leftDen, rightNum, rightDen),
     helper: "Choose <, >, or = after comparing the size of each fraction.",
     choices: ["<", ">", "="],
-    fractions: [
-      { numerator: leftNum, denominator: leftDen, label: `${leftNum}/${leftDen}` },
-      { numerator: rightNum, denominator: rightDen, label: `${rightNum}/${rightDen}` },
-    ],
+    fractions: showVisuals
+      ? [
+          { numerator: leftNum, denominator: leftDen, label: `${leftNum}/${leftDen}` },
+          { numerator: rightNum, denominator: rightDen, label: `${rightNum}/${rightDen}` },
+        ]
+      : null,
+  };
+}
+
+function generateEquivalentFractionQuestion(difficulty) {
+  let baseDenominator = randomInt(2, 6 + Math.floor(difficulty / 2));
+  let baseNumerator = randomInt(1, Math.max(1, baseDenominator - 1));
+  const multiplier = randomInt(2, 4);
+
+  while (greatestCommonDivisor(baseNumerator, baseDenominator) !== 1) {
+    baseDenominator = randomInt(2, 6 + Math.floor(difficulty / 2));
+    baseNumerator = randomInt(1, Math.max(1, baseDenominator - 1));
+  }
+
+  const correct = `${baseNumerator * multiplier}/${baseDenominator * multiplier}`;
+  const distractors = shuffleArray([
+    `${baseNumerator * multiplier}/${baseDenominator}`,
+    `${baseNumerator}/${baseDenominator * multiplier}`,
+    `${baseNumerator * (multiplier + 1)}/${baseDenominator * multiplier}`,
+    `${baseNumerator * multiplier}/${baseDenominator * (multiplier + 1)}`,
+  ]);
+
+  return {
+    kind: "choice",
+    category: "Fractions",
+    prompt: `Which fraction is equivalent to ${baseNumerator}/${baseDenominator}?`,
+    answer: correct,
+    helper: "Equivalent fractions multiply or divide the numerator and denominator by the same number.",
+    choices: shuffleArray([correct, ...distractors.slice(0, 3)]),
+  };
+}
+
+function generateMixedNumberComparisonQuestion() {
+  const leftWhole = randomInt(1, 3);
+  const leftDen = randomInt(2, 8);
+  const leftNum = randomInt(1, leftDen - 1);
+  const rightWhole = randomInt(1, 3);
+  const rightDen = randomInt(2, 8);
+  const rightNum = randomInt(1, rightDen - 1);
+  const leftValue = toImproperFraction(leftWhole, leftNum, leftDen);
+  const rightValue = toImproperFraction(rightWhole, rightNum, rightDen);
+
+  return {
+    kind: "choice",
+    category: "Fractions",
+    prompt: `Which symbol makes the trail true? ${leftWhole} ${leftNum}/${leftDen} ? ${rightWhole} ${rightNum}/${rightDen}`,
+    answer: compareFractions(leftValue, leftDen, rightValue, rightDen),
+    helper: "Turn the mixed numbers into improper fractions or compare the whole numbers first.",
+    choices: ["<", ">", "="],
   };
 }
 
 function generateGeometryQuestion(difficulty) {
+  if (difficulty <= 3) {
+    return generateCoreGeometryQuestion(difficulty);
+  }
+
+  if (difficulty <= 5) {
+    return shuffleArray([
+      generateCoreGeometryQuestion(difficulty),
+      generateMissingSideQuestion(difficulty),
+      generateSquarePerimeterQuestion(difficulty),
+    ])[0];
+  }
+
+  return shuffleArray([
+    generateCoreGeometryQuestion(difficulty),
+    generateMissingSideQuestion(difficulty + 1),
+    generateCompositeAreaQuestion(difficulty),
+    generateFenceQuestion(difficulty),
+  ])[0];
+}
+
+function generateCoreGeometryQuestion(difficulty) {
   const questionType = randomInt(0, 3);
 
   if (questionType === 0) {
@@ -420,7 +1094,7 @@ function generateGeometryQuestion(difficulty) {
       category: "Geometry",
       prompt: `A rectangle garden is ${width} units by ${height} units. What is its area?`,
       answer: String(width * height),
-      helper: "Area of a rectangle is length × width.",
+      helper: "Area of a rectangle is length x width.",
     };
   }
 
@@ -471,6 +1145,59 @@ function generateGeometryQuestion(difficulty) {
   };
 }
 
+function generateMissingSideQuestion(difficulty) {
+  const width = randomInt(3, 8 + difficulty);
+  const height = randomInt(2, 6 + Math.floor(difficulty / 2));
+  const perimeter = (width + height) * 2;
+  const askForWidth = randomInt(0, 1) === 0;
+
+  return {
+    kind: "numeric",
+    category: "Geometry",
+    prompt: askForWidth
+      ? `A rectangle has perimeter ${perimeter} units and height ${height} units. What is its width?`
+      : `A rectangle has perimeter ${perimeter} units and width ${width} units. What is its height?`,
+    answer: String(askForWidth ? width : height),
+    helper: "Perimeter of a rectangle is 2 x (length + width). Solve for the missing side.",
+  };
+}
+
+function generateSquarePerimeterQuestion(difficulty) {
+  const side = randomInt(4, 10 + difficulty);
+  return {
+    kind: "numeric",
+    category: "Geometry",
+    prompt: `A square playground has perimeter ${side * 4} units. How long is each side?`,
+    answer: String(side),
+    helper: "A square has 4 equal sides, so divide the perimeter by 4.",
+  };
+}
+
+function generateCompositeAreaQuestion(difficulty) {
+  const leftWidth = randomInt(3, 7 + Math.floor(difficulty / 2));
+  const rightWidth = randomInt(2, 5 + Math.floor(difficulty / 2));
+  const height = randomInt(3, 6 + Math.floor(difficulty / 2));
+  return {
+    kind: "numeric",
+    category: "Geometry",
+    prompt: `A floor is made from two rectangles side by side: one is ${leftWidth} by ${height} and the other is ${rightWidth} by ${height}. What is the total area?`,
+    answer: String((leftWidth * height) + (rightWidth * height)),
+    helper: "Find each rectangle's area, then add them together.",
+  };
+}
+
+function generateFenceQuestion(difficulty) {
+  const length = randomInt(6, 12 + Math.floor(difficulty / 2));
+  const width = randomInt(3, 8 + Math.floor(difficulty / 2));
+  return {
+    kind: "numeric",
+    category: "Geometry",
+    prompt: `A garden is ${length} units by ${width} units, but one long side rests against a wall. How many units of fence are needed for the other three sides?`,
+    answer: String(length + (width * 2)),
+    helper: "Add only the three sides that need fencing.",
+  };
+}
+
 function generateBossQuestion(difficulty) {
   const pool = [
     generateMultiplicationQuestion(difficulty + 1),
@@ -500,15 +1227,13 @@ function checkAnswer(rawAnswer) {
   const isCorrect = normalized === correct;
   const questType = state.activeQuest;
 
-  DOM.feedbackCard.classList.remove("good", "bad");
-
   if (isCorrect) {
     state.streak += 1;
     state.currentQuestCorrect += 1;
     state.questionIndex += 1;
     rewardCorrectAnswer(questType);
-    DOM.feedbackCard.classList.add("good");
-    DOM.feedbackText.textContent = makePositiveFeedback(questType);
+    state.feedbackMessage = makePositiveFeedback(questType);
+    state.feedbackTone = "good";
     state.petSpeech = makePetSpeech(true);
   } else {
     state.streak = 0;
@@ -519,8 +1244,8 @@ function checkAnswer(rawAnswer) {
       evolution: 0,
       sparkles: 0,
     });
-    DOM.feedbackCard.classList.add("bad");
-    DOM.feedbackText.textContent = `Not yet. The best answer was ${state.activeQuestion.answer}. ${state.activeQuestion.helper}`;
+    state.feedbackMessage = `Not yet. The best answer was ${state.activeQuestion.answer}. ${state.activeQuestion.helper}`;
+    state.feedbackTone = "bad";
     state.petSpeech = makePetSpeech(false);
     state.questionIndex += 1;
   }
@@ -586,15 +1311,19 @@ function finishQuest() {
       state.evolution = 70;
       state.cycleHistory = { multiplication: 0, fractions: 0, geometry: 0 };
       addMilestone(`Boss challenge attempt complete. ${state.petName} needs more balanced practice before evolving.`);
-      DOM.feedbackText.textContent =
+      state.feedbackMessage =
         `Boss challenge complete with ${state.currentQuestCorrect} out of ${state.cycleLength} correct. Train across all three quest types and try again.`;
+      state.feedbackTone = "bad";
       state.petSpeech = `${state.petName} wants one more balanced training round before evolving.`;
     }
   } else {
     const title = formatQuestTitle(type);
-    addMilestone(`${title} complete. ${state.petName} gained confidence and world energy.`);
-    DOM.feedbackText.textContent = `${title} complete. Rewards were added to your pet's meters.`;
-    state.petSpeech = makePetSpeech(true);
+    if (!triggerFirstHatch()) {
+      addMilestone(`${title} complete. ${state.petName} gained confidence and world energy.`);
+      state.feedbackMessage = `${title} complete. Rewards were added to your pet's meters.`;
+      state.feedbackTone = "good";
+      state.petSpeech = makePetSpeech(true);
+    }
   }
 
   state.activeQuest = null;
@@ -617,20 +1346,32 @@ function clearBoss() {
   state.mood = clamp(state.mood + 14);
   state.cycleHistory = { multiplication: 0, fractions: 0, geometry: 0 };
   state.zoneIndex = Math.min(unlockedZones().length - 1, state.zoneIndex + 1);
+
   if (state.stageIndex > beforeStage) {
-    addMilestone(`${state.petName} evolved into ${currentStage().name} and restored ${currentZone().name}.`);
-    DOM.feedbackText.textContent = `${state.petName} evolved into ${currentStage().name}! A new habitat is now open.`;
-    state.petSpeech = `${state.petName} is glowing with new power!`;
+    const changeText = beforeStage === 0
+      ? `hatched into a ${currentStage().name}`
+      : `evolved into ${currentStage().name}`;
+    addMilestone(`${state.petName} ${changeText} and restored ${currentZone().name}.`);
+    state.feedbackMessage =
+      beforeStage === 0
+        ? `Crack! ${state.petName} hatched into a ${currentStage().name}! A new habitat is now open.`
+        : `${state.petName} evolved into ${currentStage().name}! A new habitat is now open.`;
+    state.feedbackTone = "good";
+    state.petSpeech =
+      beforeStage === 0
+        ? `${state.petName} bursts from the shell, flaps tiny dragon wings, and squeaks proudly.`
+        : `${state.petName} is glowing with new power!`;
   } else {
     addMilestone(`${state.petName} mastered another boss quest and made the world brighter.`);
-    DOM.feedbackText.textContent = `${state.petName} completed a master challenge and earned a rare sparkle burst.`;
+    state.feedbackMessage = `${state.petName} completed a master challenge and earned a rare sparkle burst.`;
+    state.feedbackTone = "good";
     state.petSpeech = `${state.petName} shimmers proudly after another master challenge.`;
   }
 }
 
 function makePositiveFeedback(type) {
   if (type === "multiplication") {
-    return "Correct. Snack trees are blooming and your chain streak is growing.";
+    return "Correct. Number power is charging snack trees, gears, and supply carts.";
   }
   if (type === "fractions") {
     return "Correct. A section of the bridge lights up and the path grows steadier.";
@@ -646,13 +1387,21 @@ function makePetSpeech(correct) {
     return `${state.petName} says, "Let's slow down and try the next one together."`;
   }
   if (state.stageIndex === 0) {
-    return `${state.petName} wiggles happily inside the egg.`;
+    return hatchAnswersRemaining() <= 1
+      ? `${state.petName}'s shell cracks and glows with dragon-light.`
+      : `${state.petName} wiggles happily inside the egg.`;
   }
   if (state.stageIndex === 1) {
-    return `${state.petName} chirps and hops with excitement.`;
+    return `${state.petName} chirps, flaps tiny dragon wings, and hops with excitement.`;
   }
   if (state.stageIndex === 2) {
-    return `${state.petName} beams and points toward a new trail.`;
+    return `${state.petName} swishes a tiny tail and points toward a new trail.`;
+  }
+  if (state.stageIndex <= 4) {
+    return `${state.petName} circles the habitat and looks ready for a harder world.`;
+  }
+  if (state.stageIndex <= 6) {
+    return `${state.petName} shines with calm confidence and watches for master quests.`;
   }
   return `${state.petName} glides in a proud circle above the habitat.`;
 }
@@ -669,6 +1418,18 @@ function moodTier() {
 }
 
 function nextUnlockText() {
+  if (state.stageIndex === 0 && state.petName) {
+    const solved = Math.min(totalSolvedCount(), FIRST_HATCH_SOLVED_TARGET);
+    const remaining = hatchAnswersRemaining();
+    return {
+      line: remaining > 0 ? `Egg hatch ${solved} / ${FIRST_HATCH_SOLVED_TARGET}` : "Egg ready to hatch",
+      hint:
+        remaining > 0
+          ? `Solve ${remaining} more correct answer${remaining === 1 ? "" : "s"} to crack the shell and meet your dragon.`
+          : "Finish this quest to crack the shell and reveal your dragon.",
+    };
+  }
+
   if (bossReady()) {
     return {
       line: "Boss challenge ready",
@@ -690,21 +1451,61 @@ function nextUnlockText() {
   };
 }
 
+function renderFractionVisuals(fractions) {
+  DOM.fractionVisuals.innerHTML = fractions
+    .map((fraction) => {
+      const bars = Array.from({ length: fraction.denominator }, (_, index) => {
+        const filled = index < fraction.numerator ? "fraction-segment filled" : "fraction-segment";
+        return `<span class="${filled}"></span>`;
+      }).join("");
+
+      return `
+        <div class="fraction-card">
+          <strong>${fraction.label}</strong>
+          <div class="fraction-bar">${bars}</div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function renderChoices(choices) {
+  DOM.choiceGrid.innerHTML = choices
+    .map((choice) => {
+      const selectedClass = selectedChoiceValue === choice ? "selected" : "";
+      return `<button class="${selectedClass}" data-choice="${choice}" type="button">${choice}</button>`;
+    })
+    .join("");
+}
+
 function renderQuestInterface() {
   const question = state.activeQuestion;
   const questType = state.activeQuest;
 
+  if (!currentProfileId) {
+    DOM.challengeTitle.textContent = "Choose a player first";
+    DOM.questionCounter.textContent = "0 / 0";
+    DOM.challengePrompt.textContent = "Player profiles keep separate progress on this browser.";
+    DOM.questionType.textContent = "Player required";
+    DOM.questionText.textContent = "Create or choose a player profile to begin.";
+    DOM.fractionVisuals.innerHTML = "";
+    DOM.choiceGrid.innerHTML = "";
+    DOM.answerInput.value = "";
+    DOM.answerInput.placeholder = "Create a player first";
+    DOM.answerInput.disabled = true;
+    return;
+  }
+
   DOM.challengeTitle.textContent = questType ? formatQuestTitle(questType) : "Pick a quest to begin";
   DOM.questionCounter.textContent = state.cycleLength
     ? `${Math.min(state.questionIndex + 1, state.cycleLength)} / ${state.cycleLength}`
-    : "0 / 0";
+    : idleQuestState().counter;
 
   if (!question) {
-    DOM.challengePrompt.textContent =
-      "Each quest turns math into something useful for your pet. Start with multiplication for a quick hatch boost.";
-    DOM.questionType.textContent = "Quest ready";
-    DOM.questionText.textContent =
-      "Your pet is waiting for its first math-powered adventure.";
+    const idleState = idleQuestState();
+    DOM.challengePrompt.textContent = idleState.prompt;
+    DOM.questionType.textContent = idleState.type;
+    DOM.questionText.textContent = idleState.text;
     DOM.fractionVisuals.innerHTML = "";
     DOM.choiceGrid.innerHTML = "";
     DOM.answerInput.value = "";
@@ -733,32 +1534,6 @@ function renderQuestInterface() {
   }
 }
 
-function renderFractionVisuals(fractions) {
-  DOM.fractionVisuals.innerHTML = fractions
-    .map((fraction) => {
-      const bars = Array.from({ length: fraction.denominator }, (_, index) => {
-        const filled = index < fraction.numerator ? "fraction-segment filled" : "fraction-segment";
-        return `<span class="${filled}"></span>`;
-      }).join("");
-      return `
-        <div class="fraction-card">
-          <strong>${fraction.label}</strong>
-          <div class="fraction-bar">${bars}</div>
-        </div>
-      `;
-    })
-    .join("");
-}
-
-function renderChoices(choices) {
-  DOM.choiceGrid.innerHTML = choices
-    .map((choice) => {
-      const selectedClass = selectedChoiceValue === choice ? "selected" : "";
-      return `<button class="${selectedClass}" data-choice="${choice}" type="button">${choice}</button>`;
-    })
-    .join("");
-}
-
 function renderRewards() {
   const { food, energy, mood, sparkles } = state.lastRewards;
   DOM.rewardStrip.innerHTML = [
@@ -772,7 +1547,7 @@ function renderRewards() {
 }
 
 function renderZones() {
-  DOM.zoneList.innerHTML = ZONES.map((zone, index) => {
+  DOM.zoneList.innerHTML = ZONES.map((zone) => {
     const unlocked = zone.unlockBosses <= state.bossesCleared;
     const active = currentZone().id === zone.id;
     const statusLabel = unlocked ? (active ? "Current habitat" : "Unlocked") : "Locked";
@@ -792,7 +1567,7 @@ function renderZones() {
 function renderMilestones() {
   DOM.milestoneCount.textContent = `${state.milestoneLog.length} moments`;
   DOM.milestoneList.innerHTML = state.milestoneLog
-    .map((item) => `<li>${item}</li>`)
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 }
 
@@ -800,6 +1575,9 @@ function renderDecorations() {
   DOM.sceneDecorations.innerHTML = state.decorations
     .map((decorationId, index) => {
       const definition = DECORATIONS.find((item) => item.id === decorationId);
+      if (!definition) {
+        return "";
+      }
       const left = 10 + ((index * 17) % 75);
       const delay = (index % 3) * 0.4;
       return `<div class="decoration ${definition.type}" style="left:${left}%;animation-delay:${delay}s" title="${definition.label}"></div>`;
@@ -810,21 +1588,7 @@ function renderDecorations() {
 function renderHabitatTheme() {
   const egg = EGG_TYPES[state.eggType] || EGG_TYPES.sun;
   const zone = currentZone();
-  let sceneGradient =
-    "linear-gradient(180deg, rgba(255, 245, 205, 0.68), rgba(139, 210, 255, 0.7)), linear-gradient(180deg, #fff5c3, #9edbff)";
-
-  if (egg.habitatHue === "tide") {
-    sceneGradient =
-      "linear-gradient(180deg, rgba(219, 246, 255, 0.76), rgba(120, 196, 255, 0.78)), linear-gradient(180deg, #eaf8ff, #8ac4ff)";
-  } else if (egg.habitatHue === "grove") {
-    sceneGradient =
-      "linear-gradient(180deg, rgba(239, 255, 214, 0.76), rgba(156, 223, 150, 0.78)), linear-gradient(180deg, #fbffd9, #8adf89)";
-  }
-
-  if (zone.id === "sky") {
-    sceneGradient =
-      "linear-gradient(180deg, rgba(255, 235, 198, 0.82), rgba(255, 159, 131, 0.72)), linear-gradient(180deg, #fff5d8, #ffae7c)";
-  }
+  const sceneGradient = zone.sceneGradient || ZONES[0].sceneGradient;
 
   DOM.habitatScene.style.background = sceneGradient;
   DOM.petAvatar.style.setProperty("--pet-top", egg.colors[0]);
@@ -832,6 +1596,14 @@ function renderHabitatTheme() {
 }
 
 function renderBossState() {
+  if (!currentProfileId) {
+    DOM.bossTitle.textContent = "Pick a player first";
+    DOM.bossHint.textContent = "Profiles keep separate progress for each player on this browser.";
+    DOM.bossButton.disabled = true;
+    DOM.bossButton.textContent = "Boss Locked";
+    return;
+  }
+
   if (bossReady()) {
     DOM.bossTitle.textContent = "World boss awakened";
     DOM.bossHint.textContent =
@@ -854,54 +1626,59 @@ function renderBossState() {
   DOM.bossButton.textContent = "Boss Locked";
 }
 
-function render() {
-  const stage = currentStage();
-  const zone = currentZone();
-  const nextUnlock = nextUnlockText();
-  const averageNeeds = Math.round((state.hunger + state.energy + state.mood) / 3);
+function renderFeedback() {
+  DOM.feedbackCard.classList.remove("good", "bad");
 
-  DOM.habitatName.textContent = zone.name;
-  DOM.stageChip.textContent = stage.chip;
-  DOM.zoneChip.textContent = `Zone ${state.bossesCleared + 1}`;
-  DOM.petNameLabel.textContent = state.petName || stage.name;
-  DOM.petMoodLine.textContent = state.petName
-    ? `${state.petName} feels ${moodDescription()} and is ${EGG_TYPES[state.eggType]?.personality || "ready for adventure"}.`
-    : "A future friend is waiting to hatch.";
-  DOM.petSpeech.textContent = state.petName
-    ? state.petSpeech || `${state.petName} is ${petNeedLine(averageNeeds)}`
-    : "Choose an egg to begin.";
+  if (!currentProfileId) {
+    DOM.feedbackText.textContent = "Choose or create a player profile to begin.";
+    return;
+  }
 
-  DOM.petAvatar.dataset.stage = stage.petClass;
-  DOM.petAvatar.dataset.mood = moodTier();
-  DOM.petAvatar.classList.toggle("has-star", state.stageIndex >= 1);
-  DOM.petAvatar.classList.toggle("has-leaf", state.stageIndex >= 2);
+  if (state.feedbackTone === "good" || state.feedbackTone === "bad") {
+    DOM.feedbackCard.classList.add(state.feedbackTone);
+  }
+  DOM.feedbackText.textContent = state.feedbackMessage;
+}
 
-  DOM.hungerValue.textContent = `${state.hunger}%`;
-  DOM.energyValue.textContent = `${state.energy}%`;
-  DOM.moodValue.textContent = `${state.mood}%`;
-  DOM.evolutionValue.textContent = `${state.evolution}%`;
-  DOM.hungerMeter.style.width = `${state.hunger}%`;
-  DOM.energyMeter.style.width = `${state.energy}%`;
-  DOM.moodMeter.style.width = `${state.mood}%`;
-  DOM.evolutionMeter.style.width = `${state.evolution}%`;
-  DOM.sparkValue.textContent = String(state.sparkles);
-  DOM.streakValue.textContent = String(state.streak);
-  DOM.streakLine.textContent =
-    state.streak > 0 ? `${state.streak} correct in a row. Keep the chain going.` : "Answer correctly to build a chain.";
-  DOM.unlockLine.textContent = nextUnlock.line;
-  DOM.unlockHint.textContent = nextUnlock.hint;
+function renderMeters(values) {
+  DOM.hungerValue.textContent = `${values.hunger}%`;
+  DOM.energyValue.textContent = `${values.energy}%`;
+  DOM.moodValue.textContent = `${values.mood}%`;
+  DOM.evolutionValue.textContent = `${values.evolution}%`;
+  DOM.hungerMeter.style.width = `${values.hunger}%`;
+  DOM.energyMeter.style.width = `${values.energy}%`;
+  DOM.moodMeter.style.width = `${values.mood}%`;
+  DOM.evolutionMeter.style.width = `${values.evolution}%`;
+}
 
+function renderNoProfileState() {
+  DOM.resetButton.disabled = true;
+  DOM.habitatName.textContent = "Sunny Nest";
+  DOM.stageChip.textContent = "No Save";
+  DOM.zoneChip.textContent = "Choose Player";
+  DOM.petNameLabel.textContent = "Pick a player";
+  DOM.petMoodLine.textContent = "Create or choose a player profile to keep progress on this browser.";
+  DOM.petSpeech.textContent = "Who is playing today?";
+  DOM.petAvatar.dataset.stage = "egg";
+  DOM.petAvatar.dataset.mood = "okay";
+  DOM.petAvatar.classList.remove("has-star", "has-leaf");
+  DOM.sparkValue.textContent = "0";
+  DOM.streakValue.textContent = "0";
+  DOM.streakLine.textContent = "Choose a player to start building a quest streak.";
+  DOM.unlockLine.textContent = "Create a profile";
+  DOM.unlockHint.textContent = "Each player gets a separate save slot on this browser.";
+  renderMeters({ hunger: 0, energy: 0, mood: 0, evolution: 0 });
+  DOM.milestoneCount.textContent = "0 moments";
+  DOM.milestoneList.innerHTML =
+    "<li>Create a player profile on this browser to start a separate save.</li>";
   renderHabitatTheme();
   renderDecorations();
   renderQuestInterface();
   renderRewards();
   renderZones();
-  renderMilestones();
+  renderFeedback();
   renderBossState();
-
-  if (!state.petName) {
-    openSetup();
-  }
+  openProfileChooser();
 }
 
 function petNeedLine(averageNeeds) {
@@ -924,18 +1701,23 @@ function moodDescription() {
   return "curious";
 }
 
-function openSetup() {
-  updateEggSelectionUI();
-  if (!DOM.setupModal.open) {
-    DOM.petNameInput.value = state.petName || "";
-    DOM.setupModal.showModal();
+function petMoodLineText() {
+  if (!state.petName) {
+    return "A future friend is waiting to hatch.";
   }
-}
 
-function closeSetup() {
-  if (DOM.setupModal.open) {
-    DOM.setupModal.close();
+  if (state.stageIndex === 0) {
+    const remaining = hatchAnswersRemaining();
+    if (remaining > 1) {
+      return `${state.petName}'s egg is warm and wobbling. Solve ${remaining} more correct answers to hatch your dragon.`;
+    }
+    if (remaining === 1) {
+      return `${state.petName}'s shell is cracking. One more correct answer will hatch your dragon.`;
+    }
+    return `${state.petName}'s shell is splitting open. Finish this round to reveal your dragon.`;
   }
+
+  return `${state.petName} feels ${moodDescription()} and is ${EGG_TYPES[state.eggType]?.personality || "ready for adventure"}.`;
 }
 
 function updateEggSelectionUI() {
@@ -944,10 +1726,86 @@ function updateEggSelectionUI() {
   });
 }
 
+function openSetup() {
+  if (!currentProfileId) {
+    openProfileChooser();
+    return;
+  }
+
+  updateEggSelectionUI();
+  if (!DOM.setupModal.open) {
+    DOM.petNameInput.value = state.petName || "";
+    DOM.setupModal.showModal();
+  }
+}
+
+function render() {
+  const currentProfile = getCurrentProfile();
+  DOM.playerChip.textContent = currentProfile ? currentProfile.name : "Choose Player";
+  renderProfileChooser();
+
+  if (!currentProfileId || !currentProfile) {
+    renderNoProfileState();
+    return;
+  }
+
+  DOM.resetButton.disabled = false;
+
+  const stage = currentStage();
+  const zone = currentZone();
+  const nextUnlock = nextUnlockText();
+  const averageNeeds = Math.round((state.hunger + state.energy + state.mood) / 3);
+
+  DOM.habitatName.textContent = zone.name;
+  DOM.stageChip.textContent = stage.chip;
+  DOM.zoneChip.textContent = `Zone ${Math.min(state.zoneIndex + 1, ZONES.length)} / ${ZONES.length}`;
+  DOM.petNameLabel.textContent = state.petName || stage.name;
+  DOM.petMoodLine.textContent = petMoodLineText();
+  DOM.petSpeech.textContent = state.petName
+    ? state.petSpeech || `${state.petName} is ${petNeedLine(averageNeeds)}`
+    : "Choose an egg to begin.";
+
+  DOM.petAvatar.dataset.stage = stage.petClass;
+  DOM.petAvatar.dataset.mood = moodTier();
+  DOM.petAvatar.classList.toggle("has-star", state.stageIndex >= 2);
+  DOM.petAvatar.classList.toggle("has-leaf", state.stageIndex >= 3);
+
+  renderMeters({
+    hunger: state.hunger,
+    energy: state.energy,
+    mood: state.mood,
+    evolution: state.evolution,
+  });
+
+  DOM.sparkValue.textContent = String(state.sparkles);
+  DOM.streakValue.textContent = String(state.streak);
+  DOM.streakLine.textContent =
+    state.streak > 0 ? `${state.streak} correct in a row. Keep the chain going.` : "Answer correctly to build a chain.";
+  DOM.unlockLine.textContent = nextUnlock.line;
+  DOM.unlockHint.textContent = nextUnlock.hint;
+
+  renderHabitatTheme();
+  renderDecorations();
+  renderQuestInterface();
+  renderRewards();
+  renderZones();
+  renderMilestones();
+  renderFeedback();
+  renderBossState();
+
+  if (!state.petName && !DOM.profileModal.open) {
+    openSetup();
+  }
+}
+
 document.querySelectorAll(".quest-button").forEach((button) => {
   button.addEventListener("click", () => {
     startQuest(button.dataset.quest);
   });
+});
+
+DOM.switchPlayerButton.addEventListener("click", () => {
+  openProfileChooser();
 });
 
 DOM.bossButton.addEventListener("click", () => {
@@ -962,13 +1820,12 @@ DOM.answerForm.addEventListener("submit", (event) => {
     return;
   }
 
-  const answer =
-    state.activeQuestion.kind === "choice" ? selectedChoiceValue : DOM.answerInput.value;
+  const answer = state.activeQuestion.kind === "choice" ? selectedChoiceValue : DOM.answerInput.value;
 
   if (!String(answer).trim()) {
-    DOM.feedbackCard.classList.remove("good");
-    DOM.feedbackCard.classList.add("bad");
-    DOM.feedbackText.textContent = "Enter an answer or choose one of the buttons first.";
+    state.feedbackMessage = "Enter an answer or choose one of the buttons first.";
+    state.feedbackTone = "bad";
+    renderFeedback();
     return;
   }
 
@@ -977,7 +1834,7 @@ DOM.answerForm.addEventListener("submit", (event) => {
 
 DOM.choiceGrid.addEventListener("click", (event) => {
   const button = event.target.closest("[data-choice]");
-  if (!button) {
+  if (!button || !state.activeQuestion) {
     return;
   }
   selectedChoiceValue = button.dataset.choice;
@@ -989,6 +1846,29 @@ document.querySelectorAll(".egg-option").forEach((button) => {
     selectedEgg = button.dataset.egg;
     updateEggSelectionUI();
   });
+});
+
+DOM.profileList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-profile-id]");
+  if (!button) {
+    return;
+  }
+  activateProfile(button.dataset.profileId);
+});
+
+DOM.profileCreateForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  createProfile(DOM.profileNameInput.value);
+});
+
+DOM.closeProfileButton.addEventListener("click", () => {
+  closeProfileChooser();
+});
+
+DOM.profileModal.addEventListener("cancel", (event) => {
+  if (!currentProfileId) {
+    event.preventDefault();
+  }
 });
 
 DOM.setupForm.addEventListener("submit", (event) => {
@@ -1007,9 +1887,8 @@ DOM.setupForm.addEventListener("submit", (event) => {
     ...state.milestoneLog,
   ].slice(0, 8);
   state.petSpeech = `${nextName} is ready for the first hatch quest.`;
-  DOM.feedbackCard.classList.remove("bad");
-  DOM.feedbackCard.classList.add("good");
-  DOM.feedbackText.textContent = `${nextName} is ready. Try a multiplication quest to start hatching the egg.`;
+  state.feedbackMessage = `${nextName} is ready. Try a multiplication quest to start hatching the egg.`;
+  state.feedbackTone = "good";
   closeSetup();
   saveState();
   render();
@@ -1024,18 +1903,25 @@ DOM.closeHelpButton.addEventListener("click", () => {
 });
 
 DOM.resetButton.addEventListener("click", () => {
-  const confirmed = window.confirm("Start over with a brand new egg? This clears current progress.");
+  if (!currentProfileId) {
+    openProfileChooser();
+    return;
+  }
+
+  const currentProfile = getCurrentProfile();
+  const confirmed = window.confirm(
+    `Start ${currentProfile.name}'s save over with a brand new egg? This keeps the player profile but clears current progress.`,
+  );
   if (!confirmed) {
     return;
   }
 
-  const fresh = createFreshState();
-  Object.keys(state).forEach((key) => {
-    delete state[key];
-  });
-  Object.assign(state, fresh);
+  replaceState(createFreshState());
   selectedEgg = "sun";
+  selectedChoiceValue = "";
   DOM.petNameInput.value = "";
+  state.feedbackMessage = `${currentProfile.name} has a fresh save slot. Choose a new egg to begin again.`;
+  state.feedbackTone = "good";
   saveState();
   render();
 });
@@ -1046,4 +1932,4 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-render();
+initializeGame();

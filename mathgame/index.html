@@ -26,6 +26,10 @@
         </p>
       </div>
       <div class="topbar-actions">
+        <span class="chip player-chip" id="playerChip">Choose Player</span>
+        <button class="ghost-button" id="switchPlayerButton" type="button">
+          Switch Player
+        </button>
         <button class="ghost-button" id="helpButton" type="button">How to Play</button>
         <button class="ghost-button danger-button" id="resetButton" type="button">
           New Egg
@@ -59,7 +63,16 @@
             <div class="pet-speech" id="petSpeech">Choose an egg to begin.</div>
             <div class="pet-shell">
               <div class="pet" id="petAvatar" aria-hidden="true">
+                <div class="pet-tail"></div>
+                <div class="pet-shell-fragment pet-shell-fragment-left"></div>
+                <div class="pet-shell-fragment pet-shell-fragment-center"></div>
+                <div class="pet-shell-fragment pet-shell-fragment-right"></div>
                 <div class="pet-body">
+                  <div class="pet-belly"></div>
+                  <div class="pet-horns">
+                    <span></span>
+                    <span></span>
+                  </div>
                   <div class="pet-eyes">
                     <span></span>
                     <span></span>
@@ -77,6 +90,56 @@
             </div>
           </div>
           <div class="scene-decorations" id="sceneDecorations" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section class="panel challenge-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Active challenge</p>
+            <h2 id="challengeTitle">Pick a quest to begin</h2>
+          </div>
+          <span class="chip" id="questionCounter">0 / 0</span>
+        </div>
+
+        <div class="challenge-body">
+          <p class="challenge-intro" id="challengePrompt">
+            Each quest turns math into something useful for your pet. Start with
+            Number Forge for a quick hatch boost.
+          </p>
+
+          <div class="question-card">
+            <p class="question-type" id="questionType">Quest ready</p>
+            <h3 class="question-text" id="questionText">
+              Your pet is waiting for its first math-powered adventure.
+            </h3>
+            <div class="fraction-visuals" id="fractionVisuals"></div>
+            <div class="choice-grid" id="choiceGrid"></div>
+
+            <form class="answer-form" id="answerForm">
+              <label class="visually-hidden" for="answerInput">Answer</label>
+              <input
+                autocomplete="off"
+                id="answerInput"
+                inputmode="text"
+                placeholder="Type your answer"
+                type="text"
+              />
+              <button class="primary-button" type="submit">Check Answer</button>
+            </form>
+          </div>
+
+          <div class="feedback-card" id="feedbackCard">
+            <p class="feedback-text" id="feedbackText">
+              Your pet will react here after each answer.
+            </p>
+          </div>
+
+          <div class="reward-strip" id="rewardStrip">
+            <div class="reward-pill">Food +0</div>
+            <div class="reward-pill">Energy +0</div>
+            <div class="reward-pill">Mood +0</div>
+          </div>
         </div>
       </section>
 
@@ -163,16 +226,16 @@
           <article class="quest-card quest-food">
             <div class="quest-icon">×</div>
             <div>
-              <h3>Multiplication Chain</h3>
-              <p>Grow snacks and charge fireflies with fast fact practice.</p>
+              <h3>Number Forge</h3>
+              <p>Use multiplication, multi-digit products, and division to power food and energy.</p>
             </div>
             <ul class="quest-rewards">
               <li>Feeds hunger</li>
               <li>Boosts energy</li>
-              <li>Builds streaks</li>
+              <li>Builds number mastery</li>
             </ul>
             <button class="quest-button" data-quest="multiplication" type="button">
-              Start Food Quest
+              Start Number Quest
             </button>
           </article>
 
@@ -180,7 +243,7 @@
             <div class="quest-icon">&frac12;</div>
             <div>
               <h3>Fraction Bridge</h3>
-              <p>Compare fractions to rebuild paths into new parts of the world.</p>
+              <p>Compare, match, and reason about fractions to rebuild paths into new worlds.</p>
             </div>
             <ul class="quest-rewards">
               <li>Opens new zones</li>
@@ -196,7 +259,7 @@
             <div class="quest-icon">△</div>
             <div>
               <h3>Geometry Workshop</h3>
-              <p>Use shape, area, and perimeter skills to upgrade the habitat.</p>
+              <p>Use shape, area, perimeter, and measurement skills to upgrade the habitat.</p>
             </div>
             <ul class="quest-rewards">
               <li>Unlocks decor</li>
@@ -207,56 +270,6 @@
               Build Upgrade
             </button>
           </article>
-        </div>
-      </section>
-
-      <section class="panel challenge-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker">Active challenge</p>
-            <h2 id="challengeTitle">Pick a quest to begin</h2>
-          </div>
-          <span class="chip" id="questionCounter">0 / 0</span>
-        </div>
-
-        <div class="challenge-body">
-          <p class="challenge-intro" id="challengePrompt">
-            Each quest turns math into something useful for your pet. Start with
-            multiplication for a quick hatch boost.
-          </p>
-
-          <div class="question-card">
-            <p class="question-type" id="questionType">Quest ready</p>
-            <h3 class="question-text" id="questionText">
-              Your pet is waiting for its first math-powered adventure.
-            </h3>
-            <div class="fraction-visuals" id="fractionVisuals"></div>
-            <div class="choice-grid" id="choiceGrid"></div>
-
-            <form class="answer-form" id="answerForm">
-              <label class="visually-hidden" for="answerInput">Answer</label>
-              <input
-                autocomplete="off"
-                id="answerInput"
-                inputmode="text"
-                placeholder="Type your answer"
-                type="text"
-              />
-              <button class="primary-button" type="submit">Check Answer</button>
-            </form>
-          </div>
-
-          <div class="feedback-card" id="feedbackCard">
-            <p class="feedback-text" id="feedbackText">
-              Your pet will react here after each answer.
-            </p>
-          </div>
-
-          <div class="reward-strip" id="rewardStrip">
-            <div class="reward-pill">Food +0</div>
-            <div class="reward-pill">Energy +0</div>
-            <div class="reward-pill">Mood +0</div>
-          </div>
         </div>
       </section>
 
@@ -279,6 +292,48 @@
         </div>
       </section>
     </main>
+
+    <dialog class="modal" id="profileModal">
+      <div class="modal-card profile-modal-card">
+        <p class="section-kicker">Player Profiles</p>
+        <h2>Who is playing today?</h2>
+        <p class="modal-copy">
+          Profiles stay on this browser only. Each player gets a separate pet,
+          progress path, and save slot.
+        </p>
+
+        <div class="profile-list" id="profileList"></div>
+        <p class="empty-state" id="profileEmptyState">
+          No players yet. Create the first profile to begin.
+        </p>
+
+        <form class="profile-create-form" id="profileCreateForm">
+          <label class="field-label" for="profileNameInput">Player name</label>
+          <div class="profile-create-row">
+            <input
+              class="name-input"
+              id="profileNameInput"
+              maxlength="18"
+              placeholder="Add a player"
+              required
+              type="text"
+            />
+            <button class="primary-button" id="createProfileButton" type="submit">
+              Add Player
+            </button>
+          </div>
+          <p class="form-hint" id="profileHint">
+            Each player gets a separate save slot on this browser.
+          </p>
+        </form>
+
+        <div class="modal-actions">
+          <button class="ghost-button" hidden id="closeProfileButton" type="button">
+            Back to Game
+          </button>
+        </div>
+      </div>
+    </dialog>
 
     <dialog class="modal" id="setupModal">
       <form class="modal-card" id="setupForm" method="dialog">
@@ -330,12 +385,12 @@
         <p class="section-kicker">How it works</p>
         <h2>Math powers every part of the world</h2>
         <div class="help-points">
-          <p><strong>Multiplication</strong> fills food and energy.</p>
-          <p><strong>Fractions</strong> rebuild bridges and boost mood.</p>
-          <p><strong>Geometry</strong> adds decorations and habitat upgrades.</p>
+          <p><strong>Number Forge</strong> fills food and energy with multiplication and division.</p>
+          <p><strong>Fractions</strong> rebuild bridges with comparison, equivalence, and mixed-number work.</p>
+          <p><strong>Geometry</strong> adds decorations with area, perimeter, and measurement puzzles.</p>
           <p>
-            <strong>Boss quests</strong> unlock evolutions after enough balanced
-            practice.
+            <strong>Boss quests</strong> unlock later worlds after enough balanced
+            practice across every math path.
           </p>
         </div>
         <button class="primary-button" id="closeHelpButton" type="button">Back to Game</button>
