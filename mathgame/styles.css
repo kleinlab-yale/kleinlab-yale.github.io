@@ -375,25 +375,28 @@ h3 {
 
 .pet-area {
   position: absolute;
-  inset: auto 0 42px;
-  display: grid;
-  place-items: center;
+  inset: 22px 0 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
   width: 100%;
   padding: 0 16px;
   z-index: 2;
 }
 
 .pet-speech {
-  width: min(340px, calc(100% - 28px));
-  max-width: 340px;
+  width: min(320px, calc(100% - 34px));
+  max-width: 320px;
   background: rgba(255, 255, 255, 0.97);
   border-radius: 18px;
   border: 1px solid rgba(36, 66, 75, 0.12);
-  padding: 13px 16px;
+  padding: 12px 15px;
   text-align: center;
   box-shadow: 0 12px 26px rgba(81, 111, 118, 0.12);
-  margin-bottom: 16px;
+  margin: 0 0 14px;
   font-weight: 700;
+  font-size: 0.95rem;
   line-height: 1.35;
   color: var(--ink);
   overflow-wrap: anywhere;
@@ -1127,6 +1130,28 @@ h3 {
   align-items: flex-start;
 }
 
+.lesson-topic-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.lesson-topic-button {
+  border: 1px solid rgba(36, 66, 75, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.lesson-topic-button.selected {
+  background: rgba(255, 203, 71, 0.26);
+  border-color: rgba(255, 140, 66, 0.42);
+}
+
 .lesson-intro {
   margin: 14px 0 0;
   color: var(--ink-soft);
@@ -1535,5 +1560,14 @@ h3 {
 
   .habitat-scene {
     min-height: 380px;
+  }
+
+  .pet-area {
+    inset: 18px 0 20px;
+  }
+
+  .pet-speech {
+    width: min(292px, calc(100% - 20px));
+    font-size: 0.9rem;
   }
 }

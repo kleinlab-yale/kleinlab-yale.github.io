@@ -5,6 +5,7 @@ const PROFILE_SAVE_PREFIX = "math-pet-evolution-profile-save-v1:";
 const MAX_PROFILE_COUNT = 6;
 const MAX_PROFILE_NAME_LENGTH = 18;
 const FIRST_HATCH_SOLVED_TARGET = 4;
+const QUEST_PASS_TARGET = 4;
 const QUEST_SEQUENCE = ["multiplication", "fractions", "geometry"];
 const QUEST_BUTTON_LABELS = {
   multiplication: "Start Number Quest",
@@ -257,6 +258,7 @@ const DOM = {
   lessonCard: document.getElementById("lessonCard"),
   lessonTitle: document.getElementById("lessonTitle"),
   lessonChip: document.getElementById("lessonChip"),
+  lessonTopicRow: document.getElementById("lessonTopicRow"),
   lessonIntro: document.getElementById("lessonIntro"),
   lessonSteps: document.getElementById("lessonSteps"),
   zoneList: document.getElementById("zoneList"),
@@ -285,6 +287,7 @@ let profiles = [];
 let currentProfileId = "";
 let selectedEgg = "sun";
 let selectedChoiceValue = "";
+let selectedLessonKey = "longDivision";
 
 function createFreshState() {
   return {
@@ -1455,15 +1458,24 @@ function finishQuest() {
     }
   } else {
     const title = formatQuestTitle(type);
-    advanceQuestPath(type);
-    if (!triggerFirstHatch()) {
-      const nextQuest = nextQuestInPath();
-      addMilestone(`${title} complete. ${state.petName} gained confidence and world energy.`);
-      state.feedbackMessage = nextQuest
-        ? `${title} complete. ${formatQuestTitle(nextQuest)} is now ready.`
-        : `${title} complete. The boss path is built. Fill evolution to 100% to unlock it.`;
-      state.feedbackTone = "good";
-      state.petSpeech = makePetSpeech(true);
+    if (state.currentQuestCorrect >= QUEST_PASS_TARGET) {
+      advanceQuestPath(type);
+      if (!triggerFirstHatch()) {
+        const nextQuest = nextQuestInPath();
+        addMilestone(`${title} complete. ${state.petName} gained confidence and world energy.`);
+        state.feedbackMessage = nextQuest
+          ? `${title} complete. ${formatQuestTitle(nextQuest)} is now ready.`
+          : `${title} complete. The boss path is built. Fill evolution to 100% to unlock it.`;
+        state.feedbackTone = "good";
+        state.petSpeech = makePetSpeech(true);
+      }
+    } else {
+      const needed = QUEST_PASS_TARGET - state.currentQuestCorrect;
+      addMilestone(`${title} practice round finished. ${state.petName} needs ${needed} more correct answer${needed === 1 ? "" : "s"} to clear it.`);
+      state.feedbackMessage =
+        `${title} needs ${QUEST_PASS_TARGET} correct answers to clear. You got ${state.currentQuestCorrect} out of ${state.cycleLength}. Try it again and get ${needed} more correct.`;
+      state.feedbackTone = "bad";
+      state.petSpeech = `${state.petName} wants to practice ${title} one more time before moving on.`;
     }
   }
 
@@ -1702,48 +1714,41 @@ function lessonForQuestion(question) {
   return null;
 }
 
-function currentLesson() {
+function defaultLessonKey() {
   const activeLesson = lessonForQuestion(state.activeQuestion);
   if (activeLesson) {
-    return activeLesson;
-  }
-
-  if (!currentProfileId || !state.petName || state.activeQuest) {
-    return null;
+    return Object.keys(LESSONS).find((key) => LESSONS[key] === activeLesson) || "longDivision";
   }
 
   const nextQuest = nextQuestInPath();
   if (nextQuest === "fractions") {
-    return LESSONS.fractionCompare;
+    return "fractionCompare";
   }
 
   if (nextQuest === "geometry") {
-    return LESSONS.geometryMeasure;
+    return "geometryMeasure";
   }
 
-  if (nextQuest === "multiplication" && cycleDifficulty() >= 6) {
-    return LESSONS.longDivision;
-  }
+  return selectedLessonKey || "longDivision";
+}
 
-  return null;
+function currentLesson() {
+  const lessonKey = defaultLessonKey();
+  return LESSONS[lessonKey] || LESSONS.longDivision;
 }
 
 function renderLesson() {
   const lesson = currentLesson();
-  DOM.lessonCard.hidden = !lesson;
-
-  if (!lesson) {
-    DOM.lessonTitle.textContent = "Worked example";
-    DOM.lessonChip.textContent = "Example";
-    DOM.lessonIntro.textContent = "A worked example will appear here for harder topics.";
-    DOM.lessonSteps.innerHTML = "";
-    return;
-  }
+  const lessonKey = defaultLessonKey();
+  DOM.lessonCard.hidden = false;
 
   DOM.lessonTitle.textContent = lesson.title;
   DOM.lessonChip.textContent = lesson.chip;
   DOM.lessonIntro.textContent = lesson.intro;
   DOM.lessonSteps.innerHTML = lesson.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
+  DOM.lessonTopicRow.querySelectorAll("[data-lesson]").forEach((button) => {
+    button.classList.toggle("selected", button.dataset.lesson === lessonKey);
+  });
 }
 
 function renderQuestOptions() {
@@ -2139,6 +2144,15 @@ DOM.choiceGrid.addEventListener("click", (event) => {
   }
   selectedChoiceValue = button.dataset.choice;
   renderChoices(state.activeQuestion.choices);
+});
+
+DOM.lessonTopicRow.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-lesson]");
+  if (!button) {
+    return;
+  }
+  selectedLessonKey = button.dataset.lesson;
+  renderLesson();
 });
 
 document.querySelectorAll(".egg-option").forEach((button) => {
