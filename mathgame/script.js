@@ -240,43 +240,43 @@ const STAGES = [
   },
   {
     id: "hatchling",
-    name: "Glow Dragonling",
-    chip: "Dragonling",
+    name: "Snuggle Puppy",
+    chip: "Puppy",
     petClass: "hatchling",
   },
   {
     id: "sprout",
-    name: "Trail Drake",
-    chip: "Drake",
+    name: "Playful Pup",
+    chip: "Pup",
     petClass: "sprout",
   },
   {
     id: "glider",
-    name: "Sky Wyvern",
-    chip: "Wyvern",
+    name: "Adventure Dog",
+    chip: "Dog",
     petClass: "glider",
   },
   {
     id: "sage",
-    name: "Prism Sage",
-    chip: "Sage",
+    name: "Cozy Companion",
+    chip: "Cozy",
     petClass: "glider",
   },
   {
     id: "nova",
-    name: "Nova Runner",
-    chip: "Nova",
+    name: "Starlight Bestie",
+    chip: "Star",
     petClass: "glider",
   },
   {
     id: "aurora",
-    name: "Aurora Starwing",
-    chip: "Mythic",
+    name: "Aurora Buddy",
+    chip: "Aurora",
     petClass: "glider",
   },
   {
     id: "legend",
-    name: "Celestial Legend",
+    name: "Legend Pup",
     chip: "Legend",
     petClass: "glider",
   },
@@ -379,6 +379,36 @@ const DECORATIONS = [
   { id: "crystal-four", label: "Citadel prism", type: "crystal" },
   { id: "mushroom-four", label: "Starlit mushroom", type: "mushroom" },
 ];
+const HAT_ITEMS = [
+  { id: "bow", label: "Peach bow", swatch: "#ff9bc1" },
+  { id: "beanie", label: "Berry beanie", swatch: "#f35b7f" },
+  { id: "crown", label: "Sun crown", swatch: "#ffd467" },
+];
+const SWEATER_ITEMS = [
+  { id: "peach", label: "Peach sweater", swatch: "#ffb08a" },
+  { id: "mint", label: "Mint hoodie", swatch: "#8ddf9a" },
+  { id: "sky", label: "Sky stripes", swatch: "#89d2ff" },
+];
+const COSMETIC_UNLOCKS = [
+  { kind: "scene", id: "flower" },
+  { kind: "hat", id: "bow" },
+  { kind: "scene", id: "crystal" },
+  { kind: "sweater", id: "peach" },
+  { kind: "scene", id: "mushroom" },
+  { kind: "hat", id: "beanie" },
+  { kind: "scene", id: "flower-two" },
+  { kind: "sweater", id: "mint" },
+  { kind: "scene", id: "crystal-two" },
+  { kind: "hat", id: "crown" },
+  { kind: "scene", id: "mushroom-two" },
+  { kind: "sweater", id: "sky" },
+  { kind: "scene", id: "flower-three" },
+  { kind: "scene", id: "crystal-three" },
+  { kind: "scene", id: "mushroom-three" },
+  { kind: "scene", id: "flower-four" },
+  { kind: "scene", id: "crystal-four" },
+  { kind: "scene", id: "mushroom-four" },
+];
 
 const DOM = {
   playerChip: document.getElementById("playerChip"),
@@ -400,6 +430,10 @@ const DOM = {
   energyMeter: document.getElementById("energyMeter"),
   moodMeter: document.getElementById("moodMeter"),
   evolutionMeter: document.getElementById("evolutionMeter"),
+  styleCount: document.getElementById("styleCount"),
+  wardrobeHint: document.getElementById("wardrobeHint"),
+  hatOptions: document.getElementById("hatOptions"),
+  sweaterOptions: document.getElementById("sweaterOptions"),
   sparkValue: document.getElementById("sparkValue"),
   streakValue: document.getElementById("streakValue"),
   streakLine: document.getElementById("streakLine"),
@@ -469,6 +503,10 @@ function createFreshState() {
     streak: 0,
     bossesCleared: 0,
     decorations: [],
+    unlockedHats: [],
+    unlockedSweaters: [],
+    selectedHat: "none",
+    selectedSweater: "none",
     milestoneLog: [
       "A mysterious egg arrived. Choose a shell and begin the first hatch quest.",
     ],
@@ -506,7 +544,20 @@ function hydrateState(savedState) {
     return fresh;
   }
 
-  return {
+  const legacyDecorations = Array.isArray(savedState.decorations) ? savedState.decorations.length : 0;
+  const legacyUnlockHats = [];
+  const legacyUnlockSweaters = [];
+
+  if (!Array.isArray(savedState.unlockedHats) && !Array.isArray(savedState.unlockedSweaters)) {
+    if (legacyDecorations >= 1) legacyUnlockHats.push("bow");
+    if (legacyDecorations >= 3) legacyUnlockSweaters.push("peach");
+    if (legacyDecorations >= 5) legacyUnlockHats.push("beanie");
+    if (legacyDecorations >= 7) legacyUnlockSweaters.push("mint");
+    if (legacyDecorations >= 9) legacyUnlockHats.push("crown");
+    if (legacyDecorations >= 11) legacyUnlockSweaters.push("sky");
+  }
+
+  const hydrated = {
     ...fresh,
     ...savedState,
     questHistory: {
@@ -523,12 +574,25 @@ function hydrateState(savedState) {
       ...(savedState.lastRewards || {}),
     },
     decorations: Array.isArray(savedState.decorations) ? savedState.decorations : fresh.decorations,
+    unlockedHats: Array.isArray(savedState.unlockedHats) ? savedState.unlockedHats : legacyUnlockHats,
+    unlockedSweaters: Array.isArray(savedState.unlockedSweaters) ? savedState.unlockedSweaters : legacyUnlockSweaters,
+    selectedHat: typeof savedState.selectedHat === "string" ? savedState.selectedHat : fresh.selectedHat,
+    selectedSweater: typeof savedState.selectedSweater === "string" ? savedState.selectedSweater : fresh.selectedSweater,
     milestoneLog: Array.isArray(savedState.milestoneLog) ? savedState.milestoneLog : fresh.milestoneLog,
     stageIndex: clamp(savedState.stageIndex ?? fresh.stageIndex, 0, STAGES.length - 1),
     zoneIndex: Math.max(0, savedState.zoneIndex ?? fresh.zoneIndex),
     feedbackMessage: savedState.feedbackMessage || fresh.feedbackMessage,
     feedbackTone: savedState.feedbackTone || fresh.feedbackTone,
   };
+
+  hydrated.selectedHat = hydrated.unlockedHats.includes(hydrated.selectedHat)
+    ? hydrated.selectedHat
+    : hydrated.unlockedHats[0] || "none";
+  hydrated.selectedSweater = hydrated.unlockedSweaters.includes(hydrated.selectedSweater)
+    ? hydrated.selectedSweater
+    : hydrated.unlockedSweaters[0] || "none";
+
+  return hydrated;
 }
 
 function replaceState(nextState) {
@@ -979,9 +1043,9 @@ function triggerFirstHatch() {
   state.energy = clamp(state.energy + 10);
   state.mood = clamp(state.mood + 14);
   addMilestone(`Crack! ${state.petName} hatched into a ${currentStage().name}.`);
-  state.feedbackMessage = `Crack! ${state.petName} hatched into a ${currentStage().name}. Your baby dragon is finally here.`;
+  state.feedbackMessage = `Crack! ${state.petName} hatched into a ${currentStage().name}. Your puppy is finally here.`;
   state.feedbackTone = "good";
-  state.petSpeech = `${state.petName} squeaks, flaps tiny dragon wings, and looks around the habitat in surprise.`;
+  state.petSpeech = `${state.petName} pops out with floppy ears, tiny paws, and a very surprised puppy blink.`;
   return true;
 }
 
@@ -1013,8 +1077,8 @@ function idleQuestState() {
       counter: `${totalSolved} solved`,
       prompt:
         remaining > 0
-          ? `${state.petName}'s egg is wobbling. Solve ${remaining} more correct answer${remaining === 1 ? "" : "s"} to hatch your dragon.`
-          : `${state.petName}'s shell is cracking. Finish the current quest to hatch your dragon.`,
+          ? `${state.petName}'s egg is wobbling. Solve ${remaining} more correct answer${remaining === 1 ? "" : "s"} to hatch your puppy.`
+          : `${state.petName}'s shell is cracking. Finish the current quest to hatch your puppy.`,
       type: "Egg progress",
       text: `${state.petName} is still inside the egg, but the shell is starting to crack.`,
     };
@@ -1785,17 +1849,60 @@ function rewardCorrectAnswer(questType) {
     bumpNeeds({ hunger: 2, energy: 6, mood: 5, evolution: 9, sparkles: 4 });
     state.questHistory.geometry += 1;
     state.cycleHistory.geometry += 1;
-    unlockDecoration();
+    unlockCosmetic();
     return;
   }
 
   bumpNeeds({ hunger: 6, energy: 6, mood: 8, evolution: 10, sparkles: 6 });
 }
 
-function unlockDecoration() {
-  const nextDecoration = DECORATIONS[state.decorations.length];
-  if (nextDecoration) {
-    state.decorations.push(nextDecoration.id);
+function wardrobeItems(type) {
+  return type === "hat" ? HAT_ITEMS : SWEATER_ITEMS;
+}
+
+function wardrobeItem(type, itemId) {
+  return wardrobeItems(type).find((item) => item.id === itemId) || null;
+}
+
+function totalCosmeticUnlocks() {
+  return state.decorations.length + state.unlockedHats.length + state.unlockedSweaters.length;
+}
+
+function unlockCosmetic() {
+  const nextUnlock = COSMETIC_UNLOCKS[totalCosmeticUnlocks()];
+  if (!nextUnlock) {
+    return;
+  }
+
+  if (nextUnlock.kind === "scene") {
+    const nextDecoration = DECORATIONS.find((item) => item.id === nextUnlock.id);
+    if (nextDecoration && !state.decorations.includes(nextDecoration.id)) {
+      state.decorations.push(nextDecoration.id);
+      addMilestone(`Habitat upgrade unlocked: ${nextDecoration.label}.`);
+    }
+    return;
+  }
+
+  const item = wardrobeItem(nextUnlock.kind, nextUnlock.id);
+  if (!item) {
+    return;
+  }
+
+  if (nextUnlock.kind === "hat" && !state.unlockedHats.includes(item.id)) {
+    state.unlockedHats.push(item.id);
+    if (state.selectedHat === "none") {
+      state.selectedHat = item.id;
+    }
+    addMilestone(`${state.petName} found a new hat: ${item.label}.`);
+    return;
+  }
+
+  if (nextUnlock.kind === "sweater" && !state.unlockedSweaters.includes(item.id)) {
+    state.unlockedSweaters.push(item.id);
+    if (state.selectedSweater === "none") {
+      state.selectedSweater = item.id;
+    }
+    addMilestone(`${state.petName} found a new sweater: ${item.label}.`);
   }
 }
 
@@ -1873,8 +1980,8 @@ function clearBoss() {
     state.feedbackTone = "good";
     state.petSpeech =
       beforeStage === 0
-        ? `${state.petName} bursts from the shell, flaps tiny dragon wings, and squeaks proudly.`
-        : `${state.petName} is glowing with new power!`;
+        ? `${state.petName} tumbles out of the shell, wiggles tiny paws, and barks in surprise.`
+        : `${state.petName} does a proud little zoomie around the habitat.`;
   } else {
     addMilestone(`${state.petName} mastered another boss quest and made the world brighter.`);
     state.feedbackMessage = `${state.petName} completed a master challenge and earned a rare sparkle burst.`;
@@ -1891,7 +1998,7 @@ function makePositiveFeedback(type) {
     return "Correct. A section of the bridge lights up and the path grows steadier.";
   }
   if (type === "geometry") {
-    return "Correct. New shapes click into place and the habitat looks brighter.";
+    return "Correct. New shapes click into place and a cute upgrade is ready.";
   }
   return "Correct. The boss arena fills with evolution energy.";
 }
@@ -1902,22 +2009,22 @@ function makePetSpeech(correct) {
   }
   if (state.stageIndex === 0) {
     return hatchAnswersRemaining() <= 1
-      ? `${state.petName}'s shell cracks and glows with dragon-light.`
+      ? `${state.petName}'s shell cracks and glows with cozy puppy magic.`
       : `${state.petName} wiggles happily inside the egg.`;
   }
   if (state.stageIndex === 1) {
-    return `${state.petName} chirps, flaps tiny dragon wings, and hops with excitement.`;
+    return `${state.petName} yips, wags a tiny tail, and bounces with excitement.`;
   }
   if (state.stageIndex === 2) {
-    return `${state.petName} swishes a tiny tail and points toward a new trail.`;
+    return `${state.petName} trots in a happy circle and nudges the next trail with its nose.`;
   }
   if (state.stageIndex <= 4) {
-    return `${state.petName} circles the habitat and looks ready for a harder world.`;
+    return `${state.petName} pads around the habitat and looks ready for a harder world.`;
   }
   if (state.stageIndex <= 6) {
-    return `${state.petName} shines with calm confidence and watches for master quests.`;
+    return `${state.petName} sits up proudly and watches for master quests.`;
   }
-  return `${state.petName} glides in a proud circle above the habitat.`;
+  return `${state.petName} does a proud victory bounce around the habitat.`;
 }
 
 function moodTier() {
@@ -1939,8 +2046,8 @@ function nextUnlockText() {
       line: remaining > 0 ? `Egg hatch ${solved} / ${FIRST_HATCH_SOLVED_TARGET}` : "Egg ready to hatch",
       hint:
         remaining > 0
-          ? `Solve ${remaining} more correct answer${remaining === 1 ? "" : "s"} to crack the shell and meet your dragon.`
-          : "Finish this quest to crack the shell and reveal your dragon.",
+          ? `Solve ${remaining} more correct answer${remaining === 1 ? "" : "s"} to crack the shell and meet your puppy.`
+          : "Finish this quest to crack the shell and reveal your puppy.",
     };
   }
 
@@ -2446,6 +2553,102 @@ function renderDecorations() {
     .join("");
 }
 
+function styleSelectionLabel(type, itemId) {
+  if (itemId === "none") {
+    return type === "hat" ? "No hat" : "No sweater";
+  }
+  return wardrobeItem(type, itemId)?.label || "";
+}
+
+function renderStyleOptions(type) {
+  const unlocked = type === "hat" ? state.unlockedHats : state.unlockedSweaters;
+  const selected = type === "hat" ? state.selectedHat : state.selectedSweater;
+  const target = type === "hat" ? DOM.hatOptions : DOM.sweaterOptions;
+  const options = [
+    {
+      id: "none",
+      label: type === "hat" ? "No hat" : "No sweater",
+      swatch: "#f6efe1",
+    },
+    ...wardrobeItems(type),
+  ];
+
+  target.innerHTML = options
+    .map((item) => {
+      const isUnlocked = item.id === "none" || unlocked.includes(item.id);
+      const isSelected = selected === item.id;
+      const stateLabel = isUnlocked ? (isSelected ? "Wearing" : "Try on") : "Locked";
+      return `
+        <button
+          class="style-option${isSelected ? " selected" : ""}${isUnlocked ? "" : " locked"}"
+          data-style-type="${type}"
+          data-style-id="${item.id}"
+          type="button"
+          ${isUnlocked ? "" : "disabled"}
+        >
+          <span class="style-swatch" style="--swatch:${item.swatch};"></span>
+          <span class="style-copy">
+            <strong>${escapeHtml(item.label)}</strong>
+            <span>${escapeHtml(stateLabel)}</span>
+          </span>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function renderWardrobe() {
+  if (!currentProfileId) {
+    DOM.styleCount.textContent = "0 styles";
+    DOM.wardrobeHint.textContent = "Choose a player to unlock and dress up a puppy.";
+    DOM.hatOptions.innerHTML = "";
+    DOM.sweaterOptions.innerHTML = "";
+    return;
+  }
+
+  const unlockedCount = state.unlockedHats.length + state.unlockedSweaters.length;
+  DOM.styleCount.textContent = `${unlockedCount} styles`;
+
+  if (!state.petName) {
+    DOM.wardrobeHint.textContent = "Name an egg first, then hatch the puppy to start collecting clothes.";
+  } else if (state.stageIndex === 0) {
+    DOM.wardrobeHint.textContent = "Hatch the puppy first. Geometry quests unlock new hats, sweaters, and habitat goodies.";
+  } else if (unlockedCount === 0) {
+    DOM.wardrobeHint.textContent = "Geometry quests unlock clothes. Once you earn one, you can choose what the puppy wears.";
+  } else {
+    DOM.wardrobeHint.textContent =
+      `${state.petName} is wearing ${styleSelectionLabel("hat", state.selectedHat).toLowerCase()} and ${styleSelectionLabel("sweater", state.selectedSweater).toLowerCase()}.`;
+  }
+
+  renderStyleOptions("hat");
+  renderStyleOptions("sweater");
+}
+
+function chooseStyle(type, itemId) {
+  if (type === "hat" && itemId !== "none" && !state.unlockedHats.includes(itemId)) {
+    return;
+  }
+
+  if (type === "sweater" && itemId !== "none" && !state.unlockedSweaters.includes(itemId)) {
+    return;
+  }
+
+  if (type === "hat") {
+    state.selectedHat = itemId;
+  } else {
+    state.selectedSweater = itemId;
+  }
+
+  if (state.stageIndex > 0 && state.petName) {
+    state.petSpeech = `${state.petName} wiggles happily in a new outfit.`;
+    state.feedbackMessage = `${state.petName} changed into ${styleSelectionLabel(type, itemId).toLowerCase()}.`;
+    state.feedbackTone = "good";
+  }
+
+  saveState();
+  render();
+}
+
 function renderHabitatTheme() {
   const egg = EGG_TYPES[state.eggType] || EGG_TYPES.sun;
   const zone = currentZone();
@@ -2454,6 +2657,7 @@ function renderHabitatTheme() {
   DOM.habitatScene.style.background = sceneGradient;
   DOM.petAvatar.style.setProperty("--pet-top", egg.colors[0]);
   DOM.petAvatar.style.setProperty("--pet-bottom", egg.colors[1]);
+  DOM.petAvatar.style.setProperty("--pet-ear", egg.colors[1]);
 }
 
 function renderBossState() {
@@ -2534,7 +2738,8 @@ function renderNoProfileState() {
   DOM.petSpeech.textContent = "Who is playing today?";
   DOM.petAvatar.dataset.stage = "egg";
   DOM.petAvatar.dataset.mood = "okay";
-  DOM.petAvatar.classList.remove("has-star", "has-leaf");
+  DOM.petAvatar.dataset.hat = "none";
+  DOM.petAvatar.dataset.sweater = "none";
   DOM.sparkValue.textContent = "0";
   DOM.streakValue.textContent = "0";
   DOM.streakLine.textContent = "Choose a player to start building a quest streak.";
@@ -2546,6 +2751,7 @@ function renderNoProfileState() {
     "<li>Create a player profile on this browser to start a separate save.</li>";
   renderHabitatTheme();
   renderDecorations();
+  renderWardrobe();
   renderQuestInterface();
   renderQuestOptions();
   renderRewards();
@@ -2584,12 +2790,12 @@ function petMoodLineText() {
   if (state.stageIndex === 0) {
     const remaining = hatchAnswersRemaining();
     if (remaining > 1) {
-      return `${state.petName}'s egg is warm and wobbling. Solve ${remaining} more correct answers to hatch your dragon.`;
+      return `${state.petName}'s egg is warm and wobbling. Solve ${remaining} more correct answers to hatch your puppy.`;
     }
     if (remaining === 1) {
-      return `${state.petName}'s shell is cracking. One more correct answer will hatch your dragon.`;
+      return `${state.petName}'s shell is cracking. One more correct answer will hatch your puppy.`;
     }
-    return `${state.petName}'s shell is splitting open. Finish this round to reveal your dragon.`;
+    return `${state.petName}'s shell is splitting open. Finish this round to reveal your puppy.`;
   }
 
   return `${state.petName} feels ${moodDescription()} and is ${EGG_TYPES[state.eggType]?.personality || "ready for adventure"}.`;
@@ -2642,8 +2848,8 @@ function render() {
 
   DOM.petAvatar.dataset.stage = stage.petClass;
   DOM.petAvatar.dataset.mood = moodTier();
-  DOM.petAvatar.classList.toggle("has-star", state.stageIndex >= 2);
-  DOM.petAvatar.classList.toggle("has-leaf", state.stageIndex >= 3);
+  DOM.petAvatar.dataset.hat = state.stageIndex === 0 ? "none" : state.selectedHat;
+  DOM.petAvatar.dataset.sweater = state.stageIndex === 0 ? "none" : state.selectedSweater;
 
   renderMeters({
     hunger: state.hunger,
@@ -2661,6 +2867,7 @@ function render() {
 
   renderHabitatTheme();
   renderDecorations();
+  renderWardrobe();
   renderQuestInterface();
   renderQuestOptions();
   renderRewards();
@@ -2716,6 +2923,22 @@ DOM.choiceGrid.addEventListener("click", (event) => {
   }
   selectedChoiceValue = button.dataset.choice;
   renderChoices(state.activeQuestion.choices);
+});
+
+DOM.hatOptions.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-style-id]");
+  if (!button) {
+    return;
+  }
+  chooseStyle("hat", button.dataset.styleId);
+});
+
+DOM.sweaterOptions.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-style-id]");
+  if (!button) {
+    return;
+  }
+  chooseStyle("sweater", button.dataset.styleId);
 });
 
 DOM.lessonTopicRow.addEventListener("click", (event) => {
