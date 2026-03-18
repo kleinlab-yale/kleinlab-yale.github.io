@@ -1,1 +1,1848 @@
-tested
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Volcano Lab: Learn, Explore, Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #fff7ed;
+        --bg-deep: #3b1f18;
+        --card: rgba(255, 248, 240, 0.88);
+        --card-strong: rgba(255, 243, 230, 0.96);
+        --ink: #2c1a14;
+        --muted: #6c4e41;
+        --accent: #c4471c;
+        --accent-strong: #8f270b;
+        --gold: #f4b63d;
+        --teal: #1f6f78;
+        --teal-soft: #dbf3f0;
+        --line: rgba(74, 39, 28, 0.15);
+        --correct: #1f7a54;
+        --incorrect: #b42318;
+        --shadow: 0 18px 45px rgba(60, 26, 18, 0.15);
+        --radius-xl: 28px;
+        --radius-lg: 20px;
+        --radius-md: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(255, 208, 135, 0.45), transparent 28%),
+          radial-gradient(circle at top right, rgba(214, 70, 25, 0.18), transparent 22%),
+          linear-gradient(180deg, #fff7ed 0%, #ffe5d0 48%, #ffd6bf 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 34px 34px;
+        opacity: 0.35;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      main {
+        width: min(1160px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding-bottom: 4rem;
+        position: relative;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 0.9fr;
+        gap: 1.5rem;
+        align-items: stretch;
+        padding: 1.5rem 0 1rem;
+      }
+
+      .hero-card,
+      .panel,
+      .quiz-card,
+      .flashcard,
+      .stat-chip,
+      .result-card {
+        backdrop-filter: blur(12px);
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-card {
+        border-radius: var(--radius-xl);
+        padding: 2.2rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-card::after {
+        content: "";
+        position: absolute;
+        width: 240px;
+        height: 240px;
+        right: -80px;
+        top: -80px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 183, 77, 0.4), rgba(196, 71, 28, 0));
+      }
+
+      .eyebrow,
+      .section-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.38rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--accent-strong);
+        font-size: 0.92rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Fraunces", Georgia, serif;
+        line-height: 1.05;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(2.6rem, 4vw, 4.5rem);
+        margin-top: 1rem;
+      }
+
+      h2 {
+        font-size: clamp(2rem, 3vw, 3rem);
+      }
+
+      h3 {
+        font-size: 1.35rem;
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      .lede {
+        margin-top: 1rem;
+        max-width: 58ch;
+        font-size: 1.15rem;
+        color: var(--muted);
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+        margin-top: 1.35rem;
+      }
+
+      .button,
+      .mode-button,
+      .vocab-button,
+      .submit-button,
+      .reset-button,
+      .check-button {
+        border: none;
+        border-radius: 999px;
+        padding: 0.9rem 1.2rem;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      }
+
+      .button:hover,
+      .mode-button:hover,
+      .vocab-button:hover,
+      .submit-button:hover,
+      .reset-button:hover,
+      .check-button:hover {
+        transform: translateY(-2px);
+      }
+
+      .button.primary,
+      .submit-button {
+        background: linear-gradient(135deg, #cd4d19, #8f270b);
+        color: #fffaf4;
+        box-shadow: 0 14px 28px rgba(143, 39, 11, 0.25);
+      }
+
+      .button.secondary,
+      .reset-button,
+      .check-button {
+        background: rgba(255, 255, 255, 0.85);
+        color: var(--ink);
+      }
+
+      .hero-side {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .stat-chip {
+        border-radius: var(--radius-lg);
+        padding: 1.2rem;
+      }
+
+      .stat-chip strong {
+        display: block;
+        font-size: 1.95rem;
+        color: var(--accent-strong);
+      }
+
+      .stat-chip span {
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .surface-art {
+        position: relative;
+        min-height: 270px;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 65% 22%, rgba(255, 183, 77, 0.85), transparent 18%),
+          linear-gradient(180deg, #5a2018 0%, #8f270b 18%, #f4a259 18%, #f7d08a 48%, #8cc8d5 48%, #d6eff5 100%);
+      }
+
+      .surface-art svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      section {
+        margin-top: 2.5rem;
+      }
+
+      .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .section-heading p {
+        max-width: 55ch;
+        color: var(--muted);
+      }
+
+      .lesson-grid,
+      .activity-grid,
+      .quiz-grid,
+      .results-grid {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .lesson-grid {
+        grid-template-columns: 1.15fr 0.85fr;
+      }
+
+      .activity-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .quiz-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .quiz-card,
+      .result-card {
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 1rem;
+      }
+
+      .panel-header p {
+        color: var(--muted);
+        max-width: 54ch;
+      }
+
+      .mode-toggle {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        margin-top: 1.1rem;
+      }
+
+      .mode-button {
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--muted);
+      }
+
+      .mode-button.active,
+      .vocab-button.active {
+        background: linear-gradient(135deg, rgba(205, 77, 25, 0.95), rgba(143, 39, 11, 0.95));
+        color: #fff;
+      }
+
+      .visual-stage {
+        margin-top: 1.2rem;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: linear-gradient(180deg, #dbf3f0 0%, #f8f5ef 45%, #f0cda2 45%, #d28a54 100%);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+      }
+
+      .visual-stage svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .callout {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        background: rgba(31, 111, 120, 0.08);
+        border: 1px solid rgba(31, 111, 120, 0.14);
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 0.3rem;
+        color: var(--teal);
+      }
+
+      .fact-list,
+      .study-list,
+      .detail-list,
+      .monitor-list {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      .fact-item,
+      .detail-item,
+      .monitor-item {
+        padding: 0.95rem 1rem;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.66);
+        border: 1px solid rgba(74, 39, 28, 0.1);
+      }
+
+      .fact-item strong,
+      .detail-item strong,
+      .monitor-item strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+
+      .sim-grid,
+      .monitor-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .control {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .control label {
+        font-weight: 700;
+      }
+
+      .control input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+
+      .meter-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.8rem;
+        align-items: center;
+      }
+
+      .meter {
+        position: relative;
+        height: 12px;
+        flex: 1;
+        border-radius: 999px;
+        background: rgba(44, 26, 20, 0.1);
+        overflow: hidden;
+      }
+
+      .meter > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #ffd166 0%, #f97316 55%, #b42318 100%);
+        width: 0;
+      }
+
+      .simulation-note {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--muted);
+      }
+
+      .vocab-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .flashcard {
+        border-radius: var(--radius-lg);
+        padding: 1.2rem;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        justify-content: space-between;
+      }
+
+      .flashcard p {
+        color: var(--muted);
+      }
+
+      .vocab-button {
+        align-self: start;
+        background: rgba(255, 255, 255, 0.84);
+        color: var(--accent-strong);
+        padding-inline: 1rem;
+      }
+
+      .activity-card {
+        border-radius: var(--radius-lg);
+        padding: 1.3rem;
+        background: var(--card-strong);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: var(--shadow);
+      }
+
+      .activity-card p {
+        color: var(--muted);
+        margin-top: 0.4rem;
+      }
+
+      .activity-card .tag {
+        display: inline-block;
+        padding: 0.25rem 0.55rem;
+        margin-bottom: 0.8rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--accent-strong);
+      }
+
+      .quiz-sticky {
+        position: sticky;
+        top: 0.8rem;
+        z-index: 20;
+        margin-bottom: 1rem;
+      }
+
+      .quiz-progress {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.9rem 1.15rem;
+        background: rgba(44, 26, 20, 0.9);
+        color: #fff8f3;
+        box-shadow: 0 16px 32px rgba(44, 26, 20, 0.2);
+      }
+
+      .progress-bar {
+        position: relative;
+        flex: 1;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.18);
+        overflow: hidden;
+      }
+
+      .progress-bar span {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #f4b63d, #f97316);
+      }
+
+      .quiz-card {
+        border: 1px solid rgba(255, 255, 255, 0.55);
+      }
+
+      .quiz-card fieldset {
+        border: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .quiz-card legend {
+        font-size: 1.22rem;
+        font-weight: 700;
+        margin-bottom: 0.95rem;
+      }
+
+      .quiz-card .topic {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.28rem 0.65rem;
+        border-radius: 999px;
+        margin-bottom: 0.9rem;
+        background: rgba(31, 111, 120, 0.12);
+        color: var(--teal);
+        font-weight: 700;
+      }
+
+      .option-list {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .option {
+        display: flex;
+        gap: 0.7rem;
+        align-items: start;
+        padding: 0.85rem 0.95rem;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.65);
+        border: 1px solid rgba(74, 39, 28, 0.1);
+        cursor: pointer;
+      }
+
+      .option input {
+        margin-top: 0.2rem;
+        accent-color: var(--accent);
+      }
+
+      .quiz-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+        margin-top: 1.4rem;
+      }
+
+      .feedback-banner {
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        background: rgba(180, 35, 24, 0.12);
+        color: var(--incorrect);
+        border: 1px solid rgba(180, 35, 24, 0.2);
+      }
+
+      .feedback-banner.show {
+        display: block;
+      }
+
+      .results-grid {
+        grid-template-columns: 0.8fr 1.2fr;
+        margin-top: 1rem;
+      }
+
+      .score-badge {
+        display: grid;
+        gap: 0.75rem;
+        place-items: center;
+        min-height: 270px;
+        text-align: center;
+        background:
+          radial-gradient(circle at top, rgba(244, 182, 61, 0.5), transparent 35%),
+          rgba(255, 248, 240, 0.92);
+      }
+
+      .score-badge strong {
+        font-size: 4rem;
+        line-height: 1;
+        color: var(--accent-strong);
+      }
+
+      .score-badge span {
+        font-weight: 700;
+        color: var(--muted);
+      }
+
+      .study-list {
+        margin-top: 1rem;
+      }
+
+      .study-item {
+        padding: 0.95rem 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(74, 39, 28, 0.1);
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .study-item strong {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+
+      .question-review {
+        margin-top: 1rem;
+        display: grid;
+        gap: 0.9rem;
+      }
+
+      .review-item {
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.68);
+        border-left: 6px solid var(--incorrect);
+      }
+
+      .review-item strong {
+        display: block;
+      }
+
+      .review-item em {
+        display: block;
+        margin-top: 0.35rem;
+        color: var(--muted);
+        font-style: normal;
+      }
+
+      footer {
+        margin-top: 2.5rem;
+        padding: 1.5rem 0 0;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      @keyframes pulseGlow {
+        0%,
+        100% {
+          opacity: 0.55;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.9;
+          transform: scale(1.08);
+        }
+      }
+
+      .pulse {
+        animation: pulseGlow 2.6s infinite ease-in-out;
+      }
+
+      @media (max-width: 960px) {
+        .hero,
+        .lesson-grid,
+        .sim-grid,
+        .monitor-grid,
+        .results-grid,
+        .vocab-grid,
+        .activity-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-card,
+        .panel,
+        .quiz-card,
+        .result-card {
+          padding: 1.25rem;
+        }
+      }
+
+      @media (max-width: 640px) {
+        main {
+          width: min(100% - 1rem, 100%);
+        }
+
+        h1 {
+          font-size: 2.4rem;
+        }
+
+        .quiz-progress {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <article class="hero-card">
+          <span class="eyebrow">Earth Science Mission</span>
+          <h1>Volcano Lab</h1>
+          <p class="lede">
+            Learn how volcanoes form, why eruptions can be gentle or explosive, and
+            how scientists track volcanic activity. Then take a 20-question quiz and
+            get a grade plus a study plan.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#formation-lab">Start Exploring</a>
+            <a class="button secondary" href="#quiz">Jump to Quiz</a>
+          </div>
+        </article>
+        <div class="hero-side">
+          <div class="surface-art hero-card">
+            <svg viewBox="0 0 420 280" aria-hidden="true">
+              <defs>
+                <linearGradient id="lavaGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffd166" />
+                  <stop offset="55%" stop-color="#f97316" />
+                  <stop offset="100%" stop-color="#b42318" />
+                </linearGradient>
+              </defs>
+              <circle class="pulse" cx="335" cy="60" r="28" fill="rgba(255,212,96,0.75)" />
+              <ellipse cx="210" cy="198" rx="126" ry="44" fill="#6a3f2d" opacity="0.25" />
+              <path d="M110 215 L195 82 L252 82 L318 215 Z" fill="#4c2a20" />
+              <path d="M182 147 L208 105 L232 147 L214 215 L202 215 Z" fill="url(#lavaGlow)" opacity="0.9" />
+              <path d="M193 82 C197 70 253 70 257 82" fill="none" stroke="#2c1a14" stroke-width="6" stroke-linecap="round" />
+              <path d="M162 160 C124 182 108 188 88 194" fill="none" stroke="url(#lavaGlow)" stroke-width="12" stroke-linecap="round" />
+              <path d="M265 154 C304 170 325 184 341 194" fill="none" stroke="url(#lavaGlow)" stroke-width="12" stroke-linecap="round" />
+              <g fill="#8f270b" opacity="0.88">
+                <circle cx="206" cy="52" r="10" />
+                <circle cx="228" cy="34" r="12" />
+                <circle cx="246" cy="57" r="9" />
+                <circle cx="266" cy="39" r="11" />
+              </g>
+              <text x="26" y="34" font-family="Source Sans 3, sans-serif" font-size="18" font-weight="700" fill="#fff8f3">
+                Explore the forces under Earth's crust
+              </text>
+            </svg>
+          </div>
+          <div class="stat-chip">
+            <strong>20</strong>
+            <span>quiz questions covering formation, activity, hazards, and vocabulary</span>
+          </div>
+          <div class="stat-chip">
+            <strong>3</strong>
+            <span>interactive models: tectonics, magma behavior, and eruption monitoring</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="formation-lab">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">Part 1</span>
+            <h2>How volcanoes form</h2>
+          </div>
+          <p>
+            Volcanoes are not random mountains. They are places where melted rock,
+            trapped gases, and moving tectonic plates work together.
+          </p>
+        </div>
+
+        <div class="lesson-grid">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>Tectonic Settings Explorer</h3>
+                <p>
+                  Choose a setting to see where the magma comes from and which kind
+                  of volcano is most likely to form.
+                </p>
+              </div>
+            </div>
+            <div class="mode-toggle" id="settingToggle">
+              <button class="mode-button active" data-setting="convergent" type="button">Convergent Boundary</button>
+              <button class="mode-button" data-setting="divergent" type="button">Divergent Boundary</button>
+              <button class="mode-button" data-setting="hotspot" type="button">Hot Spot</button>
+            </div>
+            <div class="visual-stage">
+              <svg id="settingDiagram" viewBox="0 0 700 420" role="img" aria-labelledby="settingTitle settingDesc">
+                <title id="settingTitle">Convergent boundary volcano diagram</title>
+                <desc id="settingDesc">A subducting oceanic plate sinks under continental crust, generating magma that rises to feed a steep volcano.</desc>
+                <defs>
+                  <linearGradient id="magmaFill" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffd166" />
+                    <stop offset="55%" stop-color="#f97316" />
+                    <stop offset="100%" stop-color="#b42318" />
+                  </linearGradient>
+                </defs>
+                <rect x="0" y="0" width="700" height="170" fill="#d6eff5" />
+                <rect x="0" y="170" width="700" height="70" fill="#d8c099" />
+                <rect x="0" y="240" width="700" height="180" fill="#b07144" />
+                <g id="skyClouds" opacity="0.55">
+                  <circle cx="105" cy="70" r="26" fill="#ffffff" />
+                  <circle cx="128" cy="63" r="22" fill="#ffffff" />
+                  <circle cx="151" cy="74" r="18" fill="#ffffff" />
+                </g>
+                <g id="waterLayer">
+                  <rect x="0" y="140" width="195" height="30" fill="#7cc2da" />
+                </g>
+                <g id="continent">
+                  <path d="M180 170 H700 V240 H340 C280 236 246 218 220 200 C200 189 188 178 180 170 Z" fill="#9e6b42" />
+                </g>
+                <g id="oceanicPlate">
+                  <path d="M0 240 H300 C278 250 252 272 238 302 C223 332 213 365 206 420 H0 Z" fill="#7b573b" />
+                </g>
+                <g id="continentalPlate">
+                  <path d="M300 240 H700 V420 H220 C228 361 243 320 266 290 C285 265 308 246 300 240 Z" fill="#8d5f3e" />
+                </g>
+                <g id="boundaryMarkers" stroke="#2c1a14" stroke-width="4" fill="none">
+                  <path id="subductionArrow" d="M150 258 C220 270 267 282 315 294" />
+                  <path id="divergentCrack" d="M334 170 V240" class="hidden" />
+                </g>
+                <g id="magmaChamber">
+                  <ellipse cx="415" cy="328" rx="86" ry="46" fill="url(#magmaFill)" opacity="0.88" />
+                </g>
+                <g id="plumeGroup" class="hidden">
+                  <path d="M352 420 C360 360 376 300 393 260 C411 221 438 195 465 175" fill="none" stroke="url(#magmaFill)" stroke-width="22" stroke-linecap="round" />
+                </g>
+                <g id="mainVent" stroke="url(#magmaFill)" stroke-width="22" stroke-linecap="round" fill="none">
+                  <path id="ventPath" d="M418 320 C423 284 436 242 446 212 C454 187 459 161 458 138" />
+                </g>
+                <g id="volcanoCone">
+                  <path id="coneShape" d="M365 240 L458 116 L555 240 Z" fill="#4c2a20" />
+                  <path id="coneLayers" d="M390 203 C416 189 463 189 522 205" fill="none" stroke="#9a5a3a" stroke-width="8" stroke-linecap="round" opacity="0.8" />
+                  <path id="lavaFlow" d="M459 138 C470 166 490 204 519 236" fill="none" stroke="url(#magmaFill)" stroke-width="12" stroke-linecap="round" opacity="0.95" />
+                </g>
+                <g id="ashCloud">
+                  <circle cx="444" cy="88" r="18" fill="#7b6b6b" opacity="0.65" />
+                  <circle cx="470" cy="70" r="26" fill="#7b6b6b" opacity="0.58" />
+                  <circle cx="500" cy="92" r="20" fill="#7b6b6b" opacity="0.54" />
+                </g>
+                <g font-family="Source Sans 3, sans-serif" font-size="18" font-weight="700" fill="#2c1a14">
+                  <text id="labelBoundary" x="96" y="286">Subducting oceanic plate</text>
+                  <text id="labelChamber" x="356" y="334">Magma chamber</text>
+                  <text id="labelVent" x="500" y="176">Main vent</text>
+                  <text id="labelCone" x="516" y="119">Composite volcano</text>
+                </g>
+              </svg>
+            </div>
+            <div class="callout">
+              <strong id="settingHeadline">Convergent boundaries often make explosive volcanoes.</strong>
+              <p id="settingSummary">
+                When a dense oceanic plate sinks beneath another plate, water and
+                heat help mantle rock melt. The magma is usually sticky and gas-rich,
+                so pressure builds before eruption.
+              </p>
+            </div>
+          </article>
+
+          <aside class="panel">
+            <h3>Key scientific ideas</h3>
+            <div class="fact-list" id="settingFacts">
+              <div class="fact-item">
+                <strong>Subduction</strong>
+                <span>One tectonic plate sinks beneath another, carrying water into the mantle.</span>
+              </div>
+              <div class="fact-item">
+                <strong>Melting</strong>
+                <span>Water lowers the melting point of nearby rock, producing magma.</span>
+              </div>
+              <div class="fact-item">
+                <strong>Volcano type</strong>
+                <span>Steep composite volcanoes often form where eruptions alternate ash and lava.</span>
+              </div>
+            </div>
+            <div class="callout">
+              <strong>Remember this rule</strong>
+              <p>
+                Plate movement creates pathways for magma. Volcanoes need a source of
+                melted rock and a route to the surface.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="magma-lab">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">Part 2</span>
+            <h2>Why eruptions change</h2>
+          </div>
+          <p>
+            The chemistry of magma matters. Silica changes viscosity, and trapped gas
+            changes pressure.
+          </p>
+        </div>
+
+        <div class="sim-grid">
+          <article class="panel">
+            <h3>Magma Behavior Simulator</h3>
+            <p style="margin-top: 0.4rem; color: var(--muted);">
+              Move the sliders to compare smooth, runny magma with sticky magma that
+              traps gas and erupts more violently.
+            </p>
+            <div class="fact-list" style="margin-top: 1.2rem;">
+              <div class="control">
+                <label for="silicaRange">Silica level</label>
+                <input id="silicaRange" type="range" min="0" max="100" value="65" />
+                <div class="meter-row">
+                  <span>Runny</span>
+                  <div class="meter"><span id="silicaMeter"></span></div>
+                  <span>Sticky</span>
+                </div>
+              </div>
+              <div class="control">
+                <label for="gasRange">Gas level</label>
+                <input id="gasRange" type="range" min="0" max="100" value="70" />
+                <div class="meter-row">
+                  <span>Low</span>
+                  <div class="meter"><span id="gasMeter"></span></div>
+                  <span>High</span>
+                </div>
+              </div>
+            </div>
+            <div class="simulation-note">
+              <strong id="eruptionStyle">Eruption style: Explosive stratovolcano pattern</strong>
+              <p id="eruptionSummary" style="margin-top: 0.35rem;">
+                High silica makes magma thicker. When gas cannot escape easily, pressure
+                builds until the eruption blasts out ash, lava fragments, and gases.
+              </p>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="visual-stage">
+              <svg id="magmaSimulator" viewBox="0 0 620 360" role="img" aria-labelledby="magmaTitle magmaDesc">
+                <title id="magmaTitle">Volcano eruption behavior simulator</title>
+                <desc id="magmaDesc">A volcano changes plume size and lava flow length as silica and gas values change.</desc>
+                <defs>
+                  <linearGradient id="lavaSimFill" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffd166" />
+                    <stop offset="58%" stop-color="#f97316" />
+                    <stop offset="100%" stop-color="#b42318" />
+                  </linearGradient>
+                </defs>
+                <rect x="0" y="0" width="620" height="180" fill="#d8f0f5" />
+                <rect x="0" y="180" width="620" height="180" fill="#f0cda2" />
+                <ellipse cx="310" cy="306" rx="140" ry="34" fill="#6a3f2d" opacity="0.22" />
+                <path d="M200 292 L292 126 L337 126 L424 292 Z" fill="#4c2a20" />
+                <path id="simVent" d="M310 286 C312 232 314 188 317 133" fill="none" stroke="url(#lavaSimFill)" stroke-width="18" stroke-linecap="round" />
+                <path id="simLavaLeft" d="M282 194 C240 214 215 232 176 272" fill="none" stroke="url(#lavaSimFill)" stroke-width="10" stroke-linecap="round" />
+                <path id="simLavaRight" d="M338 192 C390 212 424 238 472 274" fill="none" stroke="url(#lavaSimFill)" stroke-width="10" stroke-linecap="round" />
+                <g id="simPlume" fill="#73655e" opacity="0.75">
+                  <circle cx="309" cy="100" r="16" />
+                  <circle cx="292" cy="82" r="20" />
+                  <circle cx="326" cy="78" r="22" />
+                  <circle cx="347" cy="98" r="17" />
+                  <circle cx="277" cy="103" r="14" />
+                </g>
+              </svg>
+            </div>
+            <div class="detail-list">
+              <div class="detail-item">
+                <strong id="viscosityLabel">Viscosity: High</strong>
+                <span id="viscosityText">Viscosity is a liquid's resistance to flowing. Thick magma moves slowly.</span>
+              </div>
+              <div class="detail-item">
+                <strong id="pressureLabel">Gas pressure: High</strong>
+                <span id="pressureText">Gas bubbles expand as magma rises. If the magma is sticky, the gas stays trapped longer.</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="activity-lab">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">Part 3</span>
+            <h2>Volcanic activity and monitoring</h2>
+          </div>
+          <p>
+            Scientists cannot stop eruptions, but they can watch for warning signs:
+            earthquakes, swelling ground, hotter rocks, and changing gas output.
+          </p>
+        </div>
+
+        <div class="monitor-grid">
+          <article class="panel">
+            <h3>Volcano Watch Dashboard</h3>
+            <div class="fact-list" style="margin-top: 1rem;">
+              <div class="control">
+                <label for="quakeRange">Small earthquakes</label>
+                <input id="quakeRange" type="range" min="0" max="100" value="35" />
+              </div>
+              <div class="control">
+                <label for="swellingRange">Ground swelling</label>
+                <input id="swellingRange" type="range" min="0" max="100" value="30" />
+              </div>
+              <div class="control">
+                <label for="gasOutputRange">Gas output</label>
+                <input id="gasOutputRange" type="range" min="0" max="100" value="45" />
+              </div>
+            </div>
+            <div class="simulation-note">
+              <strong id="alertLevel">Alert level: Watch</strong>
+              <p id="alertSummary" style="margin-top: 0.35rem;">
+                Some signs are increasing, so scientists would collect more data. A
+                warning sign means magma may be moving underground, not that an
+                eruption is guaranteed today.
+              </p>
+            </div>
+          </article>
+
+          <article class="panel">
+            <h3>Volcano states</h3>
+            <div class="activity-grid" style="margin-top: 1rem;">
+              <div class="activity-card">
+                <span class="tag">Active</span>
+                <h3>Has erupted recently</h3>
+                <p>
+                  An active volcano is erupting now or has erupted in the recent past
+                  and is still likely to erupt again.
+                </p>
+              </div>
+              <div class="activity-card">
+                <span class="tag">Dormant</span>
+                <h3>Sleeping, not dead</h3>
+                <p>
+                  A dormant volcano has not erupted for a long time but can erupt
+                  again if fresh magma rises.
+                </p>
+              </div>
+              <div class="activity-card">
+                <span class="tag">Extinct</span>
+                <h3>Very unlikely to erupt</h3>
+                <p>
+                  An extinct volcano no longer has a reliable magma supply, so an
+                  eruption is considered extremely unlikely.
+                </p>
+              </div>
+            </div>
+            <div class="monitor-list">
+              <div class="monitor-item">
+                <strong>What scientists measure</strong>
+                <span>Seismometers track earthquakes, GPS tracks swelling, and gas sensors detect sulfur dioxide and carbon dioxide.</span>
+              </div>
+              <div class="monitor-item">
+                <strong>Important idea</strong>
+                <span>One signal alone is not enough. Scientists compare multiple clues before raising alerts.</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="vocabulary">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">Part 4</span>
+            <h2>Vocabulary practice</h2>
+          </div>
+          <p>
+            Use these flashcards before the quiz. Click each button to reveal the
+            definition.
+          </p>
+        </div>
+
+        <div class="vocab-grid" id="vocabGrid">
+          <article class="flashcard">
+            <div>
+              <h3>Magma</h3>
+              <p>Molten rock beneath Earth's surface.</p>
+            </div>
+            <button class="vocab-button" data-answer="Hot melted rock underground, mixed with crystals and gases." type="button">
+              Reveal definition
+            </button>
+          </article>
+          <article class="flashcard">
+            <div>
+              <h3>Lava</h3>
+              <p>Magma after it erupts onto the surface.</p>
+            </div>
+            <button class="vocab-button" data-answer="Molten rock that has reached Earth's surface." type="button">
+              Reveal definition
+            </button>
+          </article>
+          <article class="flashcard">
+            <div>
+              <h3>Vent</h3>
+              <p>An opening through which lava, ash, and gas escape.</p>
+            </div>
+            <button class="vocab-button" data-answer="A crack or pipe that allows volcanic material to move upward." type="button">
+              Reveal definition
+            </button>
+          </article>
+          <article class="flashcard">
+            <div>
+              <h3>Crater</h3>
+              <p>A bowl-shaped opening at the top of many volcanoes.</p>
+            </div>
+            <button class="vocab-button" data-answer="The surface depression around the main vent at a volcano's summit." type="button">
+              Reveal definition
+            </button>
+          </article>
+          <article class="flashcard">
+            <div>
+              <h3>Subduction</h3>
+              <p>One tectonic plate sinks beneath another.</p>
+            </div>
+            <button class="vocab-button" data-answer="A plate-collision process that carries dense crust downward into the mantle." type="button">
+              Reveal definition
+            </button>
+          </article>
+          <article class="flashcard">
+            <div>
+              <h3>Hot spot</h3>
+              <p>A place where mantle heat rises through the crust.</p>
+            </div>
+            <button class="vocab-button" data-answer="A source of volcanism caused by a long-lasting mantle plume, often away from plate boundaries." type="button">
+              Reveal definition
+            </button>
+          </article>
+          <article class="flashcard">
+            <div>
+              <h3>Viscosity</h3>
+              <p>How much a fluid resists flowing.</p>
+            </div>
+            <button class="vocab-button" data-answer="A measure of thickness or resistance to flow." type="button">
+              Reveal definition
+            </button>
+          </article>
+          <article class="flashcard">
+            <div>
+              <h3>Tephra</h3>
+              <p>Rock fragments blasted into the air by an eruption.</p>
+            </div>
+            <button class="vocab-button" data-answer="Loose volcanic material such as ash, cinders, and larger rock fragments." type="button">
+              Reveal definition
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section id="quiz">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">Part 5</span>
+            <h2>20-question volcano quiz</h2>
+          </div>
+          <p>
+            Answer every question, then submit to see a letter grade, percentage, and
+            which science ideas need more review.
+          </p>
+        </div>
+
+        <div class="quiz-sticky">
+          <div class="quiz-progress">
+            <strong id="answeredCount">0 of 20 answered</strong>
+            <div class="progress-bar"><span id="progressBar"></span></div>
+            <span id="progressPercent">0%</span>
+          </div>
+        </div>
+
+        <form id="quizForm" novalidate>
+          <div class="quiz-grid" id="quizGrid"></div>
+          <div class="feedback-banner" id="quizBanner"></div>
+          <div class="quiz-actions">
+            <button class="submit-button" type="submit">Grade my quiz</button>
+            <button class="reset-button" type="button" id="resetQuiz">Reset quiz</button>
+          </div>
+        </form>
+
+        <div id="results" class="hidden" aria-live="polite">
+          <div class="results-grid">
+            <article class="result-card score-badge">
+              <span>Your grade</span>
+              <strong id="scorePercent">0%</strong>
+              <span id="letterGrade">F</span>
+              <p id="scoreSummary" style="max-width: 24ch;"></p>
+            </article>
+            <article class="result-card">
+              <h3>What to study next</h3>
+              <div class="study-list" id="studyList"></div>
+              <div class="question-review" id="questionReview"></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Built as a self-contained GitHub Pages lesson: one HTML file, no build tools required.
+      </footer>
+    </main>
+
+    <script>
+      const tectonicModes = {
+        convergent: {
+          title: "Convergent boundary volcano diagram",
+          desc:
+            "A subducting oceanic plate sinks under continental crust, generating magma that rises to feed a steep volcano.",
+          headline: "Convergent boundaries often make explosive volcanoes.",
+          summary:
+            "When a dense oceanic plate sinks beneath another plate, water and heat help mantle rock melt. The magma is usually sticky and gas-rich, so pressure builds before eruption.",
+          facts: [
+            {
+              title: "Subduction",
+              text: "One tectonic plate sinks beneath another, carrying water into the mantle."
+            },
+            {
+              title: "Melting",
+              text: "Water lowers the melting point of nearby rock, producing magma."
+            },
+            {
+              title: "Volcano type",
+              text: "Steep composite volcanoes often form where eruptions alternate ash and lava."
+            }
+          ],
+          labels: {
+            boundary: "Subducting oceanic plate",
+            chamber: "Magma chamber",
+            vent: "Main vent",
+            cone: "Composite volcano"
+          },
+          conePath: "M365 240 L458 116 L555 240 Z",
+          ventPath: "M418 320 C423 284 436 242 446 212 C454 187 459 161 458 138",
+          lavaPath: "M459 138 C470 166 490 204 519 236",
+          ashOpacity: "1",
+          waterOpacity: "1",
+          oceanicOpacity: "1",
+          continentOpacity: "1",
+          plumeHidden: true,
+          divergentHidden: true,
+          subductionHidden: false,
+          mainVentWidth: "22",
+          coneLayers: "M390 203 C416 189 463 189 522 205"
+        },
+        divergent: {
+          title: "Divergent boundary volcano diagram",
+          desc:
+            "Two plates move apart, pressure drops, and mantle rock melts as magma rises through a crack in the crust.",
+          headline: "Divergent boundaries create magma by decompression melting.",
+          summary:
+            "When plates pull apart, pressure on the mantle decreases. That pressure drop allows rock to melt and rise through cracks, often producing broad lava flows.",
+          facts: [
+            {
+              title: "Decompression melting",
+              text: "Hot mantle rock melts because pressure drops as it rises."
+            },
+            {
+              title: "Eruption style",
+              text: "Low-silica magma usually flows more easily, making gentler eruptions."
+            },
+            {
+              title: "Volcano type",
+              text: "Shield volcanoes or long volcanic fissures can form at spreading zones."
+            }
+          ],
+          labels: {
+            boundary: "Plates pull apart",
+            chamber: "Rising magma",
+            vent: "Fissure vent",
+            cone: "Broad shield volcano"
+          },
+          conePath: "M300 240 Q372 156 448 174 Q520 190 568 240 Z",
+          ventPath: "M384 317 C385 284 386 252 385 210 C384 190 384 171 384 148",
+          lavaPath: "M387 148 C355 170 311 196 246 234",
+          ashOpacity: "0.18",
+          waterOpacity: "0",
+          oceanicOpacity: "0",
+          continentOpacity: "1",
+          plumeHidden: true,
+          divergentHidden: false,
+          subductionHidden: true,
+          mainVentWidth: "18",
+          coneLayers: "M321 203 C374 188 444 191 532 214"
+        },
+        hotspot: {
+          title: "Hot spot volcano diagram",
+          desc:
+            "A long-lasting plume of hot mantle rock rises through the crust, feeding a volcano away from a plate boundary.",
+          headline: "Hot spots can form volcanoes far from plate boundaries.",
+          summary:
+            "A mantle plume rises from deep within Earth. As it reaches the crust, the rock melts and feeds eruptions. If the tectonic plate keeps moving, a chain of volcanoes can form.",
+          facts: [
+            {
+              title: "Mantle plume",
+              text: "A column of unusually hot mantle material rises toward the crust."
+            },
+            {
+              title: "Plate motion",
+              text: "The plate moves over the plume, leaving older volcanoes behind."
+            },
+            {
+              title: "Volcano type",
+              text: "Hot spots often build broad shield volcanoes with fluid lava."
+            }
+          ],
+          labels: {
+            boundary: "Moving plate",
+            chamber: "Magma reservoir",
+            vent: "Central vent",
+            cone: "Hot spot shield volcano"
+          },
+          conePath: "M290 240 Q360 162 424 158 Q503 154 585 240 Z",
+          ventPath: "M422 320 C421 289 422 252 425 216 C428 184 431 162 431 142",
+          lavaPath: "M432 142 C478 178 526 212 577 238",
+          ashOpacity: "0.12",
+          waterOpacity: "0",
+          oceanicOpacity: "0",
+          continentOpacity: "1",
+          plumeHidden: false,
+          divergentHidden: true,
+          subductionHidden: true,
+          mainVentWidth: "20",
+          coneLayers: "M329 202 C392 185 472 183 556 206"
+        }
+      };
+
+      const quizQuestions = [
+        {
+          topic: "Formation",
+          prompt: "Most volcanoes form in places where magma can rise because of:",
+          options: ["plate movement or hot spots", "strong winds", "daily tides", "river flooding"],
+          answer: 0,
+          why: "Volcanoes need melted rock and a pathway upward, which usually come from tectonic settings or hot spots."
+        },
+        {
+          topic: "Formation",
+          prompt: "At a convergent boundary, one plate moves:",
+          options: ["sideways past another plate", "under another plate", "away from another plate", "straight upward"],
+          answer: 1,
+          why: "Subduction happens when a denser plate sinks beneath another plate."
+        },
+        {
+          topic: "Formation",
+          prompt: "The process of rock melting because pressure drops is called:",
+          options: ["condensation", "decompression melting", "weathering", "erosion"],
+          answer: 1,
+          why: "At divergent boundaries, hot mantle rises and melts as pressure decreases."
+        },
+        {
+          topic: "Vocabulary",
+          prompt: "Magma becomes lava when it:",
+          options: ["cools underground", "mixes with rainwater", "reaches the surface", "forms a mineral crystal"],
+          answer: 2,
+          why: "The name changes from magma to lava when molten rock erupts onto Earth's surface."
+        },
+        {
+          topic: "Eruptions",
+          prompt: "High-silica magma usually has higher:",
+          options: ["viscosity", "speed of flow", "density of ash clouds only", "air pressure above the mountain"],
+          answer: 0,
+          why: "Silica makes magma thicker and more resistant to flow."
+        },
+        {
+          topic: "Eruptions",
+          prompt: "Sticky magma tends to trap more:",
+          options: ["snow", "gas", "soil", "oxygen from the air"],
+          answer: 1,
+          why: "Gas bubbles escape less easily from thick magma, so pressure builds."
+        },
+        {
+          topic: "Eruptions",
+          prompt: "A broad shield volcano is most often linked to magma that is:",
+          options: ["cool and solid", "low in silica and runny", "full of ice crystals", "unable to erupt"],
+          answer: 1,
+          why: "Fluid lava spreads far and builds broad, gentle slopes."
+        },
+        {
+          topic: "Vocabulary",
+          prompt: "A vent is:",
+          options: ["the top soil around a volcano", "the melted layer of the mantle", "an opening where material escapes", "a measuring tool for earthquakes"],
+          answer: 2,
+          why: "Vents are openings or conduits that let magma, ash, and gases move upward."
+        },
+        {
+          topic: "Activity",
+          prompt: "A dormant volcano is best described as:",
+          options: ["erupting every day", "sleeping but able to erupt again", "completely melted away", "certain to stay quiet forever"],
+          answer: 1,
+          why: "Dormant means inactive for now, but still capable of future eruptions."
+        },
+        {
+          topic: "Activity",
+          prompt: "An extinct volcano is considered:",
+          options: ["guaranteed to erupt tomorrow", "very unlikely to erupt again", "the most dangerous kind", "always underwater"],
+          answer: 1,
+          why: "Extinct volcanoes no longer have a reliable magma supply."
+        },
+        {
+          topic: "Monitoring",
+          prompt: "Which observation can suggest magma is moving underground?",
+          options: ["more small earthquakes", "shorter shadows at noon", "stronger ocean tides", "fewer clouds overhead"],
+          answer: 0,
+          why: "Rising magma often cracks surrounding rock, causing earthquake swarms."
+        },
+        {
+          topic: "Monitoring",
+          prompt: "Scientists also watch volcanoes by measuring:",
+          options: ["planet distance", "gas output and ground swelling", "bird migration only", "the shape of clouds alone"],
+          answer: 1,
+          why: "Gas changes and ground deformation are common eruption warning signs."
+        },
+        {
+          topic: "Hazards",
+          prompt: "Tephra is:",
+          options: ["melted rock in the mantle", "solid volcanic fragments thrown into the air", "the same as groundwater", "a type of tectonic plate"],
+          answer: 1,
+          why: "Tephra includes ash, cinders, and rock fragments blasted out during eruptions."
+        },
+        {
+          topic: "Hazards",
+          prompt: "Ash from a volcano can be dangerous because it can:",
+          options: ["freeze lava instantly", "block sunlight, irritate lungs, and damage machines", "turn directly into granite", "stop all earthquakes"],
+          answer: 1,
+          why: "Volcanic ash is abrasive and can harm breathing, crops, engines, and power systems."
+        },
+        {
+          topic: "Vocabulary",
+          prompt: "Viscosity means:",
+          options: ["how thick or runny a fluid is", "how hot the atmosphere is", "how fast plates move every year", "the weight of a mountain"],
+          answer: 0,
+          why: "Viscosity measures resistance to flow."
+        },
+        {
+          topic: "Formation",
+          prompt: "A hot spot volcano forms because of:",
+          options: ["mantle plume heat rising below the crust", "ice melting on a mountain", "wind pushing on rocks", "gravity pulling magma sideways"],
+          answer: 0,
+          why: "Hot spots are fed by mantle plumes that can create volcanoes away from plate boundaries."
+        },
+        {
+          topic: "Formation",
+          prompt: "Why does water on a subducting plate matter?",
+          options: ["it cools magma into ice", "it lowers the melting point of nearby rock", "it stops plate motion", "it increases wind speed"],
+          answer: 1,
+          why: "Water helps mantle rock melt more easily in subduction zones."
+        },
+        {
+          topic: "Eruptions",
+          prompt: "What usually happens when gas pressure builds inside sticky magma?",
+          options: ["eruption may become more explosive", "the volcano always goes extinct", "the magma turns into sediment", "the crater disappears instantly"],
+          answer: 0,
+          why: "Trapped gas raises pressure until it can be released forcefully."
+        },
+        {
+          topic: "Activity",
+          prompt: "Which statement about volcanic predictions is most accurate?",
+          options: ["Scientists can predict the exact minute of every eruption", "One warning sign guarantees an eruption", "Scientists use several clues to estimate risk", "Volcanoes erupt with no patterns at all"],
+          answer: 2,
+          why: "Volcano monitoring uses multiple data sources, but predictions still involve uncertainty."
+        },
+        {
+          topic: "Landforms",
+          prompt: "A crater is usually found:",
+          options: ["deep in the mantle", "at the top around the main vent", "only under the ocean floor", "inside tectonic plates only"],
+          answer: 1,
+          why: "A crater is the bowl-shaped opening around a volcano's summit vent."
+        }
+      ];
+
+      const studyGuides = {
+        Formation: "Review plate boundaries, hot spots, subduction, and decompression melting.",
+        Vocabulary: "Review magma, lava, vent, crater, tephra, and viscosity.",
+        Eruptions: "Review silica, viscosity, gas pressure, and why some eruptions are gentle while others are explosive.",
+        Activity: "Review the meanings of active, dormant, and extinct, plus what scientists can and cannot predict.",
+        Monitoring: "Review earthquakes, ground swelling, gas output, and how scientists combine clues.",
+        Hazards: "Review ash, tephra, and how eruptions affect people, air, water, and machines.",
+        Landforms: "Review the parts of a volcano, including the crater, vent, cone, and magma chamber."
+      };
+
+      const diagramRefs = {
+        title: document.getElementById("settingTitle"),
+        desc: document.getElementById("settingDesc"),
+        headline: document.getElementById("settingHeadline"),
+        summary: document.getElementById("settingSummary"),
+        facts: document.getElementById("settingFacts"),
+        boundary: document.getElementById("labelBoundary"),
+        chamber: document.getElementById("labelChamber"),
+        vent: document.getElementById("labelVent"),
+        cone: document.getElementById("labelCone"),
+        coneShape: document.getElementById("coneShape"),
+        ventPath: document.getElementById("ventPath"),
+        lavaFlow: document.getElementById("lavaFlow"),
+        ashCloud: document.getElementById("ashCloud"),
+        waterLayer: document.getElementById("waterLayer"),
+        oceanicPlate: document.getElementById("oceanicPlate"),
+        continent: document.getElementById("continent"),
+        plumeGroup: document.getElementById("plumeGroup"),
+        divergentCrack: document.getElementById("divergentCrack"),
+        subductionArrow: document.getElementById("subductionArrow"),
+        mainVent: document.getElementById("mainVent"),
+        coneLayers: document.getElementById("coneLayers")
+      };
+
+      function renderSetting(modeKey) {
+        const data = tectonicModes[modeKey];
+        diagramRefs.title.textContent = data.title;
+        diagramRefs.desc.textContent = data.desc;
+        diagramRefs.headline.textContent = data.headline;
+        diagramRefs.summary.textContent = data.summary;
+        diagramRefs.boundary.textContent = data.labels.boundary;
+        diagramRefs.chamber.textContent = data.labels.chamber;
+        diagramRefs.vent.textContent = data.labels.vent;
+        diagramRefs.cone.textContent = data.labels.cone;
+        diagramRefs.coneShape.setAttribute("d", data.conePath);
+        diagramRefs.ventPath.setAttribute("d", data.ventPath);
+        diagramRefs.lavaFlow.setAttribute("d", data.lavaPath);
+        diagramRefs.ashCloud.style.opacity = data.ashOpacity;
+        diagramRefs.waterLayer.style.opacity = data.waterOpacity;
+        diagramRefs.oceanicPlate.style.opacity = data.oceanicOpacity;
+        diagramRefs.continent.style.opacity = data.continentOpacity;
+        diagramRefs.plumeGroup.classList.toggle("hidden", data.plumeHidden);
+        diagramRefs.divergentCrack.classList.toggle("hidden", data.divergentHidden);
+        diagramRefs.subductionArrow.classList.toggle("hidden", data.subductionHidden);
+        diagramRefs.mainVent.setAttribute("stroke-width", data.mainVentWidth);
+        diagramRefs.coneLayers.setAttribute("d", data.coneLayers);
+
+        diagramRefs.facts.innerHTML = data.facts
+          .map(
+            (fact) => `
+              <div class="fact-item">
+                <strong>${fact.title}</strong>
+                <span>${fact.text}</span>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      document.getElementById("settingToggle").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-setting]");
+        if (!button) {
+          return;
+        }
+
+        document.querySelectorAll("#settingToggle .mode-button").forEach((item) => {
+          item.classList.toggle("active", item === button);
+        });
+
+        renderSetting(button.dataset.setting);
+      });
+
+      const silicaRange = document.getElementById("silicaRange");
+      const gasRange = document.getElementById("gasRange");
+      const silicaMeter = document.getElementById("silicaMeter");
+      const gasMeter = document.getElementById("gasMeter");
+      const eruptionStyle = document.getElementById("eruptionStyle");
+      const eruptionSummary = document.getElementById("eruptionSummary");
+      const viscosityLabel = document.getElementById("viscosityLabel");
+      const viscosityText = document.getElementById("viscosityText");
+      const pressureLabel = document.getElementById("pressureLabel");
+      const pressureText = document.getElementById("pressureText");
+      const simPlume = document.getElementById("simPlume");
+      const simLavaLeft = document.getElementById("simLavaLeft");
+      const simLavaRight = document.getElementById("simLavaRight");
+      const simMagmaDesc = document.getElementById("magmaDesc");
+
+      function updateMagmaSimulator() {
+        const silica = Number(silicaRange.value);
+        const gas = Number(gasRange.value);
+        const explosivity = Math.round(silica * 0.62 + gas * 0.38);
+        const lavaReach = Math.max(110, 300 - silica * 1.25);
+        const plumeScale = 0.65 + explosivity / 140;
+
+        silicaMeter.style.width = `${silica}%`;
+        gasMeter.style.width = `${gas}%`;
+
+        simPlume.setAttribute("transform", `translate(0 ${110 - explosivity * 0.55}) scale(${0.8 + gas / 280} ${plumeScale})`);
+        simPlume.style.opacity = `${0.18 + gas / 125}`;
+        simLavaLeft.setAttribute("d", `M282 194 C240 214 ${230 - silica * 0.45} 230 ${lavaReach - 15} 274`);
+        simLavaRight.setAttribute("d", `M338 192 C390 212 ${420 + (100 - silica) * 0.25} 238 ${lavaReach + 200} 276`);
+
+        let styleLabel = "Eruption style: Quiet lava flows";
+        let styleText =
+          "Low silica and modest gas let magma flow easily, so eruptions are often calmer and spread lava across the ground.";
+        let viscosityState = "Low";
+        let viscosityBody = "Low-viscosity magma is runny, so it can travel far before cooling.";
+        let pressureState = gas > 60 ? "High" : "Moderate";
+        let pressureBody = gas > 60
+          ? "There is plenty of gas, but fluid magma lets more of it escape before pressure becomes extreme."
+          : "Lower gas levels mean less pressure pushing against the rock above.";
+
+        if (silica >= 45 || gas >= 55) {
+          styleLabel = "Eruption style: Mixed behavior";
+          styleText =
+            "This magma may produce both lava flows and bursts of ash. Medium viscosity can trap some gas while still allowing part of the magma to flow.";
+          viscosityState = silica >= 65 ? "High" : "Medium";
+          viscosityBody =
+            silica >= 65
+              ? "High-viscosity magma resists flowing and can clog the vent."
+              : "Medium-viscosity magma flows more slowly than runny basaltic lava.";
+          pressureState = gas >= 70 ? "High" : "Moderate";
+          pressureBody =
+            gas >= 70
+              ? "Gas bubbles are building pressure under the surface and may trigger explosive bursts."
+              : "Some gas escapes, but enough may stay trapped to cause short explosions.";
+        }
+
+        if (explosivity >= 72) {
+          styleLabel = "Eruption style: Explosive stratovolcano pattern";
+          styleText =
+            "High silica makes magma thicker. When gas cannot escape easily, pressure builds until the eruption blasts out ash, lava fragments, and gases.";
+          viscosityState = "High";
+          viscosityBody = "Thick magma moves slowly and can plug the vent like a cap.";
+          pressureState = gas >= 70 ? "High" : "Rising";
+          pressureBody =
+            gas >= 70
+              ? "High gas pressure increases the chance of a violent eruption."
+              : "Even moderate gas can build up when sticky magma blocks the escape route.";
+        }
+
+        eruptionStyle.textContent = styleLabel;
+        eruptionSummary.textContent = styleText;
+        viscosityLabel.textContent = `Viscosity: ${viscosityState}`;
+        viscosityText.textContent = viscosityBody;
+        pressureLabel.textContent = `Gas pressure: ${pressureState}`;
+        pressureText.textContent = pressureBody;
+        simMagmaDesc.textContent =
+          `The volcano model shows a plume height of about ${explosivity}% intensity and lava flows that shorten as silica rises.`;
+      }
+
+      [silicaRange, gasRange].forEach((input) => {
+        input.addEventListener("input", updateMagmaSimulator);
+      });
+
+      const quakeRange = document.getElementById("quakeRange");
+      const swellingRange = document.getElementById("swellingRange");
+      const gasOutputRange = document.getElementById("gasOutputRange");
+      const alertLevel = document.getElementById("alertLevel");
+      const alertSummary = document.getElementById("alertSummary");
+
+      function updateMonitoring() {
+        const quake = Number(quakeRange.value);
+        const swelling = Number(swellingRange.value);
+        const gas = Number(gasOutputRange.value);
+        const score = Math.round(quake * 0.38 + swelling * 0.34 + gas * 0.28);
+
+        if (score < 30) {
+          alertLevel.textContent = "Alert level: Calm";
+          alertSummary.textContent =
+            "Signals are low right now. The volcano may be quiet, but scientists would keep collecting data over time.";
+          return;
+        }
+
+        if (score < 60) {
+          alertLevel.textContent = "Alert level: Watch";
+          alertSummary.textContent =
+            "Some signs are increasing, so scientists would collect more data. A warning sign means magma may be moving underground, not that an eruption is guaranteed today.";
+          return;
+        }
+
+        alertLevel.textContent = "Alert level: Warning";
+        alertSummary.textContent =
+          "Many signs are elevated. Scientists would likely raise alerts, prepare communities, and keep checking whether the signals continue to rise.";
+      }
+
+      [quakeRange, swellingRange, gasOutputRange].forEach((input) => {
+        input.addEventListener("input", updateMonitoring);
+      });
+
+      document.querySelectorAll(".vocab-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          const isRevealed = button.classList.contains("active");
+          button.classList.toggle("active", !isRevealed);
+          button.textContent = isRevealed ? "Reveal definition" : button.dataset.answer;
+        });
+      });
+
+      const quizGrid = document.getElementById("quizGrid");
+      const quizForm = document.getElementById("quizForm");
+      const quizBanner = document.getElementById("quizBanner");
+      const answeredCount = document.getElementById("answeredCount");
+      const progressBar = document.getElementById("progressBar");
+      const progressPercent = document.getElementById("progressPercent");
+      const results = document.getElementById("results");
+      const scorePercent = document.getElementById("scorePercent");
+      const letterGrade = document.getElementById("letterGrade");
+      const scoreSummary = document.getElementById("scoreSummary");
+      const studyList = document.getElementById("studyList");
+      const questionReview = document.getElementById("questionReview");
+      const resetQuiz = document.getElementById("resetQuiz");
+
+      function buildQuiz() {
+        quizGrid.innerHTML = quizQuestions
+          .map((question, index) => {
+            const questionNumber = index + 1;
+            return `
+              <article class="quiz-card">
+                <fieldset>
+                  <span class="topic">${question.topic}</span>
+                  <legend>${questionNumber}. ${question.prompt}</legend>
+                  <div class="option-list">
+                    ${question.options
+                      .map(
+                        (option, optionIndex) => `
+                          <label class="option">
+                            <input
+                              type="radio"
+                              name="question-${index}"
+                              value="${optionIndex}"
+                            />
+                            <span>${option}</span>
+                          </label>
+                        `
+                      )
+                      .join("")}
+                  </div>
+                </fieldset>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function updateQuizProgress() {
+        const answered = quizQuestions.filter((_, index) => {
+          return quizForm.querySelector(`input[name="question-${index}"]:checked`);
+        }).length;
+        const percent = Math.round((answered / quizQuestions.length) * 100);
+
+        answeredCount.textContent = `${answered} of ${quizQuestions.length} answered`;
+        progressBar.style.width = `${percent}%`;
+        progressPercent.textContent = `${percent}%`;
+      }
+
+      function calculateLetter(score) {
+        if (score >= 90) return "A";
+        if (score >= 80) return "B";
+        if (score >= 70) return "C";
+        if (score >= 60) return "D";
+        return "F";
+      }
+
+      quizForm.addEventListener("change", updateQuizProgress);
+
+      quizForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const responses = quizQuestions.map((question, index) => {
+          const selected = quizForm.querySelector(`input[name="question-${index}"]:checked`);
+          return selected ? Number(selected.value) : null;
+        });
+
+        const unanswered = responses.reduce((total, value) => total + (value === null ? 1 : 0), 0);
+
+        if (unanswered > 0) {
+          quizBanner.textContent = `Answer all 20 questions before grading. ${unanswered} question${unanswered === 1 ? "" : "s"} still need an answer.`;
+          quizBanner.classList.add("show");
+          return;
+        }
+
+        quizBanner.classList.remove("show");
+
+        let correct = 0;
+        const missedTopics = {};
+        const missedQuestions = [];
+
+        quizQuestions.forEach((question, index) => {
+          if (responses[index] === question.answer) {
+            correct += 1;
+            return;
+          }
+
+          missedTopics[question.topic] = (missedTopics[question.topic] || 0) + 1;
+          missedQuestions.push({
+            number: index + 1,
+            prompt: question.prompt,
+            correct: question.options[question.answer],
+            why: question.why
+          });
+        });
+
+        const percent = Math.round((correct / quizQuestions.length) * 100);
+        const letter = calculateLetter(percent);
+
+        scorePercent.textContent = `${percent}%`;
+        letterGrade.textContent = `${letter} (${correct}/${quizQuestions.length})`;
+
+        if (percent >= 90) {
+          scoreSummary.textContent = "Strong mastery. You can explain both the science ideas and the vocabulary.";
+        } else if (percent >= 75) {
+          scoreSummary.textContent = "Solid understanding. Review the topics listed to sharpen the tricky parts.";
+        } else {
+          scoreSummary.textContent = "This is a good practice run. Study the targeted topics, then retake the quiz.";
+        }
+
+        const topicsToReview = Object.entries(missedTopics).sort((a, b) => b[1] - a[1]);
+
+        if (topicsToReview.length === 0) {
+          studyList.innerHTML = `
+            <div class="study-item">
+              <strong>No extra study topics needed</strong>
+              <span>You answered every question correctly.</span>
+            </div>
+          `;
+          questionReview.innerHTML = "";
+        } else {
+          studyList.innerHTML = topicsToReview
+            .map(
+              ([topic, count]) => `
+                <div class="study-item">
+                  <strong>${topic}: ${count} miss${count === 1 ? "" : "es"}</strong>
+                  <span>${studyGuides[topic]}</span>
+                </div>
+              `
+            )
+            .join("");
+
+          questionReview.innerHTML = missedQuestions
+            .map(
+              (item) => `
+                <div class="review-item">
+                  <strong>Question ${item.number}: ${item.prompt}</strong>
+                  <span>Correct answer: ${item.correct}</span>
+                  <em>${item.why}</em>
+                </div>
+              `
+            )
+            .join("");
+        }
+
+        results.classList.remove("hidden");
+        results.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      resetQuiz.addEventListener("click", () => {
+        quizForm.reset();
+        updateQuizProgress();
+        quizBanner.classList.remove("show");
+        results.classList.add("hidden");
+      });
+
+      buildQuiz();
+      renderSetting("convergent");
+      updateMagmaSimulator();
+      updateMonitoring();
+      updateQuizProgress();
+    </script>
+  </body>
+</html>
