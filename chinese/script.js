@@ -284,9 +284,6 @@ const DOM = {
   guideAvatar: document.getElementById("guideAvatar"),
   guideNameLabel: document.getElementById("guideNameLabel"),
   guideMoodLine: document.getElementById("guideMoodLine"),
-  focusMeaning: document.getElementById("focusMeaning"),
-  focusHanzi: document.getElementById("focusHanzi"),
-  focusPinyin: document.getElementById("focusPinyin"),
   challengeTitle: document.getElementById("challengeTitle"),
   questionCounter: document.getElementById("questionCounter"),
   lessonPrompt: document.getElementById("lessonPrompt"),
@@ -1772,7 +1769,6 @@ function renderMilestones() {
 function renderScene() {
   const district = currentDistrict();
   const guide = GUIDE_TYPES[state.guideType || selectedGuide] || GUIDE_TYPES.panda;
-  const focus = state.focusCard || district.focus;
 
   DOM.districtName.textContent = district.name;
   DOM.stageChip.textContent = currentStage().name;
@@ -1781,10 +1777,7 @@ function renderScene() {
   DOM.guideAvatar.dataset.guide = state.guideType || selectedGuide;
   DOM.guideSpeech.textContent = state.guideSpeech;
   DOM.guideNameLabel.textContent = guide.label;
-  DOM.guideMoodLine.textContent = guide.personality;
-  DOM.focusMeaning.textContent = focus.english;
-  DOM.focusHanzi.textContent = focus.hanzi;
-  DOM.focusPinyin.textContent = focus.pinyin;
+  DOM.guideMoodLine.textContent = `${guide.personality} Current home: ${district.name}.`;
 }
 
 function renderFeedback() {

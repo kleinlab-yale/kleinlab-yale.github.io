@@ -264,12 +264,11 @@ h3 {
 }
 
 .study-scene {
-  min-height: 430px;
+  min-height: 480px;
   border-radius: calc(var(--radius-xl) - 6px);
   padding: 24px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 20px;
+  grid-template-columns: 1fr;
   position: relative;
   overflow: hidden;
   background:
@@ -365,8 +364,7 @@ h3 {
   background: linear-gradient(180deg, rgba(153, 220, 181, 0.92), rgba(86, 164, 121, 0.95));
 }
 
-.guide-area,
-.focus-panel {
+.guide-area {
   position: relative;
   z-index: 1;
 }
@@ -377,6 +375,8 @@ h3 {
   align-items: center;
   justify-content: center;
   padding: 18px 12px 0;
+  width: min(540px, 100%);
+  margin: 0 auto;
 }
 
 .guide-speech {
@@ -392,14 +392,14 @@ h3 {
 
 .guide-shell {
   position: relative;
-  min-height: 220px;
+  min-height: 280px;
   display: grid;
   place-items: center;
 }
 
 .guide-avatar {
-  width: 180px;
-  height: 200px;
+  width: 220px;
+  height: 242px;
   position: relative;
   animation: floaty 3.6s ease-in-out infinite;
   --guide-primary: #fff7f2;
@@ -429,18 +429,53 @@ h3 {
   background: radial-gradient(circle, rgba(255, 242, 204, 0.84), transparent 70%);
 }
 
+.guide-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.guide-sparkles span {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: rgba(255, 248, 214, 0.95);
+  clip-path: polygon(50% 0%, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0% 50%, 37% 37%);
+  box-shadow: 0 0 14px rgba(255, 232, 168, 0.5);
+}
+
+.guide-sparkles span:nth-child(1) {
+  top: 28px;
+  left: 34px;
+}
+
+.guide-sparkles span:nth-child(2) {
+  top: 52px;
+  right: 28px;
+}
+
+.guide-sparkles span:nth-child(3) {
+  bottom: 58px;
+  right: 44px;
+}
+
 .guide-tail,
 .guide-ears span,
 .guide-body,
-.guide-badge {
+.guide-badge,
+.guide-ribbon,
+.guide-wings span,
+.guide-eye-patches span,
+.guide-beak,
+.guide-whiskers span {
   position: absolute;
 }
 
 .guide-tail {
   left: 50%;
-  bottom: 48px;
+  bottom: 54px;
   width: 84px;
-  height: 28px;
+  height: 32px;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), var(--guide-secondary));
   transform: translateX(-50%) rotate(-10deg);
@@ -448,46 +483,47 @@ h3 {
 }
 
 .guide-ears span {
-  top: 28px;
-  width: 42px;
-  height: 52px;
-  border-radius: 26px;
+  top: 24px;
+  width: 48px;
+  height: 56px;
+  border-radius: 28px;
   background: var(--guide-secondary);
 }
 
 .guide-ears span:first-child {
-  left: 24px;
+  left: 20px;
   transform: rotate(-16deg);
 }
 
 .guide-ears span:last-child {
-  right: 24px;
+  right: 20px;
   transform: rotate(16deg);
 }
 
 .guide-avatar[data-guide="crane"] .guide-ears span {
-  width: 30px;
-  height: 70px;
-  border-radius: 22px;
+  top: 18px;
+  width: 20px;
+  height: 84px;
+  border-radius: 18px;
 }
 
 .guide-avatar[data-guide="crane"] .guide-ears span:first-child {
-  left: 36px;
-  transform: rotate(-32deg);
+  left: 78px;
+  transform: rotate(-10deg);
 }
 
 .guide-avatar[data-guide="crane"] .guide-ears span:last-child {
-  right: 36px;
-  transform: rotate(32deg);
+  right: 78px;
+  transform: rotate(10deg);
 }
 
 .guide-body {
   left: 50%;
-  top: 44px;
+  top: 50px;
   transform: translateX(-50%);
-  width: 126px;
-  height: 132px;
-  border-radius: 60px 60px 48px 48px;
+  width: 148px;
+  height: 156px;
+  border-radius: 72px 72px 56px 56px;
   background: linear-gradient(180deg, var(--guide-primary), rgba(255, 255, 255, 0.9));
   border: 6px solid rgba(255, 255, 255, 0.6);
   box-shadow: inset 0 -18px 28px rgba(80, 112, 111, 0.08);
@@ -495,12 +531,33 @@ h3 {
 }
 
 .guide-avatar[data-guide="crane"] .guide-body {
-  width: 108px;
-  border-radius: 54px 54px 34px 34px;
+  top: 48px;
+  width: 112px;
+  height: 172px;
+  border-radius: 60px 60px 40px 40px;
 }
 
 .guide-avatar[data-guide="otter"] .guide-body {
-  width: 138px;
+  width: 156px;
+  height: 148px;
+  top: 58px;
+  border-radius: 70px 70px 54px 54px;
+}
+
+.guide-wings {
+  position: absolute;
+  inset: 34px -24px auto;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.guide-wings span {
+  width: 38px;
+  height: 76px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(203, 236, 228, 0.9));
+  opacity: 0;
 }
 
 .guide-belly,
@@ -509,21 +566,33 @@ h3 {
   position: absolute;
 }
 
+.guide-avatar[data-guide="crane"] .guide-wings span {
+  opacity: 1;
+}
+
+.guide-avatar[data-guide="crane"] .guide-wings span:first-child {
+  transform: rotate(18deg);
+}
+
+.guide-avatar[data-guide="crane"] .guide-wings span:last-child {
+  transform: rotate(-18deg);
+}
+
 .guide-belly {
   left: 50%;
-  bottom: 12px;
+  bottom: 14px;
   transform: translateX(-50%);
-  width: 70px;
-  height: 64px;
+  width: 82px;
+  height: 74px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.78);
 }
 
 .guide-paws {
-  inset: auto 0 24px;
+  inset: auto 0 28px;
   display: flex;
   justify-content: space-between;
-  padding: 0 18px;
+  padding: 0 20px;
 }
 
 .guide-paws span,
@@ -534,33 +603,58 @@ h3 {
 }
 
 .guide-paws span {
-  width: 24px;
-  height: 20px;
+  width: 28px;
+  height: 24px;
   border-radius: 16px;
 }
 
 .guide-feet {
-  inset: auto 0 8px;
+  inset: auto 0 10px;
   display: flex;
   justify-content: center;
   gap: 12px;
 }
 
 .guide-feet span {
-  width: 28px;
-  height: 16px;
+  width: 32px;
+  height: 18px;
   border-radius: 16px 16px 12px 12px;
 }
 
 .guide-face {
   position: absolute;
-  inset: 34px 20px 20px;
+  inset: 34px 20px 22px;
+}
+
+.guide-eye-patches span {
+  top: 6px;
+  width: 38px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(39, 45, 47, 0.92);
+  opacity: 0;
+}
+
+.guide-eye-patches span:first-child {
+  left: 8px;
+  transform: rotate(-14deg);
+}
+
+.guide-eye-patches span:last-child {
+  right: 8px;
+  transform: rotate(14deg);
+}
+
+.guide-avatar[data-guide="panda"] .guide-eye-patches span {
+  opacity: 1;
 }
 
 .guide-eyes {
   display: flex;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 8px 18px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .guide-eyes span {
@@ -585,7 +679,9 @@ h3 {
 .guide-cheeks {
   display: flex;
   justify-content: space-between;
-  padding: 12px 10px 0;
+  padding: 14px 18px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .guide-cheeks span {
@@ -593,6 +689,55 @@ h3 {
   height: 12px;
   border-radius: 999px;
   background: rgba(239, 125, 87, 0.3);
+}
+
+.guide-beak {
+  left: 50%;
+  top: 50px;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 16px;
+  border-radius: 50% 50% 70% 70%;
+  background: linear-gradient(180deg, #f0b862, #db8b47);
+  opacity: 0;
+}
+
+.guide-avatar[data-guide="crane"] .guide-beak {
+  opacity: 1;
+}
+
+.guide-whiskers span {
+  top: 60px;
+  width: 34px;
+  height: 2px;
+  background: rgba(66, 56, 47, 0.55);
+  opacity: 0;
+}
+
+.guide-whiskers span:nth-child(1) {
+  left: 0;
+  transform: rotate(-10deg);
+}
+
+.guide-whiskers span:nth-child(2) {
+  left: 2px;
+  top: 68px;
+  transform: rotate(10deg);
+}
+
+.guide-whiskers span:nth-child(3) {
+  right: 0;
+  transform: rotate(10deg);
+}
+
+.guide-whiskers span:nth-child(4) {
+  right: 2px;
+  top: 68px;
+  transform: rotate(-10deg);
+}
+
+.guide-avatar[data-guide="otter"] .guide-whiskers span {
+  opacity: 1;
 }
 
 .guide-mouth {
@@ -603,47 +748,106 @@ h3 {
   border-left-color: transparent;
   border-right-color: transparent;
   border-radius: 0 0 26px 26px;
-  margin: 8px auto 0;
+  margin: 10px auto 0;
+  position: relative;
+  z-index: 1;
+}
+
+.guide-ribbon {
+  top: 54px;
+  right: 20px;
+  width: 28px;
+  height: 24px;
+  background:
+    radial-gradient(circle at 28% 50%, rgba(255, 255, 255, 0.96) 0 18%, transparent 19%),
+    radial-gradient(circle at 72% 50%, rgba(255, 255, 255, 0.96) 0 18%, transparent 19%),
+    linear-gradient(180deg, #ef7d57, #db6658);
+  clip-path: polygon(0 35%, 30% 18%, 50% 50%, 70% 18%, 100% 35%, 72% 58%, 100% 82%, 68% 72%, 50% 100%, 32% 72%, 0 82%, 28% 58%);
+  filter: drop-shadow(0 4px 10px rgba(219, 102, 88, 0.2));
 }
 
 .guide-badge {
   left: 50%;
-  bottom: 30px;
+  bottom: 36px;
   transform: translateX(-50%);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 250, 228, 0.95), var(--guide-badge));
   box-shadow: 0 0 20px rgba(240, 198, 100, 0.5);
 }
 
+.guide-avatar[data-guide="panda"] .guide-badge {
+  background: linear-gradient(180deg, #76ca81, #4ca55c);
+  clip-path: polygon(50% 0%, 72% 20%, 100% 16%, 80% 44%, 88% 76%, 50% 100%, 12% 76%, 20% 44%, 0% 16%, 28% 20%);
+}
+
 .guide-avatar[data-guide="crane"] .guide-badge {
-  border-radius: 12px;
+  border-radius: 16px 16px 22px 22px;
+  background: linear-gradient(180deg, #8fd0ea, #5aa7cb);
 }
 
 .guide-avatar[data-guide="crane"] .guide-tail {
-  width: 66px;
-  bottom: 54px;
-  transform: translateX(-50%) rotate(-24deg);
+  width: 36px;
+  height: 88px;
+  bottom: 22px;
+  transform: translateX(-50%);
+  border-radius: 20px;
 }
 
 .guide-avatar[data-guide="crane"] .guide-belly {
-  width: 58px;
+  width: 56px;
+  height: 96px;
 }
 
 .guide-avatar[data-guide="crane"] .guide-paws span {
-  width: 18px;
+  width: 14px;
+  height: 28px;
+  border-radius: 10px;
+}
+
+.guide-avatar[data-guide="crane"] .guide-feet span {
+  width: 14px;
+  height: 28px;
+  border-radius: 10px;
 }
 
 .guide-avatar[data-guide="otter"] .guide-badge {
-  width: 48px;
-  border-radius: 18px;
+  width: 50px;
+  height: 40px;
+  border-radius: 50% 50% 44% 44%;
+  background: linear-gradient(180deg, #f0b55e, #d88953);
 }
 
 .guide-avatar[data-guide="otter"] .guide-tail {
-  width: 98px;
-  bottom: 40px;
-  transform: translateX(-50%) rotate(8deg);
+  width: 118px;
+  height: 38px;
+  bottom: 42px;
+  transform: translateX(-50%) rotate(12deg);
+  border-radius: 999px;
+}
+
+.guide-avatar[data-guide="otter"] .guide-ribbon {
+  display: none;
+}
+
+.guide-avatar[data-guide="crane"] .guide-ribbon {
+  display: none;
+}
+
+.guide-avatar[data-guide="otter"] .guide-ears span {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  top: 44px;
+}
+
+.guide-avatar[data-guide="otter"] .guide-ears span:first-child {
+  left: 36px;
+}
+
+.guide-avatar[data-guide="otter"] .guide-ears span:last-child {
+  right: 36px;
 }
 
 .guide-shadow {
@@ -660,59 +864,7 @@ h3 {
 .guide-caption {
   text-align: center;
   max-width: 360px;
-}
-
-.focus-panel {
-  align-self: end;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.74);
-  border-radius: 24px;
-  padding: 18px;
-  box-shadow: 0 18px 28px rgba(77, 92, 81, 0.08);
-}
-
-.tone-legend {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.tone-card {
-  background: rgba(248, 249, 252, 0.84);
-  border: 1px solid rgba(34, 54, 61, 0.08);
-  border-radius: 16px;
-  padding: 10px 6px;
-  text-align: center;
-}
-
-.tone-card strong {
-  display: block;
-  font-size: 1rem;
-}
-
-.tone-card span {
-  display: block;
-  color: var(--ink-soft);
-  font-size: 0.77rem;
-}
-
-.phrase-card {
-  background: linear-gradient(180deg, rgba(255, 250, 240, 0.95), rgba(255, 244, 226, 0.92));
-  border-radius: 22px;
-  padding: 16px;
-  border: 1px solid rgba(245, 204, 144, 0.44);
-}
-
-.focus-hanzi {
-  font-size: clamp(2.3rem, 5vw, 3.1rem);
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.focus-pinyin {
-  margin: 0;
-  color: var(--ink-soft);
+  margin-top: 8px;
 }
 
 .challenge-body {
@@ -1300,10 +1452,6 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .focus-panel {
-    align-self: stretch;
-  }
-
   .zone-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1328,9 +1476,5 @@ h3 {
   .answer-form,
   .profile-create-row {
     flex-direction: column;
-  }
-
-  .tone-legend {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
