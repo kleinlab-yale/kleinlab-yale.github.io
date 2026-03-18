@@ -1189,6 +1189,23 @@ h3 {
   font-size: 1.4rem;
 }
 
+.lesson-array-model {
+  display: grid;
+  gap: 14px;
+}
+
+.lesson-array-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.lesson-array-dot {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff9df, #ffc85a 58%, #ff9c3d 100%);
+  box-shadow: 0 6px 16px rgba(255, 167, 68, 0.18);
+}
+
 .lesson-multiply-partials {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

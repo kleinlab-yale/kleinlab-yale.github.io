@@ -13,10 +13,26 @@ const QUEST_BUTTON_LABELS = {
   geometry: "Build Upgrade",
 };
 const LESSONS = {
+  basicMultiply: {
+    topic: "Multiply",
+    title: "Equal Groups and Arrays",
+    intro: "Use rows and equal groups to see multiplication as a fast way to count.",
+    steps: [
+      "Look for rows and columns, like 3 rows of 4 stars.",
+      "Multiply rows x stars in each row: 3 x 4 = 12.",
+      "You can also count by repeated addition: 4 + 4 + 4 = 12.",
+    ],
+    visual: {
+      type: "multiply-array",
+      rows: 3,
+      columns: 4,
+      total: 12,
+    },
+  },
   multiDigitMultiply: {
     topic: "Multiply",
     title: "Break Apart a Bigger Product",
-    intro: "In Starfall Sky, split a larger factor into tens and ones so each part is easier to multiply.",
+    intro: "When the numbers get bigger, split a factor into tens and ones so each part is easier to multiply.",
     steps: [
       "For 24 x 16, split 16 into 10 and 6.",
       "Multiply 24 x 10 = 240 and 24 x 6 = 144.",
@@ -66,7 +82,7 @@ const LESSONS = {
   divisionWhole: {
     topic: "Division",
     title: "Long Division with a Whole-Number Answer",
-    intro: "In Division Dunes, divide one place value at a time and stop when nothing is left over.",
+    intro: "Divide one place value at a time and stop when nothing is left over.",
     steps: [
       "4 goes into 8 two times, so write 2 in the tens place.",
       "Subtract 8, bring down the 4, then 4 goes into 4 one time.",
@@ -100,7 +116,7 @@ const LESSONS = {
   divisionDecimal: {
     topic: "Division",
     title: "Long Division into Decimals",
-    intro: "In Aurora Citadel, keep dividing by adding a decimal point and zeros when the division does not come out even.",
+    intro: "Keep dividing by adding a decimal point and zeros when the division does not come out even.",
     steps: [
       "4 goes into 17 four times, so subtract 16 and get remainder 1.",
       "Place a decimal point in the quotient, bring down a 0, and divide 10 by 4 to get 2.",
@@ -117,7 +133,7 @@ const LESSONS = {
   fractionDecimal: {
     topic: "Decimals",
     title: "Turn a Fraction into a Decimal",
-    intro: "Crystal Caverns uses fractions and decimals together. Change the fraction to hundredths or divide the numerator by the denominator.",
+    intro: "Change the fraction to hundredths or divide the numerator by the denominator.",
     steps: [
       "Start with 3/4.",
       "Rewrite it as 75/100, or divide 3 by 4 to get 0.75.",
@@ -133,7 +149,7 @@ const LESSONS = {
   geometryMeasure: {
     topic: "Measure",
     title: "Area and Perimeter",
-    intro: "In Shape Grove, the same rectangle can teach both area and perimeter. The key is knowing whether the problem asks for inside space or outside distance.",
+    intro: "The same rectangle can teach both area and perimeter. The key is knowing whether the problem asks for inside space or outside distance.",
     steps: [
       "Area means the space inside, so 6 x 4 = 24 square units.",
       "Perimeter means the distance around, so 6 + 6 + 4 + 4 = 20 units.",
@@ -150,7 +166,7 @@ const LESSONS = {
   geometryComposite: {
     topic: "Measure",
     title: "Split a Composite Shape",
-    intro: "Measure Meadow mixes shapes together. Break the big shape into smaller rectangles, then add their areas.",
+    intro: "Break the big shape into smaller rectangles, then add their areas.",
     steps: [
       "Find the area of the left rectangle: 3 x 4 = 12.",
       "Find the area of the right rectangle: 5 x 4 = 20.",
@@ -169,7 +185,7 @@ const LESSONS = {
   algebraEquation: {
     topic: "Algebra",
     title: "Solve a One-Step Equation",
-    intro: "Aurora Citadel starts algebra with simple equations. Undo the operation to isolate x.",
+    intro: "Undo the operation to isolate x.",
     steps: [
       "Start with x + 7 = 19.",
       "Subtract 7 from both sides so the equation stays balanced.",
@@ -184,7 +200,7 @@ const LESSONS = {
   },
 };
 const ZONE_LESSON_KEYS = {
-  nest: ["multiDigitMultiply"],
+  nest: ["basicMultiply"],
   bridge: ["fractionCompare", "equivalentFraction"],
   grove: ["geometryMeasure"],
   sky: ["multiDigitMultiply", "geometryMeasure"],
@@ -1190,7 +1206,7 @@ function generateBasicMultiplicationQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Number Forge",
-    lessonKey: "multiDigitMultiply",
+    lessonKey: "basicMultiply",
     ...variants[randomInt(0, variants.length - 1)],
   };
 }
@@ -1201,7 +1217,7 @@ function generateScaledMultiplicationQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Number Forge",
-    lessonKey: "multiDigitMultiply",
+    lessonKey: difficulty <= 4 ? "basicMultiply" : "multiDigitMultiply",
     prompt: `${a} x ${b}`,
     answer: String(a * b),
     helper: "Break the bigger factor apart into tens and ones, then multiply each part.",
@@ -2137,6 +2153,23 @@ function renderLessonVisual(lesson) {
     return;
   }
 
+  if (visual.type === "multiply-array") {
+    const dots = Array.from({ length: visual.rows * visual.columns }, () => "<span class=\"lesson-array-dot\"></span>").join("");
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-visual-surface lesson-array-model">
+        <div class="lesson-array-grid" style="grid-template-columns: repeat(${visual.columns}, 1fr);">
+          ${dots}
+        </div>
+        <div class="metric-pill-row">
+          <span class="metric-pill">${escapeHtml(String(visual.rows))} rows</span>
+          <span class="metric-pill">${escapeHtml(String(visual.columns))} in each row</span>
+          <span class="metric-pill">${escapeHtml(String(visual.rows))} x ${escapeHtml(String(visual.columns))} = ${escapeHtml(String(visual.total))}</span>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   if (visual.type === "multiply-grid") {
     DOM.lessonVisual.innerHTML = `
       <div class="lesson-visual-surface lesson-multiply-model">
@@ -2278,7 +2311,7 @@ function renderLesson() {
 
   DOM.lessonTitle.textContent = lesson.title;
   DOM.lessonChip.textContent = zone.name;
-  DOM.lessonIntro.textContent = lesson.intro;
+  DOM.lessonIntro.textContent = `${zone.name}: ${lesson.intro}`;
   DOM.lessonTopicRow.innerHTML = lessonKeys
     .map((key) => {
       const topic = LESSONS[key];
