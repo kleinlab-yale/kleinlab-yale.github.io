@@ -1158,6 +1158,231 @@ h3 {
   line-height: 1.45;
 }
 
+.lesson-visual {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.lesson-visual-surface {
+  border-radius: 22px;
+  border: 1px solid rgba(36, 66, 75, 0.1);
+  background: rgba(255, 255, 255, 0.76);
+  padding: 16px;
+}
+
+.lesson-visual-caption {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.lesson-multiply-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 800;
+}
+
+.lesson-multiply-header strong {
+  font-size: 1.4rem;
+}
+
+.lesson-multiply-partials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.lesson-multiply-cell {
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 223, 142, 0.56), rgba(255, 247, 217, 0.92));
+  border: 1px solid rgba(255, 177, 84, 0.34);
+  font-weight: 800;
+  text-align: center;
+}
+
+.lesson-fraction-compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.lesson-compare-sign {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, rgba(122, 214, 255, 0.92), rgba(93, 191, 211, 0.92));
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 900;
+}
+
+.lesson-scale-flow,
+.lesson-decimal-flow,
+.lesson-algebra-flow {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.lesson-scale-arrow {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--ink-soft);
+}
+
+.lesson-decimal-card {
+  min-width: 110px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(36, 66, 75, 0.1);
+  display: grid;
+  gap: 4px;
+}
+
+.lesson-decimal-card span {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.lesson-decimal-card strong {
+  font-size: 1.25rem;
+}
+
+.lesson-decimal-card.highlight {
+  background: linear-gradient(180deg, rgba(255, 223, 142, 0.66), rgba(255, 244, 210, 0.94));
+  border-color: rgba(255, 177, 84, 0.4);
+}
+
+.lesson-division-board {
+  display: grid;
+  gap: 10px;
+}
+
+.division-top {
+  text-align: right;
+  padding-right: 14px;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.division-bracket {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: stretch;
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.division-divisor {
+  padding: 6px 12px 6px 0;
+  border-right: 3px solid rgba(36, 66, 75, 0.7);
+}
+
+.division-dividend {
+  padding: 6px 0 6px 14px;
+  border-top: 3px solid rgba(36, 66, 75, 0.7);
+}
+
+.division-work {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+.lesson-rectangle-diagram {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.rectangle-box {
+  min-height: 128px;
+  border-radius: 20px;
+  border: 3px solid rgba(70, 172, 93, 0.8);
+  background: linear-gradient(180deg, rgba(188, 239, 171, 0.82), rgba(227, 255, 213, 0.94));
+  display: grid;
+  place-items: center;
+}
+
+.rectangle-area {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  font-weight: 900;
+}
+
+.rectangle-width,
+.rectangle-height {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--ink-soft);
+}
+
+.metric-pill-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.metric-pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(36, 66, 75, 0.1);
+  font-weight: 800;
+}
+
+.lesson-composite-diagram {
+  display: grid;
+  gap: 12px;
+}
+
+.composite-shape {
+  display: grid;
+  grid-template-columns: 3fr 5fr;
+  min-height: 116px;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 2px solid rgba(77, 161, 90, 0.5);
+}
+
+.composite-left,
+.composite-right {
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.composite-left {
+  background: linear-gradient(180deg, rgba(122, 214, 255, 0.56), rgba(214, 247, 255, 0.92));
+}
+
+.composite-right {
+  background: linear-gradient(180deg, rgba(255, 214, 116, 0.56), rgba(255, 245, 214, 0.92));
+}
+
+.composite-total {
+  justify-self: flex-start;
+}
+
 .lesson-steps {
   margin: 14px 0 0;
   padding-left: 20px;
@@ -1569,5 +1794,24 @@ h3 {
   .pet-speech {
     width: min(292px, calc(100% - 20px));
     font-size: 0.9rem;
+  }
+
+  .lesson-multiply-partials,
+  .lesson-fraction-compare,
+  .lesson-rectangle-diagram {
+    grid-template-columns: 1fr;
+  }
+
+  .lesson-compare-sign,
+  .rectangle-width,
+  .rectangle-height {
+    justify-self: center;
+  }
+
+  .lesson-scale-flow,
+  .lesson-decimal-flow,
+  .lesson-algebra-flow {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

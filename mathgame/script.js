@@ -13,36 +13,185 @@ const QUEST_BUTTON_LABELS = {
   geometry: "Build Upgrade",
 };
 const LESSONS = {
+  multiDigitMultiply: {
+    topic: "Multiply",
+    title: "Break Apart a Bigger Product",
+    intro: "In Starfall Sky, split a larger factor into tens and ones so each part is easier to multiply.",
+    steps: [
+      "For 24 x 16, split 16 into 10 and 6.",
+      "Multiply 24 x 10 = 240 and 24 x 6 = 144.",
+      "Add the partial products: 240 + 144 = 384.",
+    ],
+    visual: {
+      type: "multiply-grid",
+      leftFactor: 24,
+      topParts: [10, 6],
+      partials: [240, 144],
+      total: 384,
+    },
+  },
   fractionCompare: {
-    title: "Compare Fractions",
-    chip: "3/4 vs 5/8",
-    intro: "Example: compare 3/4 and 5/8 by changing them to the same denominator.",
+    topic: "Fractions",
+    title: "Compare Fractions on the Bridge",
+    intro: "Change the fractions so they use the same denominator, then compare the two bars.",
     steps: [
       "Change 3/4 into eighths: 3/4 = 6/8.",
       "Now compare 6/8 and 5/8. Since 6 eighths is more than 5 eighths, 3/4 > 5/8.",
       "Matching denominators makes it easier to see which fraction is greater.",
     ],
+    visual: {
+      type: "fraction-compare",
+      left: { numerator: 3, denominator: 4, label: "3/4" },
+      right: { numerator: 5, denominator: 8, label: "5/8" },
+      equivalentLeft: "6/8",
+      symbol: ">",
+    },
   },
-  longDivision: {
-    title: "Long Division",
-    chip: "84 ÷ 4",
-    intro: "Example: solve 84 divided by 4 one place value at a time.",
+  equivalentFraction: {
+    topic: "Fractions",
+    title: "Build an Equivalent Fraction",
+    intro: "Equivalent fractions keep the same value because the numerator and denominator are scaled by the same number.",
+    steps: [
+      "Start with 2/3.",
+      "Multiply the numerator and denominator by 2 to get 4/6.",
+      "Because both parts were multiplied by the same number, the size stayed the same.",
+    ],
+    visual: {
+      type: "fraction-scale",
+      start: "2/3",
+      scale: "x 2",
+      result: "4/6",
+    },
+  },
+  divisionWhole: {
+    topic: "Division",
+    title: "Long Division with a Whole-Number Answer",
+    intro: "In Division Dunes, divide one place value at a time and stop when nothing is left over.",
     steps: [
       "4 goes into 8 two times, so write 2 in the tens place.",
       "Subtract 8, bring down the 4, then 4 goes into 4 one time.",
       "The answer is 21. Check with 21 x 4 = 84.",
     ],
+    visual: {
+      type: "division-board",
+      divisor: 4,
+      dividend: 84,
+      quotient: "21",
+      work: ["8 - 8 = 0", "bring down 4", "4 - 4 = 0"],
+    },
+  },
+  divisionRemainder: {
+    topic: "Division",
+    title: "Long Division with a Remainder",
+    intro: "Sometimes there are pieces left over. When that happens, write the quotient and then the remainder.",
+    steps: [
+      "5 goes into 6 one time, so write 1 above the 6.",
+      "Subtract 5, bring down the 7, and 5 goes into 17 three times.",
+      "Subtract 15 to get 2 left over, so 67 ÷ 5 = 13 R 2.",
+    ],
+    visual: {
+      type: "division-board",
+      divisor: 5,
+      dividend: 67,
+      quotient: "13 R 2",
+      work: ["6 - 5 = 1", "bring down 7", "17 - 15 = 2"],
+    },
+  },
+  divisionDecimal: {
+    topic: "Division",
+    title: "Long Division into Decimals",
+    intro: "In Aurora Citadel, keep dividing by adding a decimal point and zeros when the division does not come out even.",
+    steps: [
+      "4 goes into 17 four times, so subtract 16 and get remainder 1.",
+      "Place a decimal point in the quotient, bring down a 0, and divide 10 by 4 to get 2.",
+      "Bring down another 0, divide 20 by 4 to get 5, so 17 ÷ 4 = 4.25.",
+    ],
+    visual: {
+      type: "division-board",
+      divisor: 4,
+      dividend: 17,
+      quotient: "4.25",
+      work: ["17 - 16 = 1", "10 ÷ 4 = 2 R 2", "20 ÷ 4 = 5"],
+    },
+  },
+  fractionDecimal: {
+    topic: "Decimals",
+    title: "Turn a Fraction into a Decimal",
+    intro: "Crystal Caverns uses fractions and decimals together. Change the fraction to hundredths or divide the numerator by the denominator.",
+    steps: [
+      "Start with 3/4.",
+      "Rewrite it as 75/100, or divide 3 by 4 to get 0.75.",
+      "That means 3/4 and 0.75 name the same amount.",
+    ],
+    visual: {
+      type: "fraction-decimal",
+      fraction: "3/4",
+      bridge: "75/100",
+      decimal: "0.75",
+    },
   },
   geometryMeasure: {
+    topic: "Measure",
     title: "Area and Perimeter",
-    chip: "6 by 4 rectangle",
-    intro: "Example: use the same rectangle to tell the difference between area and perimeter.",
+    intro: "In Shape Grove, the same rectangle can teach both area and perimeter. The key is knowing whether the problem asks for inside space or outside distance.",
     steps: [
       "Area means the space inside, so 6 x 4 = 24 square units.",
       "Perimeter means the distance around, so 6 + 6 + 4 + 4 = 20 units.",
       "Ask: does the question want inside space or distance around the outside?",
     ],
+    visual: {
+      type: "rectangle-measure",
+      width: 6,
+      height: 4,
+      area: 24,
+      perimeter: 20,
+    },
   },
+  geometryComposite: {
+    topic: "Measure",
+    title: "Split a Composite Shape",
+    intro: "Measure Meadow mixes shapes together. Break the big shape into smaller rectangles, then add their areas.",
+    steps: [
+      "Find the area of the left rectangle: 3 x 4 = 12.",
+      "Find the area of the right rectangle: 5 x 4 = 20.",
+      "Add 12 + 20 to get a total area of 32 square units.",
+    ],
+    visual: {
+      type: "composite-area",
+      leftWidth: 3,
+      rightWidth: 5,
+      height: 4,
+      leftArea: 12,
+      rightArea: 20,
+      total: 32,
+    },
+  },
+  algebraEquation: {
+    topic: "Algebra",
+    title: "Solve a One-Step Equation",
+    intro: "Aurora Citadel starts algebra with simple equations. Undo the operation to isolate x.",
+    steps: [
+      "Start with x + 7 = 19.",
+      "Subtract 7 from both sides so the equation stays balanced.",
+      "That leaves x = 12.",
+    ],
+    visual: {
+      type: "algebra-balance",
+      equation: "x + 7 = 19",
+      action: "- 7 both sides",
+      result: "x = 12",
+    },
+  },
+};
+const ZONE_LESSON_KEYS = {
+  nest: ["multiDigitMultiply"],
+  bridge: ["fractionCompare", "equivalentFraction"],
+  grove: ["geometryMeasure"],
+  sky: ["multiDigitMultiply", "geometryMeasure"],
+  dunes: ["divisionWhole", "divisionRemainder"],
+  caverns: ["fractionCompare", "fractionDecimal"],
+  meadow: ["geometryMeasure", "geometryComposite"],
+  citadel: ["divisionDecimal", "fractionDecimal", "algebraEquation"],
 };
 
 const EGG_TYPES = {
@@ -260,6 +409,7 @@ const DOM = {
   lessonChip: document.getElementById("lessonChip"),
   lessonTopicRow: document.getElementById("lessonTopicRow"),
   lessonIntro: document.getElementById("lessonIntro"),
+  lessonVisual: document.getElementById("lessonVisual"),
   lessonSteps: document.getElementById("lessonSteps"),
   zoneList: document.getElementById("zoneList"),
   milestoneList: document.getElementById("milestoneList"),
@@ -287,7 +437,7 @@ let profiles = [];
 let currentProfileId = "";
 let selectedEgg = "sun";
 let selectedChoiceValue = "";
-let selectedLessonKey = "longDivision";
+let selectedLessonKey = "";
 
 function createFreshState() {
   return {
@@ -689,7 +839,7 @@ function bumpNeeds({
 
 function cycleDifficulty() {
   const totalSolved = totalSolvedCount();
-  return Math.min(8, 1 + state.bossesCleared + Math.floor(totalSolved / 10));
+  return Math.min(10, 1 + state.bossesCleared + Math.floor(totalSolved / 10));
 }
 
 function compareFractions(aNum, aDen, bNum, bDen) {
@@ -712,6 +862,14 @@ function greatestCommonDivisor(a, b) {
   }
 
   return left || 1;
+}
+
+function formatDecimal(value, places = 3) {
+  return Number(value.toFixed(places)).toString();
+}
+
+function fractionToDecimalString(numerator, denominator) {
+  return formatDecimal(numerator / denominator);
 }
 
 function shuffleArray(items) {
@@ -964,9 +1122,28 @@ function nextQuestion() {
   }
 
   selectedChoiceValue = "";
+  selectedLessonKey = state.activeQuestion?.lessonKey || "";
 }
 
 function generateMultiplicationQuestion(difficulty) {
+  const zoneId = currentZone().id;
+
+  if (zoneId === "citadel" && difficulty >= 9) {
+    return shuffleArray([
+      generateDecimalDivisionQuestion(difficulty),
+      generateAlgebraEquationQuestion(difficulty),
+      generateMultiDigitMultiplicationQuestion(difficulty + 1),
+    ])[0];
+  }
+
+  if (["dunes", "caverns", "meadow", "citadel"].includes(zoneId) && difficulty >= 7) {
+    return shuffleArray([
+      generateDivisionQuestion(difficulty, true),
+      generateRemainderDivisionQuestion(difficulty),
+      generateMultiDigitMultiplicationQuestion(difficulty + 1),
+    ])[0];
+  }
+
   if (difficulty <= 2) {
     return generateBasicMultiplicationQuestion(difficulty);
   }
@@ -1013,6 +1190,7 @@ function generateBasicMultiplicationQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Number Forge",
+    lessonKey: "multiDigitMultiply",
     ...variants[randomInt(0, variants.length - 1)],
   };
 }
@@ -1023,6 +1201,7 @@ function generateScaledMultiplicationQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Number Forge",
+    lessonKey: "multiDigitMultiply",
     prompt: `${a} x ${b}`,
     answer: String(a * b),
     helper: "Break the bigger factor apart into tens and ones, then multiply each part.",
@@ -1035,6 +1214,7 @@ function generateMissingFactorQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Number Forge",
+    lessonKey: "divisionWhole",
     prompt: `A snack machine made ${factor * hidden} glowberries in ${factor} equal groups. How many glowberries were in each group?`,
     answer: String(hidden),
     helper: "Use the related division fact to find the missing factor.",
@@ -1048,6 +1228,7 @@ function generateMultiDigitMultiplicationQuestion(difficulty) {
     return {
       kind: "numeric",
       category: "Number Forge",
+      lessonKey: "multiDigitMultiply",
       prompt: `${a} x ${b}`,
       answer: String(a * b),
       helper: "Use partial products or the standard algorithm for multi-digit multiplication.",
@@ -1059,6 +1240,7 @@ function generateMultiDigitMultiplicationQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Number Forge",
+    lessonKey: "multiDigitMultiply",
     prompt: `${a} x ${b}`,
     answer: String(a * b),
     helper: "Split one factor into tens and ones to multiply in parts.",
@@ -1072,11 +1254,94 @@ function generateDivisionQuestion(difficulty, allowTwoDigitDivisor) {
   return {
     kind: "numeric",
     category: "Number Forge",
+    lessonKey: "divisionWhole",
     prompt: `${dividend} ÷ ${divisor}`,
     answer: String(quotient),
     helper: allowTwoDigitDivisor
       ? "Use long division carefully. Each step should divide exactly with no remainder."
       : "Use multiplication facts to check the quotient.",
+  };
+}
+
+function generateRemainderDivisionQuestion(difficulty) {
+  const divisor = randomInt(4, Math.min(12, 7 + Math.floor(difficulty / 2)));
+  const quotient = randomInt(6, 18 + difficulty);
+  const remainder = randomInt(1, divisor - 1);
+  const dividend = (divisor * quotient) + remainder;
+
+  return {
+    kind: "numeric",
+    category: "Division",
+    lessonKey: "divisionRemainder",
+    answerType: "remainder",
+    prompt: `${dividend} ÷ ${divisor}`,
+    answer: `${quotient} R ${remainder}`,
+    helper: "Use long division. Write the answer as quotient R remainder.",
+  };
+}
+
+function generateDecimalDivisionQuestion(difficulty) {
+  const divisorOptions = [4, 5, 8, 10];
+  const divisor = divisorOptions[randomInt(0, divisorOptions.length - 1)];
+  const whole = randomInt(2, 8 + Math.floor(difficulty / 2));
+  const numerator = randomInt(1, divisor - 1);
+  const dividend = (whole * divisor) + numerator;
+  const answer = fractionToDecimalString(dividend, divisor);
+
+  return {
+    kind: "numeric",
+    category: "Division",
+    lessonKey: "divisionDecimal",
+    answerType: "decimal",
+    prompt: `${dividend} ÷ ${divisor}`,
+    answer,
+    helper: "Use long division. If there is a remainder, add a decimal point and keep dividing with zeros.",
+  };
+}
+
+function generateAlgebraEquationQuestion(difficulty) {
+  const templates = [
+    () => {
+      const addend = randomInt(6, 16);
+      const answer = randomInt(8, 22 + difficulty);
+      return {
+        prompt: `Solve for x: x + ${addend} = ${answer + addend}`,
+        answer: String(answer),
+      };
+    },
+    () => {
+      const subtractor = randomInt(4, 14);
+      const answer = randomInt(10, 24 + difficulty);
+      return {
+        prompt: `Solve for x: x - ${subtractor} = ${answer - subtractor}`,
+        answer: String(answer),
+      };
+    },
+    () => {
+      const factor = randomInt(3, 8);
+      const answer = randomInt(4, 10 + Math.floor(difficulty / 2));
+      return {
+        prompt: `Solve for x: ${factor}x = ${factor * answer}`,
+        answer: String(answer),
+      };
+    },
+    () => {
+      const divisor = randomInt(2, 8);
+      const answer = randomInt(4, 12 + Math.floor(difficulty / 2));
+      return {
+        prompt: `Solve for x: x / ${divisor} = ${answer}`,
+        answer: String(answer * divisor),
+      };
+    },
+  ];
+
+  const picked = templates[randomInt(0, templates.length - 1)]();
+  return {
+    kind: "numeric",
+    category: "Algebra",
+    lessonKey: "algebraEquation",
+    ...picked,
+    helper: "Undo the operation to isolate x. Whatever you do to one side, do to the other side too.",
   };
 }
 
@@ -1086,6 +1351,7 @@ function generateLargeNumberStoryQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Number Forge",
+    lessonKey: "multiDigitMultiply",
     prompt: `A supply cart holds ${packs} boxes with ${itemsPerPack} lanterns in each box. How many lanterns are there in all?`,
     answer: String(packs * itemsPerPack),
     helper: "This is a larger multiplication problem. Organize the tens and ones before multiplying.",
@@ -1093,8 +1359,19 @@ function generateLargeNumberStoryQuestion(difficulty) {
 }
 
 function generateFractionQuestion(difficulty) {
+  const zoneId = currentZone().id;
+
   if (difficulty <= 3) {
     return generateFractionComparisonQuestion(difficulty, false);
+  }
+
+  if (zoneId === "caverns" || zoneId === "citadel" || difficulty >= 8) {
+    return shuffleArray([
+      generateFractionComparisonQuestion(difficulty, true),
+      generateEquivalentFractionQuestion(difficulty + 1),
+      generateFractionToDecimalQuestion(difficulty),
+      generateMixedNumberComparisonQuestion(difficulty),
+    ])[0];
   }
 
   if (difficulty <= 5) {
@@ -1141,6 +1418,7 @@ function generateFractionComparisonQuestion(difficulty, advanced) {
   return {
     kind: "choice",
     category: "Fractions",
+    lessonKey: "fractionCompare",
     prompt: `Which symbol makes the bridge true? ${leftNum}/${leftDen} ? ${rightNum}/${rightDen}`,
     answer: compareFractions(leftNum, leftDen, rightNum, rightDen),
     helper: "Choose <, >, or = after comparing the size of each fraction.",
@@ -1175,10 +1453,55 @@ function generateEquivalentFractionQuestion(difficulty) {
   return {
     kind: "choice",
     category: "Fractions",
+    lessonKey: "equivalentFraction",
     prompt: `Which fraction is equivalent to ${baseNumerator}/${baseDenominator}?`,
     answer: correct,
     helper: "Equivalent fractions multiply or divide the numerator and denominator by the same number.",
     choices: shuffleArray([correct, ...distractors.slice(0, 3)]),
+  };
+}
+
+function generateFractionToDecimalQuestion(difficulty) {
+  const denominatorPool = difficulty >= 9 ? [2, 4, 5, 8, 10] : [2, 4, 5, 10];
+  const denominator = denominatorPool[randomInt(0, denominatorPool.length - 1)];
+  const numerator = randomInt(1, denominator - 1);
+  const correctValue = numerator / denominator;
+  const correct = formatDecimal(correctValue);
+  const distractors = new Set();
+  const candidateValues = [
+    numerator / 10,
+    denominator / 10,
+    correctValue + 0.1,
+    correctValue - 0.1,
+    correctValue + 0.05,
+    correctValue - 0.05,
+  ];
+
+  candidateValues.forEach((value) => {
+    if (value > 0) {
+      distractors.add(formatDecimal(value));
+    }
+  });
+
+  while (distractors.size < 4) {
+    const offset = (randomInt(-2, 3) || 1) / 10;
+    const candidate = correctValue + offset;
+    if (candidate > 0) {
+      distractors.add(formatDecimal(candidate));
+    }
+  }
+
+  return {
+    kind: "choice",
+    category: "Fractions & Decimals",
+    lessonKey: "fractionDecimal",
+    prompt: `Which decimal is equal to ${numerator}/${denominator}?`,
+    answer: correct,
+    helper: "Divide the numerator by the denominator, or rename the fraction as tenths or hundredths.",
+    choices: shuffleArray([correct, ...[...distractors].filter((value) => value !== correct).slice(0, 3)]),
+    fractions: [
+      { numerator, denominator, label: `${numerator}/${denominator}` },
+    ],
   };
 }
 
@@ -1195,6 +1518,7 @@ function generateMixedNumberComparisonQuestion() {
   return {
     kind: "choice",
     category: "Fractions",
+    lessonKey: "fractionCompare",
     prompt: `Which symbol makes the trail true? ${leftWhole} ${leftNum}/${leftDen} ? ${rightWhole} ${rightNum}/${rightDen}`,
     answer: compareFractions(leftValue, leftDen, rightValue, rightDen),
     helper: "Turn the mixed numbers into improper fractions or compare the whole numbers first.",
@@ -1232,6 +1556,7 @@ function generateCoreGeometryQuestion(difficulty) {
     return {
       kind: "numeric",
       category: "Geometry",
+      lessonKey: "geometryMeasure",
       prompt: `A rectangle garden is ${width} units by ${height} units. What is its area?`,
       answer: String(width * height),
       helper: "Area of a rectangle is length x width.",
@@ -1244,6 +1569,7 @@ function generateCoreGeometryQuestion(difficulty) {
     return {
       kind: "numeric",
       category: "Geometry",
+      lessonKey: "geometryMeasure",
       prompt: `A path is ${width} units long and ${height} units wide. What is its perimeter?`,
       answer: String(width * 2 + height * 2),
       helper: "Perimeter is the total distance around the outside.",
@@ -1262,6 +1588,7 @@ function generateCoreGeometryQuestion(difficulty) {
     return {
       kind: "numeric",
       category: "Geometry",
+      lessonKey: "geometryMeasure",
       prompt: `How many sides does a ${shape.name} have?`,
       answer: shape.answer,
       helper: "Count the edges around the shape.",
@@ -1278,6 +1605,7 @@ function generateCoreGeometryQuestion(difficulty) {
   return {
     kind: "choice",
     category: "Geometry",
+    lessonKey: "geometryMeasure",
     prompt: `Which shape matches this clue: ${shape.clue}?`,
     answer: shape.answer,
     helper: "Pick the shape name that fits.",
@@ -1294,6 +1622,7 @@ function generateMissingSideQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Geometry",
+    lessonKey: "geometryMeasure",
     prompt: askForWidth
       ? `A rectangle has perimeter ${perimeter} units and height ${height} units. What is its width?`
       : `A rectangle has perimeter ${perimeter} units and width ${width} units. What is its height?`,
@@ -1307,6 +1636,7 @@ function generateSquarePerimeterQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Geometry",
+    lessonKey: "geometryMeasure",
     prompt: `A square playground has perimeter ${side * 4} units. How long is each side?`,
     answer: String(side),
     helper: "A square has 4 equal sides, so divide the perimeter by 4.",
@@ -1320,6 +1650,7 @@ function generateCompositeAreaQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Geometry",
+    lessonKey: "geometryComposite",
     prompt: `A floor is made from two rectangles side by side: one is ${leftWidth} by ${height} and the other is ${rightWidth} by ${height}. What is the total area?`,
     answer: String((leftWidth * height) + (rightWidth * height)),
     helper: "Find each rectangle's area, then add them together.",
@@ -1332,6 +1663,7 @@ function generateFenceQuestion(difficulty) {
   return {
     kind: "numeric",
     category: "Geometry",
+    lessonKey: "geometryComposite",
     prompt: `A garden is ${length} units by ${width} units, but one long side rests against a wall. How many units of fence are needed for the other three sides?`,
     answer: String(length + (width * 2)),
     helper: "Add only the three sides that need fencing.",
@@ -1351,10 +1683,23 @@ function generateBossQuestion(difficulty) {
 }
 
 function normalizeAnswer(question, value) {
+  const compact = String(value).trim().toLowerCase().replace(/\s+/g, "");
+
   if (question.kind === "choice") {
-    return String(value).trim().toLowerCase();
+    return compact;
   }
-  return String(value).trim().replace(/\s+/g, "");
+
+  if (question.answerType === "remainder") {
+    return compact.replace(/remainder/gi, "r");
+  }
+
+  if (question.answerType === "decimal") {
+    const parsed = Number(compact);
+    return Number.isFinite(parsed) ? formatDecimal(parsed) : compact;
+  }
+
+  const parsed = Number(compact);
+  return Number.isFinite(parsed) ? String(parsed) : compact;
 }
 
 function checkAnswer(rawAnswer) {
@@ -1618,7 +1963,7 @@ function renderFractionVisuals(fractions) {
 
       return `
         <div class="fraction-card">
-          <strong>${fraction.label}</strong>
+          <strong>${escapeHtml(fraction.label)}</strong>
           <div class="fraction-bar">${bars}</div>
         </div>
       `;
@@ -1630,7 +1975,7 @@ function renderChoices(choices) {
   DOM.choiceGrid.innerHTML = choices
     .map((choice) => {
       const selectedClass = selectedChoiceValue === choice ? "selected" : "";
-      return `<button class="${selectedClass}" data-choice="${choice}" type="button">${choice}</button>`;
+      return `<button class="${selectedClass}" data-choice="${escapeHtml(choice)}" type="button">${escapeHtml(choice)}</button>`;
     })
     .join("");
 }
@@ -1691,64 +2036,258 @@ function renderQuestInterface() {
   }
 }
 
-function lessonForQuestion(question) {
+function lessonKeyForQuestion(question) {
   if (!question) {
-    return null;
+    return "";
+  }
+
+  if (question.lessonKey && LESSONS[question.lessonKey]) {
+    return question.lessonKey;
   }
 
   const promptText = `${question.prompt || ""} ${question.helper || ""}`.toLowerCase();
   const categoryText = String(question.category || "").toLowerCase();
 
+  if (question.answerType === "decimal") {
+    return categoryText.includes("division") ? "divisionDecimal" : "fractionDecimal";
+  }
+
+  if (promptText.includes("remainder")) {
+    return "divisionRemainder";
+  }
+
+  if ((promptText.includes("÷") || promptText.includes("long division")) && promptText.includes("decimal")) {
+    return "divisionDecimal";
+  }
+
   if (promptText.includes("÷") || promptText.includes("long division")) {
-    return LESSONS.longDivision;
+    return "divisionWhole";
+  }
+
+  if (categoryText.includes("algebra")) {
+    return "algebraEquation";
+  }
+
+  if (promptText.includes("decimal")) {
+    return "fractionDecimal";
   }
 
   if (categoryText.includes("fraction")) {
-    return LESSONS.fractionCompare;
-  }
-
-  if (categoryText.includes("geometry")) {
-    return LESSONS.geometryMeasure;
-  }
-
-  return null;
-}
-
-function defaultLessonKey() {
-  const activeLesson = lessonForQuestion(state.activeQuestion);
-  if (activeLesson) {
-    return Object.keys(LESSONS).find((key) => LESSONS[key] === activeLesson) || "longDivision";
-  }
-
-  const nextQuest = nextQuestInPath();
-  if (nextQuest === "fractions") {
     return "fractionCompare";
   }
 
-  if (nextQuest === "geometry") {
+  if (categoryText.includes("geometry")) {
     return "geometryMeasure";
   }
 
-  return selectedLessonKey || "longDivision";
+  return "multiDigitMultiply";
+}
+
+function currentZoneLessonKeys() {
+  return ZONE_LESSON_KEYS[currentZone().id] || ["multiDigitMultiply"];
+}
+
+function availableLessonKeys() {
+  const questionKey = lessonKeyForQuestion(state.activeQuestion);
+  const zoneKeys = currentZoneLessonKeys();
+  return [...new Set([questionKey, ...zoneKeys].filter((key) => key && LESSONS[key]))];
+}
+
+function defaultLessonKey() {
+  const lessonKeys = availableLessonKeys();
+  if (!lessonKeys.length) {
+    return "multiDigitMultiply";
+  }
+
+  if (selectedLessonKey && lessonKeys.includes(selectedLessonKey)) {
+    return selectedLessonKey;
+  }
+
+  const questionKey = lessonKeyForQuestion(state.activeQuestion);
+  if (questionKey && lessonKeys.includes(questionKey)) {
+    return questionKey;
+  }
+
+  return lessonKeys[0];
 }
 
 function currentLesson() {
   const lessonKey = defaultLessonKey();
-  return LESSONS[lessonKey] || LESSONS.longDivision;
+  return { key: lessonKey, ...LESSONS[lessonKey] };
+}
+
+function fractionCardMarkup(fraction) {
+  const bars = Array.from({ length: fraction.denominator }, (_, index) => {
+    const filled = index < fraction.numerator ? "fraction-segment filled" : "fraction-segment";
+    return `<span class="${filled}"></span>`;
+  }).join("");
+
+  return `
+    <div class="fraction-card">
+      <strong>${escapeHtml(fraction.label)}</strong>
+      <div class="fraction-bar">${bars}</div>
+    </div>
+  `;
+}
+
+function renderLessonVisual(lesson) {
+  const visual = lesson.visual;
+  if (!visual) {
+    DOM.lessonVisual.innerHTML = "";
+    return;
+  }
+
+  if (visual.type === "multiply-grid") {
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-visual-surface lesson-multiply-model">
+        <div class="lesson-multiply-header">
+          <span>${escapeHtml(String(visual.leftFactor))} x (${escapeHtml(String(visual.topParts[0]))} + ${escapeHtml(String(visual.topParts[1]))})</span>
+          <strong>${escapeHtml(String(visual.total))}</strong>
+        </div>
+        <div class="lesson-multiply-partials">
+          <div class="lesson-multiply-cell">${escapeHtml(String(visual.leftFactor))} x ${escapeHtml(String(visual.topParts[0]))} = ${escapeHtml(String(visual.partials[0]))}</div>
+          <div class="lesson-multiply-cell">${escapeHtml(String(visual.leftFactor))} x ${escapeHtml(String(visual.topParts[1]))} = ${escapeHtml(String(visual.partials[1]))}</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (visual.type === "fraction-compare") {
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-fraction-compare">
+        ${fractionCardMarkup(visual.left)}
+        <div class="lesson-compare-sign">${escapeHtml(visual.symbol)}</div>
+        ${fractionCardMarkup(visual.right)}
+      </div>
+      <p class="lesson-visual-caption">${escapeHtml(visual.left.label)} becomes ${escapeHtml(visual.equivalentLeft)}, so it is greater than ${escapeHtml(visual.right.label)}.</p>
+    `;
+    return;
+  }
+
+  if (visual.type === "fraction-scale") {
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-scale-flow">
+        <div class="lesson-decimal-card">
+          <span>Start</span>
+          <strong>${escapeHtml(visual.start)}</strong>
+        </div>
+        <div class="lesson-scale-arrow">${escapeHtml(visual.scale)}</div>
+        <div class="lesson-decimal-card highlight">
+          <span>Result</span>
+          <strong>${escapeHtml(visual.result)}</strong>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (visual.type === "division-board") {
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-visual-surface lesson-division-board">
+        <div class="division-top">${escapeHtml(visual.quotient)}</div>
+        <div class="division-bracket">
+          <span class="division-divisor">${escapeHtml(String(visual.divisor))}</span>
+          <span class="division-dividend">${escapeHtml(String(visual.dividend))}</span>
+        </div>
+        <div class="division-work">
+          ${visual.work.map((line) => `<span>${escapeHtml(line)}</span>`).join("")}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (visual.type === "fraction-decimal") {
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-decimal-flow">
+        <div class="lesson-decimal-card">
+          <span>Fraction</span>
+          <strong>${escapeHtml(visual.fraction)}</strong>
+        </div>
+        <div class="lesson-scale-arrow">=</div>
+        <div class="lesson-decimal-card">
+          <span>Hundredths</span>
+          <strong>${escapeHtml(visual.bridge)}</strong>
+        </div>
+        <div class="lesson-scale-arrow">=</div>
+        <div class="lesson-decimal-card highlight">
+          <span>Decimal</span>
+          <strong>${escapeHtml(visual.decimal)}</strong>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (visual.type === "rectangle-measure") {
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-visual-surface lesson-rectangle-diagram">
+        <span class="rectangle-width">${escapeHtml(String(visual.width))}</span>
+        <div class="rectangle-box">
+          <span class="rectangle-area">${escapeHtml(String(visual.area))} sq</span>
+        </div>
+        <span class="rectangle-height">${escapeHtml(String(visual.height))}</span>
+      </div>
+      <div class="metric-pill-row">
+        <span class="metric-pill">Area = ${escapeHtml(String(visual.area))}</span>
+        <span class="metric-pill">Perimeter = ${escapeHtml(String(visual.perimeter))}</span>
+      </div>
+    `;
+    return;
+  }
+
+  if (visual.type === "composite-area") {
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-visual-surface lesson-composite-diagram">
+        <div class="composite-shape">
+          <div class="composite-left">${escapeHtml(String(visual.leftArea))}</div>
+          <div class="composite-right">${escapeHtml(String(visual.rightArea))}</div>
+        </div>
+        <div class="metric-pill composite-total">${escapeHtml(String(visual.leftArea))} + ${escapeHtml(String(visual.rightArea))} = ${escapeHtml(String(visual.total))}</div>
+      </div>
+    `;
+    return;
+  }
+
+  if (visual.type === "algebra-balance") {
+    DOM.lessonVisual.innerHTML = `
+      <div class="lesson-algebra-flow">
+        <div class="lesson-decimal-card">
+          <span>Start</span>
+          <strong>${escapeHtml(visual.equation)}</strong>
+        </div>
+        <div class="lesson-scale-arrow">${escapeHtml(visual.action)}</div>
+        <div class="lesson-decimal-card highlight">
+          <span>Result</span>
+          <strong>${escapeHtml(visual.result)}</strong>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  DOM.lessonVisual.innerHTML = "";
 }
 
 function renderLesson() {
+  const lessonKeys = availableLessonKeys();
   const lesson = currentLesson();
-  const lessonKey = defaultLessonKey();
+  const zone = currentZone();
   DOM.lessonCard.hidden = false;
 
   DOM.lessonTitle.textContent = lesson.title;
-  DOM.lessonChip.textContent = lesson.chip;
+  DOM.lessonChip.textContent = zone.name;
   DOM.lessonIntro.textContent = lesson.intro;
+  DOM.lessonTopicRow.innerHTML = lessonKeys
+    .map((key) => {
+      const topic = LESSONS[key];
+      const selectedClass = key === lesson.key ? " selected" : "";
+      return `<button class="lesson-topic-button${selectedClass}" data-lesson="${escapeHtml(key)}" type="button">${escapeHtml(topic.topic)}</button>`;
+    })
+    .join("");
   DOM.lessonSteps.innerHTML = lesson.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
-  DOM.lessonTopicRow.querySelectorAll("[data-lesson]").forEach((button) => {
-    button.classList.toggle("selected", button.dataset.lesson === lessonKey);
-  });
+  renderLessonVisual(lesson);
 }
 
 function renderQuestOptions() {
