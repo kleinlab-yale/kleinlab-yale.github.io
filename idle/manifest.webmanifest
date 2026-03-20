@@ -1,0 +1,17 @@
+{
+  "name": "Sunrise Valley",
+  "short_name": "Sunrise Valley",
+  "description": "A kid-friendly idle farm and city game where math and Chinese practice replace ad boosts.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f1ead5",
+  "theme_color": "#f29f58",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
