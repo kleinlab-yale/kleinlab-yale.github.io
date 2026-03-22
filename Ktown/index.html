@@ -1,1 +1,123 @@
-test
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f29f58">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="KaylaTown">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>KaylaTown</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="pwa-assets/apple-touch-icon.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero panel">
+        <div class="hero-copy">
+          <p class="eyebrow">No ads. Learning powers the town.</p>
+          <h1>KaylaTown</h1>
+          <p class="lead">
+            Grow a bright farm-town, unlock upgrades, and earn faster progress by solving
+            math and Chinese prompts instead of watching commercials.
+          </p>
+          <div class="hero-actions">
+            <button class="primary-button" id="collect-button" type="button">Collect Basket</button>
+            <div class="status-chip" id="focus-chip">Focus boost inactive</div>
+          </div>
+          <p class="install-hint">
+            On iPad: open in Safari, tap Share, then choose Add to Home Screen.
+          </p>
+        </div>
+
+        <div class="hero-world hero-art-shell" aria-hidden="true">
+          <img
+            class="hero-art"
+            src="sprite/cover.png"
+            alt=""
+            width="1376"
+            height="768"
+          >
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <section class="panel section-card">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Village Resources</p>
+              <h2>Current Progress</h2>
+            </div>
+            <p class="section-note" id="save-status">Local save active</p>
+          </div>
+          <div class="resource-grid" id="resource-grid"></div>
+          <div class="rate-grid" id="rate-grid"></div>
+        </section>
+
+        <section class="panel section-card">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Build Loop</p>
+              <h2>Farm and City Upgrades</h2>
+            </div>
+            <p class="section-note">Costs scale as the town grows.</p>
+          </div>
+          <div class="card-grid" id="building-grid"></div>
+        </section>
+
+        <section class="panel section-card">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Major Boosts</p>
+              <h2>Town Improvements</h2>
+            </div>
+            <p class="section-note">Permanent bonuses once purchased.</p>
+          </div>
+          <div class="card-grid" id="upgrade-grid"></div>
+        </section>
+
+        <section class="panel section-card practice-panel">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Practice Instead Of Ads</p>
+              <h2>Focus Challenges</h2>
+            </div>
+            <p class="section-note" id="practice-stats">Streak 0</p>
+          </div>
+
+          <div class="mode-switch" role="tablist" aria-label="Practice modes">
+            <button class="mode-button" data-mode="math" type="button">Math Sprint</button>
+            <button class="mode-button" data-mode="chinese" type="button">Chinese Sprint</button>
+          </div>
+
+          <div class="practice-card">
+            <p class="practice-tag" id="practice-tag">Math Sprint</p>
+            <h3 id="practice-prompt">Loading challenge...</h3>
+            <p class="practice-subtitle" id="practice-subtitle"></p>
+            <div class="choice-grid" id="practice-choices"></div>
+            <div class="practice-footer">
+              <p id="practice-feedback">Solve a prompt to activate a timed boost.</p>
+              <button class="secondary-button" id="new-problem-button" type="button">New Prompt</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel section-card activity-panel">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Idle Feedback</p>
+              <h2>Recent Activity</h2>
+            </div>
+            <p class="section-note" id="offline-summary">Offline summary will appear here.</p>
+          </div>
+          <ul class="activity-list" id="activity-list"></ul>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
