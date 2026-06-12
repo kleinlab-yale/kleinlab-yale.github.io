@@ -11,6 +11,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Same-device save data through `localStorage`.
 - Quest gates require enough correct answers; wrong attempts do not pass the level.
 - The pet uses full integrated sprite variants for outfits, not square overlay shapes.
+- Math content is now aimed at accelerated 4th-grade work: distributive property, combining like terms, equations, fraction equations, decimals as fractions, and area/perimeter.
 
 ## Files
 

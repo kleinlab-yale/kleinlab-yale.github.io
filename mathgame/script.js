@@ -15,20 +15,20 @@ const ASSETS = {
 };
 
 const WORLDS = [
-  { name: "Sky Meadow", focus: "multiplication arrays" },
-  { name: "Ribbon Bridge", focus: "fraction comparison" },
+  { name: "Sky Meadow", focus: "multi-digit multiplication warmups" },
+  { name: "Ribbon Bridge", focus: "simplifying expressions" },
   { name: "Shape Grove", focus: "area and perimeter" },
-  { name: "Division Dunes", focus: "long division" },
-  { name: "Crystal Decimal Cove", focus: "fractions to decimals" },
-  { name: "Workshop Meadow", focus: "multi-digit multiplication" },
-  { name: "Aurora Academy", focus: "equations and mixed mastery" },
+  { name: "Equation Dunes", focus: "solving equations" },
+  { name: "Crystal Decimal Cove", focus: "decimals and fractions" },
+  { name: "Workshop Meadow", focus: "distributive property mastery" },
+  { name: "Aurora Academy", focus: "mixed accelerated mastery" },
 ];
 
 const QUEST_FLOW = ["number", "fraction", "geometry", "boss"];
 const QUEST_LABELS = {
-  number: "Snack Math",
-  fraction: "Bridge Math",
-  geometry: "Build Math",
+  number: "Warmup Math",
+  fraction: "Bridge Algebra",
+  geometry: "Shape Math",
   boss: "World Boss",
 };
 
@@ -313,6 +313,7 @@ function nextProblem() {
   els.questFeedback.className = "quest-feedback";
   els.questFeedback.textContent = "A correct answer adds glow. Wrong answers are practice, not progress.";
   els.answerInput.value = "";
+  els.answerInput.placeholder = activeProblem.placeholder || "Type answer";
   if (activeProblem.choices) {
     renderChoices(activeProblem.choices);
     els.answerInput.parentElement.style.display = "none";
@@ -457,134 +458,167 @@ function finishRound() {
 
 function makeProblem(type, world) {
   if (type === "number") return makeNumberProblem(world);
-  if (type === "fraction") return makeFractionProblem(world);
+  if (type === "fraction") return makeBridgeProblem(world);
   if (type === "geometry") return makeGeometryProblem(world);
-  return choose([makeNumberProblem, makeFractionProblem, makeGeometryProblem])(Math.min(world + 1, WORLDS.length - 1), true);
+  return choose([makeNumberProblem, makeBridgeProblem, makeGeometryProblem])(Math.min(world + 1, WORLDS.length - 1));
 }
 
 function makeNumberProblem(world) {
-  if (world <= 1) {
-    const a = rand(3, 9);
-    const b = rand(3, 9);
-    return problem(`${a} x ${b} = ?`, a * b, "Multiplication array", [
-      `Think of ${a} rows with ${b} snacks in each row.`,
-      `Equal groups mean multiply.`,
-      "Find the total number of snacks, then type that number.",
-    ]);
-  }
-  if (world <= 3) {
-    const divisor = rand(3, 9);
-    const quotient = rand(12, 38);
-    const remainder = rand(0, divisor - 1);
-    const dividend = quotient * divisor + remainder;
-    return problem(`${dividend} / ${divisor} = ? ${remainder ? "(use R for remainder)" : ""}`, remainder ? `${quotient}R${remainder}` : quotient, "Long division", [
-      "Estimate how many whole groups of the divisor fit inside the dividend.",
-      "Multiply the divisor by your quotient guess, then subtract.",
-      remainder ? "If some are left over, write the answer as quotient R remainder." : "If nothing is left over, write just the quotient.",
-    ], remainder ? "remainder" : "number");
-  }
-  if (world <= 5) {
-    const a = rand(18, 62);
-    const b = rand(12, 24);
-    const tens = Math.floor(b / 10) * 10;
-    const ones = b - tens;
-    return problem(`${a} x ${b} = ?`, a * b, "Partial products", [
-      `Split ${b} into ${tens} + ${ones}.`,
-      `Multiply ${a} by the tens part, then multiply ${a} by the ones part.`,
-      "Add the two partial products to get the final product.",
-    ]);
-  }
-  const x = rand(4, 18);
-  const add = rand(6, 24);
-  return problem(`x + ${add} = ${x + add}. What is x?`, x, "One-step equation", [
-    `Undo + ${add} by subtracting ${add}.`,
-    `Subtract ${add} from the total on the right side.`,
-    "The number left over is x.",
-  ]);
+  if (world <= 1) return makeMultiplicationProblem();
+  if (world <= 2) return choose([makeExpressionProblem, makeWordEquationProblem])();
+  if (world <= 4) return makeEquationProblem();
+  if (world <= 5) return choose([makeDecimalFractionProblem, makeExpressionProblem])();
+  return choose([makeExpressionProblem, makeEquationProblem, makeWordEquationProblem, makeDecimalFractionProblem])();
 }
 
-function makeFractionProblem(world) {
-  if (world <= 2) {
-    const d = rand(4, 10);
-    const equalQuestion = Math.random() < 0.22;
-    let a = rand(1, d - 1);
-    let b = equalQuestion ? a : rand(1, d - 1);
-    if (!equalQuestion && a === b) b = b === d - 1 ? b - 1 : b + 1;
-    const answer = a > b ? "greater-than" : a < b ? "less-than" : "equal";
-    const answerLabel = answer === "greater-than" ? ">"
-      : answer === "less-than" ? "<"
-        : "=";
-    return problem(`${a}/${d} ? ${b}/${d}`, answer, "Compare fractions", [
-      `The denominators both equal ${d}.`,
-      `Compare the numerators: ${a} and ${b}.`,
-      "Choose <, =, or > to show how the left fraction compares to the right fraction.",
-    ], "choice", [
-      { label: "<", value: "less-than" },
-      { label: "=", value: "equal" },
-      { label: ">", value: "greater-than" },
-    ], answerLabel);
-  }
-  if (world <= 4) {
-    const options = [
-      ["1/2", "0.5"],
-      ["1/4", "0.25"],
-      ["3/4", "0.75"],
-      ["1/5", "0.2"],
-      ["2/5", "0.4"],
-    ];
-    const [fraction, decimal] = choose(options);
-    return problem(`${fraction} as a decimal = ?`, decimal, "Fraction to decimal", [
-      "Divide the numerator by the denominator.",
-      "Fractions like fourths can become hundredths.",
-      "Write the decimal value without extra words.",
-    ], "decimal");
-  }
-  const denominator = choose([3, 4, 5, 6, 8]);
-  const scale = rand(2, 5);
-  const numerator = rand(1, denominator - 1);
-  return problem(`x/${denominator} = ${numerator * scale}/${denominator * scale}. What is x?`, numerator, "Reverse equivalent fraction", [
-    `${denominator} x ${scale} = ${denominator * scale}.`,
-    `Undo the same scale on the numerator: ${numerator * scale} / ${scale}.`,
-    "That unscaled numerator is x.",
-  ]);
+function makeBridgeProblem(world) {
+  if (world <= 1) return makeExpressionProblem();
+  if (world <= 3) return choose([makeExpressionProblem, makeEquationProblem])();
+  if (world <= 4) return choose([makeEquationProblem, makeDecimalFractionProblem])();
+  return choose([makeExpressionProblem, makeEquationProblem, makeDecimalFractionProblem, makeWordEquationProblem])();
 }
 
 function makeGeometryProblem(world) {
-  if (world <= 2) {
-    const w = rand(4, 12);
-    const h = rand(3, 9);
-    const askArea = Math.random() > 0.4;
-    return problem(`A garden mat is ${w} by ${h}. What is its ${askArea ? "area" : "perimeter"}?`, askArea ? w * h : 2 * (w + h), "Area vs perimeter", askArea ? [
-      "Area measures inside space.",
-      `Use length x width: ${w} x ${h}.`,
-      "Multiply to find the square units inside.",
-    ] : [
-      "Perimeter measures around the outside.",
-      `Add all sides: ${w} + ${h} + ${w} + ${h}.`,
-      "The sum is the distance around the mat.",
-    ]);
-  }
-  if (world <= 5) {
-    const a = rand(3, 7);
-    const b = rand(4, 9);
-    const h1 = rand(5, 9);
-    const h2 = rand(2, h1 - 1);
-    const total = a * h1 + b * h2;
-    return problem(`Composite area: ${a}x${h1} plus ${b}x${h2} = ?`, total, "Composite area", [
-      `Find the first rectangle area: ${a} x ${h1}.`,
-      `Find the second rectangle area: ${b} x ${h2}.`,
-      "Add both rectangle areas together.",
-    ]);
-  }
-  const side = rand(6, 15);
-  return problem(`A square has perimeter ${side * 4}. Solve 4x = ${side * 4}.`, side, "Geometry equation", [
-    "A square has 4 equal sides.",
-    "Perimeter equals 4 times one side.",
-    "Divide the perimeter by 4 to find one side.",
-  ]);
+  return choose([
+    () => problem("L-shape area: start with a 10 by 3 rectangle and cut out a 1 by 1 corner. What is the area?", 29, "Composite area", [
+      "Find the big rectangle first.",
+      "Subtract the missing corner.",
+      "Use square units for area.",
+    ], "number", null, null, "Type area"),
+    () => problem("L-shape perimeter: sides are 10, 3, 1, 1, 9, and 2 around the outside. What is the perimeter?", 26, "Composite perimeter", [
+      "Perimeter is the distance around the outside.",
+      "Add every outside side length.",
+      "Do not multiply unless the shape is a rectangle.",
+    ], "number", null, null, "Type perimeter"),
+    () => problem("Right triangle area: legs are 12 and 5, hypotenuse is 13. What is the area?", 30, "Triangle area", [
+      "Use the two perpendicular legs as base and height.",
+      "Triangle area is base times height divided by 2.",
+      "The hypotenuse helps with perimeter, not area.",
+    ], "number", null, null, "Type area"),
+    () => problem("Right triangle perimeter: sides are 5, 12, and 13. What is the perimeter?", 30, "Triangle perimeter", [
+      "Perimeter is the sum of all side lengths.",
+      "Add the two legs and the slanted side.",
+      "No area formula is needed.",
+    ], "number", null, null, "Type perimeter"),
+    () => problem("Composite area: a 5 by 3 rectangle has a right triangle attached. The triangle has base 4 and height 3. What is the total area?", 21, "Rectangle plus triangle", [
+      "Find the rectangle area.",
+      "Find the triangle area using base times height divided by 2.",
+      "Add both areas.",
+    ], "number", null, null, "Type area"),
+    () => problem("Composite perimeter: outside sides are 9, 3, 5, and 5. What is the perimeter?", 22, "Composite perimeter", [
+      "Only add the outside boundary.",
+      "Do not add dashed or inside helper lines.",
+      "Perimeter is a length, not square units.",
+    ], "number", null, null, "Type perimeter"),
+  ])();
 }
 
-function problem(prompt, answer, lessonTitle, steps, answerType = "number", choices = null, displayAnswer = null) {
+function makeMultiplicationProblem() {
+  const a = rand(12, 48);
+  const b = rand(12, 24);
+  const tens = Math.floor(b / 10) * 10;
+  const ones = b - tens;
+  return problem(`${a} x ${b} = ?`, a * b, "Partial products", [
+    `Split ${b} into ${tens || 0} + ${ones}.`,
+    `Multiply ${a} by each part.`,
+    "Add the partial products.",
+  ], "number", null, null, "Type product");
+}
+
+function makeExpressionProblem() {
+  return choose([
+    () => linearProblem("3a + 2b - 2(a + b) = ?", { a: 1, b: 0, c: 0 }),
+    () => linearProblem("4a - 2b + 2(3a + 2b) = ?", { a: 10, b: 2, c: 0 }),
+    () => linearProblem("(3a + 3) * 5 - 12 = ?", { a: 15, b: 0, c: 3 }),
+    () => linearProblem("(7a + 3b + 2) - 3(b + 2) = ?", { a: 7, b: 0, c: -4 }),
+    () => linearProblem("(5a + 6b + 8) - 2(b - 2) = ?", { a: 5, b: 4, c: 12 }),
+    () => linearProblem("(100a + 6) * 5 - 40 = ?", { a: 500, b: 0, c: -10 }),
+    () => linearProblem("(a + 11) - (a + 21) = ?", { a: 0, b: 0, c: -10 }),
+    () => linearProblem("(9a + 15) - (9a - 12) = ?", { a: 0, b: 0, c: 27 }),
+    () => linearProblem("(7a + 19) - (a - 31) = ?", { a: 6, b: 0, c: 50 }),
+    () => linearProblem("20(a + 1) - 21(a - 1) = ?", { a: -1, b: 0, c: 41 }),
+    () => linearProblem("a + 22 - 7 + 36a = ?", { a: 37, b: 0, c: 15 }),
+    () => linearProblem("(a + 7) * 8 + 3a = ?", { a: 11, b: 0, c: 56 }),
+  ])();
+}
+
+function linearProblem(promptText, answer) {
+  return problem(promptText, answer, "Simplify expressions", [
+    "Distribute across parentheses first.",
+    "Combine like terms: a terms with a terms, b terms with b terms, numbers with numbers.",
+    "Write the simplified expression.",
+  ], "linear", null, formatLinear(answer), "Example: 10a + 2b");
+}
+
+function makeEquationProblem() {
+  return choose([
+    () => rationalProblem("Solve: 5x + 8 = 7x - 72", rational(40), "Solve equations", [
+      "Move x terms to one side.",
+      "Move number terms to the other side.",
+      "Divide to find x.",
+    ], "x = 40"),
+    () => rationalProblem("Solve: 7x + 4 = 26", rational(22, 7), "Solve equations", [
+      "Subtract 4 from both sides.",
+      "Divide both sides by 7.",
+      "A fraction answer is okay.",
+    ], "x = 22/7"),
+    () => rationalProblem("Solve: 7(x + 1) = 8(x - 2)", rational(23), "Distribute then solve", [
+      "Distribute on both sides.",
+      "Move x terms to one side.",
+      "Move numbers to the other side.",
+    ], "x = 23"),
+    () => rationalProblem("Solve: x + 4/5 = 9/10", rational(1, 10), "Fraction equation", [
+      "Subtract 4/5 from both sides.",
+      "Rename fifths as tenths when useful.",
+      "Write x as a fraction.",
+    ], "x = 1/10"),
+    () => rationalProblem("Solve: x - 1 7/20 = 7/10", rational(41, 20), "Mixed-number equation", [
+      "Add 1 7/20 to both sides.",
+      "Rename tenths as twentieths.",
+      "Mixed-number answers are accepted.",
+    ], "x = 2 1/20"),
+    () => rationalProblem("Solve: 1 1/2 - x = 1/10", rational(7, 5), "Fraction equation", [
+      "Think: what must be subtracted from 1 1/2 to leave 1/10?",
+      "Rename 1 1/2 as tenths.",
+      "Solve for x.",
+    ], "x = 1 2/5"),
+  ])();
+}
+
+function rationalProblem(promptText, answer, lessonTitle, steps, displayAnswer) {
+  return problem(promptText, answer, lessonTitle, steps, "rational", null, displayAnswer, "Example: x = 1/10");
+}
+
+function makeWordEquationProblem() {
+  const start = rand(18, 42);
+  const gaveAway = rand(6, 14);
+  const total = start - gaveAway + 2 * start;
+  return problem(`Jane had some stamps. She gave away ${gaveAway}. Then her mom bought her twice as many as she had at the beginning. Now Jane has ${total}. How many did she have at the beginning?`, start, "Write an equation", [
+    "Let x be the starting number.",
+    `After giving away stamps, she has x - ${gaveAway}.`,
+    "Her mom adds 2x more, so combine the parts and solve.",
+  ], "number", null, null, "Type starting number");
+}
+
+function makeDecimalFractionProblem() {
+  const item = choose([
+    ["0.7", rational(7, 10), "7/10"],
+    ["0.07", rational(7, 100), "7/100"],
+    ["0.43", rational(43, 100), "43/100"],
+    ["2.78", rational(278, 100), "2 78/100"],
+    ["1.4", rational(14, 10), "1 4/10"],
+    ["0.40", rational(40, 100), "40/100"],
+    ["0.94", rational(94, 100), "94/100"],
+    ["0.006", rational(6, 1000), "6/1000"],
+  ]);
+  return problem(`Write ${item[0]} as a fraction.`, item[1], "Decimals as fractions", [
+    "Use place value: tenths, hundredths, or thousandths.",
+    "The digits after the decimal become the numerator.",
+    "Equivalent simplified fractions are accepted.",
+  ], "rational", null, item[2], "Example: 7/10");
+}
+
+function problem(prompt, answer, lessonTitle, steps, answerType = "number", choices = null, displayAnswer = null, placeholder = "Type answer") {
   return {
     prompt,
     answer,
@@ -593,6 +627,7 @@ function problem(prompt, answer, lessonTitle, steps, answerType = "number", choi
     lessonTitle,
     steps,
     choices,
+    placeholder,
   };
 }
 
@@ -601,7 +636,141 @@ function isCorrect(value, item) {
   if (item.answerType === "decimal") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
   if (item.answerType === "remainder") return normalize(value) === normalize(item.answer).replace("remainder", "r");
   if (item.answerType === "choice") return normalizeChoice(value) === normalizeChoice(item.answer);
+  if (item.answerType === "linear") return sameLinearExpression(value, item.answer);
+  if (item.answerType === "rational") return sameRational(value, item.answer);
   return normalize(value) === normalize(item.answer);
+}
+
+function rational(numerator, denominator = 1) {
+  if (denominator === 0) return { n: NaN, d: NaN };
+  const sign = denominator < 0 ? -1 : 1;
+  const n = Number(numerator) * sign;
+  const d = Math.abs(Number(denominator));
+  const factor = gcd(Math.abs(n), d);
+  return { n: n / factor, d: d / factor };
+}
+
+function gcd(a, b) {
+  let x = Math.round(Math.abs(a));
+  let y = Math.round(Math.abs(b));
+  while (y) {
+    const next = x % y;
+    x = y;
+    y = next;
+  }
+  return x || 1;
+}
+
+function sameRational(value, expected) {
+  const actual = parseRational(value);
+  if (!actual) return false;
+  return actual.n === expected.n && actual.d === expected.d;
+}
+
+function parseRational(value) {
+  let text = String(value).toLowerCase().replace(/[−–—]/g, "-").trim();
+  if (!text) return null;
+  if (text.includes("=")) text = text.split("=").pop().trim();
+  text = text.replace(/^x\s*/i, "").trim();
+  text = text.replace(/\s+/g, " ");
+
+  const mixed = text.match(/^(-?\d+)\s+(\d+)\/(\d+)$/);
+  if (mixed) {
+    const whole = Number(mixed[1]);
+    const numerator = Number(mixed[2]);
+    const denominator = Number(mixed[3]);
+    const sign = whole < 0 ? -1 : 1;
+    return rational(whole * denominator + sign * numerator, denominator);
+  }
+
+  const fraction = text.replace(/\s/g, "").match(/^(-?\d+)\/(\d+)$/);
+  if (fraction) return rational(Number(fraction[1]), Number(fraction[2]));
+
+  const decimal = text.replace(/\s/g, "").match(/^-?\d+(\.\d+)?$/);
+  if (decimal) {
+    const compact = text.replace(/\s/g, "");
+    if (!compact.includes(".")) return rational(Number(compact));
+    const sign = compact.startsWith("-") ? -1 : 1;
+    const unsigned = compact.replace("-", "");
+    const [whole, part] = unsigned.split(".");
+    const denominator = 10 ** part.length;
+    return rational(sign * (Number(whole) * denominator + Number(part)), denominator);
+  }
+
+  return null;
+}
+
+function sameLinearExpression(value, expected) {
+  const actual = parseLinearExpression(value);
+  return Boolean(actual)
+    && actual.a === (expected.a || 0)
+    && actual.b === (expected.b || 0)
+    && actual.c === (expected.c || 0);
+}
+
+function parseLinearExpression(value) {
+  let text = String(value).toLowerCase().replace(/[−–—]/g, "-").trim();
+  if (!text) return null;
+  if (text.includes("=")) text = text.split("=").pop().trim();
+  text = text.replace(/\s+/g, "").replace(/\*/g, "");
+  if (!text) return null;
+  if (!/^[+-]/.test(text)) text = `+${text}`;
+  const parts = text.match(/[+-][^+-]+/g);
+  if (!parts) return null;
+  const result = { a: 0, b: 0, c: 0 };
+
+  for (const part of parts) {
+    const sign = part[0] === "-" ? -1 : 1;
+    const body = part.slice(1);
+    if (!body) return null;
+    if (body.includes("a")) {
+      const coefficient = body.replace("a", "");
+      result.a += sign * parseCoefficient(coefficient);
+    } else if (body.includes("b")) {
+      const coefficient = body.replace("b", "");
+      result.b += sign * parseCoefficient(coefficient);
+    } else if (/^\d+$/.test(body)) {
+      result.c += sign * Number(body);
+    } else {
+      return null;
+    }
+  }
+
+  return result;
+}
+
+function parseCoefficient(value) {
+  if (value === "") return 1;
+  if (/^\d+$/.test(value)) return Number(value);
+  return NaN;
+}
+
+function formatLinear(expression) {
+  const terms = [];
+  addLinearTerm(terms, expression.a || 0, "a");
+  addLinearTerm(terms, expression.b || 0, "b");
+  addConstantTerm(terms, expression.c || 0);
+  return terms.length ? terms.join(" ") : "0";
+}
+
+function addLinearTerm(terms, coefficient, variable) {
+  if (!coefficient) return;
+  const magnitude = Math.abs(coefficient);
+  const body = `${magnitude === 1 ? "" : magnitude}${variable}`;
+  addFormattedTerm(terms, coefficient, body);
+}
+
+function addConstantTerm(terms, value) {
+  if (!value) return;
+  addFormattedTerm(terms, value, String(Math.abs(value)));
+}
+
+function addFormattedTerm(terms, signedValue, body) {
+  if (!terms.length) {
+    terms.push(signedValue < 0 ? `-${body}` : body);
+  } else {
+    terms.push(`${signedValue < 0 ? "-" : "+"} ${body}`);
+  }
 }
 
 function normalize(value) {
