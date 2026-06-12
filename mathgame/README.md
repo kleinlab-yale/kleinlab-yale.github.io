@@ -12,6 +12,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Quest gates require enough correct answers; wrong attempts do not pass the level.
 - The pet uses full integrated sprite variants for outfits, not square overlay shapes.
 - Math content is now aimed at accelerated 4th-grade work: distributive property, combining like terms, equations, fraction equations, decimals as fractions, and area/perimeter.
+- The cottage can be entered after hatching; home math unlocks living-room decorations and the TV can change channels.
 
 ## Files
 
@@ -20,6 +21,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - `script.js`: WebGL renderer, save state, closet, and math quest logic.
 - `assets/gpt-*.png`: GPT-generated backdrop, egg, pet, and outfit sprite textures.
 - `tools/slice_gpt_atlas.py`: dependency-free PNG slicer that chroma-keys and trims the generated pet atlas.
+- `tools/slice_home_decor.py`: dependency-free PNG slicer for the home decoration atlas.
 - `tools/generate_assets.py`: legacy procedural asset generator retained as a fallback, not the current visual direction.
 
 ## Local Preview

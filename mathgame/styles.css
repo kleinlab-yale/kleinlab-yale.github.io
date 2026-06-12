@@ -71,6 +71,50 @@ button {
     linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 34%, rgba(255, 230, 170, 0.16));
 }
 
+.scene-hotspot {
+  position: absolute;
+  z-index: 6;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 104px;
+  min-height: 46px;
+  padding: 10px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.64);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 252, 240, 0.88), rgba(255, 223, 142, 0.82));
+  box-shadow: var(--small-shadow);
+  color: var(--ink);
+  font-weight: 950;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scene-hotspot.show {
+  display: inline-flex;
+}
+
+.scene-hotspot span {
+  pointer-events: none;
+}
+
+.home-hotspot {
+  left: max(48px, 5vw);
+  top: 40%;
+}
+
+.exit-home-button {
+  left: max(36px, 3vw);
+  top: 33%;
+}
+
+.tv-hotspot {
+  right: max(90px, 8vw);
+  top: 46%;
+}
+
 .hud-top,
 .pet-card,
 .world-strip,

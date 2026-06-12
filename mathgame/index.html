@@ -5,16 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Pet Evolution: Sky Meadow</title>
     <link rel="preload" href="assets/gpt-meadow-backdrop.png" as="image" />
+    <link rel="preload" href="assets/gpt-home-interior.png" as="image" />
     <link rel="preload" href="assets/gpt-egg.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-sweater.png" as="image" />
     <link rel="icon" href="assets/gpt-egg.png" />
-    <link rel="stylesheet" href="styles.css?v=20260612-rsmlevel" />
+    <link rel="stylesheet" href="styles.css?v=20260612-homefeature" />
   </head>
   <body>
     <main class="game-shell" id="gameShell">
       <canvas id="worldCanvas" aria-label="3D pet world"></canvas>
       <div class="world-vignette"></div>
+      <button id="homeHotspot" class="scene-hotspot home-hotspot" type="button">
+        <span>Enter Home</span>
+      </button>
+      <button id="exitHomeButton" class="scene-hotspot exit-home-button" type="button">
+        <span>Outside</span>
+      </button>
+      <button id="tvHotspot" class="scene-hotspot tv-hotspot" type="button">
+        <span>Change TV</span>
+      </button>
 
       <section class="hud-top" aria-label="Game status">
         <div class="objective-chip">
@@ -111,6 +121,6 @@
       </div>
     </section>
 
-    <script src="script.js?v=20260612-rsmlevel"></script>
+    <script src="script.js?v=20260612-homefeature"></script>
   </body>
 </html>

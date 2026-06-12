@@ -4,6 +4,7 @@ const BOSS_PASS = 5;
 
 const ASSETS = {
   backdrop: "assets/gpt-meadow-backdrop.png",
+  home: "assets/gpt-home-interior.png",
   egg: "assets/gpt-egg.png",
   puppy: "assets/gpt-puppy-base.png",
   bow: "assets/gpt-puppy-bow.png",
@@ -12,6 +13,14 @@ const ASSETS = {
   thinking: "assets/gpt-puppy-thinking.png",
   celebrate: "assets/gpt-puppy-celebrate.png",
   sleepy: "assets/gpt-puppy-sleepy.png",
+  homeCouch: "assets/gpt-home-couch.png",
+  homeChair: "assets/gpt-home-chair.png",
+  homeTvOff: "assets/gpt-home-tv-off.png",
+  homeTvStar: "assets/gpt-home-tv-star.png",
+  homePlant: "assets/gpt-home-plant.png",
+  homeRug: "assets/gpt-home-rug.png",
+  homeLamp: "assets/gpt-home-lamp.png",
+  homeTable: "assets/gpt-home-table.png",
 };
 
 const WORLDS = [
@@ -39,6 +48,16 @@ const CLOSET = [
   { id: "collar", name: "Bell collar", asset: "assets/gpt-puppy-collar.png", kind: "look" },
 ];
 
+const HOME_ITEMS = [
+  { id: "rug", name: "cozy rug", tex: "homeRug", x: -0.08, y: 0.16, z: 0.72, w: 2.05, h: 1.25 },
+  { id: "couch", name: "peach couch", tex: "homeCouch", x: -1.9, y: 0.94, z: 0.35, w: 2.15, h: 1.46 },
+  { id: "plant", name: "leafy plant", tex: "homePlant", x: 1.98, y: 0.9, z: 0.36, w: 0.92, h: 1.0 },
+  { id: "tv", name: "star TV", tex: "homeTvOff", x: 1.92, y: 1.28, z: 0.38, w: 1.38, h: 1.34 },
+  { id: "chair", name: "mint chair", tex: "homeChair", x: -0.95, y: 0.93, z: 0.4, w: 1.22, h: 1.1 },
+  { id: "lamp", name: "warm lamp", tex: "homeLamp", x: 2.88, y: 1.0, z: 0.42, w: 0.56, h: 1.0 },
+  { id: "table", name: "reading table", tex: "homeTable", x: 0.75, y: 0.54, z: 0.55, w: 0.86, h: 0.81 },
+];
+
 const els = {
   canvas: document.querySelector("#worldCanvas"),
   setupOverlay: document.querySelector("#setupOverlay"),
@@ -63,6 +82,9 @@ const els = {
   questButton: document.querySelector("#questButton"),
   questButtonLabel: document.querySelector("#questButtonLabel"),
   callPetButton: document.querySelector("#callPetButton"),
+  homeHotspot: document.querySelector("#homeHotspot"),
+  exitHomeButton: document.querySelector("#exitHomeButton"),
+  tvHotspot: document.querySelector("#tvHotspot"),
   toast: document.querySelector("#toast"),
   questOverlay: document.querySelector("#questOverlay"),
   questForm: document.querySelector("#questForm"),
@@ -105,6 +127,9 @@ if (IS_DEMO) {
     energy: 76,
     growth: 44,
     glow: 18,
+    location: "home",
+    homeItems: ["rug", "couch", "plant", "tv"],
+    tvChannel: 1,
     unlocked: ["none"],
     equipped: { look: "none" },
   };
@@ -123,6 +148,9 @@ function createInitialState() {
     energy: 52,
     growth: 0,
     glow: 0,
+    location: "outdoor",
+    homeItems: [],
+    tvChannel: 0,
     unlocked: ["none"],
     equipped: {
       look: "none",
@@ -146,6 +174,9 @@ function loadState() {
       energy: clamp(saved.energy ?? 52, 0, 100),
       growth: clamp(saved.growth ?? 0, 0, 100),
       glow: Math.max(0, Number(saved.glow || 0)),
+      location: saved.location === "home" ? "home" : "outdoor",
+      homeItems: Array.isArray(saved.homeItems) ? saved.homeItems.filter((id) => HOME_ITEMS.some((item) => item.id === id)) : [],
+      tvChannel: clamp(saved.tvChannel ?? 0, 0, 1),
       unlocked: Array.isArray(saved.unlocked) ? Array.from(new Set(["none", ...saved.unlocked])) : ["none"],
       equipped: {
         look: saved.equipped?.look || saved.equipped?.sweater || saved.equipped?.hat || saved.equipped?.collar || "none",
@@ -240,20 +271,46 @@ function renderHud() {
   const questName = QUEST_LABELS[quest];
   const pass = currentQuestPass();
   const size = currentQuestSize();
+  const inHome = state.location === "home";
+  const nextDecor = nextHomeItem();
 
   els.setupOverlay.classList.toggle("show", !state.setup);
-  els.objectiveTitle.textContent = state.stage === "egg" ? "Hatch the puppy" : `${questName}: ${world.name}`;
+  els.objectiveTitle.textContent = state.stage === "egg"
+    ? "Hatch the puppy"
+    : inHome ? "Cozy Home" : `${questName}: ${world.name}`;
   els.objectiveText.textContent = state.stage === "egg"
     ? "Click Practice Math. Pass the first snack quest to hatch the egg."
-    : `Practice ${world.focus}. Pass with ${pass}/${size} correct to unlock the next beat.`;
+    : inHome
+      ? nextDecor
+        ? `Do home math to unlock the ${nextDecor.name}. Pass with ${pass}/${size} correct.`
+        : "The living room is fully decorated. Click the TV to change channels or go outside."
+      : `Practice ${world.focus}. Pass with ${pass}/${size} correct to unlock the next beat. Click the cottage to visit home.`;
   els.petNameLabel.textContent = state.stage === "egg" ? `${state.petName}'s egg` : state.petName;
   els.foodBar.style.width = `${state.food}%`;
   els.energyBar.style.width = `${state.energy}%`;
   els.growthBar.style.width = `${state.growth}%`;
-  els.worldLabel.textContent = `${world.name}  ${state.world + 1}/${WORLDS.length}`;
-  els.sparkleLabel.textContent = `${state.glow} glow`;
-  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : questName;
+  els.worldLabel.textContent = inHome ? "Cozy Home" : `${world.name}  ${state.world + 1}/${WORLDS.length}`;
+  els.sparkleLabel.textContent = inHome ? `${state.homeItems.length}/${HOME_ITEMS.length} decor` : `${state.glow} glow`;
+  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : questName;
+  els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && !inHome);
+  els.exitHomeButton.classList.toggle("show", state.setup && inHome);
+  els.tvHotspot.classList.toggle("show", state.setup && inHome && state.homeItems.includes("tv"));
   renderCloset();
+}
+
+function nextHomeItem() {
+  return HOME_ITEMS.find((item) => !state.homeItems.includes(item.id));
+}
+
+function unlockHomeReward() {
+  const item = nextHomeItem();
+  if (!item) return "The home is fully decorated.";
+  state.homeItems.push(item.id);
+  return `${capitalize(item.name)} unlocked for the living room.`;
+}
+
+function capitalize(value) {
+  return String(value).charAt(0).toUpperCase() + String(value).slice(1);
 }
 
 function renderCloset() {
@@ -295,6 +352,7 @@ function startQuest() {
   const size = currentQuestSize();
   activeRound = {
     type,
+    location: state.location,
     index: 0,
     size,
     pass: currentQuestPass(),
@@ -404,6 +462,7 @@ function submitAnswer(raw) {
 function finishRound() {
   const passed = activeRound.correct >= activeRound.pass;
   const type = activeRound.type;
+  const roundLocation = activeRound.location;
   const correct = activeRound.correct;
   const pass = activeRound.pass;
   activeRound = null;
@@ -424,10 +483,18 @@ function finishRound() {
   state.growth = clamp(state.growth + 14, 0, 100);
   state.glow += type === "boss" ? 20 : 8;
 
+  if (roundLocation === "home") {
+    showToast(`${QUEST_LABELS[type]} cleared: ${correct}/${pass}. ${unlockHomeReward()}`);
+    saveState();
+    renderHud();
+    petPulseUntil = performance.now() + 1300;
+    return;
+  }
+
   if (type === "number" && state.stage === "egg") {
     state.stage = "puppy";
     state.equipped.look = "none";
-    message = `${state.petName} hatched. A cozy closet reward is waiting in the next quests.`;
+    message = `${state.petName} hatched. Click the cottage to enter the cozy home.`;
   } else if (type === "geometry") {
     if (unlock("sweater")) message = "Peach sweater unlocked from the build quest.";
   } else if (type === "boss") {
@@ -814,6 +881,32 @@ els.resetButton.addEventListener("click", () => {
   if (!window.confirm("Restart from a new egg and clear this device's progress?")) return;
   restartGame();
 });
+els.homeHotspot.addEventListener("click", () => {
+  if (state.stage === "egg") {
+    showToast("Hatch the puppy first, then you can visit home.");
+    return;
+  }
+  state.location = "home";
+  saveState();
+  renderHud();
+  petPulseUntil = performance.now() + 1200;
+  showToast(`${state.petName} trotted into the cozy home.`);
+});
+els.exitHomeButton.addEventListener("click", () => {
+  state.location = "outdoor";
+  saveState();
+  renderHud();
+  petPulseUntil = performance.now() + 900;
+  showToast(`${state.petName} went back outside.`);
+});
+els.tvHotspot.addEventListener("click", () => {
+  if (!state.homeItems.includes("tv")) return;
+  state.tvChannel = state.tvChannel ? 0 : 1;
+  saveState();
+  renderHud();
+  petPulseUntil = performance.now() + 900;
+  showToast(state.tvChannel ? "The TV shows a starry puppy channel." : "The TV is now on the calm channel.");
+});
 
 els.questButton.addEventListener("click", startQuest);
 els.callPetButton.addEventListener("click", () => {
@@ -968,24 +1061,49 @@ function drawScene(time) {
 
   const aspect = gl.canvas.width / Math.max(1, gl.canvas.height);
   const pulse = Math.max(0, petPulseUntil - time) / 1200;
-  const cameraX = Math.sin(time * 0.00018) * 0.45 + pulse * 0.16;
-  const cameraY = 2.25 + Math.sin(time * 0.00027) * 0.08;
+  const inHome = state.location === "home";
+  const cameraX = Math.sin(time * 0.00018) * (inHome ? 0.18 : 0.45) + pulse * 0.16;
+  const cameraY = (inHome ? 2.05 : 2.25) + Math.sin(time * 0.00027) * 0.08;
   const projection = perspective(Math.PI / 4.5, aspect, 0.1, 80);
-  const view = lookAt([cameraX, cameraY, 7.2], [0, 0.9, -1.2], [0, 1, 0]);
+  const view = lookAt([cameraX, cameraY, 7.2], [0, inHome ? 0.85 : 0.9, -1.2], [0, 1, 0]);
   const pv = multiply(projection, view);
 
   const objects = [
-    { tex: "backdrop", x: 0, y: 1.15, z: -6.4, w: 24.0, h: 13.5, rx: 0, a: 1 },
+    { tex: inHome ? "home" : "backdrop", x: 0, y: 1.15, z: -6.4, w: 24.0, h: 13.5, rx: 0, a: 1 },
   ];
+
+  if (inHome) {
+    objects.push(...homeDecorObjects());
+  }
 
   objects.forEach((obj) => drawObject(gl, textures[obj.tex], pv, obj, matrix, alpha));
 
   const bob = Math.sin(time * 0.004) * 0.045 + pulse * 0.08;
-  const scale = state.stage === "egg" ? 1.15 : 1.72 + Math.min(0.25, state.growth / 500);
-  const pet = { tex: state.stage === "egg" ? "egg" : petTextureKey(), x: 0.12, y: 0.56 + bob, z: 0.55, w: scale, h: scale * 1.1, rx: 0, a: 1 };
+  const scale = state.stage === "egg" ? 1.15 : (inHome ? 1.38 : 1.72) + Math.min(0.25, state.growth / 500);
+  const pet = {
+    tex: state.stage === "egg" ? "egg" : petTextureKey(),
+    x: inHome ? -0.06 : 0.12,
+    y: (inHome ? 0.48 : 0.56) + bob,
+    z: 0.55,
+    w: scale,
+    h: scale * 1.1,
+    rx: 0,
+    a: 1,
+  };
   drawObject(gl, textures[pet.tex], pv, pet, matrix, alpha);
 
   requestAnimationFrame(drawScene);
+}
+
+function homeDecorObjects() {
+  return HOME_ITEMS
+    .filter((item) => state.homeItems.includes(item.id))
+    .map((item) => ({
+      ...item,
+      tex: item.id === "tv" ? (state.tvChannel ? "homeTvStar" : "homeTvOff") : item.tex,
+      rx: 0,
+      a: 1,
+    }));
 }
 
 function petTextureKey() {
