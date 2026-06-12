@@ -455,19 +455,28 @@ input:focus {
 }
 
 .choice-row {
+  position: relative;
+  z-index: 3;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 14px;
+  pointer-events: auto;
 }
 
 .choice-row button {
+  position: relative;
+  z-index: 4;
   min-width: 78px;
   min-height: 48px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.78);
   box-shadow: var(--small-shadow);
   font-weight: 950;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .quest-feedback.good {

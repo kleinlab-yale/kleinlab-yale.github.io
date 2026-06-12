@@ -341,8 +341,20 @@ function renderChoices(choices) {
     button.type = "button";
     button.dataset.choiceIndex = String(index);
     button.textContent = choiceLabel(choice);
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      submitChoice(index);
+    });
     els.choiceRow.append(button);
   });
+}
+
+function submitChoice(index) {
+  if (!activeProblem?.choices) return;
+  const choice = activeProblem.choices[index];
+  if (!choice) return;
+  submitAnswer(choiceValue(choice));
 }
 
 function choiceLabel(choice) {
@@ -648,9 +660,7 @@ els.questForm.addEventListener("submit", (event) => {
 els.choiceRow.addEventListener("click", (event) => {
   const button = event.target.closest("[data-choice-index]");
   if (!button) return;
-  const choice = activeProblem?.choices?.[Number(button.dataset.choiceIndex)];
-  if (!choice) return;
-  submitAnswer(choiceValue(choice));
+  submitChoice(Number(button.dataset.choiceIndex));
 });
 els.closetButton.addEventListener("click", () => {
   renderCloset();
