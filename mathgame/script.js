@@ -494,15 +494,18 @@ function makeNumberProblem(world) {
 function makeFractionProblem(world) {
   if (world <= 2) {
     const d = rand(4, 10);
+    const equalQuestion = Math.random() < 0.22;
     let a = rand(1, d - 1);
-    let b = rand(1, d - 1);
-    if (a === b) b = b === d - 1 ? b - 1 : b + 1;
-    const answer = a > b ? "greater-than" : "less-than";
-    const answerLabel = a > b ? ">" : "<";
+    let b = equalQuestion ? a : rand(1, d - 1);
+    if (!equalQuestion && a === b) b = b === d - 1 ? b - 1 : b + 1;
+    const answer = a > b ? "greater-than" : a < b ? "less-than" : "equal";
+    const answerLabel = answer === "greater-than" ? ">"
+      : answer === "less-than" ? "<"
+        : "=";
     return problem(`${a}/${d} ? ${b}/${d}`, answer, "Compare fractions", [
       `The denominators both equal ${d}.`,
       `Compare the numerators: ${a} and ${b}.`,
-      "The fraction with the larger numerator is larger.",
+      "Choose <, =, or > to show how the left fraction compares to the right fraction.",
     ], "choice", [
       { label: "<", value: "less-than" },
       { label: "=", value: "equal" },
@@ -596,7 +599,7 @@ function normalize(value) {
 function normalizeChoice(value) {
   const normalized = normalize(value).replace(/&lt;|‹|less-than|lessthan|less/g, "<")
     .replace(/&gt;|›|greater-than|greaterthan|morethan|greater|more/g, ">")
-    .replace(/equalto|equals/g, "=");
+    .replace(/equalto|equals|same/g, "=");
   if (normalized === "<") return "less-than";
   if (normalized === ">") return "greater-than";
   if (normalized === "=") return "equal";
