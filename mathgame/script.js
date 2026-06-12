@@ -1,3044 +1,910 @@
-const LEGACY_STORAGE_KEY = "math-pet-evolution-save-v1";
-const PROFILE_INDEX_KEY = "math-pet-evolution-profiles-v1";
-const ACTIVE_PROFILE_KEY = "math-pet-evolution-active-profile-v1";
-const PROFILE_SAVE_PREFIX = "math-pet-evolution-profile-save-v1:";
-const MAX_PROFILE_COUNT = 6;
-const MAX_PROFILE_NAME_LENGTH = 18;
-const FIRST_HATCH_SOLVED_TARGET = 4;
-const QUEST_PASS_TARGET = 4;
-const QUEST_SEQUENCE = ["multiplication", "fractions", "geometry"];
-const QUEST_BUTTON_LABELS = {
-  multiplication: "Start Number Quest",
-  fractions: "Cross the Bridge",
-  geometry: "Build Upgrade",
-};
-const LESSONS = {
-  basicMultiply: {
-    topic: "Multiply",
-    title: "Equal Groups and Arrays",
-    intro: "Use rows and equal groups to see multiplication as a fast way to count.",
-    steps: [
-      "Look for rows and columns, like 3 rows of 4 stars.",
-      "Multiply rows x stars in each row: 3 x 4 = 12.",
-      "You can also count by repeated addition: 4 + 4 + 4 = 12.",
-    ],
-    visual: {
-      type: "multiply-array",
-      rows: 3,
-      columns: 4,
-      total: 12,
-    },
-  },
-  multiDigitMultiply: {
-    topic: "Multiply",
-    title: "Break Apart a Bigger Product",
-    intro: "When the numbers get bigger, split a factor into tens and ones so each part is easier to multiply.",
-    steps: [
-      "For 24 x 16, split 16 into 10 and 6.",
-      "Multiply 24 x 10 = 240 and 24 x 6 = 144.",
-      "Add the partial products: 240 + 144 = 384.",
-    ],
-    visual: {
-      type: "multiply-grid",
-      leftFactor: 24,
-      topParts: [10, 6],
-      partials: [240, 144],
-      total: 384,
-    },
-  },
-  fractionCompare: {
-    topic: "Fractions",
-    title: "Compare Fractions on the Bridge",
-    intro: "Change the fractions so they use the same denominator, then compare the two bars.",
-    steps: [
-      "Change 3/4 into eighths: 3/4 = 6/8.",
-      "Now compare 6/8 and 5/8. Since 6 eighths is more than 5 eighths, 3/4 > 5/8.",
-      "Matching denominators makes it easier to see which fraction is greater.",
-    ],
-    visual: {
-      type: "fraction-compare",
-      left: { numerator: 3, denominator: 4, label: "3/4" },
-      right: { numerator: 5, denominator: 8, label: "5/8" },
-      equivalentLeft: "6/8",
-      symbol: ">",
-    },
-  },
-  equivalentFraction: {
-    topic: "Fractions",
-    title: "Build an Equivalent Fraction",
-    intro: "Equivalent fractions keep the same value because the numerator and denominator are scaled by the same number.",
-    steps: [
-      "Start with 2/3.",
-      "Multiply the numerator and denominator by 2 to get 4/6.",
-      "Because both parts were multiplied by the same number, the size stayed the same.",
-    ],
-    visual: {
-      type: "fraction-scale",
-      start: "2/3",
-      scale: "x 2",
-      result: "4/6",
-    },
-  },
-  divisionWhole: {
-    topic: "Division",
-    title: "Long Division with a Whole-Number Answer",
-    intro: "Divide one place value at a time and stop when nothing is left over.",
-    steps: [
-      "4 goes into 8 two times, so write 2 in the tens place.",
-      "Subtract 8, bring down the 4, then 4 goes into 4 one time.",
-      "The answer is 21. Check with 21 x 4 = 84.",
-    ],
-    visual: {
-      type: "division-board",
-      divisor: 4,
-      dividend: 84,
-      quotient: "21",
-      work: ["8 - 8 = 0", "bring down 4", "4 - 4 = 0"],
-    },
-  },
-  divisionRemainder: {
-    topic: "Division",
-    title: "Long Division with a Remainder",
-    intro: "Sometimes there are pieces left over. When that happens, write the quotient and then the remainder.",
-    steps: [
-      "5 goes into 6 one time, so write 1 above the 6.",
-      "Subtract 5, bring down the 7, and 5 goes into 17 three times.",
-      "Subtract 15 to get 2 left over, so 67 ÷ 5 = 13 R 2.",
-    ],
-    visual: {
-      type: "division-board",
-      divisor: 5,
-      dividend: 67,
-      quotient: "13 R 2",
-      work: ["6 - 5 = 1", "bring down 7", "17 - 15 = 2"],
-    },
-  },
-  divisionDecimal: {
-    topic: "Division",
-    title: "Long Division into Decimals",
-    intro: "Keep dividing by adding a decimal point and zeros when the division does not come out even.",
-    steps: [
-      "4 goes into 17 four times, so subtract 16 and get remainder 1.",
-      "Place a decimal point in the quotient, bring down a 0, and divide 10 by 4 to get 2.",
-      "Bring down another 0, divide 20 by 4 to get 5, so 17 ÷ 4 = 4.25.",
-    ],
-    visual: {
-      type: "division-board",
-      divisor: 4,
-      dividend: 17,
-      quotient: "4.25",
-      work: ["17 - 16 = 1", "10 ÷ 4 = 2 R 2", "20 ÷ 4 = 5"],
-    },
-  },
-  fractionDecimal: {
-    topic: "Decimals",
-    title: "Turn a Fraction into a Decimal",
-    intro: "Change the fraction to hundredths or divide the numerator by the denominator.",
-    steps: [
-      "Start with 3/4.",
-      "Rewrite it as 75/100, or divide 3 by 4 to get 0.75.",
-      "That means 3/4 and 0.75 name the same amount.",
-    ],
-    visual: {
-      type: "fraction-decimal",
-      fraction: "3/4",
-      bridge: "75/100",
-      decimal: "0.75",
-    },
-  },
-  geometryMeasure: {
-    topic: "Measure",
-    title: "Area and Perimeter",
-    intro: "The same rectangle can teach both area and perimeter. The key is knowing whether the problem asks for inside space or outside distance.",
-    steps: [
-      "Area means the space inside, so 6 x 4 = 24 square units.",
-      "Perimeter means the distance around, so 6 + 6 + 4 + 4 = 20 units.",
-      "Ask: does the question want inside space or distance around the outside?",
-    ],
-    visual: {
-      type: "rectangle-measure",
-      width: 6,
-      height: 4,
-      area: 24,
-      perimeter: 20,
-    },
-  },
-  geometryComposite: {
-    topic: "Measure",
-    title: "Split a Composite Shape",
-    intro: "Break the big shape into smaller rectangles, then add their areas.",
-    steps: [
-      "Find the area of the left rectangle: 3 x 4 = 12.",
-      "Find the area of the right rectangle: 5 x 4 = 20.",
-      "Add 12 + 20 to get a total area of 32 square units.",
-    ],
-    visual: {
-      type: "composite-area",
-      leftWidth: 3,
-      rightWidth: 5,
-      height: 4,
-      leftArea: 12,
-      rightArea: 20,
-      total: 32,
-    },
-  },
-  algebraEquation: {
-    topic: "Algebra",
-    title: "Solve a One-Step Equation",
-    intro: "Undo the operation to isolate x.",
-    steps: [
-      "Start with x + 7 = 19.",
-      "Subtract 7 from both sides so the equation stays balanced.",
-      "That leaves x = 12.",
-    ],
-    visual: {
-      type: "algebra-balance",
-      equation: "x + 7 = 19",
-      action: "- 7 both sides",
-      result: "x = 12",
-    },
-  },
-};
-const ZONE_LESSON_KEYS = {
-  nest: ["basicMultiply"],
-  bridge: ["fractionCompare", "equivalentFraction"],
-  grove: ["geometryMeasure"],
-  sky: ["multiDigitMultiply", "geometryMeasure"],
-  dunes: ["divisionWhole", "divisionRemainder"],
-  caverns: ["fractionCompare", "fractionDecimal"],
-  meadow: ["geometryMeasure", "geometryComposite"],
-  citadel: ["divisionDecimal", "fractionDecimal", "algebraEquation"],
+const SAVE_KEY = "math-pet-sky-meadow-v3";
+const QUEST_PASS = 3;
+const BOSS_PASS = 5;
+
+const ASSETS = {
+  backdrop: "assets/gpt-meadow-backdrop.png",
+  egg: "assets/gpt-egg.png",
+  puppy: "assets/gpt-puppy-base.png",
+  bow: "assets/gpt-puppy-bow.png",
+  sweater: "assets/gpt-puppy-sweater.png",
+  collar: "assets/gpt-puppy-collar.png",
+  thinking: "assets/gpt-puppy-thinking.png",
+  celebrate: "assets/gpt-puppy-celebrate.png",
+  sleepy: "assets/gpt-puppy-sleepy.png",
 };
 
-const EGG_TYPES = {
-  sun: {
-    label: "Sunbeam Egg",
-    personality: "cheerful and brave",
-    colors: ["#ffe8a6", "#ffa95f"],
-    habitatHue: "sunny",
-  },
-  tide: {
-    label: "Tide Egg",
-    personality: "curious and calm",
-    colors: ["#b9f3ff", "#4bb8ff"],
-    habitatHue: "tide",
-  },
-  grove: {
-    label: "Grove Egg",
-    personality: "creative and bold",
-    colors: ["#dcffa1", "#58c76e"],
-    habitatHue: "grove",
-  },
+const WORLDS = [
+  { name: "Sky Meadow", focus: "multiplication arrays" },
+  { name: "Ribbon Bridge", focus: "fraction comparison" },
+  { name: "Shape Grove", focus: "area and perimeter" },
+  { name: "Division Dunes", focus: "long division" },
+  { name: "Crystal Decimal Cove", focus: "fractions to decimals" },
+  { name: "Workshop Meadow", focus: "multi-digit multiplication" },
+  { name: "Aurora Academy", focus: "equations and mixed mastery" },
+];
+
+const QUEST_FLOW = ["number", "fraction", "geometry", "boss"];
+const QUEST_LABELS = {
+  number: "Snack Math",
+  fraction: "Bridge Math",
+  geometry: "Build Math",
+  boss: "World Boss",
 };
 
-const STAGES = [
-  {
-    id: "egg",
-    name: "Mystery Egg",
-    chip: "Egg",
-    petClass: "egg",
-  },
-  {
-    id: "hatchling",
-    name: "Snuggle Puppy",
-    chip: "Puppy",
-    petClass: "hatchling",
-  },
-  {
-    id: "sprout",
-    name: "Playful Pup",
-    chip: "Pup",
-    petClass: "sprout",
-  },
-  {
-    id: "glider",
-    name: "Adventure Dog",
-    chip: "Dog",
-    petClass: "glider",
-  },
-  {
-    id: "sage",
-    name: "Cozy Companion",
-    chip: "Cozy",
-    petClass: "glider",
-  },
-  {
-    id: "nova",
-    name: "Starlight Bestie",
-    chip: "Star",
-    petClass: "glider",
-  },
-  {
-    id: "aurora",
-    name: "Aurora Buddy",
-    chip: "Aurora",
-    petClass: "glider",
-  },
-  {
-    id: "legend",
-    name: "Legend Pup",
-    chip: "Legend",
-    petClass: "glider",
-  },
+const CLOSET = [
+  { id: "none", name: "No extra", asset: null, kind: "all", unlock: true },
+  { id: "sweater", name: "Peach sweater", asset: "assets/gpt-puppy-sweater.png", kind: "look" },
+  { id: "bow", name: "Berry bow", asset: "assets/gpt-puppy-bow.png", kind: "look" },
+  { id: "collar", name: "Bell collar", asset: "assets/gpt-puppy-collar.png", kind: "look" },
 ];
 
-const ZONES = [
-  {
-    id: "nest",
-    name: "Sunny Nest",
-    icon: "Sun",
-    color: "linear-gradient(135deg, #ffad50, #ffd65b)",
-    unlockBosses: 0,
-    summary: "The first cozy home where the egg waits to hatch.",
-    sceneGradient:
-      "linear-gradient(180deg, rgba(255, 245, 205, 0.68), rgba(139, 210, 255, 0.7)), linear-gradient(180deg, #fff5c3, #9edbff)",
-  },
-  {
-    id: "bridge",
-    name: "Fraction Bridge",
-    icon: "vs",
-    color: "linear-gradient(135deg, #47c5e7, #7fd8ff)",
-    unlockBosses: 1,
-    summary: "A sparkling crossing rebuilt with smart fraction choices.",
-    sceneGradient:
-      "linear-gradient(180deg, rgba(219, 246, 255, 0.76), rgba(120, 196, 255, 0.78)), linear-gradient(180deg, #eaf8ff, #8ac4ff)",
-  },
-  {
-    id: "grove",
-    name: "Shape Grove",
-    icon: "Tri",
-    color: "linear-gradient(135deg, #72c46e, #c3f38a)",
-    unlockBosses: 2,
-    summary: "A habitat filled with geometry towers and playful patterns.",
-    sceneGradient:
-      "linear-gradient(180deg, rgba(239, 255, 214, 0.76), rgba(156, 223, 150, 0.78)), linear-gradient(180deg, #fbffd9, #8adf89)",
-  },
-  {
-    id: "sky",
-    name: "Starfall Sky",
-    icon: "*",
-    color: "linear-gradient(135deg, #ff8d7e, #ffc65f)",
-    unlockBosses: 3,
-    summary: "A high-altitude world where harder mixed quests begin to shine.",
-    sceneGradient:
-      "linear-gradient(180deg, rgba(255, 235, 198, 0.82), rgba(255, 159, 131, 0.72)), linear-gradient(180deg, #fff5d8, #ffae7c)",
-  },
-  {
-    id: "dunes",
-    name: "Division Dunes",
-    icon: "Div",
-    color: "linear-gradient(135deg, #f5b15e, #ffe59a)",
-    unlockBosses: 4,
-    summary: "Ancient sand wheels spin when long division answers are exact.",
-    sceneGradient:
-      "linear-gradient(180deg, rgba(255, 239, 196, 0.78), rgba(237, 196, 111, 0.78)), linear-gradient(180deg, #fff6d9, #e6b867)",
-  },
-  {
-    id: "caverns",
-    name: "Crystal Caverns",
-    icon: "Gem",
-    color: "linear-gradient(135deg, #59bfc2, #9fe6dc)",
-    unlockBosses: 5,
-    summary: "Echoing tunnels reward equivalent fractions and hidden number patterns.",
-    sceneGradient:
-      "linear-gradient(180deg, rgba(214, 252, 249, 0.8), rgba(95, 185, 183, 0.82)), linear-gradient(180deg, #effffd, #72cbc5)",
-  },
-  {
-    id: "meadow",
-    name: "Measure Meadow",
-    icon: "Met",
-    color: "linear-gradient(135deg, #89c86a, #dcf59f)",
-    unlockBosses: 6,
-    summary: "Perimeter trails and composite gardens stretch every measurement skill.",
-    sceneGradient:
-      "linear-gradient(180deg, rgba(235, 255, 215, 0.8), rgba(151, 216, 117, 0.82)), linear-gradient(180deg, #f7ffe4, #97d86e)",
-  },
-  {
-    id: "citadel",
-    name: "Aurora Citadel",
-    icon: "Arc",
-    color: "linear-gradient(135deg, #ff8d78, #ffd772)",
-    unlockBosses: 7,
-    summary: "The final world blends advanced multiplication, division, fractions, and geometry in master quests.",
-    sceneGradient:
-      "linear-gradient(180deg, rgba(255, 234, 215, 0.82), rgba(255, 176, 126, 0.82)), linear-gradient(180deg, #fff9ea, #ffb46d)",
-  },
-];
-
-const DECORATIONS = [
-  { id: "flower", label: "Blossom patch", type: "flower" },
-  { id: "crystal", label: "Bridge crystal", type: "crystal" },
-  { id: "mushroom", label: "Mushroom stool", type: "mushroom" },
-  { id: "flower-two", label: "Starlight bloom", type: "flower" },
-  { id: "crystal-two", label: "Moon crystal", type: "crystal" },
-  { id: "mushroom-two", label: "Forest mushroom", type: "mushroom" },
-  { id: "flower-three", label: "Dune blossom", type: "flower" },
-  { id: "crystal-three", label: "Cavern shard", type: "crystal" },
-  { id: "mushroom-three", label: "Meadow toadstool", type: "mushroom" },
-  { id: "flower-four", label: "Aurora bloom", type: "flower" },
-  { id: "crystal-four", label: "Citadel prism", type: "crystal" },
-  { id: "mushroom-four", label: "Starlit mushroom", type: "mushroom" },
-];
-const HAT_ITEMS = [
-  { id: "bow", label: "Peach bow", swatch: "#ff9bc1" },
-  { id: "beanie", label: "Berry beanie", swatch: "#f35b7f" },
-  { id: "crown", label: "Sun crown", swatch: "#ffd467" },
-];
-const SWEATER_ITEMS = [
-  { id: "peach", label: "Peach sweater", swatch: "#ffb08a" },
-  { id: "mint", label: "Mint hoodie", swatch: "#8ddf9a" },
-  { id: "sky", label: "Sky stripes", swatch: "#89d2ff" },
-];
-const COSMETIC_UNLOCKS = [
-  { kind: "scene", id: "flower" },
-  { kind: "hat", id: "bow" },
-  { kind: "scene", id: "crystal" },
-  { kind: "sweater", id: "peach" },
-  { kind: "scene", id: "mushroom" },
-  { kind: "hat", id: "beanie" },
-  { kind: "scene", id: "flower-two" },
-  { kind: "sweater", id: "mint" },
-  { kind: "scene", id: "crystal-two" },
-  { kind: "hat", id: "crown" },
-  { kind: "scene", id: "mushroom-two" },
-  { kind: "sweater", id: "sky" },
-  { kind: "scene", id: "flower-three" },
-  { kind: "scene", id: "crystal-three" },
-  { kind: "scene", id: "mushroom-three" },
-  { kind: "scene", id: "flower-four" },
-  { kind: "scene", id: "crystal-four" },
-  { kind: "scene", id: "mushroom-four" },
-];
-
-const DOM = {
-  playerChip: document.getElementById("playerChip"),
-  switchPlayerButton: document.getElementById("switchPlayerButton"),
-  habitatName: document.getElementById("habitatName"),
-  stageChip: document.getElementById("stageChip"),
-  zoneChip: document.getElementById("zoneChip"),
-  petSpeech: document.getElementById("petSpeech"),
-  petAvatar: document.getElementById("petAvatar"),
-  petNameLabel: document.getElementById("petNameLabel"),
-  petMoodLine: document.getElementById("petMoodLine"),
-  habitatScene: document.getElementById("habitatScene"),
-  sceneDecorations: document.getElementById("sceneDecorations"),
-  hungerValue: document.getElementById("hungerValue"),
-  energyValue: document.getElementById("energyValue"),
-  moodValue: document.getElementById("moodValue"),
-  evolutionValue: document.getElementById("evolutionValue"),
-  hungerMeter: document.getElementById("hungerMeter"),
-  energyMeter: document.getElementById("energyMeter"),
-  moodMeter: document.getElementById("moodMeter"),
-  evolutionMeter: document.getElementById("evolutionMeter"),
-  styleCount: document.getElementById("styleCount"),
-  wardrobeHint: document.getElementById("wardrobeHint"),
-  hatOptions: document.getElementById("hatOptions"),
-  sweaterOptions: document.getElementById("sweaterOptions"),
-  sparkValue: document.getElementById("sparkValue"),
-  streakValue: document.getElementById("streakValue"),
-  streakLine: document.getElementById("streakLine"),
-  unlockLine: document.getElementById("unlockLine"),
-  unlockHint: document.getElementById("unlockHint"),
-  bossTitle: document.getElementById("bossTitle"),
-  bossHint: document.getElementById("bossHint"),
-  bossButton: document.getElementById("bossButton"),
-  challengeTitle: document.getElementById("challengeTitle"),
-  questionCounter: document.getElementById("questionCounter"),
-  challengePrompt: document.getElementById("challengePrompt"),
-  questionType: document.getElementById("questionType"),
-  questionText: document.getElementById("questionText"),
-  fractionVisuals: document.getElementById("fractionVisuals"),
-  choiceGrid: document.getElementById("choiceGrid"),
-  answerForm: document.getElementById("answerForm"),
-  answerInput: document.getElementById("answerInput"),
-  feedbackCard: document.getElementById("feedbackCard"),
-  feedbackText: document.getElementById("feedbackText"),
-  rewardStrip: document.getElementById("rewardStrip"),
-  lessonCard: document.getElementById("lessonCard"),
-  lessonTitle: document.getElementById("lessonTitle"),
-  lessonChip: document.getElementById("lessonChip"),
-  lessonTopicRow: document.getElementById("lessonTopicRow"),
-  lessonIntro: document.getElementById("lessonIntro"),
-  lessonVisual: document.getElementById("lessonVisual"),
-  lessonSteps: document.getElementById("lessonSteps"),
-  zoneList: document.getElementById("zoneList"),
-  milestoneList: document.getElementById("milestoneList"),
-  milestoneCount: document.getElementById("milestoneCount"),
-  profileModal: document.getElementById("profileModal"),
-  profileList: document.getElementById("profileList"),
-  profileEmptyState: document.getElementById("profileEmptyState"),
-  profileCreateForm: document.getElementById("profileCreateForm"),
-  profileNameInput: document.getElementById("profileNameInput"),
-  profileHint: document.getElementById("profileHint"),
-  createProfileButton: document.getElementById("createProfileButton"),
-  closeProfileButton: document.getElementById("closeProfileButton"),
-  setupModal: document.getElementById("setupModal"),
-  setupForm: document.getElementById("setupForm"),
-  petNameInput: document.getElementById("petNameInput"),
-  helpModal: document.getElementById("helpModal"),
-  helpButton: document.getElementById("helpButton"),
-  closeHelpButton: document.getElementById("closeHelpButton"),
-  resetButton: document.getElementById("resetButton"),
+const els = {
+  canvas: document.querySelector("#worldCanvas"),
+  setupOverlay: document.querySelector("#setupOverlay"),
+  setupForm: document.querySelector("#setupForm"),
+  eggRow: document.querySelector("#eggRow"),
+  playerInput: document.querySelector("#playerInput"),
+  petInput: document.querySelector("#petInput"),
+  profileButton: document.querySelector("#profileButton"),
+  closetButton: document.querySelector("#closetButton"),
+  resetButton: document.querySelector("#resetButton"),
+  closetOverlay: document.querySelector("#closetOverlay"),
+  closeClosetButton: document.querySelector("#closeClosetButton"),
+  closetGrid: document.querySelector("#closetGrid"),
+  objectiveTitle: document.querySelector("#objectiveTitle"),
+  objectiveText: document.querySelector("#objectiveText"),
+  petNameLabel: document.querySelector("#petNameLabel"),
+  foodBar: document.querySelector("#foodBar"),
+  energyBar: document.querySelector("#energyBar"),
+  growthBar: document.querySelector("#growthBar"),
+  worldLabel: document.querySelector("#worldLabel"),
+  sparkleLabel: document.querySelector("#sparkleLabel"),
+  questButton: document.querySelector("#questButton"),
+  questButtonLabel: document.querySelector("#questButtonLabel"),
+  callPetButton: document.querySelector("#callPetButton"),
+  toast: document.querySelector("#toast"),
+  questOverlay: document.querySelector("#questOverlay"),
+  questForm: document.querySelector("#questForm"),
+  closeQuestButton: document.querySelector("#closeQuestButton"),
+  questMeta: document.querySelector("#questMeta"),
+  questPrompt: document.querySelector("#questPrompt"),
+  lessonBox: document.querySelector("#lessonBox"),
+  answerInput: document.querySelector("#answerInput"),
+  choiceRow: document.querySelector("#choiceRow"),
+  questFeedback: document.querySelector("#questFeedback"),
 };
 
-const state = createFreshState();
+let selectedEgg = "sunny";
+let toastTimer = 0;
+let petPulseUntil = 0;
+let activeRound = null;
+let activeProblem = null;
+const URL_PARAMS = new URLSearchParams(window.location.search);
+const IS_DEMO = URL_PARAMS.has("demo");
+const SHOULD_RESET = URL_PARAMS.has("reset");
 
-let profiles = [];
-let currentProfileId = "";
-let selectedEgg = "sun";
-let selectedChoiceValue = "";
-let selectedLessonKey = "";
+if (SHOULD_RESET) {
+  resetLocalSaves();
+  const cleanUrl = `${window.location.pathname}${IS_DEMO ? "?demo=1" : ""}`;
+  window.history.replaceState({}, document.title, cleanUrl);
+}
 
-function createFreshState() {
+let state = loadState() || createInitialState();
+
+if (IS_DEMO) {
+  state = {
+    ...state,
+    setup: true,
+    playerName: "Demo",
+    petName: "Mochi",
+    stage: "puppy",
+    world: 1,
+    questStep: 1,
+    food: 84,
+    energy: 76,
+    growth: 44,
+    glow: 18,
+    unlocked: ["none"],
+    equipped: { look: "none" },
+  };
+}
+
+function createInitialState() {
   return {
-    petName: "",
-    eggType: "",
-    sparkles: 0,
-    hunger: 42,
-    energy: 44,
-    mood: 58,
-    evolution: 0,
-    stageIndex: 0,
-    zoneIndex: 0,
-    streak: 0,
-    bossesCleared: 0,
-    decorations: [],
-    unlockedHats: [],
-    unlockedSweaters: [],
-    selectedHat: "none",
-    selectedSweater: "none",
-    milestoneLog: [
-      "A mysterious egg arrived. Choose a shell and begin the first hatch quest.",
-    ],
-    questHistory: {
-      multiplication: 0,
-      fractions: 0,
-      geometry: 0,
-    },
-    cycleHistory: {
-      multiplication: 0,
-      fractions: 0,
-      geometry: 0,
-    },
-    questPathStep: 0,
-    activeQuest: null,
-    activeQuestion: null,
-    cycleLength: 0,
-    questionIndex: 0,
-    currentQuestCorrect: 0,
-    petSpeech: "Choose an egg to begin.",
-    feedbackMessage: "Your pet will react here after each answer.",
-    feedbackTone: "neutral",
-    lastRewards: {
-      food: 0,
-      energy: 0,
-      mood: 0,
-      sparkles: 0,
+    setup: false,
+    playerName: "",
+    petName: "Mochi",
+    egg: "sunny",
+    stage: "egg",
+    world: 0,
+    questStep: 0,
+    food: 48,
+    energy: 52,
+    growth: 0,
+    glow: 0,
+    unlocked: ["none"],
+    equipped: {
+      look: "none",
     },
   };
 }
 
-function hydrateState(savedState) {
-  const fresh = createFreshState();
-  if (!savedState) {
-    return fresh;
-  }
-
-  const legacyDecorations = Array.isArray(savedState.decorations) ? savedState.decorations.length : 0;
-  const legacyUnlockHats = [];
-  const legacyUnlockSweaters = [];
-
-  if (!Array.isArray(savedState.unlockedHats) && !Array.isArray(savedState.unlockedSweaters)) {
-    if (legacyDecorations >= 1) legacyUnlockHats.push("bow");
-    if (legacyDecorations >= 3) legacyUnlockSweaters.push("peach");
-    if (legacyDecorations >= 5) legacyUnlockHats.push("beanie");
-    if (legacyDecorations >= 7) legacyUnlockSweaters.push("mint");
-    if (legacyDecorations >= 9) legacyUnlockHats.push("crown");
-    if (legacyDecorations >= 11) legacyUnlockSweaters.push("sky");
-  }
-
-  const hydrated = {
-    ...fresh,
-    ...savedState,
-    questHistory: {
-      ...fresh.questHistory,
-      ...(savedState.questHistory || {}),
-    },
-    cycleHistory: {
-      ...fresh.cycleHistory,
-      ...(savedState.cycleHistory || {}),
-    },
-    questPathStep: clamp(savedState.questPathStep ?? fresh.questPathStep, 0, QUEST_SEQUENCE.length),
-    lastRewards: {
-      ...fresh.lastRewards,
-      ...(savedState.lastRewards || {}),
-    },
-    decorations: Array.isArray(savedState.decorations) ? savedState.decorations : fresh.decorations,
-    unlockedHats: Array.isArray(savedState.unlockedHats) ? savedState.unlockedHats : legacyUnlockHats,
-    unlockedSweaters: Array.isArray(savedState.unlockedSweaters) ? savedState.unlockedSweaters : legacyUnlockSweaters,
-    selectedHat: typeof savedState.selectedHat === "string" ? savedState.selectedHat : fresh.selectedHat,
-    selectedSweater: typeof savedState.selectedSweater === "string" ? savedState.selectedSweater : fresh.selectedSweater,
-    milestoneLog: Array.isArray(savedState.milestoneLog) ? savedState.milestoneLog : fresh.milestoneLog,
-    stageIndex: clamp(savedState.stageIndex ?? fresh.stageIndex, 0, STAGES.length - 1),
-    zoneIndex: Math.max(0, savedState.zoneIndex ?? fresh.zoneIndex),
-    feedbackMessage: savedState.feedbackMessage || fresh.feedbackMessage,
-    feedbackTone: savedState.feedbackTone || fresh.feedbackTone,
-  };
-
-  hydrated.selectedHat = hydrated.unlockedHats.includes(hydrated.selectedHat)
-    ? hydrated.selectedHat
-    : hydrated.unlockedHats[0] || "none";
-  hydrated.selectedSweater = hydrated.unlockedSweaters.includes(hydrated.selectedSweater)
-    ? hydrated.selectedSweater
-    : hydrated.unlockedSweaters[0] || "none";
-
-  return hydrated;
-}
-
-function replaceState(nextState) {
-  const hydrated = hydrateState(nextState);
-  Object.keys(state).forEach((key) => {
-    delete state[key];
-  });
-  Object.assign(state, hydrated);
-}
-
-function loadJSON(key) {
+function loadState() {
   try {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : null;
-  } catch (error) {
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (!saved || typeof saved !== "object") return null;
+    return {
+      setup: Boolean(saved.setup),
+      playerName: saved.playerName || "",
+      petName: saved.petName || "Mochi",
+      egg: saved.egg || "sunny",
+      stage: saved.stage || "egg",
+      world: clamp(saved.world ?? 0, 0, WORLDS.length - 1),
+      questStep: clamp(saved.questStep ?? 0, 0, QUEST_FLOW.length - 1),
+      food: clamp(saved.food ?? 48, 0, 100),
+      energy: clamp(saved.energy ?? 52, 0, 100),
+      growth: clamp(saved.growth ?? 0, 0, 100),
+      glow: Math.max(0, Number(saved.glow || 0)),
+      unlocked: Array.isArray(saved.unlocked) ? Array.from(new Set(["none", ...saved.unlocked])) : ["none"],
+      equipped: {
+        look: saved.equipped?.look || saved.equipped?.sweater || saved.equipped?.hat || saved.equipped?.collar || "none",
+      },
+    };
+  } catch {
     return null;
   }
 }
 
-function saveJSON(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (character) => {
-    const replacements = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
-    return replacements[character];
-  });
-}
-
-function createProfileId() {
-  const stamp = Date.now().toString(36);
-  const random = Math.random().toString(36).slice(2, 7);
-  return `player-${stamp}-${random}`;
-}
-
-function profileSaveKey(profileId) {
-  return `${PROFILE_SAVE_PREFIX}${profileId}`;
-}
-
-function loadProfilesIndex() {
-  const savedProfiles = loadJSON(PROFILE_INDEX_KEY);
-  if (!Array.isArray(savedProfiles)) {
-    return [];
-  }
-
-  return savedProfiles.filter((profile) => profile && typeof profile.id === "string" && typeof profile.name === "string");
-}
-
-function saveProfilesIndex() {
-  saveJSON(PROFILE_INDEX_KEY, profiles);
-}
-
-function loadActiveProfileId() {
-  return localStorage.getItem(ACTIVE_PROFILE_KEY) || "";
-}
-
-function setActiveProfileId(profileId) {
-  currentProfileId = profileId;
-  if (profileId) {
-    localStorage.setItem(ACTIVE_PROFILE_KEY, profileId);
-  } else {
-    localStorage.removeItem(ACTIVE_PROFILE_KEY);
-  }
-}
-
-function getProfileById(profileId) {
-  return profiles.find((profile) => profile.id === profileId) || null;
-}
-
-function getCurrentProfile() {
-  return getProfileById(currentProfileId);
-}
-
-function touchCurrentProfile() {
-  const currentProfile = getCurrentProfile();
-  if (!currentProfile) {
-    return;
-  }
-
-  currentProfile.lastPlayedAt = new Date().toISOString();
-  saveProfilesIndex();
-}
-
-function loadProfileState(profileId) {
-  return hydrateState(loadJSON(profileSaveKey(profileId)));
-}
-
 function saveState() {
-  if (!currentProfileId) {
-    return;
-  }
-
-  saveJSON(profileSaveKey(currentProfileId), state);
-  touchCurrentProfile();
-}
-
-function migrateLegacySaveIfNeeded() {
-  if (loadProfilesIndex().length > 0) {
-    return;
-  }
-
-  const legacyState = loadJSON(LEGACY_STORAGE_KEY);
-  if (!legacyState) {
-    return;
-  }
-
-  const now = new Date().toISOString();
-  const migratedProfile = {
-    id: createProfileId(),
-    name: "Player 1",
-    createdAt: now,
-    lastPlayedAt: now,
-  };
-
-  saveJSON(PROFILE_INDEX_KEY, [migratedProfile]);
-  localStorage.setItem(ACTIVE_PROFILE_KEY, migratedProfile.id);
-  saveJSON(profileSaveKey(migratedProfile.id), hydrateState(legacyState));
-  localStorage.removeItem(LEGACY_STORAGE_KEY);
-}
-
-function profileSummary(profileId) {
-  const profileState = loadProfileState(profileId);
-  if (!profileState.petName) {
-    return "No pet yet. Pick an egg to begin.";
-  }
-
-  const stage = STAGES[profileState.stageIndex] || STAGES[0];
-  return `${profileState.petName} - ${stage.chip} - ${profileState.sparkles} sparkles`;
-}
-
-function setProfileHint(text, tone = "neutral") {
-  DOM.profileHint.textContent = text;
-  DOM.profileHint.classList.remove("good", "bad");
-  if (tone === "good" || tone === "bad") {
-    DOM.profileHint.classList.add(tone);
+  if (IS_DEMO) return;
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  } catch {
+    /* The game still runs if private browsing blocks storage. */
   }
 }
 
-function renderProfileChooser() {
-  const limitReached = profiles.length >= MAX_PROFILE_COUNT;
-
-  DOM.profileList.innerHTML = profiles
-    .map((profile) => {
-      const isActive = profile.id === currentProfileId;
-      const statusLabel = isActive ? "Playing now" : "Open save";
-      const profileClass = isActive ? "profile-option active" : "profile-option";
-      return `
-        <button class="${profileClass}" data-profile-id="${profile.id}" type="button">
-          <span class="profile-option-top">
-            <span class="profile-option-name">${escapeHtml(profile.name)}</span>
-            <span class="profile-status-chip">${statusLabel}</span>
-          </span>
-          <span class="profile-option-summary">${escapeHtml(profileSummary(profile.id))}</span>
-        </button>
-      `;
-    })
-    .join("");
-
-  DOM.profileEmptyState.hidden = profiles.length > 0;
-  DOM.createProfileButton.disabled = limitReached;
-  DOM.profileNameInput.disabled = limitReached;
-  DOM.closeProfileButton.hidden = !currentProfileId;
-
-  if (limitReached) {
-    setProfileHint(`This browser already has ${MAX_PROFILE_COUNT} player profiles.`, "bad");
-  } else {
-    setProfileHint("Each player gets a separate save slot on this browser.");
+function resetLocalSaves() {
+  try {
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith("math-pet")) localStorage.removeItem(key);
+    }
+  } catch {
+    /* Ignore storage errors; the in-memory game can still restart. */
   }
 }
 
-function closeSetup() {
-  if (DOM.setupModal.open) {
-    DOM.setupModal.close();
-  }
+function restartGame() {
+  resetLocalSaves();
+  selectedEgg = "sunny";
+  activeRound = null;
+  activeProblem = null;
+  state = createInitialState();
+  els.playerInput.value = "";
+  els.petInput.value = "";
+  document.querySelectorAll("[data-egg]").forEach((item) => {
+    item.classList.toggle("active", item.dataset.egg === selectedEgg);
+  });
+  setOverlay(els.questOverlay, false);
+  setOverlay(els.closetOverlay, false);
+  setOverlay(els.setupOverlay, true);
+  renderHud();
+  showToast("Restarted. Choose a new egg.");
 }
 
-function openProfileChooser() {
-  closeSetup();
-  renderProfileChooser();
-  if (!DOM.profileModal.open) {
-    DOM.profileModal.showModal();
-  }
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, Number(value)));
 }
 
-function closeProfileChooser() {
-  if (DOM.profileModal.open) {
-    DOM.profileModal.close();
-  }
+function choose(list) {
+  return list[Math.floor(Math.random() * list.length)];
 }
 
-function activateProfile(profileId) {
-  if (!getProfileById(profileId)) {
-    return;
-  }
-
-  closeProfileChooser();
-  setActiveProfileId(profileId);
-  replaceState(loadProfileState(profileId));
-  selectedEgg = state.eggType || "sun";
-  selectedChoiceValue = "";
-  DOM.profileNameInput.value = "";
-  DOM.petNameInput.value = state.petName || "";
-  saveState();
-  render();
-}
-
-function createProfile(profileName) {
-  const normalizedName = profileName.trim().replace(/\s+/g, " ").slice(0, MAX_PROFILE_NAME_LENGTH);
-
-  if (!normalizedName) {
-    setProfileHint("Enter a player name first.", "bad");
-    DOM.profileNameInput.focus();
-    return;
-  }
-
-  if (profiles.length >= MAX_PROFILE_COUNT) {
-    setProfileHint(`This browser already has ${MAX_PROFILE_COUNT} player profiles.`, "bad");
-    return;
-  }
-
-  const duplicate = profiles.find(
-    (profile) => profile.name.toLowerCase() === normalizedName.toLowerCase(),
-  );
-  if (duplicate) {
-    setProfileHint("That player name already exists. Pick a different one.", "bad");
-    DOM.profileNameInput.focus();
-    return;
-  }
-
-  const now = new Date().toISOString();
-  const profile = {
-    id: createProfileId(),
-    name: normalizedName,
-    createdAt: now,
-    lastPlayedAt: now,
-  };
-
-  profiles = [...profiles, profile];
-  saveProfilesIndex();
-  setActiveProfileId(profile.id);
-  replaceState(createFreshState());
-  selectedEgg = "sun";
-  selectedChoiceValue = "";
-  DOM.profileNameInput.value = "";
-  DOM.petNameInput.value = "";
-  saveState();
-  closeProfileChooser();
-  render();
-}
-
-function initializeGame() {
-  migrateLegacySaveIfNeeded();
-  profiles = loadProfilesIndex();
-
-  const storedActiveProfileId = loadActiveProfileId();
-  const fallbackProfileId = profiles[0] ? profiles[0].id : "";
-  const nextActiveProfileId = profiles.some((profile) => profile.id === storedActiveProfileId)
-    ? storedActiveProfileId
-    : fallbackProfileId;
-
-  setActiveProfileId(nextActiveProfileId);
-
-  if (currentProfileId) {
-    replaceState(loadProfileState(currentProfileId));
-  } else {
-    replaceState(createFreshState());
-  }
-
-  selectedEgg = state.eggType || "sun";
-  selectedChoiceValue = "";
-  render();
-}
-
-function clamp(value, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function randomInt(min, max) {
+function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function currentStage() {
-  return STAGES[state.stageIndex];
+function currentQuestType() {
+  return QUEST_FLOW[state.questStep] || "boss";
 }
 
-function unlockedZones() {
-  return ZONES.filter((zone) => zone.unlockBosses <= state.bossesCleared);
+function currentWorld() {
+  return WORLDS[state.world] || WORLDS[0];
 }
 
-function currentZone() {
-  return unlockedZones()[state.zoneIndex] || ZONES[0];
+function currentQuestSize() {
+  return currentQuestType() === "boss" ? 6 : 4;
 }
 
-function bossReady() {
-  return state.questPathStep >= QUEST_SEQUENCE.length && state.evolution >= 100;
+function currentQuestPass() {
+  return currentQuestType() === "boss" ? BOSS_PASS : QUEST_PASS;
 }
 
-function addMilestone(text) {
-  state.milestoneLog.unshift(text);
-  state.milestoneLog = state.milestoneLog.slice(0, 8);
+function showToast(message) {
+  clearTimeout(toastTimer);
+  els.toast.textContent = message;
+  els.toast.classList.add("show");
+  toastTimer = setTimeout(() => els.toast.classList.remove("show"), 2600);
 }
 
-function bumpNeeds({
-  hunger = 0,
-  energy = 0,
-  mood = 0,
-  evolution = 0,
-  sparkles = 0,
-}) {
-  state.hunger = clamp(state.hunger + hunger);
-  state.energy = clamp(state.energy + energy);
-  state.mood = clamp(state.mood + mood);
-  state.evolution = clamp(state.evolution + evolution);
-  state.sparkles += sparkles;
-  state.lastRewards = { food: hunger, energy, mood, sparkles };
+function setOverlay(overlay, show) {
+  overlay.classList.toggle("show", show);
+  overlay.setAttribute("aria-hidden", show ? "false" : "true");
 }
 
-function cycleDifficulty() {
-  const totalSolved = totalSolvedCount();
-  return Math.min(10, 1 + state.bossesCleared + Math.floor(totalSolved / 10));
+function renderHud() {
+  const quest = currentQuestType();
+  const world = currentWorld();
+  const questName = QUEST_LABELS[quest];
+  const pass = currentQuestPass();
+  const size = currentQuestSize();
+
+  els.setupOverlay.classList.toggle("show", !state.setup);
+  els.objectiveTitle.textContent = state.stage === "egg" ? "Hatch the puppy" : `${questName}: ${world.name}`;
+  els.objectiveText.textContent = state.stage === "egg"
+    ? "Click Practice Math. Pass the first snack quest to hatch the egg."
+    : `Practice ${world.focus}. Pass with ${pass}/${size} correct to unlock the next beat.`;
+  els.petNameLabel.textContent = state.stage === "egg" ? `${state.petName}'s egg` : state.petName;
+  els.foodBar.style.width = `${state.food}%`;
+  els.energyBar.style.width = `${state.energy}%`;
+  els.growthBar.style.width = `${state.growth}%`;
+  els.worldLabel.textContent = `${world.name}  ${state.world + 1}/${WORLDS.length}`;
+  els.sparkleLabel.textContent = `${state.glow} glow`;
+  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : questName;
+  renderCloset();
 }
 
-function compareFractions(aNum, aDen, bNum, bDen) {
-  const left = aNum * bDen;
-  const right = bNum * aDen;
-  if (left === right) {
-    return "=";
-  }
-  return left > right ? ">" : "<";
+function renderCloset() {
+  els.closetGrid.innerHTML = CLOSET.map((item) => {
+    const unlocked = item.unlock || state.unlocked.includes(item.id);
+    const active = item.id === "none"
+      ? state.equipped.look === "none"
+      : state.equipped.look === item.id;
+    const image = item.asset ? `<img src="${item.asset}" alt="" />` : `<span class="closet-empty">Base</span>`;
+    return `
+      <button class="closet-item ${active ? "active" : ""} ${unlocked ? "" : "locked"}" data-closet="${item.id}" ${unlocked ? "" : "disabled"} type="button">
+        ${image}
+        <strong>${item.name}</strong>
+        <span>${unlocked ? (active ? "Wearing" : "Tap to wear") : "Locked"}</span>
+      </button>
+    `;
+  }).join("");
 }
 
-function greatestCommonDivisor(a, b) {
-  let left = Math.abs(a);
-  let right = Math.abs(b);
-
-  while (right !== 0) {
-    const next = left % right;
-    left = right;
-    right = next;
+function unlock(itemId) {
+  if (!state.unlocked.includes(itemId)) {
+    state.unlocked.push(itemId);
+    return true;
   }
-
-  return left || 1;
+  return false;
 }
 
-function formatDecimal(value, places = 3) {
-  return Number(value.toFixed(places)).toString();
-}
-
-function fractionToDecimalString(numerator, denominator) {
-  return formatDecimal(numerator / denominator);
-}
-
-function shuffleArray(items) {
-  const copy = [...items];
-  for (let index = copy.length - 1; index > 0; index -= 1) {
-    const swapIndex = randomInt(0, index);
-    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
-  }
-  return copy;
-}
-
-function toImproperFraction(whole, numerator, denominator) {
-  return whole * denominator + numerator;
-}
-
-function formatQuestTitle(key) {
-  if (key === "multiplication") {
-    return "Number Forge";
-  }
-  if (key === "fractions") {
-    return "Fraction Bridge";
-  }
-  if (key === "geometry") {
-    return "Geometry Workshop";
-  }
-  if (key === "boss") {
-    return "Boss Challenge";
-  }
-  return "Math Quest";
-}
-
-function nextQuestInPath() {
-  return QUEST_SEQUENCE[state.questPathStep] || null;
-}
-
-function questStepIndex(type) {
-  return QUEST_SEQUENCE.indexOf(type);
-}
-
-function resetQuestPath() {
-  state.questPathStep = 0;
-  state.cycleHistory = { multiplication: 0, fractions: 0, geometry: 0 };
-}
-
-function advanceQuestPath(type) {
-  if (type === nextQuestInPath()) {
-    state.questPathStep = Math.min(QUEST_SEQUENCE.length, state.questPathStep + 1);
-  }
-}
-
-function questCardState(type) {
-  if (!currentProfileId || !state.petName) {
-    return "locked";
-  }
-
-  if (state.activeQuest === type) {
-    return "active";
-  }
-
-  const stepIndex = questStepIndex(type);
-  if (stepIndex !== -1 && stepIndex < state.questPathStep) {
-    return "completed";
-  }
-
-  if (!state.activeQuest && type === nextQuestInPath()) {
-    return "available";
-  }
-
-  return "locked";
-}
-
-function totalSolvedCount() {
-  return Object.values(state.questHistory).reduce((sum, count) => sum + count, 0);
-}
-
-function hatchAnswersRemaining() {
-  return Math.max(FIRST_HATCH_SOLVED_TARGET - totalSolvedCount(), 0);
-}
-
-function readyToHatch() {
-  return Boolean(state.petName) && state.stageIndex === 0 && hatchAnswersRemaining() === 0;
-}
-
-function triggerFirstHatch() {
-  if (!readyToHatch()) {
-    return false;
-  }
-
-  state.stageIndex = 1;
-  state.hunger = clamp(state.hunger + 8);
-  state.energy = clamp(state.energy + 10);
-  state.mood = clamp(state.mood + 14);
-  addMilestone(`Crack! ${state.petName} hatched into a ${currentStage().name}.`);
-  state.feedbackMessage = `Crack! ${state.petName} hatched into a ${currentStage().name}. Your puppy is finally here.`;
-  state.feedbackTone = "good";
-  state.petSpeech = `${state.petName} pops out with floppy ears, tiny paws, and a very surprised puppy blink.`;
-  return true;
-}
-
-function idleQuestState() {
-  const totalSolved = totalSolvedCount();
-  const recentMilestone = state.milestoneLog[0] || "A new adventure is waiting.";
-
-  if (!state.petName) {
-    return {
-      counter: "0 solved",
-      prompt: "Each quest turns math into something useful for your pet. Start with Number Forge for a quick hatch boost.",
-      type: "First quest ready",
-      text: "Your pet is waiting for its first math-powered adventure.",
-    };
-  }
-
-  if (totalSolved === 0) {
-    return {
-      counter: "0 solved",
-      prompt: `${state.petName} is ready to hatch. Start with a short Number Forge quest for a quick win.`,
-      type: "First quest ready",
-      text: `${state.petName} is ready for the first math-powered adventure.`,
-    };
-  }
-
-  if (state.stageIndex === 0) {
-    const remaining = hatchAnswersRemaining();
-    return {
-      counter: `${totalSolved} solved`,
-      prompt:
-        remaining > 0
-          ? `${state.petName}'s egg is wobbling. Solve ${remaining} more correct answer${remaining === 1 ? "" : "s"} to hatch your puppy.`
-          : `${state.petName}'s shell is cracking. Finish the current quest to hatch your puppy.`,
-      type: "Egg progress",
-      text: `${state.petName} is still inside the egg, but the shell is starting to crack.`,
-    };
-  }
-
-  const nextQuest = nextQuestInPath();
-  if (nextQuest) {
-    const nextQuestTitle = formatQuestTitle(nextQuest);
-    return {
-      counter: `${totalSolved} solved`,
-      prompt: `${state.petName} should do ${nextQuestTitle} next. Finish it to unlock the next quest in the path.`,
-      type: "Quest path",
-      text: `${nextQuestTitle} is the current quest to play.`,
-    };
-  }
-
-  if (!bossReady()) {
-    return {
-      counter: `${totalSolved} solved`,
-      prompt: `${state.petName} finished the three quest paths. Keep solving to charge the boss gate to 100%.`,
-      type: "Boss charging",
-      text: "All three quests are complete for this round. Fill evolution to unlock the boss challenge.",
-    };
-  }
-
-  if (bossReady()) {
-    return {
-      counter: `${totalSolved} solved`,
-      prompt: `${state.petName} is ready for a boss challenge. Recent milestone: ${recentMilestone}`,
-      type: "Boss ready",
-      text: `${state.petName} has already solved ${totalSolved} math challenge${totalSolved === 1 ? "" : "s"}. Choose a boss quest or keep training.`,
-    };
-  }
-
-  return {
-    counter: `${totalSolved} solved`,
-    prompt: `Recent milestone: ${recentMilestone}`,
-    type: "Adventure continues",
-    text: `${state.petName} has already solved ${totalSolved} math challenge${totalSolved === 1 ? "" : "s"}. Pick the next quest to keep evolving.`,
-  };
-}
-
-function startQuest(type) {
-  if (!currentProfileId) {
-    openProfileChooser();
-    return;
-  }
-
-  if (!state.petName) {
-    openSetup();
-    return;
-  }
-
-  if (state.activeQuest === type) {
-    return;
-  }
-
-  if (state.activeQuest) {
-    state.feedbackMessage = `Finish ${formatQuestTitle(state.activeQuest)} before starting another quest.`;
-    state.feedbackTone = "bad";
-    renderFeedback();
-    renderBossState();
-    return;
-  }
-
-  if (type === "boss") {
-    if (!bossReady()) {
-      const nextQuest = nextQuestInPath();
-      state.feedbackMessage = nextQuest
-        ? `Finish ${formatQuestTitle(nextQuest)} next. The boss quest unlocks after all three quest paths are complete and evolution reaches 100%.`
-        : `The boss path is unlocked, but evolution is only at ${state.evolution}%. Keep solving to charge it to 100%.`;
-      state.feedbackTone = "bad";
-      renderFeedback();
-      renderBossState();
-      return;
-    }
-  } else if (questCardState(type) !== "available") {
-    const nextQuest = nextQuestInPath();
-    state.feedbackMessage = nextQuest
-      ? `${formatQuestTitle(nextQuest)} is the next quest in the path.`
-      : "This quest is locked until the next round begins.";
-    state.feedbackTone = "bad";
-    renderFeedback();
-    return;
-  }
-
-  state.activeQuest = type;
-  state.cycleLength = type === "boss" ? 6 : 5;
-  state.questionIndex = 0;
-  state.streak = 0;
-  state.currentQuestCorrect = 0;
-  selectedChoiceValue = "";
-  state.feedbackMessage = `${state.petName} is ready. Solve the next problem to help your pet grow.`;
-  state.feedbackTone = "neutral";
-  nextQuestion();
+function equip(itemId) {
+  const item = CLOSET.find((entry) => entry.id === itemId);
+  if (!item || (!item.unlock && !state.unlocked.includes(item.id))) return;
+  state.equipped.look = item.id;
   saveState();
-  render();
+  renderHud();
+  petPulseUntil = performance.now() + 900;
 }
 
-function nextQuestion() {
-  if (!state.activeQuest) {
-    return;
-  }
+function startQuest() {
+  const type = currentQuestType();
+  const size = currentQuestSize();
+  activeRound = {
+    type,
+    index: 0,
+    size,
+    pass: currentQuestPass(),
+    correct: 0,
+  };
+  setOverlay(els.questOverlay, true);
+  nextProblem();
+  els.answerInput.focus();
+}
 
-  if (state.questionIndex >= state.cycleLength) {
-    finishQuest();
-    return;
-  }
-
-  const type = state.activeQuest;
-  const difficulty = cycleDifficulty();
-
-  if (type === "multiplication") {
-    state.activeQuestion = generateMultiplicationQuestion(difficulty);
-  } else if (type === "fractions") {
-    state.activeQuestion = generateFractionQuestion(difficulty);
-  } else if (type === "geometry") {
-    state.activeQuestion = generateGeometryQuestion(difficulty);
+function nextProblem() {
+  activeProblem = makeProblem(activeRound.type, state.world);
+  els.questMeta.textContent = `${QUEST_LABELS[activeRound.type]}  ${activeRound.index + 1}/${activeRound.size}  ${activeRound.correct}/${activeRound.pass} correct`;
+  els.questPrompt.textContent = activeProblem.prompt;
+  renderLesson(activeProblem);
+  els.questFeedback.className = "quest-feedback";
+  els.questFeedback.textContent = "A correct answer adds glow. Wrong answers are practice, not progress.";
+  els.answerInput.value = "";
+  if (activeProblem.choices) {
+    renderChoices(activeProblem.choices);
+    els.answerInput.parentElement.style.display = "none";
   } else {
-    state.activeQuestion = generateBossQuestion(difficulty);
+    els.choiceRow.replaceChildren();
+    els.answerInput.parentElement.style.display = "grid";
   }
-
-  selectedChoiceValue = "";
-  selectedLessonKey = state.activeQuestion?.lessonKey || "";
 }
 
-function generateMultiplicationQuestion(difficulty) {
-  const zoneId = currentZone().id;
-
-  if (zoneId === "citadel" && difficulty >= 9) {
-    return shuffleArray([
-      generateDecimalDivisionQuestion(difficulty),
-      generateAlgebraEquationQuestion(difficulty),
-      generateMultiDigitMultiplicationQuestion(difficulty + 1),
-    ])[0];
-  }
-
-  if (["dunes", "caverns", "meadow", "citadel"].includes(zoneId) && difficulty >= 7) {
-    return shuffleArray([
-      generateDivisionQuestion(difficulty, true),
-      generateRemainderDivisionQuestion(difficulty),
-      generateMultiDigitMultiplicationQuestion(difficulty + 1),
-    ])[0];
-  }
-
-  if (difficulty <= 2) {
-    return generateBasicMultiplicationQuestion(difficulty);
-  }
-
-  if (difficulty <= 4) {
-    return shuffleArray([
-      generateBasicMultiplicationQuestion(difficulty + 1),
-      generateScaledMultiplicationQuestion(difficulty),
-      generateMissingFactorQuestion(difficulty),
-    ])[0];
-  }
-
-  if (difficulty <= 6) {
-    return shuffleArray([
-      generateScaledMultiplicationQuestion(difficulty + 1),
-      generateMultiDigitMultiplicationQuestion(difficulty),
-      generateDivisionQuestion(difficulty, false),
-    ])[0];
-  }
-
-  return shuffleArray([
-    generateMultiDigitMultiplicationQuestion(difficulty + 1),
-    generateDivisionQuestion(difficulty, true),
-    generateLargeNumberStoryQuestion(difficulty),
-  ])[0];
-}
-
-function generateBasicMultiplicationQuestion(difficulty) {
-  const a = randomInt(2, 4 + difficulty * 2);
-  const b = randomInt(2, 5 + difficulty * 2);
-  const variants = [
-    {
-      prompt: `${a} x ${b}`,
-      answer: String(a * b),
-      helper: `Link ${state.questionIndex + 1}: grow a snack bundle with repeated groups.`,
-    },
-    {
-      prompt: `A basket has ${a} rows with ${b} fruit stars in each row. How many fruit stars?`,
-      answer: String(a * b),
-      helper: "Multiply rows by stars in each row.",
-    },
-  ];
-
-  return {
-    kind: "numeric",
-    category: "Number Forge",
-    lessonKey: "basicMultiply",
-    ...variants[randomInt(0, variants.length - 1)],
-  };
-}
-
-function generateScaledMultiplicationQuestion(difficulty) {
-  const a = randomInt(12, 18 + difficulty * 4);
-  const b = randomInt(3, 6 + Math.floor(difficulty / 2));
-  return {
-    kind: "numeric",
-    category: "Number Forge",
-    lessonKey: difficulty <= 4 ? "basicMultiply" : "multiDigitMultiply",
-    prompt: `${a} x ${b}`,
-    answer: String(a * b),
-    helper: "Break the bigger factor apart into tens and ones, then multiply each part.",
-  };
-}
-
-function generateMissingFactorQuestion(difficulty) {
-  const factor = randomInt(4, 9 + difficulty);
-  const hidden = randomInt(3, 7 + difficulty);
-  return {
-    kind: "numeric",
-    category: "Number Forge",
-    lessonKey: "divisionWhole",
-    prompt: `A snack machine made ${factor * hidden} glowberries in ${factor} equal groups. How many glowberries were in each group?`,
-    answer: String(hidden),
-    helper: "Use the related division fact to find the missing factor.",
-  };
-}
-
-function generateMultiDigitMultiplicationQuestion(difficulty) {
-  if (difficulty >= 7) {
-    const a = randomInt(24, 68);
-    const b = randomInt(12, 29);
-    return {
-      kind: "numeric",
-      category: "Number Forge",
-      lessonKey: "multiDigitMultiply",
-      prompt: `${a} x ${b}`,
-      answer: String(a * b),
-      helper: "Use partial products or the standard algorithm for multi-digit multiplication.",
-    };
-  }
-
-  const a = randomInt(14, 39);
-  const b = randomInt(11, 19);
-  return {
-    kind: "numeric",
-    category: "Number Forge",
-    lessonKey: "multiDigitMultiply",
-    prompt: `${a} x ${b}`,
-    answer: String(a * b),
-    helper: "Split one factor into tens and ones to multiply in parts.",
-  };
-}
-
-function generateDivisionQuestion(difficulty, allowTwoDigitDivisor) {
-  const divisor = allowTwoDigitDivisor ? randomInt(6, 12) : randomInt(3, 9);
-  const quotient = allowTwoDigitDivisor ? randomInt(12, 48) : randomInt(8, 36);
-  const dividend = divisor * quotient;
-  return {
-    kind: "numeric",
-    category: "Number Forge",
-    lessonKey: "divisionWhole",
-    prompt: `${dividend} ÷ ${divisor}`,
-    answer: String(quotient),
-    helper: allowTwoDigitDivisor
-      ? "Use long division carefully. Each step should divide exactly with no remainder."
-      : "Use multiplication facts to check the quotient.",
-  };
-}
-
-function generateRemainderDivisionQuestion(difficulty) {
-  const divisor = randomInt(4, Math.min(12, 7 + Math.floor(difficulty / 2)));
-  const quotient = randomInt(6, 18 + difficulty);
-  const remainder = randomInt(1, divisor - 1);
-  const dividend = (divisor * quotient) + remainder;
-
-  return {
-    kind: "numeric",
-    category: "Division",
-    lessonKey: "divisionRemainder",
-    answerType: "remainder",
-    prompt: `${dividend} ÷ ${divisor}`,
-    answer: `${quotient} R ${remainder}`,
-    helper: "Use long division. Write the answer as quotient R remainder.",
-  };
-}
-
-function generateDecimalDivisionQuestion(difficulty) {
-  const divisorOptions = [4, 5, 8, 10];
-  const divisor = divisorOptions[randomInt(0, divisorOptions.length - 1)];
-  const whole = randomInt(2, 8 + Math.floor(difficulty / 2));
-  const numerator = randomInt(1, divisor - 1);
-  const dividend = (whole * divisor) + numerator;
-  const answer = fractionToDecimalString(dividend, divisor);
-
-  return {
-    kind: "numeric",
-    category: "Division",
-    lessonKey: "divisionDecimal",
-    answerType: "decimal",
-    prompt: `${dividend} ÷ ${divisor}`,
-    answer,
-    helper: "Use long division. If there is a remainder, add a decimal point and keep dividing with zeros.",
-  };
-}
-
-function generateAlgebraEquationQuestion(difficulty) {
-  const templates = [
-    () => {
-      const addend = randomInt(6, 16);
-      const answer = randomInt(8, 22 + difficulty);
-      return {
-        prompt: `Solve for x: x + ${addend} = ${answer + addend}`,
-        answer: String(answer),
-      };
-    },
-    () => {
-      const subtractor = randomInt(4, 14);
-      const answer = randomInt(10, 24 + difficulty);
-      return {
-        prompt: `Solve for x: x - ${subtractor} = ${answer - subtractor}`,
-        answer: String(answer),
-      };
-    },
-    () => {
-      const factor = randomInt(3, 8);
-      const answer = randomInt(4, 10 + Math.floor(difficulty / 2));
-      return {
-        prompt: `Solve for x: ${factor}x = ${factor * answer}`,
-        answer: String(answer),
-      };
-    },
-    () => {
-      const divisor = randomInt(2, 8);
-      const answer = randomInt(4, 12 + Math.floor(difficulty / 2));
-      return {
-        prompt: `Solve for x: x / ${divisor} = ${answer}`,
-        answer: String(answer * divisor),
-      };
-    },
-  ];
-
-  const picked = templates[randomInt(0, templates.length - 1)]();
-  return {
-    kind: "numeric",
-    category: "Algebra",
-    lessonKey: "algebraEquation",
-    ...picked,
-    helper: "Undo the operation to isolate x. Whatever you do to one side, do to the other side too.",
-  };
-}
-
-function generateLargeNumberStoryQuestion(difficulty) {
-  const packs = randomInt(14, 28);
-  const itemsPerPack = randomInt(16, 36);
-  return {
-    kind: "numeric",
-    category: "Number Forge",
-    lessonKey: "multiDigitMultiply",
-    prompt: `A supply cart holds ${packs} boxes with ${itemsPerPack} lanterns in each box. How many lanterns are there in all?`,
-    answer: String(packs * itemsPerPack),
-    helper: "This is a larger multiplication problem. Organize the tens and ones before multiplying.",
-  };
-}
-
-function generateFractionQuestion(difficulty) {
-  const zoneId = currentZone().id;
-
-  if (difficulty <= 3) {
-    return generateFractionComparisonQuestion(difficulty, false);
-  }
-
-  if (zoneId === "caverns" || zoneId === "citadel" || difficulty >= 8) {
-    return shuffleArray([
-      generateFractionComparisonQuestion(difficulty, true),
-      generateEquivalentFractionQuestion(difficulty + 1),
-      generateFractionToDecimalQuestion(difficulty),
-      generateMixedNumberComparisonQuestion(difficulty),
-    ])[0];
-  }
-
-  if (difficulty <= 5) {
-    return shuffleArray([
-      generateFractionComparisonQuestion(difficulty, true),
-      generateEquivalentFractionQuestion(difficulty),
-    ])[0];
-  }
-
-  return shuffleArray([
-    generateFractionComparisonQuestion(difficulty, true),
-    generateEquivalentFractionQuestion(difficulty + 1),
-    generateMixedNumberComparisonQuestion(difficulty),
-  ])[0];
-}
-
-function generateFractionComparisonQuestion(difficulty, advanced) {
-  const denominatorPool = difficulty < 3 ? [2, 3, 4, 6, 8] : [3, 4, 5, 6, 8, 10, 12];
-  let leftDen = denominatorPool[randomInt(0, denominatorPool.length - 1)];
-  let rightDen = denominatorPool[randomInt(0, denominatorPool.length - 1)];
-  let leftNum = randomInt(1, leftDen - 1);
-  let rightNum = randomInt(1, rightDen - 1);
-
-  if (randomInt(0, 5) === 0) {
-    leftDen = rightDen;
-    rightNum = randomInt(1, rightDen - 1);
-  }
-
-  if (randomInt(0, 6) === 0) {
-    leftNum = Math.max(1, Math.floor(leftDen / 2));
-    rightNum = Math.max(1, Math.floor(rightDen / 2));
-  }
-
-  if (advanced && randomInt(0, 2) === 0) {
-    leftNum += leftDen;
-  }
-
-  if (advanced && randomInt(0, 2) === 1) {
-    rightNum += rightDen;
-  }
-
-  const showVisuals = leftNum <= leftDen && rightNum <= rightDen;
-
-  return {
-    kind: "choice",
-    category: "Fractions",
-    lessonKey: "fractionCompare",
-    prompt: `Which symbol makes the bridge true? ${leftNum}/${leftDen} ? ${rightNum}/${rightDen}`,
-    answer: compareFractions(leftNum, leftDen, rightNum, rightDen),
-    helper: "Choose <, >, or = after comparing the size of each fraction.",
-    choices: ["<", ">", "="],
-    fractions: showVisuals
-      ? [
-          { numerator: leftNum, denominator: leftDen, label: `${leftNum}/${leftDen}` },
-          { numerator: rightNum, denominator: rightDen, label: `${rightNum}/${rightDen}` },
-        ]
-      : null,
-  };
-}
-
-function generateEquivalentFractionQuestion(difficulty) {
-  let baseDenominator = randomInt(2, 6 + Math.floor(difficulty / 2));
-  let baseNumerator = randomInt(1, Math.max(1, baseDenominator - 1));
-  const multiplier = randomInt(2, 4);
-
-  while (greatestCommonDivisor(baseNumerator, baseDenominator) !== 1) {
-    baseDenominator = randomInt(2, 6 + Math.floor(difficulty / 2));
-    baseNumerator = randomInt(1, Math.max(1, baseDenominator - 1));
-  }
-
-  const correct = `${baseNumerator * multiplier}/${baseDenominator * multiplier}`;
-  const distractors = shuffleArray([
-    `${baseNumerator * multiplier}/${baseDenominator}`,
-    `${baseNumerator}/${baseDenominator * multiplier}`,
-    `${baseNumerator * (multiplier + 1)}/${baseDenominator * multiplier}`,
-    `${baseNumerator * multiplier}/${baseDenominator * (multiplier + 1)}`,
-  ]);
-
-  return {
-    kind: "choice",
-    category: "Fractions",
-    lessonKey: "equivalentFraction",
-    prompt: `Which fraction is equivalent to ${baseNumerator}/${baseDenominator}?`,
-    answer: correct,
-    helper: "Equivalent fractions multiply or divide the numerator and denominator by the same number.",
-    choices: shuffleArray([correct, ...distractors.slice(0, 3)]),
-  };
-}
-
-function generateFractionToDecimalQuestion(difficulty) {
-  const denominatorPool = difficulty >= 9 ? [2, 4, 5, 8, 10] : [2, 4, 5, 10];
-  const denominator = denominatorPool[randomInt(0, denominatorPool.length - 1)];
-  const numerator = randomInt(1, denominator - 1);
-  const correctValue = numerator / denominator;
-  const correct = formatDecimal(correctValue);
-  const distractors = new Set();
-  const candidateValues = [
-    numerator / 10,
-    denominator / 10,
-    correctValue + 0.1,
-    correctValue - 0.1,
-    correctValue + 0.05,
-    correctValue - 0.05,
-  ];
-
-  candidateValues.forEach((value) => {
-    if (value > 0) {
-      distractors.add(formatDecimal(value));
-    }
+function renderLesson(item) {
+  const title = document.createElement("strong");
+  title.textContent = item.lessonTitle;
+  const list = document.createElement("ol");
+  item.steps.forEach((step) => {
+    const row = document.createElement("li");
+    row.textContent = step;
+    list.append(row);
   });
-
-  while (distractors.size < 4) {
-    const offset = (randomInt(-2, 3) || 1) / 10;
-    const candidate = correctValue + offset;
-    if (candidate > 0) {
-      distractors.add(formatDecimal(candidate));
-    }
-  }
-
-  return {
-    kind: "choice",
-    category: "Fractions & Decimals",
-    lessonKey: "fractionDecimal",
-    prompt: `Which decimal is equal to ${numerator}/${denominator}?`,
-    answer: correct,
-    helper: "Divide the numerator by the denominator, or rename the fraction as tenths or hundredths.",
-    choices: shuffleArray([correct, ...[...distractors].filter((value) => value !== correct).slice(0, 3)]),
-    fractions: [
-      { numerator, denominator, label: `${numerator}/${denominator}` },
-    ],
-  };
-}
-
-function generateMixedNumberComparisonQuestion() {
-  const leftWhole = randomInt(1, 3);
-  const leftDen = randomInt(2, 8);
-  const leftNum = randomInt(1, leftDen - 1);
-  const rightWhole = randomInt(1, 3);
-  const rightDen = randomInt(2, 8);
-  const rightNum = randomInt(1, rightDen - 1);
-  const leftValue = toImproperFraction(leftWhole, leftNum, leftDen);
-  const rightValue = toImproperFraction(rightWhole, rightNum, rightDen);
-
-  return {
-    kind: "choice",
-    category: "Fractions",
-    lessonKey: "fractionCompare",
-    prompt: `Which symbol makes the trail true? ${leftWhole} ${leftNum}/${leftDen} ? ${rightWhole} ${rightNum}/${rightDen}`,
-    answer: compareFractions(leftValue, leftDen, rightValue, rightDen),
-    helper: "Turn the mixed numbers into improper fractions or compare the whole numbers first.",
-    choices: ["<", ">", "="],
-  };
-}
-
-function generateGeometryQuestion(difficulty) {
-  if (difficulty <= 3) {
-    return generateCoreGeometryQuestion(difficulty);
-  }
-
-  if (difficulty <= 5) {
-    return shuffleArray([
-      generateCoreGeometryQuestion(difficulty),
-      generateMissingSideQuestion(difficulty),
-      generateSquarePerimeterQuestion(difficulty),
-    ])[0];
-  }
-
-  return shuffleArray([
-    generateCoreGeometryQuestion(difficulty),
-    generateMissingSideQuestion(difficulty + 1),
-    generateCompositeAreaQuestion(difficulty),
-    generateFenceQuestion(difficulty),
-  ])[0];
-}
-
-function generateCoreGeometryQuestion(difficulty) {
-  const questionType = randomInt(0, 3);
-
-  if (questionType === 0) {
-    const width = randomInt(3, 6 + difficulty);
-    const height = randomInt(2, 4 + difficulty);
-    return {
-      kind: "numeric",
-      category: "Geometry",
-      lessonKey: "geometryMeasure",
-      prompt: `A rectangle garden is ${width} units by ${height} units. What is its area?`,
-      answer: String(width * height),
-      helper: "Area of a rectangle is length x width.",
-    };
-  }
-
-  if (questionType === 1) {
-    const width = randomInt(2, 7 + difficulty);
-    const height = randomInt(2, 5 + difficulty);
-    return {
-      kind: "numeric",
-      category: "Geometry",
-      lessonKey: "geometryMeasure",
-      prompt: `A path is ${width} units long and ${height} units wide. What is its perimeter?`,
-      answer: String(width * 2 + height * 2),
-      helper: "Perimeter is the total distance around the outside.",
-    };
-  }
-
-  if (questionType === 2) {
-    const shapeOptions = [
-      { name: "triangle", answer: "3" },
-      { name: "quadrilateral", answer: "4" },
-      { name: "pentagon", answer: "5" },
-      { name: "hexagon", answer: "6" },
-      { name: "octagon", answer: "8" },
-    ];
-    const shape = shapeOptions[randomInt(0, shapeOptions.length - 1)];
-    return {
-      kind: "numeric",
-      category: "Geometry",
-      lessonKey: "geometryMeasure",
-      prompt: `How many sides does a ${shape.name} have?`,
-      answer: shape.answer,
-      helper: "Count the edges around the shape.",
-    };
-  }
-
-  const nameChoices = [
-    { clue: "A shape with 4 equal sides", answer: "square" },
-    { clue: "A shape with 3 sides", answer: "triangle" },
-    { clue: "A shape with 6 sides", answer: "hexagon" },
-    { clue: "A shape with 8 sides", answer: "octagon" },
-  ];
-  const shape = nameChoices[randomInt(0, nameChoices.length - 1)];
-  return {
-    kind: "choice",
-    category: "Geometry",
-    lessonKey: "geometryMeasure",
-    prompt: `Which shape matches this clue: ${shape.clue}?`,
-    answer: shape.answer,
-    helper: "Pick the shape name that fits.",
-    choices: ["triangle", "square", "hexagon", "octagon"],
-  };
-}
-
-function generateMissingSideQuestion(difficulty) {
-  const width = randomInt(3, 8 + difficulty);
-  const height = randomInt(2, 6 + Math.floor(difficulty / 2));
-  const perimeter = (width + height) * 2;
-  const askForWidth = randomInt(0, 1) === 0;
-
-  return {
-    kind: "numeric",
-    category: "Geometry",
-    lessonKey: "geometryMeasure",
-    prompt: askForWidth
-      ? `A rectangle has perimeter ${perimeter} units and height ${height} units. What is its width?`
-      : `A rectangle has perimeter ${perimeter} units and width ${width} units. What is its height?`,
-    answer: String(askForWidth ? width : height),
-    helper: "Perimeter of a rectangle is 2 x (length + width). Solve for the missing side.",
-  };
-}
-
-function generateSquarePerimeterQuestion(difficulty) {
-  const side = randomInt(4, 10 + difficulty);
-  return {
-    kind: "numeric",
-    category: "Geometry",
-    lessonKey: "geometryMeasure",
-    prompt: `A square playground has perimeter ${side * 4} units. How long is each side?`,
-    answer: String(side),
-    helper: "A square has 4 equal sides, so divide the perimeter by 4.",
-  };
-}
-
-function generateCompositeAreaQuestion(difficulty) {
-  const leftWidth = randomInt(3, 7 + Math.floor(difficulty / 2));
-  const rightWidth = randomInt(2, 5 + Math.floor(difficulty / 2));
-  const height = randomInt(3, 6 + Math.floor(difficulty / 2));
-  return {
-    kind: "numeric",
-    category: "Geometry",
-    lessonKey: "geometryComposite",
-    prompt: `A floor is made from two rectangles side by side: one is ${leftWidth} by ${height} and the other is ${rightWidth} by ${height}. What is the total area?`,
-    answer: String((leftWidth * height) + (rightWidth * height)),
-    helper: "Find each rectangle's area, then add them together.",
-  };
-}
-
-function generateFenceQuestion(difficulty) {
-  const length = randomInt(6, 12 + Math.floor(difficulty / 2));
-  const width = randomInt(3, 8 + Math.floor(difficulty / 2));
-  return {
-    kind: "numeric",
-    category: "Geometry",
-    lessonKey: "geometryComposite",
-    prompt: `A garden is ${length} units by ${width} units, but one long side rests against a wall. How many units of fence are needed for the other three sides?`,
-    answer: String(length + (width * 2)),
-    helper: "Add only the three sides that need fencing.",
-  };
-}
-
-function generateBossQuestion(difficulty) {
-  const pool = [
-    generateMultiplicationQuestion(difficulty + 1),
-    generateFractionQuestion(difficulty + 1),
-    generateGeometryQuestion(difficulty + 1),
-  ];
-  const picked = pool[randomInt(0, pool.length - 1)];
-  picked.category = `Boss ${picked.category}`;
-  picked.helper = `${picked.helper} Boss rounds mix every skill together.`;
-  return picked;
-}
-
-function normalizeAnswer(question, value) {
-  const compact = String(value).trim().toLowerCase().replace(/\s+/g, "");
-
-  if (question.kind === "choice") {
-    return compact;
-  }
-
-  if (question.answerType === "remainder") {
-    return compact.replace(/remainder/gi, "r");
-  }
-
-  if (question.answerType === "decimal") {
-    const parsed = Number(compact);
-    return Number.isFinite(parsed) ? formatDecimal(parsed) : compact;
-  }
-
-  const parsed = Number(compact);
-  return Number.isFinite(parsed) ? String(parsed) : compact;
-}
-
-function checkAnswer(rawAnswer) {
-  if (!state.activeQuestion) {
-    return;
-  }
-
-  const normalized = normalizeAnswer(state.activeQuestion, rawAnswer);
-  const correct = normalizeAnswer(state.activeQuestion, state.activeQuestion.answer);
-  const isCorrect = normalized === correct;
-  const questType = state.activeQuest;
-
-  if (isCorrect) {
-    state.streak += 1;
-    state.currentQuestCorrect += 1;
-    state.questionIndex += 1;
-    rewardCorrectAnswer(questType);
-    state.feedbackMessage = makePositiveFeedback(questType);
-    state.feedbackTone = "good";
-    state.petSpeech = makePetSpeech(true);
-  } else {
-    state.streak = 0;
-    bumpNeeds({
-      hunger: questType === "boss" ? -3 : -1,
-      energy: questType === "boss" ? -4 : -2,
-      mood: -2,
-      evolution: 0,
-      sparkles: 0,
-    });
-    state.feedbackMessage = `Not yet. The best answer was ${state.activeQuestion.answer}. ${state.activeQuestion.helper}`;
-    state.feedbackTone = "bad";
-    state.petSpeech = makePetSpeech(false);
-    state.questionIndex += 1;
-  }
-
-  if (state.activeQuest) {
-    if (state.questionIndex >= state.cycleLength) {
-      finishQuest();
-    } else {
-      nextQuestion();
-    }
-  }
-
-  saveState();
-  render();
-}
-
-function rewardCorrectAnswer(questType) {
-  if (questType === "multiplication") {
-    bumpNeeds({ hunger: 9, energy: 7, mood: 2, evolution: 8, sparkles: 2 });
-    state.questHistory.multiplication += 1;
-    state.cycleHistory.multiplication += 1;
-    return;
-  }
-
-  if (questType === "fractions") {
-    bumpNeeds({ hunger: 3, energy: 3, mood: 8, evolution: 9, sparkles: 3 });
-    state.questHistory.fractions += 1;
-    state.cycleHistory.fractions += 1;
-    if (state.zoneIndex < unlockedZones().length - 1) {
-      state.zoneIndex += 1;
-    }
-    return;
-  }
-
-  if (questType === "geometry") {
-    bumpNeeds({ hunger: 2, energy: 6, mood: 5, evolution: 9, sparkles: 4 });
-    state.questHistory.geometry += 1;
-    state.cycleHistory.geometry += 1;
-    unlockCosmetic();
-    return;
-  }
-
-  bumpNeeds({ hunger: 6, energy: 6, mood: 8, evolution: 10, sparkles: 6 });
-}
-
-function wardrobeItems(type) {
-  return type === "hat" ? HAT_ITEMS : SWEATER_ITEMS;
-}
-
-function wardrobeItem(type, itemId) {
-  return wardrobeItems(type).find((item) => item.id === itemId) || null;
-}
-
-function totalCosmeticUnlocks() {
-  return state.decorations.length + state.unlockedHats.length + state.unlockedSweaters.length;
-}
-
-function unlockCosmetic() {
-  const nextUnlock = COSMETIC_UNLOCKS[totalCosmeticUnlocks()];
-  if (!nextUnlock) {
-    return;
-  }
-
-  if (nextUnlock.kind === "scene") {
-    const nextDecoration = DECORATIONS.find((item) => item.id === nextUnlock.id);
-    if (nextDecoration && !state.decorations.includes(nextDecoration.id)) {
-      state.decorations.push(nextDecoration.id);
-      addMilestone(`Habitat upgrade unlocked: ${nextDecoration.label}.`);
-    }
-    return;
-  }
-
-  const item = wardrobeItem(nextUnlock.kind, nextUnlock.id);
-  if (!item) {
-    return;
-  }
-
-  if (nextUnlock.kind === "hat" && !state.unlockedHats.includes(item.id)) {
-    state.unlockedHats.push(item.id);
-    if (state.selectedHat === "none") {
-      state.selectedHat = item.id;
-    }
-    addMilestone(`${state.petName} found a new hat: ${item.label}.`);
-    return;
-  }
-
-  if (nextUnlock.kind === "sweater" && !state.unlockedSweaters.includes(item.id)) {
-    state.unlockedSweaters.push(item.id);
-    if (state.selectedSweater === "none") {
-      state.selectedSweater = item.id;
-    }
-    addMilestone(`${state.petName} found a new sweater: ${item.label}.`);
-  }
-}
-
-function finishQuest() {
-  const type = state.activeQuest;
-  if (!type) {
-    return;
-  }
-
-  if (type === "boss") {
-    if (state.currentQuestCorrect >= 4) {
-      clearBoss();
-    } else {
-      state.evolution = 70;
-      resetQuestPath();
-      addMilestone(`Boss challenge attempt complete. ${state.petName} needs more balanced practice before evolving.`);
-      state.feedbackMessage =
-        `Boss challenge complete with ${state.currentQuestCorrect} out of ${state.cycleLength} correct. The quest path resets to Number Forge for another training round.`;
-      state.feedbackTone = "bad";
-      state.petSpeech = `${state.petName} wants one more balanced training round before evolving.`;
-    }
-  } else {
-    const title = formatQuestTitle(type);
-    if (state.currentQuestCorrect >= QUEST_PASS_TARGET) {
-      advanceQuestPath(type);
-      if (!triggerFirstHatch()) {
-        const nextQuest = nextQuestInPath();
-        addMilestone(`${title} complete. ${state.petName} gained confidence and world energy.`);
-        state.feedbackMessage = nextQuest
-          ? `${title} complete. ${formatQuestTitle(nextQuest)} is now ready.`
-          : `${title} complete. The boss path is built. Fill evolution to 100% to unlock it.`;
-        state.feedbackTone = "good";
-        state.petSpeech = makePetSpeech(true);
-      }
-    } else {
-      const needed = QUEST_PASS_TARGET - state.currentQuestCorrect;
-      addMilestone(`${title} practice round finished. ${state.petName} needs ${needed} more correct answer${needed === 1 ? "" : "s"} to clear it.`);
-      state.feedbackMessage =
-        `${title} needs ${QUEST_PASS_TARGET} correct answers to clear. You got ${state.currentQuestCorrect} out of ${state.cycleLength}. Try it again and get ${needed} more correct.`;
-      state.feedbackTone = "bad";
-      state.petSpeech = `${state.petName} wants to practice ${title} one more time before moving on.`;
-    }
-  }
-
-  state.activeQuest = null;
-  state.activeQuestion = null;
-  state.cycleLength = 0;
-  state.questionIndex = 0;
-  state.currentQuestCorrect = 0;
-  selectedChoiceValue = "";
-  saveState();
-  render();
-}
-
-function clearBoss() {
-  const beforeStage = state.stageIndex;
-  state.bossesCleared += 1;
-  state.stageIndex = Math.min(STAGES.length - 1, state.stageIndex + 1);
-  state.evolution = 15;
-  state.hunger = clamp(state.hunger + 10);
-  state.energy = clamp(state.energy + 12);
-  state.mood = clamp(state.mood + 14);
-  resetQuestPath();
-  state.zoneIndex = Math.min(unlockedZones().length - 1, state.zoneIndex + 1);
-
-  if (state.stageIndex > beforeStage) {
-    const changeText = beforeStage === 0
-      ? `hatched into a ${currentStage().name}`
-      : `evolved into ${currentStage().name}`;
-    addMilestone(`${state.petName} ${changeText} and restored ${currentZone().name}.`);
-    state.feedbackMessage =
-      beforeStage === 0
-        ? `Crack! ${state.petName} hatched into a ${currentStage().name}! A new habitat is now open.`
-        : `${state.petName} evolved into ${currentStage().name}! A new habitat is now open.`;
-    state.feedbackTone = "good";
-    state.petSpeech =
-      beforeStage === 0
-        ? `${state.petName} tumbles out of the shell, wiggles tiny paws, and barks in surprise.`
-        : `${state.petName} does a proud little zoomie around the habitat.`;
-  } else {
-    addMilestone(`${state.petName} mastered another boss quest and made the world brighter.`);
-    state.feedbackMessage = `${state.petName} completed a master challenge and earned a rare sparkle burst.`;
-    state.feedbackTone = "good";
-    state.petSpeech = `${state.petName} shimmers proudly after another master challenge.`;
-  }
-}
-
-function makePositiveFeedback(type) {
-  if (type === "multiplication") {
-    return "Correct. Number power is charging snack trees, gears, and supply carts.";
-  }
-  if (type === "fractions") {
-    return "Correct. A section of the bridge lights up and the path grows steadier.";
-  }
-  if (type === "geometry") {
-    return "Correct. New shapes click into place and a cute upgrade is ready.";
-  }
-  return "Correct. The boss arena fills with evolution energy.";
-}
-
-function makePetSpeech(correct) {
-  if (!correct) {
-    return `${state.petName} says, "Let's slow down and try the next one together."`;
-  }
-  if (state.stageIndex === 0) {
-    return hatchAnswersRemaining() <= 1
-      ? `${state.petName}'s shell cracks and glows with cozy puppy magic.`
-      : `${state.petName} wiggles happily inside the egg.`;
-  }
-  if (state.stageIndex === 1) {
-    return `${state.petName} yips, wags a tiny tail, and bounces with excitement.`;
-  }
-  if (state.stageIndex === 2) {
-    return `${state.petName} trots in a happy circle and nudges the next trail with its nose.`;
-  }
-  if (state.stageIndex <= 4) {
-    return `${state.petName} pads around the habitat and looks ready for a harder world.`;
-  }
-  if (state.stageIndex <= 6) {
-    return `${state.petName} sits up proudly and watches for master quests.`;
-  }
-  return `${state.petName} does a proud victory bounce around the habitat.`;
-}
-
-function moodTier() {
-  const average = (state.hunger + state.energy + state.mood) / 3;
-  if (average < 45) {
-    return "low";
-  }
-  if (average > 80) {
-    return "great";
-  }
-  return "okay";
-}
-
-function nextUnlockText() {
-  if (state.stageIndex === 0 && state.petName) {
-    const solved = Math.min(totalSolvedCount(), FIRST_HATCH_SOLVED_TARGET);
-    const remaining = hatchAnswersRemaining();
-    return {
-      line: remaining > 0 ? `Egg hatch ${solved} / ${FIRST_HATCH_SOLVED_TARGET}` : "Egg ready to hatch",
-      hint:
-        remaining > 0
-          ? `Solve ${remaining} more correct answer${remaining === 1 ? "" : "s"} to crack the shell and meet your puppy.`
-          : "Finish this quest to crack the shell and reveal your puppy.",
-    };
-  }
-
-  const nextQuest = nextQuestInPath();
-  if (nextQuest) {
-    const nextQuestTitle = formatQuestTitle(nextQuest);
-    const afterQuest = QUEST_SEQUENCE[state.questPathStep + 1];
-    return {
-      line: nextQuestTitle,
-      hint: afterQuest
-        ? `Complete ${nextQuestTitle} to unlock ${formatQuestTitle(afterQuest)}.`
-        : `Complete ${nextQuestTitle} to build the boss path.`,
-    };
-  }
-
-  if (bossReady()) {
-    return {
-      line: "Boss challenge ready",
-      hint: "Complete the mixed mastery quest to evolve your pet.",
-    };
-  }
-
-  return {
-    line: "Boss challenge",
-    hint: `All three quest paths are complete. Fill evolution to 100%. Current growth: ${state.evolution}%.`,
-  };
-}
-
-function renderFractionVisuals(fractions) {
-  DOM.fractionVisuals.innerHTML = fractions
-    .map((fraction) => {
-      const bars = Array.from({ length: fraction.denominator }, (_, index) => {
-        const filled = index < fraction.numerator ? "fraction-segment filled" : "fraction-segment";
-        return `<span class="${filled}"></span>`;
-      }).join("");
-
-      return `
-        <div class="fraction-card">
-          <strong>${escapeHtml(fraction.label)}</strong>
-          <div class="fraction-bar">${bars}</div>
-        </div>
-      `;
-    })
-    .join("");
+  els.lessonBox.replaceChildren(title, list);
 }
 
 function renderChoices(choices) {
-  DOM.choiceGrid.innerHTML = choices
-    .map((choice) => {
-      const selectedClass = selectedChoiceValue === choice ? "selected" : "";
-      return `<button class="${selectedClass}" data-choice="${escapeHtml(choice)}" type="button">${escapeHtml(choice)}</button>`;
-    })
-    .join("");
-}
-
-function renderQuestInterface() {
-  const question = state.activeQuestion;
-  const questType = state.activeQuest;
-
-  if (!currentProfileId) {
-    DOM.challengeTitle.textContent = "Choose a player first";
-    DOM.questionCounter.textContent = "0 / 0";
-    DOM.challengePrompt.textContent = "Player profiles keep separate progress on this browser.";
-    DOM.questionType.textContent = "Player required";
-    DOM.questionText.textContent = "Create or choose a player profile to begin.";
-    DOM.fractionVisuals.innerHTML = "";
-    DOM.choiceGrid.innerHTML = "";
-    DOM.answerInput.value = "";
-    DOM.answerInput.placeholder = "Create a player first";
-    DOM.answerInput.disabled = true;
-    return;
-  }
-
-  DOM.challengeTitle.textContent = questType ? formatQuestTitle(questType) : "Pick a quest to begin";
-  DOM.questionCounter.textContent = state.cycleLength
-    ? `${Math.min(state.questionIndex + 1, state.cycleLength)} / ${state.cycleLength}`
-    : idleQuestState().counter;
-
-  if (!question) {
-    const idleState = idleQuestState();
-    DOM.challengePrompt.textContent = idleState.prompt;
-    DOM.questionType.textContent = idleState.type;
-    DOM.questionText.textContent = idleState.text;
-    DOM.fractionVisuals.innerHTML = "";
-    DOM.choiceGrid.innerHTML = "";
-    DOM.answerInput.value = "";
-    DOM.answerInput.placeholder = "Type your answer";
-    DOM.answerInput.disabled = true;
-    return;
-  }
-
-  DOM.challengePrompt.textContent = question.helper;
-  DOM.questionType.textContent = question.category;
-  DOM.questionText.textContent = question.prompt;
-  DOM.answerInput.disabled = question.kind === "choice";
-  DOM.answerInput.placeholder = question.kind === "choice" ? "Use the buttons below" : "Type your answer";
-  DOM.answerInput.value = "";
-
-  if (question.fractions) {
-    renderFractionVisuals(question.fractions);
-  } else {
-    DOM.fractionVisuals.innerHTML = "";
-  }
-
-  if (question.kind === "choice") {
-    renderChoices(question.choices);
-  } else {
-    DOM.choiceGrid.innerHTML = "";
-  }
-}
-
-function lessonKeyForQuestion(question) {
-  if (!question) {
-    return "";
-  }
-
-  if (question.lessonKey && LESSONS[question.lessonKey]) {
-    return question.lessonKey;
-  }
-
-  const promptText = `${question.prompt || ""} ${question.helper || ""}`.toLowerCase();
-  const categoryText = String(question.category || "").toLowerCase();
-
-  if (question.answerType === "decimal") {
-    return categoryText.includes("division") ? "divisionDecimal" : "fractionDecimal";
-  }
-
-  if (promptText.includes("remainder")) {
-    return "divisionRemainder";
-  }
-
-  if ((promptText.includes("÷") || promptText.includes("long division")) && promptText.includes("decimal")) {
-    return "divisionDecimal";
-  }
-
-  if (promptText.includes("÷") || promptText.includes("long division")) {
-    return "divisionWhole";
-  }
-
-  if (categoryText.includes("algebra")) {
-    return "algebraEquation";
-  }
-
-  if (promptText.includes("decimal")) {
-    return "fractionDecimal";
-  }
-
-  if (categoryText.includes("fraction")) {
-    return "fractionCompare";
-  }
-
-  if (categoryText.includes("geometry")) {
-    return "geometryMeasure";
-  }
-
-  return "multiDigitMultiply";
-}
-
-function currentZoneLessonKeys() {
-  return ZONE_LESSON_KEYS[currentZone().id] || ["multiDigitMultiply"];
-}
-
-function availableLessonKeys() {
-  const questionKey = lessonKeyForQuestion(state.activeQuestion);
-  const zoneKeys = currentZoneLessonKeys();
-  return [...new Set([questionKey, ...zoneKeys].filter((key) => key && LESSONS[key]))];
-}
-
-function defaultLessonKey() {
-  const lessonKeys = availableLessonKeys();
-  if (!lessonKeys.length) {
-    return "multiDigitMultiply";
-  }
-
-  if (selectedLessonKey && lessonKeys.includes(selectedLessonKey)) {
-    return selectedLessonKey;
-  }
-
-  const questionKey = lessonKeyForQuestion(state.activeQuestion);
-  if (questionKey && lessonKeys.includes(questionKey)) {
-    return questionKey;
-  }
-
-  return lessonKeys[0];
-}
-
-function currentLesson() {
-  const lessonKey = defaultLessonKey();
-  return { key: lessonKey, ...LESSONS[lessonKey] };
-}
-
-function fractionCardMarkup(fraction) {
-  const bars = Array.from({ length: fraction.denominator }, (_, index) => {
-    const filled = index < fraction.numerator ? "fraction-segment filled" : "fraction-segment";
-    return `<span class="${filled}"></span>`;
-  }).join("");
-
-  return `
-    <div class="fraction-card">
-      <strong>${escapeHtml(fraction.label)}</strong>
-      <div class="fraction-bar">${bars}</div>
-    </div>
-  `;
-}
-
-function renderLessonVisual(lesson) {
-  const visual = lesson.visual;
-  if (!visual) {
-    DOM.lessonVisual.innerHTML = "";
-    return;
-  }
-
-  if (visual.type === "multiply-array") {
-    const dots = Array.from({ length: visual.rows * visual.columns }, () => "<span class=\"lesson-array-dot\"></span>").join("");
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-visual-surface lesson-array-model">
-        <div class="lesson-array-grid" style="grid-template-columns: repeat(${visual.columns}, 1fr);">
-          ${dots}
-        </div>
-        <div class="metric-pill-row">
-          <span class="metric-pill">${escapeHtml(String(visual.rows))} rows</span>
-          <span class="metric-pill">${escapeHtml(String(visual.columns))} in each row</span>
-          <span class="metric-pill">${escapeHtml(String(visual.rows))} x ${escapeHtml(String(visual.columns))} = ${escapeHtml(String(visual.total))}</span>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  if (visual.type === "multiply-grid") {
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-visual-surface lesson-multiply-model">
-        <div class="lesson-multiply-header">
-          <span>${escapeHtml(String(visual.leftFactor))} x (${escapeHtml(String(visual.topParts[0]))} + ${escapeHtml(String(visual.topParts[1]))})</span>
-          <strong>${escapeHtml(String(visual.total))}</strong>
-        </div>
-        <div class="lesson-multiply-partials">
-          <div class="lesson-multiply-cell">${escapeHtml(String(visual.leftFactor))} x ${escapeHtml(String(visual.topParts[0]))} = ${escapeHtml(String(visual.partials[0]))}</div>
-          <div class="lesson-multiply-cell">${escapeHtml(String(visual.leftFactor))} x ${escapeHtml(String(visual.topParts[1]))} = ${escapeHtml(String(visual.partials[1]))}</div>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  if (visual.type === "fraction-compare") {
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-fraction-compare">
-        ${fractionCardMarkup(visual.left)}
-        <div class="lesson-compare-sign">${escapeHtml(visual.symbol)}</div>
-        ${fractionCardMarkup(visual.right)}
-      </div>
-      <p class="lesson-visual-caption">${escapeHtml(visual.left.label)} becomes ${escapeHtml(visual.equivalentLeft)}, so it is greater than ${escapeHtml(visual.right.label)}.</p>
-    `;
-    return;
-  }
-
-  if (visual.type === "fraction-scale") {
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-scale-flow">
-        <div class="lesson-decimal-card">
-          <span>Start</span>
-          <strong>${escapeHtml(visual.start)}</strong>
-        </div>
-        <div class="lesson-scale-arrow">${escapeHtml(visual.scale)}</div>
-        <div class="lesson-decimal-card highlight">
-          <span>Result</span>
-          <strong>${escapeHtml(visual.result)}</strong>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  if (visual.type === "division-board") {
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-visual-surface lesson-division-board">
-        <div class="division-top">${escapeHtml(visual.quotient)}</div>
-        <div class="division-bracket">
-          <span class="division-divisor">${escapeHtml(String(visual.divisor))}</span>
-          <span class="division-dividend">${escapeHtml(String(visual.dividend))}</span>
-        </div>
-        <div class="division-work">
-          ${visual.work.map((line) => `<span>${escapeHtml(line)}</span>`).join("")}
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  if (visual.type === "fraction-decimal") {
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-decimal-flow">
-        <div class="lesson-decimal-card">
-          <span>Fraction</span>
-          <strong>${escapeHtml(visual.fraction)}</strong>
-        </div>
-        <div class="lesson-scale-arrow">=</div>
-        <div class="lesson-decimal-card">
-          <span>Hundredths</span>
-          <strong>${escapeHtml(visual.bridge)}</strong>
-        </div>
-        <div class="lesson-scale-arrow">=</div>
-        <div class="lesson-decimal-card highlight">
-          <span>Decimal</span>
-          <strong>${escapeHtml(visual.decimal)}</strong>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  if (visual.type === "rectangle-measure") {
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-visual-surface lesson-rectangle-diagram">
-        <span class="rectangle-width">${escapeHtml(String(visual.width))}</span>
-        <div class="rectangle-box">
-          <span class="rectangle-area">${escapeHtml(String(visual.area))} sq</span>
-        </div>
-        <span class="rectangle-height">${escapeHtml(String(visual.height))}</span>
-      </div>
-      <div class="metric-pill-row">
-        <span class="metric-pill">Area = ${escapeHtml(String(visual.area))}</span>
-        <span class="metric-pill">Perimeter = ${escapeHtml(String(visual.perimeter))}</span>
-      </div>
-    `;
-    return;
-  }
-
-  if (visual.type === "composite-area") {
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-visual-surface lesson-composite-diagram">
-        <div class="composite-shape">
-          <div class="composite-left">${escapeHtml(String(visual.leftArea))}</div>
-          <div class="composite-right">${escapeHtml(String(visual.rightArea))}</div>
-        </div>
-        <div class="metric-pill composite-total">${escapeHtml(String(visual.leftArea))} + ${escapeHtml(String(visual.rightArea))} = ${escapeHtml(String(visual.total))}</div>
-      </div>
-    `;
-    return;
-  }
-
-  if (visual.type === "algebra-balance") {
-    DOM.lessonVisual.innerHTML = `
-      <div class="lesson-algebra-flow">
-        <div class="lesson-decimal-card">
-          <span>Start</span>
-          <strong>${escapeHtml(visual.equation)}</strong>
-        </div>
-        <div class="lesson-scale-arrow">${escapeHtml(visual.action)}</div>
-        <div class="lesson-decimal-card highlight">
-          <span>Result</span>
-          <strong>${escapeHtml(visual.result)}</strong>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  DOM.lessonVisual.innerHTML = "";
-}
-
-function renderLesson() {
-  const lessonKeys = availableLessonKeys();
-  const lesson = currentLesson();
-  const zone = currentZone();
-  DOM.lessonCard.hidden = false;
-
-  DOM.lessonTitle.textContent = lesson.title;
-  DOM.lessonChip.textContent = zone.name;
-  DOM.lessonIntro.textContent = `${zone.name}: ${lesson.intro}`;
-  DOM.lessonTopicRow.innerHTML = lessonKeys
-    .map((key) => {
-      const topic = LESSONS[key];
-      const selectedClass = key === lesson.key ? " selected" : "";
-      return `<button class="lesson-topic-button${selectedClass}" data-lesson="${escapeHtml(key)}" type="button">${escapeHtml(topic.topic)}</button>`;
-    })
-    .join("");
-  DOM.lessonSteps.innerHTML = lesson.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
-  renderLessonVisual(lesson);
-}
-
-function renderQuestOptions() {
-  document.querySelectorAll(".quest-button").forEach((button) => {
-    const type = button.dataset.quest;
-    const stateLabel = questCardState(type);
-    const card = button.closest("[data-quest-card]");
-    const statusLine = card?.querySelector("[data-quest-status]");
-    const defaultLabel = QUEST_BUTTON_LABELS[type] || "Start Quest";
-    const previousQuest = QUEST_SEQUENCE[Math.max(questStepIndex(type) - 1, 0)];
-
-    if (card) {
-      card.classList.remove("is-available", "is-locked", "is-completed", "is-active");
-      card.classList.add(`is-${stateLabel}`);
-    }
-
-    if (!currentProfileId) {
-      button.disabled = true;
-      button.textContent = defaultLabel;
-      if (statusLine) {
-        statusLine.textContent = "Choose a player first.";
-      }
-      return;
-    }
-
-    if (!state.petName) {
-      button.disabled = true;
-      button.textContent = defaultLabel;
-      if (statusLine) {
-        statusLine.textContent = "Choose and name an egg first.";
-      }
-      return;
-    }
-
-    if (stateLabel === "active") {
-      button.disabled = true;
-      button.textContent = "Quest In Progress";
-      if (statusLine) {
-        statusLine.textContent = "Finish this quest to unlock the next one.";
-      }
-      return;
-    }
-
-    if (stateLabel === "completed") {
-      button.disabled = true;
-      button.textContent = "Completed This Round";
-      if (statusLine) {
-        statusLine.textContent = "Done for this round. The path moves forward.";
-      }
-      return;
-    }
-
-    if (stateLabel === "available") {
-      button.disabled = false;
-      button.textContent = defaultLabel;
-      if (statusLine) {
-        const upcomingQuest = QUEST_SEQUENCE[state.questPathStep + 1];
-        statusLine.textContent = upcomingQuest
-          ? `Ready now. Complete it to unlock ${formatQuestTitle(upcomingQuest)}.`
-          : "Ready now. Complete it to build the boss path.";
-      }
-      return;
-    }
-
-    button.disabled = true;
-    button.textContent = "Locked";
-    if (statusLine) {
-      statusLine.textContent = state.activeQuest
-        ? `Finish ${formatQuestTitle(state.activeQuest)} first.`
-        : `Locked until ${formatQuestTitle(previousQuest)} is complete.`;
-    }
+  els.choiceRow.replaceChildren();
+  choices.forEach((choice) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.choice = choice;
+    button.textContent = choice;
+    els.choiceRow.append(button);
   });
 }
 
-function renderRewards() {
-  const { food, energy, mood, sparkles } = state.lastRewards;
-  DOM.rewardStrip.innerHTML = [
-    `Food ${food >= 0 ? "+" : ""}${food}`,
-    `Energy ${energy >= 0 ? "+" : ""}${energy}`,
-    `Mood ${mood >= 0 ? "+" : ""}${mood}`,
-    `Sparkles ${sparkles >= 0 ? "+" : ""}${sparkles}`,
-  ]
-    .map((label) => `<div class="reward-pill">${label}</div>`)
-    .join("");
-}
+function submitAnswer(raw) {
+  if (!activeRound || !activeProblem) return;
+  const value = String(raw ?? els.answerInput.value).trim();
+  if (!value) return;
 
-function renderZones() {
-  DOM.zoneList.innerHTML = ZONES.map((zone) => {
-    const unlocked = zone.unlockBosses <= state.bossesCleared;
-    const active = currentZone().id === zone.id;
-    const statusLabel = unlocked ? (active ? "Current habitat" : "Unlocked") : "Locked";
-    return `
-      <article class="zone-card ${unlocked ? "" : "locked"}">
-        <div class="zone-marker" style="background:${zone.color}">${zone.icon}</div>
-        <div>
-          <h3>${zone.name}</h3>
-          <p>${zone.summary}</p>
-        </div>
-        <span class="zone-tag">${statusLabel}</span>
-      </article>
-    `;
-  }).join("");
-}
-
-function renderMilestones() {
-  DOM.milestoneCount.textContent = `${state.milestoneLog.length} moments`;
-  DOM.milestoneList.innerHTML = state.milestoneLog
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
-}
-
-function renderDecorations() {
-  DOM.sceneDecorations.innerHTML = state.decorations
-    .map((decorationId, index) => {
-      const definition = DECORATIONS.find((item) => item.id === decorationId);
-      if (!definition) {
-        return "";
-      }
-      const left = 10 + ((index * 17) % 75);
-      const delay = (index % 3) * 0.4;
-      return `<div class="decoration ${definition.type}" style="left:${left}%;animation-delay:${delay}s" title="${definition.label}"></div>`;
-    })
-    .join("");
-}
-
-function styleSelectionLabel(type, itemId) {
-  if (itemId === "none") {
-    return type === "hat" ? "No hat" : "No sweater";
+  const correct = isCorrect(value, activeProblem);
+  if (correct) {
+    activeRound.correct += 1;
+    state.glow += activeRound.type === "boss" ? 2 : 1;
+    state.food = clamp(state.food + 8, 0, 100);
+    state.energy = clamp(state.energy + 5, 0, 100);
+    state.growth = clamp(state.growth + 4, 0, 100);
+    els.questFeedback.textContent = "Correct. The meadow glows brighter.";
+    els.questFeedback.className = "quest-feedback good";
+    petPulseUntil = performance.now() + 800;
+  } else {
+    state.energy = clamp(state.energy - 5, 0, 100);
+    els.questFeedback.textContent = `Not this time. Answer: ${activeProblem.displayAnswer}. It does not count toward passing.`;
+    els.questFeedback.className = "quest-feedback bad";
   }
-  return wardrobeItem(type, itemId)?.label || "";
+
+  activeRound.index += 1;
+  saveState();
+  renderHud();
+
+  setTimeout(() => {
+    if (!activeRound) return;
+    if (activeRound.index >= activeRound.size) {
+      finishRound();
+    } else {
+      nextProblem();
+    }
+  }, correct ? 620 : 1050);
 }
 
-function renderStyleOptions(type) {
-  const unlocked = type === "hat" ? state.unlockedHats : state.unlockedSweaters;
-  const selected = type === "hat" ? state.selectedHat : state.selectedSweater;
-  const target = type === "hat" ? DOM.hatOptions : DOM.sweaterOptions;
-  const options = [
-    {
-      id: "none",
-      label: type === "hat" ? "No hat" : "No sweater",
-      swatch: "#f6efe1",
-    },
-    ...wardrobeItems(type),
+function finishRound() {
+  const passed = activeRound.correct >= activeRound.pass;
+  const type = activeRound.type;
+  const correct = activeRound.correct;
+  const pass = activeRound.pass;
+  activeRound = null;
+  activeProblem = null;
+  setOverlay(els.questOverlay, false);
+
+  if (!passed) {
+    showToast(`Retry needed: ${correct}/${pass} correct`);
+    state.growth = clamp(state.growth - 6, 0, 100);
+    saveState();
+    renderHud();
+    return;
+  }
+
+  let message = `${QUEST_LABELS[type]} cleared: ${correct}/${pass}`;
+  state.food = clamp(state.food + 10, 0, 100);
+  state.energy = clamp(state.energy + 9, 0, 100);
+  state.growth = clamp(state.growth + 14, 0, 100);
+  state.glow += type === "boss" ? 20 : 8;
+
+  if (type === "number" && state.stage === "egg") {
+    state.stage = "puppy";
+    state.equipped.look = "none";
+    message = `${state.petName} hatched. A cozy closet reward is waiting in the next quests.`;
+  } else if (type === "geometry") {
+    if (unlock("sweater")) message = "Peach sweater unlocked from the build quest.";
+  } else if (type === "boss") {
+    const rewards = [];
+    if (unlock("bow")) rewards.push("Berry bow");
+    if (unlock("collar")) rewards.push("Bell collar");
+    if (rewards.length) message = `Boss cleared. ${rewards.join(" and ")} unlocked.`;
+    if (state.world < WORLDS.length - 1) {
+      state.world += 1;
+      state.questStep = 0;
+      state.growth = 18;
+      message += ` ${currentWorld().name} opened.`;
+    } else {
+      state.growth = 100;
+      message = `${state.petName} mastered Aurora Academy.`;
+    }
+  }
+
+  if (type !== "boss") {
+    state.questStep = clamp(state.questStep + 1, 0, QUEST_FLOW.length - 1);
+  }
+
+  saveState();
+  renderHud();
+  showToast(message);
+  petPulseUntil = performance.now() + 1300;
+}
+
+function makeProblem(type, world) {
+  if (type === "number") return makeNumberProblem(world);
+  if (type === "fraction") return makeFractionProblem(world);
+  if (type === "geometry") return makeGeometryProblem(world);
+  return choose([makeNumberProblem, makeFractionProblem, makeGeometryProblem])(Math.min(world + 1, WORLDS.length - 1), true);
+}
+
+function makeNumberProblem(world) {
+  if (world <= 1) {
+    const a = rand(3, 9);
+    const b = rand(3, 9);
+    return problem(`${a} x ${b} = ?`, a * b, "Multiplication array", [
+      `Think of ${a} rows with ${b} snacks in each row.`,
+      `Equal groups mean multiply.`,
+      "Find the total number of snacks, then type that number.",
+    ]);
+  }
+  if (world <= 3) {
+    const divisor = rand(3, 9);
+    const quotient = rand(12, 38);
+    const remainder = rand(0, divisor - 1);
+    const dividend = quotient * divisor + remainder;
+    return problem(`${dividend} / ${divisor} = ? ${remainder ? "(use R for remainder)" : ""}`, remainder ? `${quotient}R${remainder}` : quotient, "Long division", [
+      "Estimate how many whole groups of the divisor fit inside the dividend.",
+      "Multiply the divisor by your quotient guess, then subtract.",
+      remainder ? "If some are left over, write the answer as quotient R remainder." : "If nothing is left over, write just the quotient.",
+    ], remainder ? "remainder" : "number");
+  }
+  if (world <= 5) {
+    const a = rand(18, 62);
+    const b = rand(12, 24);
+    const tens = Math.floor(b / 10) * 10;
+    const ones = b - tens;
+    return problem(`${a} x ${b} = ?`, a * b, "Partial products", [
+      `Split ${b} into ${tens} + ${ones}.`,
+      `Multiply ${a} by the tens part, then multiply ${a} by the ones part.`,
+      "Add the two partial products to get the final product.",
+    ]);
+  }
+  const x = rand(4, 18);
+  const add = rand(6, 24);
+  return problem(`x + ${add} = ${x + add}. What is x?`, x, "One-step equation", [
+    `Undo + ${add} by subtracting ${add}.`,
+    `Subtract ${add} from the total on the right side.`,
+    "The number left over is x.",
+  ]);
+}
+
+function makeFractionProblem(world) {
+  if (world <= 2) {
+    const d = rand(4, 10);
+    let a = rand(1, d - 1);
+    let b = rand(1, d - 1);
+    if (a === b) b = b === d - 1 ? b - 1 : b + 1;
+    const answer = a > b ? ">" : "<";
+    return problem(`${a}/${d} ? ${b}/${d}`, answer, "Compare fractions", [
+      `The denominators both equal ${d}.`,
+      `Compare the numerators: ${a} and ${b}.`,
+      "The fraction with the larger numerator is larger.",
+    ], "text", ["<", "=", ">"]);
+  }
+  if (world <= 4) {
+    const options = [
+      ["1/2", "0.5"],
+      ["1/4", "0.25"],
+      ["3/4", "0.75"],
+      ["1/5", "0.2"],
+      ["2/5", "0.4"],
+    ];
+    const [fraction, decimal] = choose(options);
+    return problem(`${fraction} as a decimal = ?`, decimal, "Fraction to decimal", [
+      "Divide the numerator by the denominator.",
+      "Fractions like fourths can become hundredths.",
+      "Write the decimal value without extra words.",
+    ], "decimal");
+  }
+  const denominator = choose([3, 4, 5, 6, 8]);
+  const scale = rand(2, 5);
+  const numerator = rand(1, denominator - 1);
+  return problem(`x/${denominator} = ${numerator * scale}/${denominator * scale}. What is x?`, numerator, "Reverse equivalent fraction", [
+    `${denominator} x ${scale} = ${denominator * scale}.`,
+    `Undo the same scale on the numerator: ${numerator * scale} / ${scale}.`,
+    "That unscaled numerator is x.",
+  ]);
+}
+
+function makeGeometryProblem(world) {
+  if (world <= 2) {
+    const w = rand(4, 12);
+    const h = rand(3, 9);
+    const askArea = Math.random() > 0.4;
+    return problem(`A garden mat is ${w} by ${h}. What is its ${askArea ? "area" : "perimeter"}?`, askArea ? w * h : 2 * (w + h), "Area vs perimeter", askArea ? [
+      "Area measures inside space.",
+      `Use length x width: ${w} x ${h}.`,
+      "Multiply to find the square units inside.",
+    ] : [
+      "Perimeter measures around the outside.",
+      `Add all sides: ${w} + ${h} + ${w} + ${h}.`,
+      "The sum is the distance around the mat.",
+    ]);
+  }
+  if (world <= 5) {
+    const a = rand(3, 7);
+    const b = rand(4, 9);
+    const h1 = rand(5, 9);
+    const h2 = rand(2, h1 - 1);
+    const total = a * h1 + b * h2;
+    return problem(`Composite area: ${a}x${h1} plus ${b}x${h2} = ?`, total, "Composite area", [
+      `Find the first rectangle area: ${a} x ${h1}.`,
+      `Find the second rectangle area: ${b} x ${h2}.`,
+      "Add both rectangle areas together.",
+    ]);
+  }
+  const side = rand(6, 15);
+  return problem(`A square has perimeter ${side * 4}. Solve 4x = ${side * 4}.`, side, "Geometry equation", [
+    "A square has 4 equal sides.",
+    "Perimeter equals 4 times one side.",
+    "Divide the perimeter by 4 to find one side.",
+  ]);
+}
+
+function problem(prompt, answer, lessonTitle, steps, answerType = "number", choices = null) {
+  return {
+    prompt,
+    answer,
+    answerType,
+    displayAnswer: String(answer).replace("R", " R "),
+    lessonTitle,
+    steps,
+    choices,
+  };
+}
+
+function isCorrect(value, item) {
+  if (item.answerType === "number") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
+  if (item.answerType === "decimal") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
+  if (item.answerType === "remainder") return normalize(value) === normalize(item.answer).replace("remainder", "r");
+  return normalize(value) === normalize(item.answer);
+}
+
+function normalize(value) {
+  return String(value).toLowerCase().replace(/\s+/g, "").replace(/remainder/g, "r").replace(/rem/g, "r");
+}
+
+els.setupForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  state.setup = true;
+  state.playerName = els.playerInput.value.trim().slice(0, 18) || "Explorer";
+  state.petName = els.petInput.value.trim().slice(0, 18) || "Mochi";
+  state.egg = selectedEgg;
+  saveState();
+  renderHud();
+  showToast(`Welcome to Sky Meadow, ${state.playerName}.`);
+});
+
+els.eggRow.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-egg]");
+  if (!button) return;
+  selectedEgg = button.dataset.egg;
+  document.querySelectorAll("[data-egg]").forEach((item) => item.classList.toggle("active", item === button));
+});
+
+els.profileButton.addEventListener("click", () => {
+  els.playerInput.value = state.playerName;
+  els.petInput.value = state.petName;
+  setOverlay(els.setupOverlay, true);
+});
+els.resetButton.addEventListener("click", () => {
+  if (!window.confirm("Restart from a new egg and clear this device's progress?")) return;
+  restartGame();
+});
+
+els.questButton.addEventListener("click", startQuest);
+els.callPetButton.addEventListener("click", () => {
+  petPulseUntil = performance.now() + 1200;
+  showToast(state.stage === "egg" ? "The egg wiggles." : `${state.petName} trots closer.`);
+});
+
+els.closeQuestButton.addEventListener("click", () => setOverlay(els.questOverlay, false));
+els.questForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  submitAnswer();
+});
+els.choiceRow.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-choice]");
+  if (!button) return;
+  submitAnswer(button.dataset.choice);
+});
+els.closetButton.addEventListener("click", () => {
+  renderCloset();
+  setOverlay(els.closetOverlay, true);
+});
+els.closeClosetButton.addEventListener("click", () => setOverlay(els.closetOverlay, false));
+els.closetGrid.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-closet]");
+  if (!button || button.disabled) return;
+  equip(button.dataset.closet);
+});
+
+function createRenderer() {
+  const gl = els.canvas.getContext("webgl", { alpha: false, antialias: true });
+  if (!gl) {
+    showToast("WebGL is not available in this browser.");
+    return null;
+  }
+
+  const vertex = `
+    attribute vec3 a_position;
+    attribute vec2 a_uv;
+    uniform mat4 u_matrix;
+    varying vec2 v_uv;
+    void main() {
+      gl_Position = u_matrix * vec4(a_position, 1.0);
+      v_uv = a_uv;
+    }
+  `;
+  const fragment = `
+    precision mediump float;
+    uniform sampler2D u_texture;
+    uniform float u_alpha;
+    varying vec2 v_uv;
+    void main() {
+      vec4 color = texture2D(u_texture, v_uv);
+      if (color.a < 0.02) discard;
+      gl_FragColor = vec4(color.rgb, color.a * u_alpha);
+    }
+  `;
+
+  const program = makeProgram(gl, vertex, fragment);
+  const position = gl.getAttribLocation(program, "a_position");
+  const uv = gl.getAttribLocation(program, "a_uv");
+  const matrix = gl.getUniformLocation(program, "u_matrix");
+  const alpha = gl.getUniformLocation(program, "u_alpha");
+  const textureUniform = gl.getUniformLocation(program, "u_texture");
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -0.5, -0.5, 0, 0, 1,
+     0.5, -0.5, 0, 1, 1,
+    -0.5,  0.5, 0, 0, 0,
+    -0.5,  0.5, 0, 0, 0,
+     0.5, -0.5, 0, 1, 1,
+     0.5,  0.5, 0, 1, 0,
+  ]), gl.STATIC_DRAW);
+
+  gl.useProgram(program);
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 20, 0);
+  gl.enableVertexAttribArray(uv);
+  gl.vertexAttribPointer(uv, 2, gl.FLOAT, false, 20, 12);
+  gl.uniform1i(textureUniform, 0);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.disable(gl.CULL_FACE);
+
+  const textures = {};
+  Object.entries(ASSETS).forEach(([key, url]) => {
+    textures[key] = loadTexture(gl, url);
+  });
+
+  return { gl, program, matrix, alpha, textures };
+}
+
+function makeShader(gl, type, source) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    throw new Error(gl.getShaderInfoLog(shader));
+  }
+  return shader;
+}
+
+function makeProgram(gl, vertex, fragment) {
+  const program = gl.createProgram();
+  gl.attachShader(program, makeShader(gl, gl.VERTEX_SHADER, vertex));
+  gl.attachShader(program, makeShader(gl, gl.FRAGMENT_SHADER, fragment));
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    throw new Error(gl.getProgramInfoLog(program));
+  }
+  return program;
+}
+
+function loadTexture(gl, url) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  const img = new Image();
+  img.addEventListener("load", () => {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+  });
+  img.src = url;
+  return texture;
+}
+
+const renderer = createRenderer();
+
+function resize(gl) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const width = Math.floor(els.canvas.clientWidth * dpr);
+  const height = Math.floor(els.canvas.clientHeight * dpr);
+  if (els.canvas.width !== width || els.canvas.height !== height) {
+    els.canvas.width = width;
+    els.canvas.height = height;
+    gl.viewport(0, 0, width, height);
+  }
+}
+
+function drawScene(time) {
+  if (!renderer) return;
+  const { gl, matrix, alpha, textures } = renderer;
+  resize(gl);
+  gl.clearColor(0.52, 0.82, 0.92, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.disable(gl.DEPTH_TEST);
+
+  const aspect = gl.canvas.width / Math.max(1, gl.canvas.height);
+  const pulse = Math.max(0, petPulseUntil - time) / 1200;
+  const cameraX = Math.sin(time * 0.00018) * 0.45 + pulse * 0.16;
+  const cameraY = 2.25 + Math.sin(time * 0.00027) * 0.08;
+  const projection = perspective(Math.PI / 4.5, aspect, 0.1, 80);
+  const view = lookAt([cameraX, cameraY, 7.2], [0, 0.9, -1.2], [0, 1, 0]);
+  const pv = multiply(projection, view);
+
+  const objects = [
+    { tex: "backdrop", x: 0, y: 1.15, z: -6.4, w: 24.0, h: 13.5, rx: 0, a: 1 },
   ];
 
-  target.innerHTML = options
-    .map((item) => {
-      const isUnlocked = item.id === "none" || unlocked.includes(item.id);
-      const isSelected = selected === item.id;
-      const stateLabel = isUnlocked ? (isSelected ? "Wearing" : "Try on") : "Locked";
-      return `
-        <button
-          class="style-option${isSelected ? " selected" : ""}${isUnlocked ? "" : " locked"}"
-          data-style-type="${type}"
-          data-style-id="${item.id}"
-          type="button"
-          ${isUnlocked ? "" : "disabled"}
-        >
-          <span class="style-swatch" style="--swatch:${item.swatch};"></span>
-          <span class="style-copy">
-            <strong>${escapeHtml(item.label)}</strong>
-            <span>${escapeHtml(stateLabel)}</span>
-          </span>
-        </button>
-      `;
-    })
-    .join("");
+  objects.forEach((obj) => drawObject(gl, textures[obj.tex], pv, obj, matrix, alpha));
+
+  const bob = Math.sin(time * 0.004) * 0.045 + pulse * 0.08;
+  const scale = state.stage === "egg" ? 1.15 : 1.72 + Math.min(0.25, state.growth / 500);
+  const pet = { tex: state.stage === "egg" ? "egg" : petTextureKey(), x: 0.12, y: 0.56 + bob, z: 0.55, w: scale, h: scale * 1.1, rx: 0, a: 1 };
+  drawObject(gl, textures[pet.tex], pv, pet, matrix, alpha);
+
+  requestAnimationFrame(drawScene);
 }
 
-function renderWardrobe() {
-  if (!currentProfileId) {
-    DOM.styleCount.textContent = "0 styles";
-    DOM.wardrobeHint.textContent = "Choose a player to unlock and dress up a puppy.";
-    DOM.hatOptions.innerHTML = "";
-    DOM.sweaterOptions.innerHTML = "";
-    return;
-  }
-
-  const unlockedCount = state.unlockedHats.length + state.unlockedSweaters.length;
-  DOM.styleCount.textContent = `${unlockedCount} styles`;
-
-  if (!state.petName) {
-    DOM.wardrobeHint.textContent = "Name an egg first, then hatch the puppy to start collecting clothes.";
-  } else if (state.stageIndex === 0) {
-    DOM.wardrobeHint.textContent = "Hatch the puppy first. Geometry quests unlock new hats, sweaters, and habitat goodies.";
-  } else if (unlockedCount === 0) {
-    DOM.wardrobeHint.textContent = "Geometry quests unlock clothes. Once you earn one, you can choose what the puppy wears.";
-  } else {
-    DOM.wardrobeHint.textContent =
-      `${state.petName} is wearing ${styleSelectionLabel("hat", state.selectedHat).toLowerCase()} and ${styleSelectionLabel("sweater", state.selectedSweater).toLowerCase()}.`;
-  }
-
-  renderStyleOptions("hat");
-  renderStyleOptions("sweater");
+function petTextureKey() {
+  if (activeRound) return "thinking";
+  if (performance.now() < petPulseUntil) return "celebrate";
+  if (state.equipped.look === "sweater") return "sweater";
+  if (state.equipped.look === "bow") return "bow";
+  if (state.equipped.look === "collar") return "collar";
+  return "puppy";
 }
 
-function chooseStyle(type, itemId) {
-  if (type === "hat" && itemId !== "none" && !state.unlockedHats.includes(itemId)) {
-    return;
-  }
-
-  if (type === "sweater" && itemId !== "none" && !state.unlockedSweaters.includes(itemId)) {
-    return;
-  }
-
-  if (type === "hat") {
-    state.selectedHat = itemId;
-  } else {
-    state.selectedSweater = itemId;
-  }
-
-  if (state.stageIndex > 0 && state.petName) {
-    state.petSpeech = `${state.petName} wiggles happily in a new outfit.`;
-    state.feedbackMessage = `${state.petName} changed into ${styleSelectionLabel(type, itemId).toLowerCase()}.`;
-    state.feedbackTone = "good";
-  }
-
-  saveState();
-  render();
+function drawObject(gl, texture, pv, obj, matrixLocation, alphaLocation) {
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  const model = compose(obj.x, obj.y, obj.z, obj.rx || 0, obj.w, obj.h, 1);
+  gl.uniformMatrix4fv(matrixLocation, false, multiply(pv, model));
+  gl.uniform1f(alphaLocation, obj.a ?? 1);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
-function renderHabitatTheme() {
-  const egg = EGG_TYPES[state.eggType] || EGG_TYPES.sun;
-  const zone = currentZone();
-  const sceneGradient = zone.sceneGradient || ZONES[0].sceneGradient;
-
-  DOM.habitatScene.style.background = sceneGradient;
-  DOM.petAvatar.style.setProperty("--pet-top", egg.colors[0]);
-  DOM.petAvatar.style.setProperty("--pet-bottom", egg.colors[1]);
-  DOM.petAvatar.style.setProperty("--pet-ear", egg.colors[1]);
+function compose(x, y, z, rx, sx, sy, sz) {
+  return multiply(multiply(translation(x, y, z), xRotation(rx)), scaling(sx, sy, sz));
 }
 
-function renderBossState() {
-  if (!currentProfileId) {
-    DOM.bossTitle.textContent = "Pick a player first";
-    DOM.bossHint.textContent = "Profiles keep separate progress for each player on this browser.";
-    DOM.bossButton.disabled = true;
-    DOM.bossButton.textContent = "Boss Locked";
-    return;
-  }
-
-  if (!state.petName) {
-    DOM.bossTitle.textContent = "Name your egg first";
-    DOM.bossHint.textContent = "The boss quest appears after the quest path opens.";
-    DOM.bossButton.disabled = true;
-    DOM.bossButton.textContent = "Boss Locked";
-    return;
-  }
-
-  if (state.activeQuest === "boss") {
-    DOM.bossTitle.textContent = "Boss quest in progress";
-    DOM.bossHint.textContent = "Finish the mixed challenge to trigger the next evolution step.";
-    DOM.bossButton.disabled = true;
-    DOM.bossButton.textContent = "Boss In Progress";
-    return;
-  }
-
-  if (bossReady()) {
-    DOM.bossTitle.textContent = "World boss awakened";
-    DOM.bossHint.textContent =
-      "Your pet has enough balanced practice to attempt the evolution challenge.";
-    DOM.bossButton.disabled = false;
-    DOM.bossButton.textContent = "Start Boss Quest";
-    return;
-  }
-
-  const nextQuest = nextQuestInPath();
-  DOM.bossTitle.textContent = nextQuest ? "Quest path still building" : "Boss gate charging";
-  DOM.bossHint.textContent = nextQuest
-    ? `Finish ${formatQuestTitle(nextQuest)} next. The boss unlocks only after Number Forge, Fraction Bridge, and Geometry Workshop are all complete.`
-    : `All three quest paths are complete. Fill evolution to 100%. Current growth: ${state.evolution}%.`;
-  DOM.bossButton.disabled = true;
-  DOM.bossButton.textContent = "Boss Locked";
+function perspective(fieldOfView, aspect, near, far) {
+  const f = Math.tan(Math.PI * 0.5 - 0.5 * fieldOfView);
+  const rangeInv = 1 / (near - far);
+  return new Float32Array([
+    f / aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (near + far) * rangeInv, -1,
+    0, 0, near * far * rangeInv * 2, 0,
+  ]);
 }
 
-function renderFeedback() {
-  DOM.feedbackCard.classList.remove("good", "bad");
-
-  if (!currentProfileId) {
-    DOM.feedbackText.textContent = "Choose or create a player profile to begin.";
-    return;
-  }
-
-  if (state.feedbackTone === "good" || state.feedbackTone === "bad") {
-    DOM.feedbackCard.classList.add(state.feedbackTone);
-  }
-  DOM.feedbackText.textContent = state.feedbackMessage;
+function lookAt(camera, target, up) {
+  const zAxis = normalize([
+    camera[0] - target[0],
+    camera[1] - target[1],
+    camera[2] - target[2],
+  ]);
+  const xAxis = normalize(cross(up, zAxis));
+  const yAxis = cross(zAxis, xAxis);
+  return new Float32Array([
+    xAxis[0], yAxis[0], zAxis[0], 0,
+    xAxis[1], yAxis[1], zAxis[1], 0,
+    xAxis[2], yAxis[2], zAxis[2], 0,
+    -dot(xAxis, camera), -dot(yAxis, camera), -dot(zAxis, camera), 1,
+  ]);
 }
 
-function renderMeters(values) {
-  DOM.hungerValue.textContent = `${values.hunger}%`;
-  DOM.energyValue.textContent = `${values.energy}%`;
-  DOM.moodValue.textContent = `${values.mood}%`;
-  DOM.evolutionValue.textContent = `${values.evolution}%`;
-  DOM.hungerMeter.style.width = `${values.hunger}%`;
-  DOM.energyMeter.style.width = `${values.energy}%`;
-  DOM.moodMeter.style.width = `${values.mood}%`;
-  DOM.evolutionMeter.style.width = `${values.evolution}%`;
+function translation(tx, ty, tz) {
+  return new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    tx, ty, tz, 1,
+  ]);
 }
 
-function renderNoProfileState() {
-  DOM.resetButton.disabled = true;
-  DOM.habitatName.textContent = "Sunny Nest";
-  DOM.stageChip.textContent = "No Save";
-  DOM.zoneChip.textContent = "Choose Player";
-  DOM.petNameLabel.textContent = "Pick a player";
-  DOM.petMoodLine.textContent = "Create or choose a player profile to keep progress on this browser.";
-  DOM.petSpeech.textContent = "Who is playing today?";
-  DOM.petAvatar.dataset.stage = "egg";
-  DOM.petAvatar.dataset.mood = "okay";
-  DOM.petAvatar.dataset.hat = "none";
-  DOM.petAvatar.dataset.sweater = "none";
-  DOM.sparkValue.textContent = "0";
-  DOM.streakValue.textContent = "0";
-  DOM.streakLine.textContent = "Choose a player to start building a quest streak.";
-  DOM.unlockLine.textContent = "Create a profile";
-  DOM.unlockHint.textContent = "Each player gets a separate save slot on this browser.";
-  renderMeters({ hunger: 0, energy: 0, mood: 0, evolution: 0 });
-  DOM.milestoneCount.textContent = "0 moments";
-  DOM.milestoneList.innerHTML =
-    "<li>Create a player profile on this browser to start a separate save.</li>";
-  renderHabitatTheme();
-  renderDecorations();
-  renderWardrobe();
-  renderQuestInterface();
-  renderQuestOptions();
-  renderRewards();
-  renderLesson();
-  renderZones();
-  renderFeedback();
-  renderBossState();
-  openProfileChooser();
+function xRotation(angle) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return new Float32Array([
+    1, 0, 0, 0,
+    0, c, s, 0,
+    0, -s, c, 0,
+    0, 0, 0, 1,
+  ]);
 }
 
-function petNeedLine(averageNeeds) {
-  if (averageNeeds < 45) {
-    return "a little tired and needs a helpful quest.";
-  }
-  if (averageNeeds > 82) {
-    return "glowing with confidence and ready for a big challenge.";
-  }
-  return "ready for another round of math adventure.";
+function scaling(sx, sy, sz) {
+  return new Float32Array([
+    sx, 0, 0, 0,
+    0, sy, 0, 0,
+    0, 0, sz, 0,
+    0, 0, 0, 1,
+  ]);
 }
 
-function moodDescription() {
-  if (state.mood < 40) {
-    return "a bit uncertain";
-  }
-  if (state.mood > 80) {
-    return "joyful";
-  }
-  return "curious";
+function multiply(a, b) {
+  const out = new Float32Array(16);
+  const a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
+  const a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
+  const a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
+  const a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15];
+  let b0, b1, b2, b3;
+
+  b0 = b[0]; b1 = b[1]; b2 = b[2]; b3 = b[3];
+  out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+  out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+  out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+  out[3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+  b0 = b[4]; b1 = b[5]; b2 = b[6]; b3 = b[7];
+  out[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+  out[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+  out[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+  out[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+  b0 = b[8]; b1 = b[9]; b2 = b[10]; b3 = b[11];
+  out[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+  out[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+  out[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+  out[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+  b0 = b[12]; b1 = b[13]; b2 = b[14]; b3 = b[15];
+  out[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+  out[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+  out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+  out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+  return out;
 }
 
-function petMoodLineText() {
-  if (!state.petName) {
-    return "A future friend is waiting to hatch.";
-  }
-
-  if (state.stageIndex === 0) {
-    const remaining = hatchAnswersRemaining();
-    if (remaining > 1) {
-      return `${state.petName}'s egg is warm and wobbling. Solve ${remaining} more correct answers to hatch your puppy.`;
-    }
-    if (remaining === 1) {
-      return `${state.petName}'s shell is cracking. One more correct answer will hatch your puppy.`;
-    }
-    return `${state.petName}'s shell is splitting open. Finish this round to reveal your puppy.`;
-  }
-
-  return `${state.petName} feels ${moodDescription()} and is ${EGG_TYPES[state.eggType]?.personality || "ready for adventure"}.`;
+function cross(a, b) {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
 }
 
-function updateEggSelectionUI() {
-  document.querySelectorAll(".egg-option").forEach((button) => {
-    button.classList.toggle("selected", button.dataset.egg === selectedEgg);
-  });
+function dot(a, b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-function openSetup() {
-  if (!currentProfileId) {
-    openProfileChooser();
-    return;
-  }
-
-  updateEggSelectionUI();
-  if (!DOM.setupModal.open) {
-    DOM.petNameInput.value = state.petName || "";
-    DOM.setupModal.showModal();
-  }
+function normalize(v) {
+  const length = Math.hypot(v[0], v[1], v[2]) || 1;
+  return [v[0] / length, v[1] / length, v[2] / length];
 }
 
-function render() {
-  const currentProfile = getCurrentProfile();
-  DOM.playerChip.textContent = currentProfile ? currentProfile.name : "Choose Player";
-  renderProfileChooser();
-
-  if (!currentProfileId || !currentProfile) {
-    renderNoProfileState();
-    return;
-  }
-
-  DOM.resetButton.disabled = false;
-
-  const stage = currentStage();
-  const zone = currentZone();
-  const nextUnlock = nextUnlockText();
-  const averageNeeds = Math.round((state.hunger + state.energy + state.mood) / 3);
-
-  DOM.habitatName.textContent = zone.name;
-  DOM.stageChip.textContent = stage.chip;
-  DOM.zoneChip.textContent = `Zone ${Math.min(state.zoneIndex + 1, ZONES.length)} / ${ZONES.length}`;
-  DOM.petNameLabel.textContent = state.petName || stage.name;
-  DOM.petMoodLine.textContent = petMoodLineText();
-  DOM.petSpeech.textContent = state.petName
-    ? state.petSpeech || `${state.petName} is ${petNeedLine(averageNeeds)}`
-    : "Choose an egg to begin.";
-
-  DOM.petAvatar.dataset.stage = stage.petClass;
-  DOM.petAvatar.dataset.mood = moodTier();
-  DOM.petAvatar.dataset.hat = state.stageIndex === 0 ? "none" : state.selectedHat;
-  DOM.petAvatar.dataset.sweater = state.stageIndex === 0 ? "none" : state.selectedSweater;
-
-  renderMeters({
-    hunger: state.hunger,
-    energy: state.energy,
-    mood: state.mood,
-    evolution: state.evolution,
-  });
-
-  DOM.sparkValue.textContent = String(state.sparkles);
-  DOM.streakValue.textContent = String(state.streak);
-  DOM.streakLine.textContent =
-    state.streak > 0 ? `${state.streak} correct in a row. Keep the chain going.` : "Answer correctly to build a chain.";
-  DOM.unlockLine.textContent = nextUnlock.line;
-  DOM.unlockHint.textContent = nextUnlock.hint;
-
-  renderHabitatTheme();
-  renderDecorations();
-  renderWardrobe();
-  renderQuestInterface();
-  renderQuestOptions();
-  renderRewards();
-  renderLesson();
-  renderZones();
-  renderMilestones();
-  renderFeedback();
-  renderBossState();
-
-  if (!state.petName && !DOM.profileModal.open) {
-    openSetup();
-  }
-}
-
-document.querySelectorAll(".quest-button").forEach((button) => {
-  button.addEventListener("click", () => {
-    startQuest(button.dataset.quest);
-  });
-});
-
-DOM.switchPlayerButton.addEventListener("click", () => {
-  openProfileChooser();
-});
-
-DOM.bossButton.addEventListener("click", () => {
-  if (bossReady()) {
-    startQuest("boss");
-  }
-});
-
-DOM.answerForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (!state.activeQuestion) {
-    return;
-  }
-
-  const answer = state.activeQuestion.kind === "choice" ? selectedChoiceValue : DOM.answerInput.value;
-
-  if (!String(answer).trim()) {
-    state.feedbackMessage = "Enter an answer or choose one of the buttons first.";
-    state.feedbackTone = "bad";
-    renderFeedback();
-    return;
-  }
-
-  checkAnswer(answer);
-});
-
-DOM.choiceGrid.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-choice]");
-  if (!button || !state.activeQuestion) {
-    return;
-  }
-  selectedChoiceValue = button.dataset.choice;
-  renderChoices(state.activeQuestion.choices);
-});
-
-DOM.hatOptions.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-style-id]");
-  if (!button) {
-    return;
-  }
-  chooseStyle("hat", button.dataset.styleId);
-});
-
-DOM.sweaterOptions.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-style-id]");
-  if (!button) {
-    return;
-  }
-  chooseStyle("sweater", button.dataset.styleId);
-});
-
-DOM.lessonTopicRow.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-lesson]");
-  if (!button) {
-    return;
-  }
-  selectedLessonKey = button.dataset.lesson;
-  renderLesson();
-});
-
-document.querySelectorAll(".egg-option").forEach((button) => {
-  button.addEventListener("click", () => {
-    selectedEgg = button.dataset.egg;
-    updateEggSelectionUI();
-  });
-});
-
-DOM.profileList.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-profile-id]");
-  if (!button) {
-    return;
-  }
-  activateProfile(button.dataset.profileId);
-});
-
-DOM.profileCreateForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  createProfile(DOM.profileNameInput.value);
-});
-
-DOM.closeProfileButton.addEventListener("click", () => {
-  closeProfileChooser();
-});
-
-DOM.profileModal.addEventListener("cancel", (event) => {
-  if (!currentProfileId) {
-    event.preventDefault();
-  }
-});
-
-DOM.setupForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const proposedName = DOM.petNameInput.value.trim();
-  if (!proposedName) {
-    DOM.petNameInput.focus();
-    return;
-  }
-
-  const nextName = proposedName.slice(0, 18);
-  state.petName = nextName;
-  state.eggType = selectedEgg;
-  state.milestoneLog = [
-    `${nextName} the ${EGG_TYPES[selectedEgg].label} joined the habitat.`,
-    ...state.milestoneLog,
-  ].slice(0, 8);
-  state.petSpeech = `${nextName} is ready for the first hatch quest.`;
-  state.feedbackMessage = `${nextName} is ready. Try a multiplication quest to start hatching the egg.`;
-  state.feedbackTone = "good";
-  closeSetup();
-  saveState();
-  render();
-});
-
-DOM.helpButton.addEventListener("click", () => {
-  DOM.helpModal.showModal();
-});
-
-DOM.closeHelpButton.addEventListener("click", () => {
-  DOM.helpModal.close();
-});
-
-DOM.resetButton.addEventListener("click", () => {
-  if (!currentProfileId) {
-    openProfileChooser();
-    return;
-  }
-
-  const currentProfile = getCurrentProfile();
-  const confirmed = window.confirm(
-    `Start ${currentProfile.name}'s save over with a brand new egg? This keeps the player profile but clears current progress.`,
-  );
-  if (!confirmed) {
-    return;
-  }
-
-  replaceState(createFreshState());
-  selectedEgg = "sun";
-  selectedChoiceValue = "";
-  DOM.petNameInput.value = "";
-  state.feedbackMessage = `${currentProfile.name} has a fresh save slot. Choose a new egg to begin again.`;
-  state.feedbackTone = "good";
-  saveState();
-  render();
-});
-
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && DOM.helpModal.open) {
-    DOM.helpModal.close();
-  }
-});
-
-initializeGame();
+renderHud();
+requestAnimationFrame(drawScene);

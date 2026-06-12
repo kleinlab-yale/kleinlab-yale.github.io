@@ -1,44 +1,47 @@
-# Math Pet Evolution
+# Math Pet Evolution: Sky Meadow
 
-A static HTML math game designed for GitHub Pages. The player names a mystery egg, solves 4th grade math quests, then grows into harder worlds with multiplication, division, fractions, area, perimeter, and mixed challenge upgrades.
+Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a full-screen WebGL scene with GPT-generated PNG art, sliced character sprites, a small HUD, a closet, and a modal math quest loop.
+
+## Current Direction
+
+- Full-screen game space instead of dashboard cards.
+- WebGL-rendered world using GPT-generated raster PNG assets.
+- Small HUD: current objective, pet meters, world progress, closet, and one main math button.
+- Math appears only when the player clicks `Practice Math`.
+- Same-device save data through `localStorage`.
+- Quest gates require enough correct answers; wrong attempts do not pass the level.
+- The pet uses full integrated sprite variants for outfits, not square overlay shapes.
 
 ## Files
 
-- `index.html`: page structure
-- `styles.css`: visual design and responsive layout
-- `script.js`: game logic, question generation, progression, and local save data
+- `index.html`: static page shell and HUD/modals.
+- `styles.css`: full-screen game UI and overlays.
+- `script.js`: WebGL renderer, save state, closet, and math quest logic.
+- `assets/gpt-*.png`: GPT-generated backdrop, egg, pet, and outfit sprite textures.
+- `tools/slice_gpt_atlas.py`: dependency-free PNG slicer that chroma-keys and trims the generated pet atlas.
+- `tools/generate_assets.py`: legacy procedural asset generator retained as a fallback, not the current visual direction.
 
-## Local preview
-
-If Python is available:
+## Local Preview
 
 ```bash
-python3 -m http.server
+cd /Users/daryl/Documents/4/codex/mathgame
+python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000`.
+Open `http://localhost:8000`.
+
+For a non-persistent preview with the pet already hatched and clothed, open `http://localhost:8000/?demo=1`.
+
+To clear same-device progress and restart from a new egg, open `http://localhost:8000/?reset=1` or use the in-game `Restart` button.
+
+## Slice GPT Sprite Atlas
+
+```bash
+python3 tools/slice_gpt_atlas.py
+```
+
+This reads `assets/gpt-puppy-atlas-source.png` and writes the individual transparent pet frames used by the game.
 
 ## GitHub Pages
 
-1. Push these files to your GitHub repository.
-2. In GitHub, open `Settings` -> `Pages`.
-3. Under `Build and deployment`, choose `Deploy from a branch`.
-4. Select your main branch and the `/ (root)` folder.
-5. Save. GitHub will publish `index.html` automatically.
-
-## Game loop
-
-- `Number Forge`: feeds hunger and restores energy with multiplication and division
-- `Fraction Bridge`: improves mood and opens world progression with comparison and equivalence work
-- `Geometry Workshop`: unlocks decorations and habitat growth with area, perimeter, and measurement
-- `Boss Challenge`: mixed review that triggers evolution and unlocks later worlds after balanced practice
-
-## Profiles
-
-- Each player can create a separate same-device profile from the in-game player chooser.
-- Profiles are stored locally in the browser, so they work well for a shared family laptop or tablet.
-- Profiles do not sync between devices because the site is still fully static on GitHub Pages.
-
-## Save data
-
-Progress is stored in the browser with `localStorage`, so the pet should keep its state between sessions on the same device/browser.
+Push this folder to a repository, then enable Pages from the repository root in `Settings -> Pages`.

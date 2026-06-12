@@ -3,458 +3,113 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Math Pet Evolution</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
+    <title>Math Pet Evolution: Sky Meadow</title>
+    <link rel="preload" href="assets/gpt-meadow-backdrop.png" as="image" />
+    <link rel="preload" href="assets/gpt-egg.png" as="image" />
+    <link rel="preload" href="assets/gpt-puppy-base.png" as="image" />
+    <link rel="preload" href="assets/gpt-puppy-sweater.png" as="image" />
+    <link rel="icon" href="assets/gpt-egg.png" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="sky-glow sky-glow-left"></div>
-    <div class="sky-glow sky-glow-right"></div>
+    <main class="game-shell" id="gameShell">
+      <canvas id="worldCanvas" aria-label="3D pet world"></canvas>
+      <div class="world-vignette"></div>
 
-    <header class="topbar shell">
-      <div>
-        <p class="eyebrow">Math-powered pet adventure</p>
-        <h1>Math Pet Evolution</h1>
-        <p class="subtitle">
-          Solve, earn, unlock, evolve. Feed a creature, rebuild habitats, and
-          stretch 4th grade math skills along the way.
-        </p>
-      </div>
-      <div class="topbar-actions">
-        <span class="chip player-chip" id="playerChip">Choose Player</span>
-        <button class="ghost-button" id="switchPlayerButton" type="button">
-          Switch Player
+      <section class="hud-top" aria-label="Game status">
+        <div class="objective-chip">
+          <span class="micro">Current Quest</span>
+          <strong id="objectiveTitle">Hatch the egg</strong>
+          <span id="objectiveText">Solve the first snack quest to wake the puppy.</span>
+        </div>
+        <div class="hud-actions">
+          <button id="profileButton" class="ghost-button" type="button">Profile</button>
+          <button id="closetButton" class="ghost-button" type="button">Closet</button>
+          <button id="resetButton" class="ghost-button danger-button" type="button">Restart</button>
+        </div>
+      </section>
+
+      <section class="pet-card" aria-label="Pet status">
+        <div>
+          <span class="micro">Companion</span>
+          <strong id="petNameLabel">Mystery Egg</strong>
+        </div>
+        <div class="meter-row">
+          <span>Food</span>
+          <i><b id="foodBar"></b></i>
+        </div>
+        <div class="meter-row">
+          <span>Energy</span>
+          <i><b id="energyBar"></b></i>
+        </div>
+        <div class="meter-row">
+          <span>Growth</span>
+          <i><b id="growthBar"></b></i>
+        </div>
+      </section>
+
+      <section class="world-strip" aria-label="World progress">
+        <span id="worldLabel">Sky Meadow</span>
+        <span id="sparkleLabel">0 glow</span>
+      </section>
+
+      <div class="bottom-controls">
+        <button id="questButton" class="quest-button" type="button">
+          <span>Practice Math</span>
+          <strong id="questButtonLabel">Start Quest</strong>
         </button>
-        <button class="ghost-button" id="helpButton" type="button">How to Play</button>
-        <button class="ghost-button danger-button" id="resetButton" type="button">
-          New Egg
-        </button>
+        <button id="callPetButton" class="round-action" type="button" aria-label="Call pet">Call</button>
       </div>
-    </header>
 
-    <main class="shell page-grid">
-      <section class="panel habitat-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker">Habitat</p>
-            <h2 id="habitatName">Sunny Nest</h2>
-          </div>
-          <div class="chip-row">
-            <span class="chip" id="stageChip">Egg</span>
-            <span class="chip" id="zoneChip">Zone 1</span>
-          </div>
-        </div>
-
-        <div class="habitat-scene" id="habitatScene">
-          <div class="scene-backdrop">
-            <div class="sun"></div>
-            <div class="cloud cloud-left"></div>
-            <div class="cloud cloud-right"></div>
-            <div class="sparkle sparkle-one"></div>
-            <div class="sparkle sparkle-two"></div>
-            <div class="sparkle sparkle-three"></div>
-          </div>
-          <div class="pet-area">
-            <div class="pet-speech" id="petSpeech">Choose an egg to begin.</div>
-            <div class="pet-shell">
-              <div class="pet" id="petAvatar" aria-hidden="true">
-                <div class="pet-tail"></div>
-                <div class="pet-shell-fragment pet-shell-fragment-left"></div>
-                <div class="pet-shell-fragment pet-shell-fragment-center"></div>
-                <div class="pet-shell-fragment pet-shell-fragment-right"></div>
-                <div class="pet-body">
-                  <div class="pet-ears">
-                    <span></span>
-                    <span></span>
-                  </div>
-                  <div class="pet-face">
-                    <div class="pet-eyes">
-                      <span></span>
-                      <span></span>
-                    </div>
-                    <div class="pet-muzzle">
-                      <div class="pet-nose"></div>
-                      <div class="pet-mouth"></div>
-                    </div>
-                    <div class="pet-blush pet-blush-left"></div>
-                    <div class="pet-blush pet-blush-right"></div>
-                  </div>
-                  <div class="pet-belly"></div>
-                  <div class="pet-paws">
-                    <span></span>
-                    <span></span>
-                  </div>
-                  <div class="pet-sweater"></div>
-                  <div class="pet-hat pet-hat-bow"></div>
-                  <div class="pet-hat pet-hat-cap"></div>
-                  <div class="pet-hat pet-hat-crown"></div>
-                </div>
-                <div class="pet-shadow"></div>
-              </div>
-            </div>
-            <div class="pet-caption">
-              <h3 id="petNameLabel">Mystery Egg</h3>
-              <p id="petMoodLine">A future friend is waiting to hatch.</p>
-            </div>
-          </div>
-          <div class="scene-decorations" id="sceneDecorations" aria-hidden="true"></div>
-        </div>
-      </section>
-
-      <section class="panel challenge-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker">Active challenge</p>
-            <h2 id="challengeTitle">Pick a quest to begin</h2>
-          </div>
-          <span class="chip" id="questionCounter">0 / 0</span>
-        </div>
-
-        <div class="challenge-body">
-          <p class="challenge-intro" id="challengePrompt">
-            Each quest turns math into something useful for your pet. Start with
-            Number Forge for a quick hatch boost.
-          </p>
-
-          <div class="question-card">
-            <p class="question-type" id="questionType">Quest ready</p>
-            <h3 class="question-text" id="questionText">
-              Your pet is waiting for its first math-powered adventure.
-            </h3>
-            <div class="fraction-visuals" id="fractionVisuals"></div>
-            <div class="choice-grid" id="choiceGrid"></div>
-
-            <form class="answer-form" id="answerForm">
-              <label class="visually-hidden" for="answerInput">Answer</label>
-              <input
-                autocomplete="off"
-                id="answerInput"
-                inputmode="text"
-                placeholder="Type your answer"
-                type="text"
-              />
-              <button class="primary-button" type="submit">Check Answer</button>
-            </form>
-          </div>
-
-          <div class="feedback-card" id="feedbackCard">
-            <p class="feedback-text" id="feedbackText">
-              Your pet will react here after each answer.
-            </p>
-          </div>
-
-          <div class="reward-strip" id="rewardStrip">
-            <div class="reward-pill">Food +0</div>
-            <div class="reward-pill">Energy +0</div>
-            <div class="reward-pill">Mood +0</div>
-          </div>
-
-          <div class="lesson-card" hidden id="lessonCard">
-            <div class="lesson-heading">
-              <div>
-                <p class="section-kicker">Mini lesson</p>
-                <h3 id="lessonTitle">Worked example</h3>
-              </div>
-              <span class="chip" id="lessonChip">Example</span>
-            </div>
-            <div class="lesson-topic-row" id="lessonTopicRow"></div>
-            <p class="lesson-intro" id="lessonIntro">
-              A worked example will appear here for harder topics.
-            </p>
-            <div class="lesson-visual" id="lessonVisual"></div>
-            <ol class="lesson-steps" id="lessonSteps"></ol>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel status-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker">Care meters</p>
-            <h2>Your pet today</h2>
-          </div>
-          <div class="spark-counter">
-            <span class="spark-counter-value" id="sparkValue">0</span>
-            <span class="spark-counter-label">Sparkles</span>
-          </div>
-        </div>
-
-        <div class="meter-list">
-          <div class="meter-block">
-            <div class="meter-label-row">
-              <span>Hunger</span>
-              <strong id="hungerValue">0%</strong>
-            </div>
-            <div class="meter-track hunger-track"><div id="hungerMeter"></div></div>
-          </div>
-          <div class="meter-block">
-            <div class="meter-label-row">
-              <span>Energy</span>
-              <strong id="energyValue">0%</strong>
-            </div>
-            <div class="meter-track energy-track"><div id="energyMeter"></div></div>
-          </div>
-          <div class="meter-block">
-            <div class="meter-label-row">
-              <span>Mood</span>
-              <strong id="moodValue">0%</strong>
-            </div>
-            <div class="meter-track mood-track"><div id="moodMeter"></div></div>
-          </div>
-          <div class="meter-block">
-            <div class="meter-label-row">
-              <span>Evolution</span>
-              <strong id="evolutionValue">0%</strong>
-            </div>
-            <div class="meter-track evolution-track"><div id="evolutionMeter"></div></div>
-          </div>
-        </div>
-
-        <div class="progress-notes">
-          <article class="mini-card">
-            <p class="mini-card-title">Quest streak</p>
-            <strong id="streakValue">0</strong>
-            <p id="streakLine">Answer correctly to build a chain.</p>
-          </article>
-          <article class="mini-card">
-            <p class="mini-card-title">Next unlock</p>
-            <strong id="unlockLine">Fraction Bridge</strong>
-            <p id="unlockHint">Solve quests to restore the next zone.</p>
-          </article>
-        </div>
-
-        <article class="wardrobe-card">
-          <div class="wardrobe-heading">
-            <div>
-              <p class="mini-card-title">Puppy wardrobe</p>
-              <h3>Pick the cute look</h3>
-            </div>
-            <span class="chip" id="styleCount">0 styles</span>
-          </div>
-          <p class="wardrobe-copy" id="wardrobeHint">
-            Geometry upgrades can unlock hats, sweaters, and extra habitat decorations.
-          </p>
-
-          <div class="style-section">
-            <div class="style-section-heading">
-              <h3>Hats</h3>
-            </div>
-            <div class="style-grid" id="hatOptions"></div>
-          </div>
-
-          <div class="style-section">
-            <div class="style-section-heading">
-              <h3>Sweaters</h3>
-            </div>
-            <div class="style-grid" id="sweaterOptions"></div>
-          </div>
-        </article>
-      </section>
-
-      <section class="panel quests-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker">Math quests</p>
-            <h2>Follow the quest path</h2>
-          </div>
-        </div>
-
-        <div class="quest-grid">
-          <article class="quest-card quest-food" data-quest-card="multiplication">
-            <div class="quest-icon">×</div>
-            <div>
-              <h3>Number Forge</h3>
-              <p>Use multiplication, multi-digit products, and division to power food and energy.</p>
-            </div>
-            <p class="quest-state-line" data-quest-status="multiplication">Start here first.</p>
-            <ul class="quest-rewards">
-              <li>Feeds hunger</li>
-              <li>Boosts energy</li>
-              <li>Builds number mastery</li>
-            </ul>
-            <button class="quest-button" data-quest="multiplication" type="button">
-              Start Number Quest
-            </button>
-          </article>
-
-          <article class="quest-card quest-bridge" data-quest-card="fractions">
-            <div class="quest-icon">&frac12;</div>
-            <div>
-              <h3>Fraction Bridge</h3>
-              <p>Compare, match, and reason about fractions to rebuild paths into new worlds.</p>
-            </div>
-            <p class="quest-state-line" data-quest-status="fractions">Locked until Number Forge is complete.</p>
-            <ul class="quest-rewards">
-              <li>Opens new zones</li>
-              <li>Raises mood</li>
-              <li>Improves exploration</li>
-            </ul>
-            <button class="quest-button" data-quest="fractions" type="button">
-              Cross the Bridge
-            </button>
-          </article>
-
-          <article class="quest-card quest-shape" data-quest-card="geometry">
-            <div class="quest-icon">△</div>
-            <div>
-              <h3>Geometry Workshop</h3>
-              <p>Use shape, area, perimeter, and measurement skills to upgrade the habitat.</p>
-            </div>
-            <p class="quest-state-line" data-quest-status="geometry">Locked until Fraction Bridge is complete.</p>
-            <ul class="quest-rewards">
-              <li>Unlocks decor</li>
-              <li>Improves habitat</li>
-              <li>Adds sparkle rewards</li>
-            </ul>
-            <button class="quest-button" data-quest="geometry" type="button">
-              Build Upgrade
-            </button>
-          </article>
-        </div>
-
-        <div class="boss-card quest-boss-card" id="bossCard">
-          <div>
-            <p class="section-kicker">Boss quest</p>
-            <h3 id="bossTitle">Not ready yet</h3>
-          </div>
-          <p id="bossHint">
-            Finish the three quest paths in order, then fill evolution to awaken
-            the boss challenge.
-          </p>
-          <button class="boss-button" id="bossButton" type="button" disabled>
-            Boss Locked
-          </button>
-        </div>
-      </section>
-
-      <section class="panel world-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="section-kicker">World map</p>
-            <h2>Recovered habitats</h2>
-          </div>
-        </div>
-
-        <div class="zone-list" id="zoneList"></div>
-
-        <div class="journal">
-          <div class="journal-heading">
-            <h3>Milestones</h3>
-            <span id="milestoneCount">0 moments</span>
-          </div>
-          <ul id="milestoneList"></ul>
-        </div>
-      </section>
+      <div class="toast" id="toast" aria-live="polite"></div>
     </main>
 
-    <dialog class="modal" id="profileModal">
-      <div class="modal-card profile-modal-card">
-        <p class="section-kicker">Player Profiles</p>
-        <h2>Who is playing today?</h2>
-        <p class="modal-copy">
-          Profiles stay on this browser only. Each player gets a separate pet,
-          progress path, and save slot.
-        </p>
-
-        <div class="profile-list" id="profileList"></div>
-        <p class="empty-state" id="profileEmptyState">
-          No players yet. Create the first profile to begin.
-        </p>
-
-        <form class="profile-create-form" id="profileCreateForm">
-          <label class="field-label" for="profileNameInput">Player name</label>
-          <div class="profile-create-row">
-            <input
-              class="name-input"
-              id="profileNameInput"
-              maxlength="18"
-              placeholder="Add a player"
-              required
-              type="text"
-            />
-            <button class="primary-button" id="createProfileButton" type="submit">
-              Add Player
-            </button>
-          </div>
-          <p class="form-hint" id="profileHint">
-            Each player gets a separate save slot on this browser.
-          </p>
-        </form>
-
-        <div class="modal-actions">
-          <button class="ghost-button" hidden id="closeProfileButton" type="button">
-            Back to Game
-          </button>
+    <section class="overlay show" id="setupOverlay" aria-label="Start profile">
+      <form class="glass-panel setup-panel" id="setupForm">
+        <span class="micro">New Save</span>
+        <h1>Choose an egg for the puppy world</h1>
+        <p class="panel-copy">This save stays on this device. The game opens into a 3D meadow, then math quests grow the pet and unlock wardrobe items.</p>
+        <div class="egg-row" id="eggRow">
+          <button class="egg-pick active" data-egg="sunny" type="button"><img src="assets/gpt-egg.png" alt="" />Sunny</button>
+          <button class="egg-pick" data-egg="rose" type="button"><img src="assets/gpt-egg.png" alt="" />Rose</button>
+          <button class="egg-pick" data-egg="mint" type="button"><img src="assets/gpt-egg.png" alt="" />Mint</button>
         </div>
-      </div>
-    </dialog>
-
-    <dialog class="modal" id="setupModal">
-      <form class="modal-card" id="setupForm" method="dialog">
-        <p class="section-kicker">Step 1</p>
-        <h2>Choose a mystery egg</h2>
-        <p class="modal-copy">
-          Each egg has a different personality spark. Pick one, give it a name,
-          and begin the first hatch quest.
-        </p>
-
-        <div class="egg-grid" id="eggGrid">
-          <button class="egg-option" data-egg="sun" type="button">
-            <span class="egg-visual egg-sun"></span>
-            <strong>Sunbeam Egg</strong>
-            <span>Cheerful and brave</span>
-          </button>
-          <button class="egg-option" data-egg="tide" type="button">
-            <span class="egg-visual egg-tide"></span>
-            <strong>Tide Egg</strong>
-            <span>Curious and calm</span>
-          </button>
-          <button class="egg-option" data-egg="grove" type="button">
-            <span class="egg-visual egg-grove"></span>
-            <strong>Grove Egg</strong>
-            <span>Creative and bold</span>
-          </button>
-        </div>
-
-        <label class="field-label" for="petNameInput">Pet name</label>
-        <input
-          class="name-input"
-          id="petNameInput"
-          maxlength="18"
-          placeholder="Pick a name"
-          required
-          type="text"
-        />
-
-        <div class="modal-actions">
-          <button class="primary-button" id="startGameButton" type="submit">
-            Start Adventure
-          </button>
-        </div>
+        <label>
+          Player name
+          <input id="playerInput" maxlength="18" placeholder="Name" />
+        </label>
+        <label>
+          Puppy name
+          <input id="petInput" maxlength="18" placeholder="Mochi" />
+        </label>
+        <button class="primary-button" type="submit">Enter Meadow</button>
       </form>
-    </dialog>
+    </section>
 
-    <dialog class="modal" id="helpModal">
-      <div class="modal-card help-card">
-        <p class="section-kicker">How it works</p>
-        <h2>Math powers every part of the world</h2>
-        <div class="help-points">
-          <p><strong>Number Forge</strong> fills food and energy with multiplication and division.</p>
-          <p><strong>Fractions</strong> rebuild bridges with comparison, equivalence, and mixed-number work.</p>
-          <p><strong>Geometry</strong> adds decorations, hats, and sweaters with area, perimeter, and measurement puzzles.</p>
-          <p>
-            <strong>Boss quests</strong> unlock later worlds after enough balanced
-            practice across every math path.
-          </p>
+    <section class="overlay" id="questOverlay" aria-label="Math quest" aria-hidden="true">
+      <form class="glass-panel quest-panel" id="questForm">
+        <button class="close-button" id="closeQuestButton" type="button" aria-label="Close quest">x</button>
+        <span class="micro" id="questMeta">Quest 1 / 4</span>
+        <h2 id="questPrompt">Question appears here</h2>
+        <div class="lesson-box" id="lessonBox"></div>
+        <div class="answer-area">
+          <input id="answerInput" autocomplete="off" placeholder="Type answer" />
+          <button class="primary-button" type="submit">Check</button>
         </div>
-        <button class="primary-button" id="closeHelpButton" type="button">Back to Game</button>
+        <div class="choice-row" id="choiceRow"></div>
+        <p class="quest-feedback" id="questFeedback">Get enough correct answers to pass.</p>
+      </form>
+    </section>
+
+    <section class="overlay" id="closetOverlay" aria-label="Closet" aria-hidden="true">
+      <div class="glass-panel closet-panel">
+        <button class="close-button" id="closeClosetButton" type="button" aria-label="Close closet">x</button>
+        <span class="micro">Wardrobe</span>
+        <h2>Dress the puppy</h2>
+        <p class="panel-copy">Geometry and boss quests unlock wearable PNG layers in the 3D scene.</p>
+        <div class="closet-grid" id="closetGrid"></div>
       </div>
-    </dialog>
+    </section>
 
     <script src="script.js"></script>
   </body>
