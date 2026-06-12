@@ -336,13 +336,21 @@ function renderLesson(item) {
 
 function renderChoices(choices) {
   els.choiceRow.replaceChildren();
-  choices.forEach((choice) => {
+  choices.forEach((choice, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.dataset.choice = choice;
-    button.textContent = choice;
+    button.dataset.choiceIndex = String(index);
+    button.textContent = choiceLabel(choice);
     els.choiceRow.append(button);
   });
+}
+
+function choiceLabel(choice) {
+  return typeof choice === "object" ? choice.label : choice;
+}
+
+function choiceValue(choice) {
+  return typeof choice === "object" ? choice.value : choice;
 }
 
 function submitAnswer(raw) {
@@ -489,12 +497,17 @@ function makeFractionProblem(world) {
     let a = rand(1, d - 1);
     let b = rand(1, d - 1);
     if (a === b) b = b === d - 1 ? b - 1 : b + 1;
-    const answer = a > b ? ">" : "<";
+    const answer = a > b ? "greater-than" : "less-than";
+    const answerLabel = a > b ? ">" : "<";
     return problem(`${a}/${d} ? ${b}/${d}`, answer, "Compare fractions", [
       `The denominators both equal ${d}.`,
       `Compare the numerators: ${a} and ${b}.`,
       "The fraction with the larger numerator is larger.",
-    ], "text", ["<", "=", ">"]);
+    ], "choice", [
+      { label: "<", value: "less-than" },
+      { label: "=", value: "equal" },
+      { label: ">", value: "greater-than" },
+    ], answerLabel);
   }
   if (world <= 4) {
     const options = [
@@ -556,12 +569,12 @@ function makeGeometryProblem(world) {
   ]);
 }
 
-function problem(prompt, answer, lessonTitle, steps, answerType = "number", choices = null) {
+function problem(prompt, answer, lessonTitle, steps, answerType = "number", choices = null, displayAnswer = null) {
   return {
     prompt,
     answer,
     answerType,
-    displayAnswer: String(answer).replace("R", " R "),
+    displayAnswer: displayAnswer ?? String(answer).replace("R", " R "),
     lessonTitle,
     steps,
     choices,
@@ -572,11 +585,22 @@ function isCorrect(value, item) {
   if (item.answerType === "number") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
   if (item.answerType === "decimal") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
   if (item.answerType === "remainder") return normalize(value) === normalize(item.answer).replace("remainder", "r");
+  if (item.answerType === "choice") return normalizeChoice(value) === normalizeChoice(item.answer);
   return normalize(value) === normalize(item.answer);
 }
 
 function normalize(value) {
   return String(value).toLowerCase().replace(/\s+/g, "").replace(/remainder/g, "r").replace(/rem/g, "r");
+}
+
+function normalizeChoice(value) {
+  const normalized = normalize(value).replace(/&lt;|‹|less-than|lessthan|less/g, "<")
+    .replace(/&gt;|›|greater-than|greaterthan|morethan|greater|more/g, ">")
+    .replace(/equalto|equals/g, "=");
+  if (normalized === "<") return "less-than";
+  if (normalized === ">") return "greater-than";
+  if (normalized === "=") return "equal";
+  return normalized;
 }
 
 els.setupForm.addEventListener("submit", (event) => {
@@ -619,9 +643,11 @@ els.questForm.addEventListener("submit", (event) => {
   submitAnswer();
 });
 els.choiceRow.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-choice]");
+  const button = event.target.closest("[data-choice-index]");
   if (!button) return;
-  submitAnswer(button.dataset.choice);
+  const choice = activeProblem?.choices?.[Number(button.dataset.choiceIndex)];
+  if (!choice) return;
+  submitAnswer(choiceValue(choice));
 });
 els.closetButton.addEventListener("click", () => {
   renderCloset();
