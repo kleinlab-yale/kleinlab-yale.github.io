@@ -15,6 +15,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - The cottage can be entered after hatching; home and outdoor math unlock arrangeable decorations, and the TV can change channels.
 - Math now drives a simple game economy: correct answers and quest clears earn coins, perfect clears and boss quests discover gems, and coins/gems buy snacks, wardrobe items, and decor.
 - Outdoor decor is anchored to the panning meadow backdrop so placed yard items do not drift separately from the scene.
+- Bridge Algebra now opens a real bridge crossing into Waterfall Clearing, with its own generated backdrop and waterfall decor sprites.
 
 ## Files
 
@@ -25,6 +26,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - `tools/slice_gpt_atlas.py`: dependency-free PNG slicer that chroma-keys and trims the generated pet atlas.
 - `tools/slice_home_decor.py`: dependency-free PNG slicer for the home decoration atlas.
 - `tools/slice_yard_decor.py`: dependency-free PNG slicer for the outdoor decoration atlas.
+- `tools/slice_waterfall_decor.py`: dependency-free PNG slicer for the Waterfall Clearing decoration atlas.
 - `tools/generate_assets.py`: legacy procedural asset generator retained as a fallback, not the current visual direction.
 
 ## Local Preview
@@ -55,6 +57,14 @@ python3 tools/slice_yard_decor.py
 ```
 
 This reads `assets/gpt-yard-decor-atlas-source.png` and writes the outdoor decor sprite PNGs.
+
+## Slice GPT Waterfall Decor Atlas
+
+```bash
+python3 tools/slice_waterfall_decor.py
+```
+
+This reads `assets/gpt-waterfall-decor-atlas-source.png` and writes the Waterfall Clearing decor sprite PNGs.
 
 ## GitHub Pages
 

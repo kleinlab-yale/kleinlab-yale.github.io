@@ -120,6 +120,16 @@ button {
   top: 33%;
 }
 
+.bridge-hotspot {
+  left: max(50px, 5vw);
+  top: 44%;
+}
+
+.meadow-hotspot {
+  left: max(38px, 4vw);
+  top: 35%;
+}
+
 .tv-hotspot {
   right: max(90px, 8vw);
   top: 46%;
@@ -638,6 +648,10 @@ input:focus {
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 8px 18px rgba(28, 54, 76, 0.12);
   color: var(--ink);
+}
+
+.decor-tabs button.locked {
+  color: rgba(23, 38, 50, 0.42);
 }
 
 .decor-item {

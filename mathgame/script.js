@@ -4,6 +4,7 @@ const BOSS_PASS = 5;
 
 const ASSETS = {
   backdrop: "assets/gpt-meadow-backdrop.png",
+  waterfall: "assets/gpt-waterfall-backdrop.png",
   home: "assets/gpt-home-interior.png",
   egg: "assets/gpt-egg.png",
   puppy: "assets/gpt-puppy-base.png",
@@ -25,6 +26,10 @@ const ASSETS = {
   yardBall: "assets/gpt-yard-ball.png",
   yardToys: "assets/gpt-yard-toys.png",
   yardBasket: "assets/gpt-yard-basket.png",
+  waterfallLog: "assets/gpt-waterfall-log.png",
+  waterfallLantern: "assets/gpt-waterfall-lantern.png",
+  waterfallLilypads: "assets/gpt-waterfall-lilypads.png",
+  waterfallBasket: "assets/gpt-waterfall-basket.png",
 };
 
 const WORLDS = [
@@ -63,16 +68,22 @@ const DECOR_ITEMS = [
   { id: "ball", scene: "outdoor", name: "Treat ball", tex: "yardBall", x: 1.08, y: 0.34, z: 0.72, w: 0.7, h: 0.7, reward: "Outdoor quests", cost: { coins: 35, gems: 0 } },
   { id: "toys", scene: "outdoor", name: "Rope toys", tex: "yardToys", x: 0.28, y: 0.31, z: 0.74, w: 0.94, h: 0.6, reward: "Outdoor quests", cost: { coins: 45, gems: 0 } },
   { id: "basket", scene: "outdoor", name: "Toy basket", tex: "yardBasket", x: 2.18, y: 0.52, z: 0.48, w: 1.22, h: 1.02, reward: "Outdoor quests", cost: { coins: 90, gems: 1 } },
+  { id: "waterfallLog", scene: "waterfall", name: "Mossy log seat", tex: "waterfallLog", x: -1.7, y: 0.54, z: 0.42, w: 1.7, h: 1.18, reward: "Bridge Algebra", cost: { coins: 70, gems: 0 } },
+  { id: "waterfallLantern", scene: "waterfall", name: "Firefly lantern", tex: "waterfallLantern", x: 2.05, y: 0.72, z: 0.44, w: 0.82, h: 1.34, reward: "Waterfall quests", cost: { coins: 90, gems: 1 } },
+  { id: "waterfallLilypads", scene: "waterfall", name: "Lily stepping stones", tex: "waterfallLilypads", x: 0.86, y: 0.27, z: 0.56, w: 1.15, h: 0.84, reward: "Waterfall quests", cost: { coins: 55, gems: 0 } },
+  { id: "waterfallBasket", scene: "waterfall", name: "Picnic basket", tex: "waterfallBasket", x: 2.36, y: 0.45, z: 0.52, w: 1.05, h: 0.9, reward: "Waterfall quests", cost: { coins: 85, gems: 1 } },
 ];
 
-const DECOR_SCENES = ["home", "outdoor"];
+const DECOR_SCENES = ["home", "outdoor", "waterfall"];
 const DEFAULT_PET_POSITIONS = {
   home: { x: -0.06, y: 0.48 },
   outdoor: { x: 0.12, y: 0.56 },
+  waterfall: { x: 0.05, y: 0.5 },
 };
 const MOVE_BOUNDS = {
   home: { x: [-2.85, 2.95], y: [0.26, 1.35] },
   outdoor: { x: [-2.65, 2.7], y: [0.24, 1.22] },
+  waterfall: { x: [-2.55, 2.65], y: [0.24, 1.18] },
 };
 const FEED_COIN_COST = 10;
 const OUTDOOR_BACKDROP_DECOR_Z = -6.4;
@@ -99,6 +110,7 @@ const els = {
   decorGrid: document.querySelector("#decorGrid"),
   decorHomeTab: document.querySelector("#decorHomeTab"),
   decorOutdoorTab: document.querySelector("#decorOutdoorTab"),
+  decorWaterfallTab: document.querySelector("#decorWaterfallTab"),
   movePad: document.querySelector("#movePad"),
   moveTargetLabel: document.querySelector("#moveTargetLabel"),
   objectiveTitle: document.querySelector("#objectiveTitle"),
@@ -119,6 +131,8 @@ const els = {
   callPetButton: document.querySelector("#callPetButton"),
   homeHotspot: document.querySelector("#homeHotspot"),
   exitHomeButton: document.querySelector("#exitHomeButton"),
+  bridgeHotspot: document.querySelector("#bridgeHotspot"),
+  meadowHotspot: document.querySelector("#meadowHotspot"),
   tvHotspot: document.querySelector("#tvHotspot"),
   toast: document.querySelector("#toast"),
   questOverlay: document.querySelector("#questOverlay"),
@@ -169,13 +183,15 @@ if (IS_DEMO) {
     coins: 140,
     gems: 2,
     location: "home",
-    decorUnlocked: ["couch", "plant", "tv", "bench", "ball"],
-    decorOwned: ["couch", "plant", "tv", "bench", "ball"],
-    decorPlaced: ["couch", "plant", "tv", "bench", "ball"],
+    waterfallUnlocked: true,
+    decorUnlocked: ["couch", "plant", "tv", "bench", "ball", "waterfallLog", "waterfallLantern"],
+    decorOwned: ["couch", "plant", "tv", "bench", "ball", "waterfallLog", "waterfallLantern"],
+    decorPlaced: ["couch", "plant", "tv", "bench", "ball", "waterfallLog", "waterfallLantern"],
     decorPositions: {},
     petPositions: {
       home: { x: -0.18, y: 0.48 },
       outdoor: { x: 0.35, y: 0.56 },
+      waterfall: { x: 0.08, y: 0.5 },
     },
     tvChannel: 1,
     unlocked: ["none"],
@@ -200,6 +216,7 @@ function createInitialState() {
     coins: 0,
     gems: 0,
     location: "outdoor",
+    waterfallUnlocked: false,
     decorUnlocked: [],
     decorOwned: [],
     decorPlaced: [],
@@ -207,6 +224,7 @@ function createInitialState() {
     petPositions: {
       home: { ...DEFAULT_PET_POSITIONS.home },
       outdoor: { ...DEFAULT_PET_POSITIONS.outdoor },
+      waterfall: { ...DEFAULT_PET_POSITIONS.waterfall },
     },
     tvChannel: 0,
     unlocked: ["none"],
@@ -240,6 +258,17 @@ function loadState() {
       .filter((id) => decorUnlocked.includes(id) && decorOwned.includes(id));
     const unlockedLooks = Array.isArray(saved.unlocked) ? Array.from(new Set(["none", ...saved.unlocked])) : ["none"];
     const ownedLooks = Array.isArray(saved.ownedLooks) ? Array.from(new Set(["none", ...saved.ownedLooks])) : unlockedLooks;
+    const waterfallUnlocked = Boolean(
+      saved.waterfallUnlocked
+      || saved.location === "waterfall"
+      || Number(saved.questStep || 0) > 1
+      || Number(saved.world || 0) > 0
+    );
+    const location = saved.location === "home"
+      ? "home"
+      : saved.location === "waterfall" && waterfallUnlocked
+        ? "waterfall"
+        : "outdoor";
     return {
       setup: Boolean(saved.setup),
       playerName: saved.playerName || "",
@@ -254,7 +283,8 @@ function loadState() {
       glow: Math.max(0, Number(saved.glow || 0)),
       coins: Math.max(0, Number(saved.coins || 0)),
       gems: Math.max(0, Number(saved.gems || 0)),
-      location: saved.location === "home" ? "home" : "outdoor",
+      location,
+      waterfallUnlocked,
       decorUnlocked,
       decorOwned,
       decorPlaced,
@@ -320,11 +350,38 @@ function normalizePetPositions(value) {
 }
 
 function currentScene() {
-  return state.location === "home" ? "home" : "outdoor";
+  if (state.location === "home") return "home";
+  if (state.location === "waterfall" && state.waterfallUnlocked) return "waterfall";
+  return "outdoor";
 }
 
 function decorSceneLabel(scene) {
-  return scene === "home" ? "Home" : "Outside";
+  if (scene === "home") return "Home";
+  if (scene === "waterfall") return "Waterfall";
+  return "Outside";
+}
+
+function isDecorSceneAvailable(scene) {
+  return scene !== "waterfall" || state.waterfallUnlocked;
+}
+
+function decorTabForScene(scene) {
+  if (scene === "home") return els.decorHomeTab;
+  if (scene === "waterfall") return els.decorWaterfallTab;
+  return els.decorOutdoorTab;
+}
+
+function sceneWorldLabel(scene = currentScene()) {
+  if (scene === "home") return "Cozy Home";
+  if (scene === "waterfall") return "Waterfall Clearing";
+  const world = currentWorld();
+  return `${world.name}  ${state.world + 1}/${WORLDS.length}`;
+}
+
+function sceneBackdropTexture(scene = currentScene()) {
+  if (scene === "home") return "home";
+  if (scene === "waterfall") return "waterfall";
+  return "backdrop";
 }
 
 function decorItemsForScene(scene) {
@@ -477,34 +534,45 @@ function renderHud() {
   const questName = QUEST_LABELS[quest];
   const pass = currentQuestPass();
   const size = currentQuestSize();
-  const inHome = state.location === "home";
   const scene = currentScene();
+  const inHome = scene === "home";
+  const inWaterfall = scene === "waterfall";
   const nextDecor = nextDecorItem(scene);
 
   els.setupOverlay.classList.toggle("show", !state.setup);
   els.objectiveTitle.textContent = state.stage === "egg"
     ? "Hatch the puppy"
-    : inHome ? "Cozy Home" : `${questName}: ${world.name}`;
+    : inHome
+      ? "Cozy Home"
+      : inWaterfall
+        ? "Waterfall Clearing"
+        : `${questName}: ${world.name}`;
   els.objectiveText.textContent = state.stage === "egg"
     ? "Click Practice Math. Pass the first growth quest to hatch the egg."
     : inHome
       ? nextDecor
         ? `Do home math to make ${nextDecor.name} available. Coins buy it in Decor.`
         : "Home decor is available. Earn coins, discover gems, and arrange furniture."
+      : inWaterfall
+        ? nextDecor
+          ? `Practice at the waterfall to make ${nextDecor.name} available.`
+          : "Waterfall decor is stocked. Math here keeps opening future paths."
       : nextDecor
-        ? `Practice ${world.focus}. Passing makes ${nextDecor.name} available and earns coins. Perfect clears discover gems.`
-        : `Practice ${world.focus}. Pass with ${pass}/${size} correct to earn coins and keep growing.`;
+        ? `${quest === "fraction" && !state.waterfallUnlocked ? "Pass Bridge Algebra to open the bridge crossing. " : ""}Practice ${world.focus}. Passing makes ${nextDecor.name} available and earns coins.`
+        : `${quest === "fraction" && !state.waterfallUnlocked ? "Pass Bridge Algebra to open the bridge crossing. " : ""}Pass with ${pass}/${size} correct to earn coins and keep growing.`;
   els.petNameLabel.textContent = state.stage === "egg" ? `${state.petName}'s egg` : state.petName;
   els.foodBar.style.width = `${state.food}%`;
   els.energyBar.style.width = `${state.energy}%`;
   els.growthBar.style.width = `${state.growth}%`;
-  els.worldLabel.textContent = inHome ? "Cozy Home" : `${world.name}  ${state.world + 1}/${WORLDS.length}`;
+  els.worldLabel.textContent = sceneWorldLabel(scene);
   els.coinLabel.textContent = `${state.coins} coins`;
   els.gemLabel.textContent = `${state.gems} ${state.gems === 1 ? "gem" : "gems"}`;
   els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor`;
-  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : questName;
-  els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && !inHome);
+  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inWaterfall ? "Waterfall Quest" : questName;
+  els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && scene === "outdoor");
   els.exitHomeButton.classList.toggle("show", state.setup && inHome);
+  els.bridgeHotspot.classList.toggle("show", state.setup && scene === "outdoor" && state.waterfallUnlocked);
+  els.meadowHotspot.classList.toggle("show", state.setup && inWaterfall);
   els.tvHotspot.classList.toggle("show", state.setup && inHome && isDecorPlaced("tv"));
   renderCloset();
   renderDecor();
@@ -543,22 +611,30 @@ function renderCloset() {
 function renderDecor() {
   if (!els.decorGrid) return;
   DECOR_SCENES.forEach((scene) => {
-    const tab = scene === "home" ? els.decorHomeTab : els.decorOutdoorTab;
+    const tab = decorTabForScene(scene);
     tab.classList.toggle("active", activeDecorScene === scene);
+    tab.classList.toggle("locked", !isDecorSceneAvailable(scene));
   });
 
   const petImage = state.stage === "egg" ? ASSETS.egg : ASSETS.puppy;
-  const petActive = selectedMoveTarget.type === "pet" && selectedMoveTarget.scene === activeDecorScene;
-  const cards = [`
+  const sceneAvailable = isDecorSceneAvailable(activeDecorScene);
+  const petActive = sceneAvailable && selectedMoveTarget.type === "pet" && selectedMoveTarget.scene === activeDecorScene;
+  const cards = sceneAvailable ? [`
     <button class="decor-item ${petActive ? "active" : ""}" data-decor-pet="${activeDecorScene}" type="button">
       <img src="${petImage}" alt="" />
       <strong>${state.stage === "egg" ? "Egg spot" : "Pet spot"}</strong>
       <span>Placed</span>
     </button>
+  `] : [`
+    <button class="decor-item locked" type="button" disabled>
+      <span class="closet-empty">?</span>
+      <strong>${decorSceneLabel(activeDecorScene)} locked</strong>
+      <span>Bridge Algebra</span>
+    </button>
   `];
 
   decorItemsForScene(activeDecorScene).forEach((item) => {
-    const unlocked = isDecorUnlocked(item.id);
+    const unlocked = sceneAvailable && isDecorUnlocked(item.id);
     const owned = isDecorOwned(item.id);
     const placed = isDecorPlaced(item.id);
     const active = selectedMoveTarget.type === "decor" && selectedMoveTarget.id === item.id;
@@ -590,6 +666,7 @@ function renderMovePad() {
 
 function selectedTarget() {
   if (selectedMoveTarget.type === "pet") {
+    if (!isDecorSceneAvailable(activeDecorScene)) return null;
     if (selectedMoveTarget.scene !== activeDecorScene) return null;
     return { type: "pet", scene: activeDecorScene, name: state.stage === "egg" ? "Egg spot" : "Pet spot" };
   }
@@ -949,6 +1026,11 @@ function finishRound() {
     state.stage = "puppy";
     state.equipped.look = "none";
     message = `${state.petName} hatched. Click the cottage to enter the cozy home.`;
+  } else if (type === "fraction" && !state.waterfallUnlocked) {
+    state.waterfallUnlocked = true;
+    message += `. The bridge crossing to Waterfall Clearing opened`;
+    const waterfallMessage = unlockNextDecorReward("waterfall");
+    if (!waterfallMessage.includes("fully stocked")) message += `. ${waterfallMessage}`;
   } else if (type === "geometry") {
     if (unlock("sweater")) {
       const sweater = CLOSET.find((item) => item.id === "sweater");
@@ -969,7 +1051,8 @@ function finishRound() {
     }
   }
 
-  const decorMessage = unlockNextDecorReward("outdoor");
+  const rewardScene = roundLocation === "waterfall" ? "waterfall" : "outdoor";
+  const decorMessage = unlockNextDecorReward(rewardScene);
   if (!decorMessage.includes("fully stocked")) message += `. ${decorMessage}`;
 
   if (type !== "boss") {
@@ -1362,6 +1445,28 @@ els.exitHomeButton.addEventListener("click", () => {
   petPulseUntil = performance.now() + 900;
   showToast(`${state.petName} went back outside.`);
 });
+els.bridgeHotspot.addEventListener("click", () => {
+  if (!state.waterfallUnlocked) {
+    showToast("Pass Bridge Algebra to open the crossing.");
+    return;
+  }
+  state.location = "waterfall";
+  activeDecorScene = "waterfall";
+  selectedMoveTarget = { type: "pet", scene: "waterfall" };
+  saveState();
+  renderHud();
+  petPulseUntil = performance.now() + 1000;
+  showToast(`${state.petName} crossed into Waterfall Clearing.`);
+});
+els.meadowHotspot.addEventListener("click", () => {
+  state.location = "outdoor";
+  activeDecorScene = "outdoor";
+  selectedMoveTarget = { type: "pet", scene: "outdoor" };
+  saveState();
+  renderHud();
+  petPulseUntil = performance.now() + 900;
+  showToast(`${state.petName} crossed back to the meadow.`);
+});
 els.tvHotspot.addEventListener("click", () => {
   if (!isDecorPlaced("tv")) return;
   state.tvChannel = state.tvChannel ? 0 : 1;
@@ -1410,7 +1515,7 @@ els.decorButton.addEventListener("click", () => {
   setOverlay(els.decorOverlay, true);
 });
 els.closeDecorButton.addEventListener("click", () => setOverlay(els.decorOverlay, false));
-[els.decorHomeTab, els.decorOutdoorTab].forEach((tab) => {
+[els.decorHomeTab, els.decorOutdoorTab, els.decorWaterfallTab].forEach((tab) => {
   tab.addEventListener("click", () => {
     activeDecorScene = tab.dataset.decorScene;
     selectedMoveTarget = { type: "pet", scene: activeDecorScene };
@@ -1594,17 +1699,18 @@ function drawScene(time) {
 
   const aspect = gl.canvas.width / Math.max(1, gl.canvas.height);
   const pulse = Math.max(0, petPulseUntil - time) / 1200;
-  const inHome = state.location === "home";
-  const cameraX = Math.sin(time * 0.00018) * (inHome ? 0.18 : 0.45) + pulse * 0.16;
+  const scene = currentScene();
+  const inHome = scene === "home";
+  const cameraX = Math.sin(time * 0.00018) * (inHome ? 0.18 : 0.42) + pulse * 0.16;
   const cameraY = (inHome ? 2.05 : 2.25) + Math.sin(time * 0.00027) * 0.08;
   const projection = perspective(Math.PI / 4.5, aspect, 0.1, 80);
   const view = lookAt([cameraX, cameraY, 7.2], [0, inHome ? 0.85 : 0.9, -1.2], [0, 1, 0]);
   const pv = multiply(projection, view);
 
   const objects = [
-    { tex: inHome ? "home" : "backdrop", x: 0, y: 1.15, z: -6.4, w: 24.0, h: 13.5, rx: 0, a: 1 },
+    { tex: sceneBackdropTexture(scene), x: 0, y: 1.15, z: -6.4, w: 24.0, h: 13.5, rx: 0, a: 1 },
   ];
-  const decorObjects = decorObjectsForScene(currentScene());
+  const decorObjects = decorObjectsForScene(scene);
 
   objects.push(...decorObjects);
 
@@ -1612,7 +1718,7 @@ function drawScene(time) {
 
   const bob = Math.sin(time * 0.004) * 0.045 + pulse * 0.08;
   const scale = state.stage === "egg" ? 1.15 : (inHome ? 1.38 : 1.72) + Math.min(0.25, state.growth / 500);
-  const petPosition = getPetPosition(currentScene());
+  const petPosition = getPetPosition(scene);
   const pet = {
     tex: state.stage === "egg" ? "egg" : petTextureKey(),
     x: petPosition.x,
@@ -1622,7 +1728,7 @@ function drawScene(time) {
     h: scale * 1.1,
     rx: 0,
     a: 1,
-    interactive: { type: "pet", scene: currentScene() },
+    interactive: { type: "pet", scene },
   };
   drawObject(gl, textures[pet.tex], pv, pet, matrix, alpha);
   lastInteractiveObjects = [
@@ -1637,7 +1743,7 @@ function decorObjectsForScene(scene) {
   return placedDecorForScene(scene)
     .map((item) => {
       const position = getDecorPosition(item);
-      const backdropLocked = scene === "outdoor";
+      const backdropLocked = scene !== "home";
       const renderScale = backdropLocked ? OUTDOOR_BACKDROP_DECOR_SCALE : 1;
       return {
         ...item,

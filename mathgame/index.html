@@ -6,11 +6,12 @@
     <title>Math Pet Evolution: Sky Meadow</title>
     <link rel="preload" href="assets/gpt-meadow-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-home-interior.png" as="image" />
+    <link rel="preload" href="assets/gpt-waterfall-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-egg.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-sweater.png" as="image" />
     <link rel="icon" href="assets/gpt-egg.png" />
-    <link rel="stylesheet" href="styles.css?v=20260613-ipad-pan" />
+    <link rel="stylesheet" href="styles.css?v=20260613-waterfall" />
   </head>
   <body>
     <main class="game-shell" id="gameShell">
@@ -21,6 +22,12 @@
       </button>
       <button id="exitHomeButton" class="scene-hotspot exit-home-button" type="button">
         <span>Outside</span>
+      </button>
+      <button id="bridgeHotspot" class="scene-hotspot bridge-hotspot" type="button">
+        <span>Cross Bridge</span>
+      </button>
+      <button id="meadowHotspot" class="scene-hotspot meadow-hotspot" type="button">
+        <span>Back Meadow</span>
       </button>
       <button id="tvHotspot" class="scene-hotspot tv-hotspot" type="button">
         <span>Change TV</span>
@@ -138,6 +145,7 @@
         <div class="decor-tabs" role="tablist" aria-label="Decor scene">
           <button id="decorHomeTab" class="active" data-decor-scene="home" type="button">Home</button>
           <button id="decorOutdoorTab" data-decor-scene="outdoor" type="button">Outside</button>
+          <button id="decorWaterfallTab" data-decor-scene="waterfall" type="button">Waterfall</button>
         </div>
         <div class="decor-grid" id="decorGrid"></div>
         <div class="move-pad" id="movePad" aria-label="Move selected item">
@@ -153,6 +161,6 @@
       </div>
     </section>
 
-    <script src="script.js?v=20260613-ipad-pan"></script>
+    <script src="script.js?v=20260613-waterfall"></script>
   </body>
 </html>
