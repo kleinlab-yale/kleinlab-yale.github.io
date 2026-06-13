@@ -121,8 +121,8 @@ button {
 }
 
 .bridge-hotspot {
-  left: max(50px, 5vw);
-  top: 44%;
+  right: max(42px, 5vw);
+  top: 48%;
 }
 
 .meadow-hotspot {
@@ -225,7 +225,7 @@ button {
 .decor-item:hover,
 .care-actions button:hover,
 .decor-tabs button:hover,
-.move-buttons button:hover {
+.whiteboard-tools button:hover {
   transform: translateY(-2px);
 }
 
@@ -456,6 +456,22 @@ button {
   transition: transform 160ms ease, outline 160ms ease, opacity 160ms ease;
 }
 
+.egg-pick {
+  display: grid;
+  gap: 4px;
+  place-items: center;
+  text-align: center;
+}
+
+.egg-pick span {
+  color: rgba(23, 38, 50, 0.58);
+  font-size: 0.76rem;
+}
+
+.egg-pick:disabled {
+  opacity: 0.72;
+}
+
 .egg-pick.active,
 .closet-item.active,
 .decor-item.active {
@@ -577,6 +593,52 @@ input:focus {
   -webkit-tap-highlight-color: transparent;
 }
 
+.whiteboard-tools {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.whiteboard-tools button {
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 8px 18px rgba(28, 54, 76, 0.12);
+  color: rgba(23, 38, 50, 0.84);
+  font-size: 0.82rem;
+  font-weight: 950;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.work-board {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  border: 2px solid rgba(23, 38, 50, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+.work-board.show {
+  display: block;
+}
+
+#whiteboardCanvas {
+  width: 100%;
+  height: min(260px, 34vh);
+  display: block;
+  border-radius: 14px;
+  background:
+    linear-gradient(rgba(100, 214, 237, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100, 214, 237, 0.12) 1px, transparent 1px),
+    #fffdf4;
+  background-size: 28px 28px;
+  touch-action: none;
+  cursor: crosshair;
+}
+
 .quest-feedback.good {
   color: var(--good);
 }
@@ -676,40 +738,6 @@ input:focus {
   font-weight: 950;
 }
 
-.move-pad {
-  display: grid;
-  gap: 10px;
-  margin-top: 16px;
-  padding: 14px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.58);
-}
-
-.move-pad strong {
-  color: rgba(23, 38, 50, 0.78);
-  font-size: 0.92rem;
-}
-
-.move-buttons {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.move-buttons button {
-  min-height: 42px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 8px 18px rgba(28, 54, 76, 0.12);
-  font-weight: 950;
-  transition: transform 160ms ease, background 160ms ease;
-}
-
-.move-buttons button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
 @media (max-width: 820px) {
   .hud-top {
     display: grid;
@@ -754,10 +782,6 @@ input:focus {
   .closet-grid,
   .decor-grid {
     grid-template-columns: 1fr;
-  }
-
-  .move-buttons {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .answer-area {

@@ -2,18 +2,43 @@ const SAVE_KEY = "math-pet-sky-meadow-v3";
 const QUEST_PASS = 3;
 const BOSS_PASS = 5;
 
+const PET_VARIANTS = {
+  golden: { name: "golden puppy", egg: "sunny" },
+  corgi: { name: "corgi puppy", egg: "rose" },
+  husky: { name: "husky puppy", egg: "mint" },
+};
+const EGG_CHOICES = [
+  { id: "sunny", label: "Mystery Egg I", variant: "golden" },
+  { id: "rose", label: "Mystery Egg II", variant: "corgi" },
+  { id: "mint", label: "Mystery Egg III", variant: "husky" },
+];
+const PET_FRAMES = [
+  "base",
+  "bow",
+  "sweater",
+  "collar",
+  "thinking",
+  "celebrate",
+  "sleepy",
+  "wag-a",
+  "wag-b",
+  "roll-a",
+  "roll-b",
+  "roll-c",
+  "couch-sit",
+];
+const PET_ASSETS = Object.fromEntries(
+  Object.keys(PET_VARIANTS).flatMap((variant) => (
+    PET_FRAMES.map((frame) => [`pet-${variant}-${frame}`, `assets/gpt-puppy-${variant}-${frame}.png`])
+  ))
+);
+
 const ASSETS = {
   backdrop: "assets/gpt-meadow-backdrop.png",
   waterfall: "assets/gpt-waterfall-backdrop.png",
   home: "assets/gpt-home-interior.png",
   egg: "assets/gpt-egg.png",
-  puppy: "assets/gpt-puppy-base.png",
-  bow: "assets/gpt-puppy-bow.png",
-  sweater: "assets/gpt-puppy-sweater.png",
-  collar: "assets/gpt-puppy-collar.png",
-  thinking: "assets/gpt-puppy-thinking.png",
-  celebrate: "assets/gpt-puppy-celebrate.png",
-  sleepy: "assets/gpt-puppy-sleepy.png",
+  ...PET_ASSETS,
   homeCouch: "assets/gpt-home-couch.png",
   homeChair: "assets/gpt-home-chair.png",
   homeTvOff: "assets/gpt-home-tv-off.png",
@@ -51,14 +76,14 @@ const QUEST_LABELS = {
 };
 
 const CLOSET = [
-  { id: "none", name: "No extra", asset: null, kind: "all", unlock: true, cost: { coins: 0, gems: 0 } },
-  { id: "sweater", name: "Peach sweater", asset: "assets/gpt-puppy-sweater.png", kind: "look", cost: { coins: 65, gems: 0 } },
-  { id: "bow", name: "Berry bow", asset: "assets/gpt-puppy-bow.png", kind: "look", cost: { coins: 90, gems: 1 } },
-  { id: "collar", name: "Bell collar", asset: "assets/gpt-puppy-collar.png", kind: "look", cost: { coins: 80, gems: 0 } },
+  { id: "none", name: "No extra", kind: "all", unlock: true, cost: { coins: 0, gems: 0 } },
+  { id: "sweater", name: "Peach sweater", kind: "look", cost: { coins: 65, gems: 0 } },
+  { id: "bow", name: "Berry bow", kind: "look", cost: { coins: 90, gems: 1 } },
+  { id: "collar", name: "Bell collar", kind: "look", cost: { coins: 80, gems: 0 } },
 ];
 
 const DECOR_ITEMS = [
-  { id: "couch", scene: "home", name: "Peach couch", tex: "homeCouch", x: -1.9, y: 0.94, z: 0.35, w: 2.15, h: 1.46, reward: "Home math", cost: { coins: 80, gems: 0 } },
+  { id: "couch", scene: "home", name: "Peach couch", tex: "homeCouch", x: -1.58, y: 0.94, z: 0.35, w: 2.42, h: 1.44, reward: "Home math", cost: { coins: 80, gems: 0 } },
   { id: "plant", scene: "home", name: "Leafy plant", tex: "homePlant", x: 1.98, y: 0.9, z: 0.36, w: 0.92, h: 1.0, reward: "Home math", cost: { coins: 35, gems: 0 } },
   { id: "tv", scene: "home", name: "Star TV", tex: "homeTvOff", x: 1.92, y: 1.28, z: 0.38, w: 1.38, h: 1.34, reward: "Home math", cost: { coins: 95, gems: 1 } },
   { id: "chair", scene: "home", name: "Mint chair", tex: "homeChair", x: -0.95, y: 0.93, z: 0.4, w: 1.22, h: 1.1, reward: "Home math", cost: { coins: 55, gems: 0 } },
@@ -77,15 +102,16 @@ const DECOR_ITEMS = [
 const DECOR_SCENES = ["home", "outdoor", "waterfall"];
 const DEFAULT_PET_POSITIONS = {
   home: { x: -0.06, y: 0.48 },
-  outdoor: { x: 0.12, y: 0.56 },
+  outdoor: { x: 0.12, y: 0.5 },
   waterfall: { x: 0.05, y: 0.5 },
 };
 const MOVE_BOUNDS = {
-  home: { x: [-2.85, 2.95], y: [0.26, 1.35] },
-  outdoor: { x: [-2.65, 2.7], y: [0.24, 1.22] },
-  waterfall: { x: [-2.55, 2.65], y: [0.24, 1.18] },
+  home: { x: [-4.35, 4.35], y: [0.12, 2.08] },
+  outdoor: { x: [-3.85, 3.85], y: [0.06, 2.02] },
+  waterfall: { x: [-3.85, 3.85], y: [0.06, 2.02] },
 };
 const FEED_COIN_COST = 10;
+const COUCH_PET_OFFSET = { x: 0.02, y: 0.38 };
 const OUTDOOR_BACKDROP_DECOR_Z = -6.4;
 const OUTDOOR_BACKDROP_DECOR_SCALE = 1.05;
 const OUTDOOR_BACKDROP_DECOR_X_SCALE = 2.2;
@@ -111,8 +137,6 @@ const els = {
   decorHomeTab: document.querySelector("#decorHomeTab"),
   decorOutdoorTab: document.querySelector("#decorOutdoorTab"),
   decorWaterfallTab: document.querySelector("#decorWaterfallTab"),
-  movePad: document.querySelector("#movePad"),
-  moveTargetLabel: document.querySelector("#moveTargetLabel"),
   objectiveTitle: document.querySelector("#objectiveTitle"),
   objectiveText: document.querySelector("#objectiveText"),
   petNameLabel: document.querySelector("#petNameLabel"),
@@ -144,17 +168,26 @@ const els = {
   answerInput: document.querySelector("#answerInput"),
   choiceRow: document.querySelector("#choiceRow"),
   questFeedback: document.querySelector("#questFeedback"),
+  whiteboardToggle: document.querySelector("#whiteboardToggle"),
+  clearWhiteboardButton: document.querySelector("#clearWhiteboardButton"),
+  workBoard: document.querySelector("#workBoard"),
+  whiteboardCanvas: document.querySelector("#whiteboardCanvas"),
 };
 
 let selectedEgg = "sunny";
 let toastTimer = 0;
 let petPulseUntil = 0;
+let petAction = null;
+let petActionUntil = 0;
+let petHiddenUntil = 0;
 let activeRound = null;
 let activeProblem = null;
 let activeDecorScene = "home";
 let selectedMoveTarget = { type: "pet", scene: "home" };
 let lastInteractiveObjects = [];
 let dragState = null;
+let recentProblemKeys = [];
+let whiteboardDrawing = null;
 const URL_PARAMS = new URLSearchParams(window.location.search);
 const IS_DEMO = URL_PARAMS.has("demo");
 const SHOULD_RESET = URL_PARAMS.has("reset");
@@ -173,6 +206,8 @@ if (IS_DEMO) {
     setup: true,
     playerName: "Demo",
     petName: "Mochi",
+    egg: "mint",
+    petVariant: "husky",
     stage: "puppy",
     world: 1,
     questStep: 1,
@@ -199,6 +234,7 @@ if (IS_DEMO) {
     equipped: { look: "none" },
   };
 }
+selectedEgg = state.egg || "sunny";
 
 function createInitialState() {
   return {
@@ -206,6 +242,7 @@ function createInitialState() {
     playerName: "",
     petName: "Mochi",
     egg: "sunny",
+    petVariant: "golden",
     stage: "egg",
     world: 0,
     questStep: 0,
@@ -274,6 +311,7 @@ function loadState() {
       playerName: saved.playerName || "",
       petName: saved.petName || "Mochi",
       egg: saved.egg || "sunny",
+      petVariant: normalizePetVariant(saved.petVariant, saved.egg),
       stage: saved.stage || "egg",
       world: clamp(saved.world ?? 0, 0, WORLDS.length - 1),
       questStep: clamp(saved.questStep ?? 0, 0, QUEST_FLOW.length - 1),
@@ -347,6 +385,32 @@ function normalizePetPositions(value) {
     positions[scene] = clampScenePosition(scene, source[scene] || DEFAULT_PET_POSITIONS[scene]);
     return positions;
   }, {});
+}
+
+function variantForEgg(eggId) {
+  return EGG_CHOICES.find((choice) => choice.id === eggId)?.variant || "golden";
+}
+
+function normalizePetVariant(variant, eggId = "sunny") {
+  if (PET_VARIANTS[variant]) return variant;
+  return variantForEgg(eggId);
+}
+
+function currentPetVariant() {
+  state.petVariant = normalizePetVariant(state.petVariant, state.egg);
+  return state.petVariant;
+}
+
+function currentPetVariantName() {
+  return PET_VARIANTS[currentPetVariant()]?.name || PET_VARIANTS.golden.name;
+}
+
+function petTextureKeyFor(frame, variant = currentPetVariant()) {
+  return `pet-${variant}-${frame}`;
+}
+
+function petFrameAsset(frame, variant = currentPetVariant()) {
+  return ASSETS[petTextureKeyFor(frame, variant)] || ASSETS[petTextureKeyFor("base", "golden")];
 }
 
 function currentScene() {
@@ -477,9 +541,7 @@ function restartGame() {
   state = createInitialState();
   els.playerInput.value = "";
   els.petInput.value = "";
-  document.querySelectorAll("[data-egg]").forEach((item) => {
-    item.classList.toggle("active", item.dataset.egg === selectedEgg);
-  });
+  renderEggChoices();
   setOverlay(els.questOverlay, false);
   setOverlay(els.closetOverlay, false);
   setOverlay(els.decorOverlay, false);
@@ -523,12 +585,35 @@ function showToast(message) {
   toastTimer = setTimeout(() => els.toast.classList.remove("show"), 2600);
 }
 
+function triggerPetAction(action, duration = 1000) {
+  petPulseUntil = performance.now() + duration;
+  if (state.stage === "egg") {
+    petAction = null;
+    petActionUntil = 0;
+    return;
+  }
+  petAction = action;
+  petActionUntil = performance.now() + duration;
+}
+
 function setOverlay(overlay, show) {
   overlay.classList.toggle("show", show);
   overlay.setAttribute("aria-hidden", show ? "false" : "true");
 }
 
+function renderEggChoices() {
+  const locked = state.setup && state.stage !== "egg";
+  els.eggRow.innerHTML = EGG_CHOICES.map((choice) => `
+    <button class="egg-pick ${selectedEgg === choice.id ? "active" : ""}" data-egg="${choice.id}" ${locked ? "disabled" : ""} type="button">
+      <img src="${ASSETS.egg}" alt="" />
+      <strong>${choice.label}</strong>
+      <span>${locked && selectedEgg === choice.id ? "Hatched" : "Blind box"}</span>
+    </button>
+  `).join("");
+}
+
 function renderHud() {
+  renderEggChoices();
   const quest = currentQuestType();
   const world = currentWorld();
   const questName = QUEST_LABELS[quest];
@@ -560,7 +645,7 @@ function renderHud() {
       : nextDecor
         ? `${quest === "fraction" && !state.waterfallUnlocked ? "Pass Bridge Algebra to open the bridge crossing. " : ""}Practice ${world.focus}. Passing makes ${nextDecor.name} available and earns coins.`
         : `${quest === "fraction" && !state.waterfallUnlocked ? "Pass Bridge Algebra to open the bridge crossing. " : ""}Pass with ${pass}/${size} correct to earn coins and keep growing.`;
-  els.petNameLabel.textContent = state.stage === "egg" ? `${state.petName}'s egg` : state.petName;
+  els.petNameLabel.textContent = state.stage === "egg" ? `${state.petName}'s egg` : `${state.petName} the ${currentPetVariantName()}`;
   els.foodBar.style.width = `${state.food}%`;
   els.energyBar.style.width = `${state.energy}%`;
   els.growthBar.style.width = `${state.growth}%`;
@@ -592,7 +677,8 @@ function renderCloset() {
     const active = item.id === "none"
       ? state.equipped.look === "none"
       : state.equipped.look === item.id;
-    const image = item.asset ? `<img src="${item.asset}" alt="" />` : `<span class="closet-empty">Base</span>`;
+    const previewFrame = item.id === "none" ? "base" : item.id;
+    const image = `<img src="${petFrameAsset(previewFrame)}" alt="" />`;
     const status = !unlocked
       ? "Locked"
       : owned
@@ -616,7 +702,7 @@ function renderDecor() {
     tab.classList.toggle("locked", !isDecorSceneAvailable(scene));
   });
 
-  const petImage = state.stage === "egg" ? ASSETS.egg : ASSETS.puppy;
+  const petImage = state.stage === "egg" ? ASSETS.egg : petFrameAsset(equippedPetFrame());
   const sceneAvailable = isDecorSceneAvailable(activeDecorScene);
   const petActive = sceneAvailable && selectedMoveTarget.type === "pet" && selectedMoveTarget.scene === activeDecorScene;
   const cards = sceneAvailable ? [`
@@ -653,15 +739,6 @@ function renderDecor() {
   });
 
   els.decorGrid.innerHTML = cards.join("");
-  renderMovePad();
-}
-
-function renderMovePad() {
-  const target = selectedTarget();
-  els.moveTargetLabel.textContent = target ? `Move: ${target.name}` : "Select an unlocked item";
-  els.movePad.querySelectorAll("[data-move]").forEach((button) => {
-    button.disabled = !target;
-  });
 }
 
 function selectedTarget() {
@@ -715,34 +792,6 @@ function toggleDecorItem(itemId) {
   renderHud();
 }
 
-function moveSelectedTarget(direction) {
-  const target = selectedTarget();
-  if (!target) return;
-  const step = 0.12;
-  const delta = {
-    left: { x: -step, y: 0 },
-    right: { x: step, y: 0 },
-    up: { x: 0, y: step },
-    down: { x: 0, y: -step },
-  }[direction];
-
-  if (direction === "reset") {
-    if (target.type === "pet") setPetPosition(target.scene, DEFAULT_PET_POSITIONS[target.scene]);
-    if (target.type === "decor") setDecorPosition(target.item, defaultDecorPosition(target.item));
-  } else if (delta) {
-    if (target.type === "pet") {
-      const position = getPetPosition(target.scene);
-      setPetPosition(target.scene, { x: position.x + delta.x, y: position.y + delta.y });
-    } else {
-      const position = getDecorPosition(target.item);
-      setDecorPosition(target.item, { x: position.x + delta.x, y: position.y + delta.y });
-    }
-  }
-
-  saveState();
-  renderHud();
-}
-
 function getTargetPosition(target) {
   if (target.type === "pet") return getPetPosition(target.scene || currentScene());
   const item = decorItemById(target.id);
@@ -758,12 +807,6 @@ function setTargetPosition(target, position) {
   if (item) setDecorPosition(item, position);
 }
 
-function dragWorldScale(scene) {
-  return scene === "home"
-    ? { x: 6.4, y: 2.9 }
-    : { x: 6.0, y: 3.1 };
-}
-
 function finishDrag(event) {
   if (!dragState || dragState.pointerId !== event.pointerId) return;
   try {
@@ -771,9 +814,41 @@ function finishDrag(event) {
   } catch {
     /* Pointer capture may already be released by the browser. */
   }
+  snapDraggedTarget(dragState.target);
   dragState = null;
   saveState();
   renderHud();
+}
+
+function pointerToScenePosition(scene, clientX, clientY) {
+  const rect = els.canvas.getBoundingClientRect();
+  const bounds = MOVE_BOUNDS[scene] || MOVE_BOUNDS.outdoor;
+  const nx = clamp((clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+  const ny = clamp((clientY - rect.top) / Math.max(1, rect.height), 0, 1);
+  return {
+    x: bounds.x[0] + nx * (bounds.x[1] - bounds.x[0]),
+    y: bounds.y[1] - ny * (bounds.y[1] - bounds.y[0]),
+  };
+}
+
+function snapDraggedTarget(target) {
+  if (target.type !== "pet" || target.scene !== "home" || !isDecorPlaced("couch")) return;
+  const petPosition = getPetPosition("home");
+  const couchSeat = couchPetPosition();
+  const distance = Math.hypot(petPosition.x - couchSeat.x, petPosition.y - couchSeat.y);
+  if (distance > 0.85) return;
+  setPetPosition("home", couchSeat);
+  triggerPetAction("couch", 1800);
+  showToast(`${state.petName} climbed onto the couch.`);
+}
+
+function couchPetPosition() {
+  const couch = decorItemById("couch");
+  const position = couch ? getDecorPosition(couch) : DEFAULT_PET_POSITIONS.home;
+  return {
+    x: position.x + COUCH_PET_OFFSET.x,
+    y: position.y + COUCH_PET_OFFSET.y,
+  };
 }
 
 function pickInteractiveObject(clientX, clientY) {
@@ -811,13 +886,13 @@ function equip(itemId) {
   state.equipped.look = item.id;
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 900;
+  triggerPetAction("wag", 900);
 }
 
 function feedPet() {
   if (state.stage === "egg") {
     showToast("Hatch the egg first, then snacks can help.");
-    petPulseUntil = performance.now() + 700;
+    triggerPetAction("celebrate", 700);
     return;
   }
   if (state.coins < FEED_COIN_COST) {
@@ -829,13 +904,13 @@ function feedPet() {
   state.energy = clamp(state.energy + 3, 0, 100);
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 1000;
+  triggerPetAction("wag", 1100);
   showToast(`${state.petName} ate a snack. -${FEED_COIN_COST} coins.`);
 }
 
 function rubPet() {
   if (state.stage === "egg") {
-    petPulseUntil = performance.now() + 900;
+    triggerPetAction("celebrate", 900);
     showToast("The egg wiggles. Math growth will hatch it.");
     return;
   }
@@ -844,7 +919,7 @@ function rubPet() {
   state.growth = clamp(state.growth + 1, 0, 100);
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 1000;
+  triggerPetAction("roll", 1450);
   showToast(`${state.petName} relaxed and recovered energy.`);
 }
 
@@ -860,10 +935,11 @@ function playFetch() {
   state.energy = clamp(state.energy - 8, 0, 100);
   state.food = clamp(state.food - 5, 0, 100);
   state.growth = clamp(state.growth + 5, 0, 100);
+  petHiddenUntil = performance.now() + 1500;
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 1200;
-  showToast(`${state.petName} played fetch and gained growth XP.`);
+  triggerPetAction("wag", 1250);
+  showToast(`${state.petName} chased the toy. Call brings them back if they run off-screen.`);
 }
 
 function startQuest() {
@@ -936,6 +1012,60 @@ function renderChoices(choices) {
   });
 }
 
+function toggleWhiteboard() {
+  els.workBoard.classList.toggle("show");
+}
+
+function clearWhiteboard() {
+  const canvas = els.whiteboardCanvas;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function whiteboardPoint(event) {
+  const rect = els.whiteboardCanvas.getBoundingClientRect();
+  return {
+    x: ((event.clientX - rect.left) / Math.max(1, rect.width)) * els.whiteboardCanvas.width,
+    y: ((event.clientY - rect.top) / Math.max(1, rect.height)) * els.whiteboardCanvas.height,
+  };
+}
+
+function startWhiteboardStroke(event) {
+  event.preventDefault();
+  const ctx = els.whiteboardCanvas.getContext("2d");
+  const point = whiteboardPoint(event);
+  whiteboardDrawing = { pointerId: event.pointerId, point };
+  els.whiteboardCanvas.setPointerCapture(event.pointerId);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#172632";
+  ctx.beginPath();
+  ctx.moveTo(point.x, point.y);
+}
+
+function moveWhiteboardStroke(event) {
+  if (!whiteboardDrawing || whiteboardDrawing.pointerId !== event.pointerId) return;
+  event.preventDefault();
+  const ctx = els.whiteboardCanvas.getContext("2d");
+  const point = whiteboardPoint(event);
+  ctx.beginPath();
+  ctx.moveTo(whiteboardDrawing.point.x, whiteboardDrawing.point.y);
+  ctx.lineTo(point.x, point.y);
+  ctx.stroke();
+  whiteboardDrawing.point = point;
+}
+
+function finishWhiteboardStroke(event) {
+  if (!whiteboardDrawing || whiteboardDrawing.pointerId !== event.pointerId) return;
+  try {
+    els.whiteboardCanvas.releasePointerCapture(event.pointerId);
+  } catch {
+    /* Pointer capture may already be released. */
+  }
+  whiteboardDrawing = null;
+}
+
 function submitChoice(index) {
   if (!activeProblem?.choices) return;
   const choice = activeProblem.choices[index];
@@ -966,7 +1096,7 @@ function submitAnswer(raw) {
     state.growth = clamp(state.growth + 3, 0, 100);
     els.questFeedback.textContent = `Correct. +${earnedCoins} coins, glow, and growth XP.`;
     els.questFeedback.className = "quest-feedback good";
-    petPulseUntil = performance.now() + 800;
+    triggerPetAction("celebrate", 800);
   } else {
     state.food = clamp(state.food - 2, 0, 100);
     state.energy = clamp(state.energy - 5, 0, 100);
@@ -1018,14 +1148,14 @@ function finishRound() {
     showToast(`${message}. ${unlockNextDecorReward("home")}`);
     saveState();
     renderHud();
-    petPulseUntil = performance.now() + 1300;
+    triggerPetAction("celebrate", 1300);
     return;
   }
 
   if (type === "number" && state.stage === "egg") {
     state.stage = "puppy";
     state.equipped.look = "none";
-    message = `${state.petName} hatched. Click the cottage to enter the cozy home.`;
+    message = `${state.petName} hatched into a ${currentPetVariantName()}. Click the cottage to enter the cozy home`;
   } else if (type === "fraction" && !state.waterfallUnlocked) {
     state.waterfallUnlocked = true;
     message += `. The bridge crossing to Waterfall Clearing opened`;
@@ -1062,10 +1192,23 @@ function finishRound() {
   saveState();
   renderHud();
   showToast(message);
-  petPulseUntil = performance.now() + 1300;
+  triggerPetAction("celebrate", 1300);
 }
 
 function makeProblem(type, world) {
+  for (let attempt = 0; attempt < 18; attempt += 1) {
+    const item = makeProblemCandidate(type, world);
+    const key = `${type}:${item.prompt}`;
+    if (!recentProblemKeys.includes(key) || attempt === 17) {
+      recentProblemKeys.push(key);
+      recentProblemKeys = recentProblemKeys.slice(-18);
+      return item;
+    }
+  }
+  return makeProblemCandidate(type, world);
+}
+
+function makeProblemCandidate(type, world) {
   if (type === "number") return makeNumberProblem(world);
   if (type === "fraction") return makeBridgeProblem(world);
   if (type === "geometry") return makeGeometryProblem(world);
@@ -1089,37 +1232,79 @@ function makeBridgeProblem(world) {
 
 function makeGeometryProblem(world) {
   return choose([
-    () => problem("L-shape area: start with a 10 by 3 rectangle and cut out a 1 by 1 corner. What is the area?", 29, "Composite area", [
-      "Find the big rectangle first.",
-      "Subtract the missing corner.",
-      "Use square units for area.",
-    ], "number", null, null, "Type area"),
-    () => problem("L-shape perimeter: sides are 10, 3, 1, 1, 9, and 2 around the outside. What is the perimeter?", 26, "Composite perimeter", [
-      "Perimeter is the distance around the outside.",
-      "Add every outside side length.",
-      "Do not multiply unless the shape is a rectangle.",
-    ], "number", null, null, "Type perimeter"),
-    () => problem("Right triangle area: legs are 12 and 5, hypotenuse is 13. What is the area?", 30, "Triangle area", [
-      "Use the two perpendicular legs as base and height.",
-      "Triangle area is base times height divided by 2.",
-      "The hypotenuse helps with perimeter, not area.",
-    ], "number", null, null, "Type area"),
-    () => problem("Right triangle perimeter: sides are 5, 12, and 13. What is the perimeter?", 30, "Triangle perimeter", [
-      "Perimeter is the sum of all side lengths.",
-      "Add the two legs and the slanted side.",
-      "No area formula is needed.",
-    ], "number", null, null, "Type perimeter"),
-    () => problem("Composite area: a 5 by 3 rectangle has a right triangle attached. The triangle has base 4 and height 3. What is the total area?", 21, "Rectangle plus triangle", [
-      "Find the rectangle area.",
-      "Find the triangle area using base times height divided by 2.",
-      "Add both areas.",
-    ], "number", null, null, "Type area"),
-    () => problem("Composite perimeter: outside sides are 9, 3, 5, and 5. What is the perimeter?", 22, "Composite perimeter", [
-      "Only add the outside boundary.",
-      "Do not add dashed or inside helper lines.",
-      "Perimeter is a length, not square units.",
-    ], "number", null, null, "Type perimeter"),
+    makeLShapeAreaProblem,
+    makeLShapePerimeterProblem,
+    makeRightTriangleAreaProblem,
+    makeRightTrianglePerimeterProblem,
+    makeRectangleTriangleAreaProblem,
+    makeCompositePerimeterProblem,
   ])();
+}
+
+function makeLShapeAreaProblem() {
+  const width = rand(6, 14);
+  const height = rand(4, 9);
+  const cutW = rand(1, Math.floor(width / 2));
+  const cutH = rand(1, Math.floor(height / 2));
+  return problem(`L-shape area: start with a ${width} by ${height} rectangle and cut out a ${cutW} by ${cutH} corner. What is the area?`, width * height - cutW * cutH, "Composite area", [
+    "Find the big rectangle first.",
+    "Subtract the missing corner.",
+    "Use square units for area.",
+  ], "number", null, null, "Type area");
+}
+
+function makeLShapePerimeterProblem() {
+  const width = rand(7, 14);
+  const height = rand(4, 9);
+  const cutW = rand(1, Math.floor(width / 2));
+  const cutH = rand(1, Math.floor(height / 2));
+  const perimeter = 2 * (width + height);
+  return problem(`L-shape perimeter: a ${width} by ${height} rectangle has a ${cutW} by ${cutH} corner cut out. What is the outside perimeter?`, perimeter, "Composite perimeter", [
+    "Perimeter is the distance around the outside.",
+    "A corner cut from a rectangle keeps the same total outside length.",
+    "Add the equivalent outside lengths.",
+  ], "number", null, null, "Type perimeter");
+}
+
+function makeRightTriangleAreaProblem() {
+  const base = rand(4, 14);
+  const height = rand(4, 12);
+  return problem(`Right triangle area: legs are ${base} and ${height}. What is the area?`, (base * height) / 2, "Triangle area", [
+    "Use the two perpendicular legs as base and height.",
+    "Triangle area is base times height divided by 2.",
+    "The slanted side is not needed for area.",
+  ], "number", null, null, "Type area");
+}
+
+function makeRightTrianglePerimeterProblem() {
+  const triples = [[3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 15, 17], [7, 24, 25], [9, 12, 15]];
+  const [a, b, c] = choose(triples);
+  return problem(`Right triangle perimeter: sides are ${a}, ${b}, and ${c}. What is the perimeter?`, a + b + c, "Triangle perimeter", [
+    "Perimeter is the sum of all side lengths.",
+    "Add the two legs and the slanted side.",
+    "No area formula is needed.",
+  ], "number", null, null, "Type perimeter");
+}
+
+function makeRectangleTriangleAreaProblem() {
+  const rectW = rand(4, 10);
+  const rectH = rand(3, 8);
+  const triB = rand(3, 9);
+  const triH = rand(2, 8);
+  return problem(`Composite area: a ${rectW} by ${rectH} rectangle has a right triangle attached. The triangle has base ${triB} and height ${triH}. What is the total area?`, rectW * rectH + (triB * triH) / 2, "Rectangle plus triangle", [
+    "Find the rectangle area.",
+    "Find the triangle area using base times height divided by 2.",
+    "Add both areas.",
+  ], "number", null, null, "Type area");
+}
+
+function makeCompositePerimeterProblem() {
+  const sides = [rand(4, 11), rand(3, 9), rand(4, 11), rand(3, 9), rand(2, 8)];
+  return problem(`Composite perimeter: outside sides are ${sides.slice(0, -1).join(", ")}, and ${sides[sides.length - 1]}. What is the perimeter?`, sides.reduce((sum, side) => sum + side, 0), "Composite perimeter", [
+    "Only add the outside boundary.",
+    "Do not add dashed or inside helper lines.",
+    "Perimeter is a length, not square units.",
+  ], "number", null, null, "Type perimeter");
 }
 
 function makeMultiplicationProblem() {
@@ -1136,19 +1321,62 @@ function makeMultiplicationProblem() {
 
 function makeExpressionProblem() {
   return choose([
-    () => linearProblem("3a + 2b - 2(a + b) = ?", { a: 1, b: 0, c: 0 }),
-    () => linearProblem("4a - 2b + 2(3a + 2b) = ?", { a: 10, b: 2, c: 0 }),
-    () => linearProblem("(3a + 3) * 5 - 12 = ?", { a: 15, b: 0, c: 3 }),
-    () => linearProblem("(7a + 3b + 2) - 3(b + 2) = ?", { a: 7, b: 0, c: -4 }),
-    () => linearProblem("(5a + 6b + 8) - 2(b - 2) = ?", { a: 5, b: 4, c: 12 }),
-    () => linearProblem("(100a + 6) * 5 - 40 = ?", { a: 500, b: 0, c: -10 }),
-    () => linearProblem("(a + 11) - (a + 21) = ?", { a: 0, b: 0, c: -10 }),
-    () => linearProblem("(9a + 15) - (9a - 12) = ?", { a: 0, b: 0, c: 27 }),
-    () => linearProblem("(7a + 19) - (a - 31) = ?", { a: 6, b: 0, c: 50 }),
-    () => linearProblem("20(a + 1) - 21(a - 1) = ?", { a: -1, b: 0, c: 41 }),
-    () => linearProblem("a + 22 - 7 + 36a = ?", { a: 37, b: 0, c: 15 }),
-    () => linearProblem("(a + 7) * 8 + 3a = ?", { a: 11, b: 0, c: 56 }),
+    makeDistributedExpressionProblem,
+    makeSubtractExpressionProblem,
+    makeCombineExpressionProblem,
   ])();
+}
+
+function makeDistributedExpressionProblem() {
+  const m = rand(2, 9);
+  const n = rand(2, 7);
+  const a1 = rand(1, 8);
+  const b1 = rand(0, 6);
+  const c1 = rand(1, 12);
+  const a2 = rand(1, 6);
+  const b2 = rand(0, 5);
+  const c2 = rand(0, 10);
+  const op = choose(["+", "-"]);
+  const answer = op === "+"
+    ? { a: m * a1 + n * a2, b: m * b1 + n * b2, c: m * c1 + n * c2 }
+    : { a: m * a1 - n * a2, b: m * b1 - n * b2, c: m * c1 - n * c2 };
+  return linearProblem(`${m}(${linearParts(a1, b1, c1)}) ${op} ${n}(${linearParts(a2, b2, c2)}) = ?`, answer);
+}
+
+function makeSubtractExpressionProblem() {
+  const a1 = rand(3, 14);
+  const b1 = rand(1, 9);
+  const c1 = rand(6, 30);
+  const a2 = rand(1, 8);
+  const b2 = rand(0, 7);
+  const c2 = rand(-12, 18);
+  return linearProblem(`(${linearParts(a1, b1, c1)}) - (${linearParts(a2, b2, c2)}) = ?`, {
+    a: a1 - a2,
+    b: b1 - b2,
+    c: c1 - c2,
+  });
+}
+
+function makeCombineExpressionProblem() {
+  const a1 = rand(1, 18);
+  const a2 = rand(1, 24);
+  const b1 = rand(0, 12);
+  const b2 = rand(0, 12);
+  const c1 = rand(-18, 28);
+  const c2 = rand(-18, 28);
+  return linearProblem(`${linearParts(a1, b1, c1)} + ${linearParts(a2, b2, c2)} = ?`, {
+    a: a1 + a2,
+    b: b1 + b2,
+    c: c1 + c2,
+  });
+}
+
+function linearParts(a, b, c) {
+  const parts = [];
+  if (a) parts.push(`${a === 1 ? "" : a}a`);
+  if (b) parts.push(`${b === 1 ? "" : b}b`);
+  if (c) parts.push(String(c));
+  return parts.join(" + ").replace(/\+ -/g, "- ") || "0";
 }
 
 function linearProblem(promptText, answer) {
@@ -1161,41 +1389,83 @@ function linearProblem(promptText, answer) {
 
 function makeEquationProblem() {
   return choose([
-    () => rationalProblem("Solve: 5x + 8 = 7x - 72", rational(40), "Solve equations", [
-      "Move x terms to one side.",
-      "Move number terms to the other side.",
-      "Divide to find x.",
-    ], "x = 40"),
-    () => rationalProblem("Solve: 7x + 4 = 26", rational(22, 7), "Solve equations", [
-      "Subtract 4 from both sides.",
-      "Divide both sides by 7.",
-      "A fraction answer is okay.",
-    ], "x = 22/7"),
-    () => rationalProblem("Solve: 7(x + 1) = 8(x - 2)", rational(23), "Distribute then solve", [
-      "Distribute on both sides.",
-      "Move x terms to one side.",
-      "Move numbers to the other side.",
-    ], "x = 23"),
-    () => rationalProblem("Solve: x + 4/5 = 9/10", rational(1, 10), "Fraction equation", [
-      "Subtract 4/5 from both sides.",
-      "Rename fifths as tenths when useful.",
-      "Write x as a fraction.",
-    ], "x = 1/10"),
-    () => rationalProblem("Solve: x - 1 7/20 = 7/10", rational(41, 20), "Mixed-number equation", [
-      "Add 1 7/20 to both sides.",
-      "Rename tenths as twentieths.",
-      "Mixed-number answers are accepted.",
-    ], "x = 2 1/20"),
-    () => rationalProblem("Solve: 1 1/2 - x = 1/10", rational(7, 5), "Fraction equation", [
-      "Think: what must be subtracted from 1 1/2 to leave 1/10?",
-      "Rename 1 1/2 as tenths.",
-      "Solve for x.",
-    ], "x = 1 2/5"),
+    makeLinearEquationProblem,
+    makeDistributedEquationProblem,
+    makeFractionEquationProblem,
+    makeMixedFractionEquationProblem,
   ])();
+}
+
+function makeLinearEquationProblem() {
+  const solution = rand(-8, 42);
+  let leftX = rand(2, 9);
+  let rightX = rand(1, 8);
+  if (leftX === rightX) rightX += 1;
+  const leftC = rand(-20, 32);
+  const rightC = leftX * solution + leftC - rightX * solution;
+  return rationalProblem(`Solve: ${formatEquationSide(leftX, leftC)} = ${formatEquationSide(rightX, rightC)}`, rational(solution), "Solve equations", [
+    "Move x terms to one side.",
+    "Move number terms to the other side.",
+    "Divide to find x.",
+  ], `x = ${solution}`);
+}
+
+function makeDistributedEquationProblem() {
+  const solution = rand(-6, 24);
+  const m = rand(2, 8);
+  const n = rand(2, 8);
+  const p = rand(-5, 9);
+  const q = m * (solution + p) - n * solution;
+  return rationalProblem(`Solve: ${m}(x ${signedText(p)}) = ${n}x ${signedText(q)}`, rational(solution), "Distribute then solve", [
+    "Distribute across parentheses.",
+    "Move x terms to one side.",
+    "Move numbers to the other side.",
+  ], `x = ${solution}`);
+}
+
+function makeFractionEquationProblem() {
+  const denominator = choose([4, 5, 6, 8, 10, 12]);
+  const add = rand(1, denominator - 1);
+  const answer = rational(rand(1, denominator - 1), denominator);
+  const total = rational(answer.n + add, denominator);
+  return rationalProblem(`Solve: x + ${add}/${denominator} = ${total.n}/${total.d}`, answer, "Fraction equation", [
+    "Subtract the fraction from both sides.",
+    "Use common denominators.",
+    "Write x as a fraction.",
+  ], `x = ${formatRationalValue(answer)}`);
+}
+
+function makeMixedFractionEquationProblem() {
+  const denominator = choose([5, 10, 20]);
+  const whole = rand(1, 3);
+  const part = rand(1, denominator - 1);
+  const right = rational(rand(1, denominator - 1), denominator);
+  const answer = rational(whole * denominator + part + right.n, denominator);
+  return rationalProblem(`Solve: x - ${whole} ${part}/${denominator} = ${right.n}/${right.d}`, answer, "Mixed-number equation", [
+    "Add the mixed number to both sides.",
+    "Rename fractions with a common denominator.",
+    "Mixed-number answers are accepted.",
+  ], `x = ${formatRationalValue(answer)}`);
 }
 
 function rationalProblem(promptText, answer, lessonTitle, steps, displayAnswer) {
   return problem(promptText, answer, lessonTitle, steps, "rational", null, displayAnswer, "Example: x = 1/10");
+}
+
+function formatEquationSide(coefficient, constant) {
+  return `${coefficient === 1 ? "" : coefficient}x${constant ? ` ${signedText(constant)}` : ""}`;
+}
+
+function signedText(value) {
+  return value < 0 ? `- ${Math.abs(value)}` : `+ ${value}`;
+}
+
+function formatRationalValue(value) {
+  if (value.d === 1) return String(value.n);
+  const whole = Math.trunc(value.n / value.d);
+  const remainder = Math.abs(value.n % value.d);
+  if (whole && remainder) return `${whole} ${remainder}/${value.d}`;
+  return `${value.n}/${value.d}`;
 }
 
 function makeWordEquationProblem() {
@@ -1210,21 +1480,17 @@ function makeWordEquationProblem() {
 }
 
 function makeDecimalFractionProblem() {
-  const item = choose([
-    ["0.7", rational(7, 10), "7/10"],
-    ["0.07", rational(7, 100), "7/100"],
-    ["0.43", rational(43, 100), "43/100"],
-    ["2.78", rational(278, 100), "2 78/100"],
-    ["1.4", rational(14, 10), "1 4/10"],
-    ["0.40", rational(40, 100), "40/100"],
-    ["0.94", rational(94, 100), "94/100"],
-    ["0.006", rational(6, 1000), "6/1000"],
-  ]);
-  return problem(`Write ${item[0]} as a fraction.`, item[1], "Decimals as fractions", [
+  const places = choose([10, 100, 1000]);
+  const whole = choose([0, 0, 1, 2, 3]);
+  const part = rand(1, places - 1);
+  const digits = String(part).padStart(String(places).length - 1, "0");
+  const decimal = `${whole}.${digits}`;
+  const answer = rational(whole * places + part, places);
+  return problem(`Write ${decimal} as a fraction.`, answer, "Decimals as fractions", [
     "Use place value: tenths, hundredths, or thousandths.",
     "The digits after the decimal become the numerator.",
     "Equivalent simplified fractions are accepted.",
-  ], "rational", null, item[2], "Example: 7/10");
+  ], "rational", null, formatRationalValue(answer), "Example: 7/10");
 }
 
 function problem(prompt, answer, lessonTitle, steps, answerType = "number", choices = null, displayAnswer = null, placeholder = "Type answer") {
@@ -1398,10 +1664,14 @@ function normalizeChoice(value) {
 
 els.setupForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  const canChooseEgg = !state.setup || state.stage === "egg";
   state.setup = true;
   state.playerName = els.playerInput.value.trim().slice(0, 18) || "Explorer";
   state.petName = els.petInput.value.trim().slice(0, 18) || "Mochi";
-  state.egg = selectedEgg;
+  if (canChooseEgg) {
+    state.egg = selectedEgg;
+    state.petVariant = variantForEgg(selectedEgg);
+  }
   saveState();
   renderHud();
   showToast(`Welcome to Sky Meadow, ${state.playerName}.`);
@@ -1409,12 +1679,14 @@ els.setupForm.addEventListener("submit", (event) => {
 
 els.eggRow.addEventListener("click", (event) => {
   const button = event.target.closest("[data-egg]");
-  if (!button) return;
+  if (!button || button.disabled) return;
   selectedEgg = button.dataset.egg;
-  document.querySelectorAll("[data-egg]").forEach((item) => item.classList.toggle("active", item === button));
+  renderEggChoices();
 });
 
 els.profileButton.addEventListener("click", () => {
+  selectedEgg = state.egg || selectedEgg;
+  renderEggChoices();
   els.playerInput.value = state.playerName;
   els.petInput.value = state.petName;
   setOverlay(els.setupOverlay, true);
@@ -1433,7 +1705,7 @@ els.homeHotspot.addEventListener("click", () => {
   selectedMoveTarget = { type: "pet", scene: "home" };
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 1200;
+  triggerPetAction("wag", 1200);
   showToast(`${state.petName} trotted into the cozy home.`);
 });
 els.exitHomeButton.addEventListener("click", () => {
@@ -1442,7 +1714,7 @@ els.exitHomeButton.addEventListener("click", () => {
   selectedMoveTarget = { type: "pet", scene: "outdoor" };
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 900;
+  triggerPetAction("wag", 900);
   showToast(`${state.petName} went back outside.`);
 });
 els.bridgeHotspot.addEventListener("click", () => {
@@ -1455,7 +1727,7 @@ els.bridgeHotspot.addEventListener("click", () => {
   selectedMoveTarget = { type: "pet", scene: "waterfall" };
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 1000;
+  triggerPetAction("wag", 1000);
   showToast(`${state.petName} crossed into Waterfall Clearing.`);
 });
 els.meadowHotspot.addEventListener("click", () => {
@@ -1464,7 +1736,7 @@ els.meadowHotspot.addEventListener("click", () => {
   selectedMoveTarget = { type: "pet", scene: "outdoor" };
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 900;
+  triggerPetAction("wag", 900);
   showToast(`${state.petName} crossed back to the meadow.`);
 });
 els.tvHotspot.addEventListener("click", () => {
@@ -1472,16 +1744,17 @@ els.tvHotspot.addEventListener("click", () => {
   state.tvChannel = state.tvChannel ? 0 : 1;
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 900;
+  triggerPetAction("celebrate", 900);
   showToast(state.tvChannel ? "The TV shows a starry puppy channel." : "The TV is now on the calm channel.");
 });
 
 els.questButton.addEventListener("click", startQuest);
 els.callPetButton.addEventListener("click", () => {
+  petHiddenUntil = 0;
   setPetPosition(currentScene(), DEFAULT_PET_POSITIONS[currentScene()]);
   saveState();
   renderHud();
-  petPulseUntil = performance.now() + 1200;
+  triggerPetAction("wag", 1200);
   showToast(state.stage === "egg" ? "The egg wiggles." : `${state.petName} trots closer.`);
 });
 els.feedButton.addEventListener("click", feedPet);
@@ -1498,6 +1771,12 @@ els.choiceRow.addEventListener("click", (event) => {
   if (!button) return;
   submitChoice(Number(button.dataset.choiceIndex));
 });
+els.whiteboardToggle.addEventListener("click", toggleWhiteboard);
+els.clearWhiteboardButton.addEventListener("click", clearWhiteboard);
+els.whiteboardCanvas.addEventListener("pointerdown", startWhiteboardStroke);
+els.whiteboardCanvas.addEventListener("pointermove", moveWhiteboardStroke);
+els.whiteboardCanvas.addEventListener("pointerup", finishWhiteboardStroke);
+els.whiteboardCanvas.addEventListener("pointercancel", finishWhiteboardStroke);
 els.closetButton.addEventListener("click", () => {
   renderCloset();
   setOverlay(els.closetOverlay, true);
@@ -1534,11 +1813,6 @@ els.decorGrid.addEventListener("click", (event) => {
   if (!decorButton) return;
   toggleDecorItem(decorButton.dataset.decorId);
 });
-els.movePad.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-move]");
-  if (!button || button.disabled) return;
-  moveSelectedTarget(button.dataset.move);
-});
 els.canvas.addEventListener("pointerdown", (event) => {
   const picked = pickInteractiveObject(event.clientX, event.clientY);
   if (!picked) return;
@@ -1553,6 +1827,7 @@ els.canvas.addEventListener("pointerdown", (event) => {
     startX: event.clientX,
     startY: event.clientY,
     startPosition: getTargetPosition(selectedMoveTarget),
+    startPointerPosition: pointerToScenePosition(currentScene(), event.clientX, event.clientY),
     scene: currentScene(),
   };
   els.canvas.setPointerCapture(event.pointerId);
@@ -1561,10 +1836,12 @@ els.canvas.addEventListener("pointerdown", (event) => {
 els.canvas.addEventListener("pointermove", (event) => {
   if (!dragState || dragState.pointerId !== event.pointerId) return;
   event.preventDefault();
-  const scale = dragWorldScale(dragState.scene);
-  const rect = els.canvas.getBoundingClientRect();
-  const dx = ((event.clientX - dragState.startX) / Math.max(1, rect.width)) * scale.x;
-  const dy = -((event.clientY - dragState.startY) / Math.max(1, rect.height)) * scale.y;
+  const pointerPosition = pointerToScenePosition(dragState.scene, event.clientX, event.clientY);
+  const backdropDragScale = dragState.target.type === "decor" && dragState.scene !== "home"
+    ? OUTDOOR_BACKDROP_DECOR_X_SCALE
+    : 1;
+  const dx = (pointerPosition.x - dragState.startPointerPosition.x) / backdropDragScale;
+  const dy = pointerPosition.y - dragState.startPointerPosition.y;
   setTargetPosition(dragState.target, {
     x: dragState.startPosition.x + dx,
     y: dragState.startPosition.y + dy,
@@ -1716,24 +1993,30 @@ function drawScene(time) {
 
   objects.forEach((obj) => drawObject(gl, textures[obj.tex], pv, obj, matrix, alpha));
 
-  const bob = Math.sin(time * 0.004) * 0.045 + pulse * 0.08;
-  const scale = state.stage === "egg" ? 1.15 : (inHome ? 1.38 : 1.72) + Math.min(0.25, state.growth / 500);
-  const petPosition = getPetPosition(scene);
-  const pet = {
-    tex: state.stage === "egg" ? "egg" : petTextureKey(),
-    x: petPosition.x,
-    y: petPosition.y + bob,
-    z: 0.55,
-    w: scale,
-    h: scale * 1.1,
-    rx: 0,
-    a: 1,
-    interactive: { type: "pet", scene },
-  };
-  drawObject(gl, textures[pet.tex], pv, pet, matrix, alpha);
+  let pet = null;
+  if (!isPetHidden(time)) {
+    const petFrame = state.stage === "egg" ? "egg" : currentPetFrame(time);
+    const lowPose = petFrame === "sleepy" || petFrame.startsWith("roll") || petFrame === "couch-sit";
+    const bob = lowPose ? pulse * 0.02 : Math.sin(time * 0.004) * 0.036 + pulse * 0.06;
+    const scale = petScaleForScene(scene);
+    const petPosition = getPetPosition(scene);
+    const petLayout = petFrameLayout(petFrame, scale);
+    pet = {
+      tex: state.stage === "egg" ? "egg" : petTextureKeyFor(petFrame),
+      x: petPosition.x,
+      y: petPosition.y + bob + petLayout.yOffset,
+      z: 0.55,
+      w: petLayout.w,
+      h: petLayout.h,
+      rx: 0,
+      a: 1,
+      interactive: { type: "pet", scene },
+    };
+    drawObject(gl, textures[pet.tex], pv, pet, matrix, alpha);
+  }
   lastInteractiveObjects = [
     ...decorObjects.map((obj) => interactiveBounds(gl, pv, obj)).filter(Boolean),
-    interactiveBounds(gl, pv, pet),
+    pet ? interactiveBounds(gl, pv, pet) : null,
   ].filter(Boolean);
 
   requestAnimationFrame(drawScene);
@@ -1760,13 +2043,63 @@ function decorObjectsForScene(scene) {
     });
 }
 
-function petTextureKey() {
-  if (activeRound) return "thinking";
-  if (performance.now() < petPulseUntil) return "celebrate";
+function equippedPetFrame() {
   if (state.equipped.look === "sweater") return "sweater";
   if (state.equipped.look === "bow") return "bow";
   if (state.equipped.look === "collar") return "collar";
-  return "puppy";
+  return "base";
+}
+
+function currentPetFrame(time = performance.now()) {
+  if (petAction && time >= petActionUntil) {
+    petAction = null;
+    petActionUntil = 0;
+  }
+  if (petAction === "wag") return Math.floor(time / 170) % 2 === 0 ? "wag-a" : "wag-b";
+  if (petAction === "roll") {
+    return ["roll-a", "roll-b", "roll-c", "roll-b"][Math.floor(time / 190) % 4];
+  }
+  if (petAction === "couch") return "couch-sit";
+  if (petAction === "celebrate") return "celebrate";
+  if (activeRound) return "thinking";
+  if (time < petPulseUntil) return "celebrate";
+  if (petIsOnCouch()) return "couch-sit";
+  return equippedPetFrame();
+}
+
+function petFrameLayout(frame, scale) {
+  if (frame === "couch-sit") {
+    return { w: scale * 0.84, h: scale * 1.0, yOffset: 0 };
+  }
+  if (frame === "sleepy" || frame.startsWith("roll")) {
+    return { w: scale * 1.48, h: scale * 0.92, yOffset: -0.08 };
+  }
+  if (frame === "celebrate") {
+    return { w: scale * 1.08, h: scale * 1.08, yOffset: 0.03 };
+  }
+  return { w: scale, h: scale * 1.1, yOffset: 0 };
+}
+
+function petTextureKey(time = performance.now()) {
+  return petTextureKeyFor(currentPetFrame(time));
+}
+
+function petScaleForScene(scene) {
+  if (state.stage === "egg") return 1.0;
+  const base = scene === "home" ? 1.03 : scene === "waterfall" ? 1.12 : 1.08;
+  return base + Math.min(0.18, state.growth / 650);
+}
+
+function isPetHidden(time = performance.now()) {
+  if (state.stage === "egg") return false;
+  return time < petHiddenUntil;
+}
+
+function petIsOnCouch() {
+  if (currentScene() !== "home" || state.stage === "egg" || !isDecorPlaced("couch")) return false;
+  const petPosition = getPetPosition("home");
+  const couchSeat = couchPetPosition();
+  return Math.hypot(petPosition.x - couchSeat.x, petPosition.y - couchSeat.y) <= 0.12;
 }
 
 function drawObject(gl, texture, pv, obj, matrixLocation, alphaLocation) {

@@ -8,10 +8,11 @@
     <link rel="preload" href="assets/gpt-home-interior.png" as="image" />
     <link rel="preload" href="assets/gpt-waterfall-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-egg.png" as="image" />
-    <link rel="preload" href="assets/gpt-puppy-base.png" as="image" />
-    <link rel="preload" href="assets/gpt-puppy-sweater.png" as="image" />
+    <link rel="preload" href="assets/gpt-puppy-golden-base.png" as="image" />
+    <link rel="preload" href="assets/gpt-puppy-corgi-base.png" as="image" />
+    <link rel="preload" href="assets/gpt-puppy-husky-base.png" as="image" />
     <link rel="icon" href="assets/gpt-egg.png" />
-    <link rel="stylesheet" href="styles.css?v=20260613-waterfall" />
+    <link rel="stylesheet" href="styles.css?v=20260613-playfix" />
   </head>
   <body>
     <main class="game-shell" id="gameShell">
@@ -92,12 +93,12 @@
     <section class="overlay show" id="setupOverlay" aria-label="Start profile">
       <form class="glass-panel setup-panel" id="setupForm">
         <span class="micro">New Save</span>
-        <h1>Choose an egg for the puppy world</h1>
-        <p class="panel-copy">This save stays on this device. The game opens into a 3D meadow, then math quests grow the pet and unlock wardrobe items.</p>
+        <h1>Choose a mystery egg</h1>
+        <p class="panel-copy">This save stays on this device. Each egg hides a different puppy, then math quests grow the pet and unlock matching wardrobe sprites.</p>
         <div class="egg-row" id="eggRow">
-          <button class="egg-pick active" data-egg="sunny" type="button"><img src="assets/gpt-egg.png" alt="" />Sunny</button>
-          <button class="egg-pick" data-egg="rose" type="button"><img src="assets/gpt-egg.png" alt="" />Rose</button>
-          <button class="egg-pick" data-egg="mint" type="button"><img src="assets/gpt-egg.png" alt="" />Mint</button>
+          <button class="egg-pick active" data-egg="sunny" type="button"><img src="assets/gpt-egg.png" alt="" /><strong>Mystery Egg I</strong><span>Blind box</span></button>
+          <button class="egg-pick" data-egg="rose" type="button"><img src="assets/gpt-egg.png" alt="" /><strong>Mystery Egg II</strong><span>Blind box</span></button>
+          <button class="egg-pick" data-egg="mint" type="button"><img src="assets/gpt-egg.png" alt="" /><strong>Mystery Egg III</strong><span>Blind box</span></button>
         </div>
         <label>
           Player name
@@ -117,6 +118,13 @@
         <span class="micro" id="questMeta">Quest 1 / 4</span>
         <h2 id="questPrompt">Question appears here</h2>
         <div class="lesson-box" id="lessonBox"></div>
+        <div class="whiteboard-tools">
+          <button id="whiteboardToggle" type="button">Whiteboard</button>
+          <button id="clearWhiteboardButton" type="button">Clear</button>
+        </div>
+        <div class="work-board" id="workBoard" aria-label="Scratch whiteboard">
+          <canvas id="whiteboardCanvas" width="720" height="360" aria-label="Draw math work here"></canvas>
+        </div>
         <div class="answer-area">
           <input id="answerInput" autocomplete="off" placeholder="Type answer" />
           <button class="primary-button" type="submit">Check</button>
@@ -131,7 +139,7 @@
         <button class="close-button" id="closeClosetButton" type="button" aria-label="Close closet">x</button>
         <span class="micro">Wardrobe</span>
         <h2>Dress the puppy</h2>
-        <p class="panel-copy">Geometry and boss quests unlock wearable PNG layers in the 3D scene.</p>
+        <p class="panel-copy">Geometry and boss quests unlock breed-matched wearable PNG sprites in the 3D scene.</p>
         <div class="closet-grid" id="closetGrid"></div>
       </div>
     </section>
@@ -148,19 +156,9 @@
           <button id="decorWaterfallTab" data-decor-scene="waterfall" type="button">Waterfall</button>
         </div>
         <div class="decor-grid" id="decorGrid"></div>
-        <div class="move-pad" id="movePad" aria-label="Move selected item">
-          <strong id="moveTargetLabel">Select an unlocked item</strong>
-          <div class="move-buttons">
-            <button data-move="up" type="button" aria-label="Move up">&uarr;</button>
-            <button data-move="left" type="button" aria-label="Move left">&larr;</button>
-            <button data-move="down" type="button" aria-label="Move down">&darr;</button>
-            <button data-move="right" type="button" aria-label="Move right">&rarr;</button>
-            <button data-move="reset" type="button">Reset</button>
-          </div>
-        </div>
       </div>
     </section>
 
-    <script src="script.js?v=20260613-waterfall"></script>
+    <script src="script.js?v=20260613-playfix"></script>
   </body>
 </html>
