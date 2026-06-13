@@ -27,10 +27,29 @@ const PET_FRAMES = [
   "roll-c",
   "couch-sit",
 ];
+const ACTION_LOOK_FRAMES = [
+  "thinking",
+  "celebrate",
+  "sleepy",
+  "wag-a",
+  "wag-b",
+  "roll-a",
+  "roll-b",
+  "roll-c",
+  "couch-sit",
+];
+const OUTFIT_LOOKS = ["sweater", "bow", "collar"];
 const PET_ASSETS = Object.fromEntries(
-  Object.keys(PET_VARIANTS).flatMap((variant) => (
-    PET_FRAMES.map((frame) => [`pet-${variant}-${frame}`, `assets/gpt-puppy-${variant}-${frame}.png`])
-  ))
+  [
+    ...Object.keys(PET_VARIANTS).flatMap((variant) => (
+      PET_FRAMES.map((frame) => [`pet-${variant}-${frame}`, `assets/gpt-puppy-${variant}-${frame}.png`])
+    )),
+    ...Object.keys(PET_VARIANTS).flatMap((variant) => (
+      OUTFIT_LOOKS.flatMap((look) => (
+        ACTION_LOOK_FRAMES.map((frame) => [`pet-${variant}-${look}-${frame}`, `assets/gpt-puppy-${variant}-${look}-${frame}.png`])
+      ))
+    )),
+  ]
 );
 
 const ASSETS = {
@@ -43,15 +62,30 @@ const ASSETS = {
   homeCouch: "assets/gpt-home-couch.png",
   homeChair: "assets/gpt-home-chair.png",
   homeTvOff: "assets/gpt-home-tv-off.png",
-  homeTvStar: "assets/gpt-home-tv-star.png",
+  homeTvAnimal: "assets/gpt-home-tv-animal.png",
+  homeTvNature: "assets/gpt-home-tv-nature.png",
+  homeTvMath: "assets/gpt-home-tv-math.png",
+  homeRemote: "assets/gpt-home-remote.png",
   homePlant: "assets/gpt-home-plant.png",
   homeRug: "assets/gpt-home-rug.png",
-  homeLamp: "assets/gpt-home-lamp.png",
+  homeLamp: "assets/gpt-home-lamp-off.png",
+  homeLampOn: "assets/gpt-home-lamp-on.png",
   homeTable: "assets/gpt-home-table.png",
   kitchenSnackCart: "assets/gpt-kitchen-snack-cart.png",
   kitchenFridge: "assets/gpt-kitchen-fridge.png",
+  kitchenFridgeOpen: "assets/gpt-kitchen-fridge-open.png",
   kitchenBowlStation: "assets/gpt-kitchen-bowl-station.png",
   kitchenBreakfastTable: "assets/gpt-kitchen-breakfast-table.png",
+  kitchenOven: "assets/gpt-kitchen-oven-closed.png",
+  kitchenOvenOpen: "assets/gpt-kitchen-oven-open.png",
+  kitchenCookieTray: "assets/gpt-kitchen-cookie-tray.png",
+  kitchenShelfInsert: "assets/gpt-kitchen-shelf-insert.png",
+  kitchenCookieJar: "assets/gpt-kitchen-cookie-jar.png",
+  kitchenCupcakeStand: "assets/gpt-kitchen-cupcake-stand.png",
+  kitchenTeaKettle: "assets/gpt-kitchen-tea-kettle.png",
+  kitchenRecipeBook: "assets/gpt-kitchen-recipe-book.png",
+  kitchenHerbPlanter: "assets/gpt-kitchen-herb-planter.png",
+  kitchenPuppyMug: "assets/gpt-kitchen-puppy-mug.png",
   yardBench: "assets/gpt-yard-bench.png",
   yardBall: "assets/gpt-yard-ball.png",
   yardToys: "assets/gpt-yard-toys.png",
@@ -88,16 +122,26 @@ const CLOSET = [
 ];
 
 const DECOR_ITEMS = [
-  { id: "couch", scene: "home", name: "Peach couch", tex: "homeCouch", x: -1.58, y: 0.94, z: 0.35, w: 2.42, h: 1.44, reward: "Home math", cost: { coins: 80, gems: 0 } },
-  { id: "plant", scene: "home", name: "Leafy plant", tex: "homePlant", x: 1.98, y: 0.9, z: 0.36, w: 0.92, h: 1.0, reward: "Home math", cost: { coins: 35, gems: 0 } },
+  { id: "couch", scene: "home", name: "Peach couch", tex: "homeCouch", x: -1.58, y: 0.88, z: 0.35, w: 2.72, h: 1.45, reward: "Home math", cost: { coins: 80, gems: 0 } },
+  { id: "plant", scene: "home", name: "Leafy plant", tex: "homePlant", x: 1.98, y: 0.96, z: 0.36, w: 0.84, h: 1.18, reward: "Home math", cost: { coins: 35, gems: 0 } },
   { id: "tv", scene: "home", name: "Star TV", tex: "homeTvOff", x: 1.92, y: 1.28, z: 0.38, w: 1.38, h: 1.34, reward: "Home math", cost: { coins: 95, gems: 1 } },
   { id: "chair", scene: "home", name: "Mint chair", tex: "homeChair", x: -0.95, y: 0.93, z: 0.4, w: 1.22, h: 1.1, reward: "Home math", cost: { coins: 55, gems: 0 } },
   { id: "lamp", scene: "home", name: "Warm lamp", tex: "homeLamp", x: 2.88, y: 1.0, z: 0.42, w: 0.56, h: 1.0, reward: "Home math", cost: { coins: 45, gems: 0 } },
   { id: "table", scene: "home", name: "Reading table", tex: "homeTable", x: 0.75, y: 0.54, z: 0.55, w: 0.86, h: 0.81, reward: "Home math", cost: { coins: 50, gems: 0 } },
-  { id: "snackCart", scene: "kitchen", name: "Snack cart", tex: "kitchenSnackCart", x: -2.15, y: 0.78, z: 0.42, w: 1.6, h: 1.42, reward: "Kitchen quests", cost: { coins: 95, gems: 0 } },
-  { id: "kitchenFridge", scene: "kitchen", name: "Mint fridge", tex: "kitchenFridge", x: 2.62, y: 1.0, z: 0.38, w: 1.08, h: 1.42, reward: "Kitchen quests", cost: { coins: 110, gems: 1 } },
+  { id: "remote", scene: "home", name: "TV remote", tex: "homeRemote", x: 0.05, y: 0.34, z: 0.62, w: 0.45, h: 0.32, reward: "TV decor", cost: { coins: 25, gems: 0 }, optional: true },
+  { id: "snackCart", scene: "kitchen", name: "Snack cart", tex: "kitchenSnackCart", x: -2.22, y: 0.72, z: 0.42, w: 1.36, h: 1.28, reward: "Kitchen quests", cost: { coins: 95, gems: 0 } },
+  { id: "kitchenFridge", scene: "kitchen", name: "Mint fridge", tex: "kitchenFridge", x: 3.12, y: 1.06, z: 0.38, w: 0.72, h: 1.28, reward: "Kitchen quests", cost: { coins: 110, gems: 1 } },
+  { id: "oven", scene: "kitchen", name: "Cookie oven", tex: "kitchenOven", x: 1.04, y: 0.66, z: 0.43, w: 0.76, h: 0.78, reward: "Kitchen quests", cost: { coins: 100, gems: 1 } },
   { id: "bowlStation", scene: "kitchen", name: "Bowl station", tex: "kitchenBowlStation", x: -0.78, y: 0.28, z: 0.56, w: 1.24, h: 0.66, reward: "Kitchen quests", cost: { coins: 70, gems: 0 } },
   { id: "breakfastTable", scene: "kitchen", name: "Breakfast table", tex: "kitchenBreakfastTable", x: 1.18, y: 0.58, z: 0.5, w: 1.36, h: 1.0, reward: "Kitchen quests", cost: { coins: 85, gems: 0 } },
+  { id: "cookieTray", scene: "kitchen", name: "Cookie tray", tex: "kitchenCookieTray", x: -0.22, y: 1.52, z: 0.56, w: 0.52, h: 0.28, reward: "Kitchen quests", cost: { coins: 35, gems: 0 } },
+  { id: "shelfInsert", scene: "kitchen", name: "Jar shelf", tex: "kitchenShelfInsert", x: -2.45, y: 1.62, z: 0.48, w: 0.72, h: 0.66, reward: "Kitchen quests", cost: { coins: 55, gems: 0 } },
+  { id: "cookieJar", scene: "kitchen", name: "Puppy cookie jar", tex: "kitchenCookieJar", x: -1.55, y: 1.56, z: 0.58, w: 0.46, h: 0.48, reward: "Kitchen quests", cost: { coins: 40, gems: 0 } },
+  { id: "cupcakeStand", scene: "kitchen", name: "Cupcake stand", tex: "kitchenCupcakeStand", x: 0.05, y: 1.6, z: 0.58, w: 0.58, h: 0.44, reward: "Kitchen quests", cost: { coins: 45, gems: 0 } },
+  { id: "teaKettle", scene: "kitchen", name: "Paw kettle", tex: "kitchenTeaKettle", x: 1.72, y: 1.5, z: 0.58, w: 0.46, h: 0.45, reward: "Kitchen quests", cost: { coins: 40, gems: 0 } },
+  { id: "recipeBook", scene: "kitchen", name: "Recipe book", tex: "kitchenRecipeBook", x: -0.88, y: 1.48, z: 0.58, w: 0.56, h: 0.38, reward: "Kitchen quests", cost: { coins: 35, gems: 0 } },
+  { id: "herbPlanter", scene: "kitchen", name: "Herb planter", tex: "kitchenHerbPlanter", x: -2.88, y: 1.44, z: 0.58, w: 0.42, h: 0.5, reward: "Kitchen quests", cost: { coins: 35, gems: 0 } },
+  { id: "puppyMug", scene: "kitchen", name: "Puppy mug", tex: "kitchenPuppyMug", x: 2.12, y: 1.48, z: 0.58, w: 0.44, h: 0.4, reward: "Kitchen quests", cost: { coins: 35, gems: 0 } },
   { id: "bench", scene: "outdoor", name: "Garden bench", tex: "yardBench", x: -1.65, y: 0.58, z: 0.42, w: 1.78, h: 1.45, reward: "Outdoor quests", cost: { coins: 75, gems: 0 } },
   { id: "ball", scene: "outdoor", name: "Treat ball", tex: "yardBall", x: 1.08, y: 0.34, z: 0.72, w: 0.7, h: 0.7, reward: "Outdoor quests", cost: { coins: 35, gems: 0 } },
   { id: "toys", scene: "outdoor", name: "Rope toys", tex: "yardToys", x: 0.28, y: 0.31, z: 0.74, w: 0.94, h: 0.6, reward: "Outdoor quests", cost: { coins: 45, gems: 0 } },
@@ -116,22 +160,35 @@ const DEFAULT_PET_POSITIONS = {
   waterfall: { x: 0.05, y: 0.5 },
 };
 const MOVE_BOUNDS = {
-  home: { x: [-4.35, 4.35], y: [0.12, 2.08] },
-  kitchen: { x: [-4.35, 4.35], y: [0.1, 2.02] },
-  outdoor: { x: [-3.85, 3.85], y: [0.06, 2.02] },
-  waterfall: { x: [-3.85, 3.85], y: [0.06, 2.02] },
+  home: { x: [-5.05, 5.05], y: [-0.24, 2.62] },
+  kitchen: { x: [-5.05, 5.05], y: [-0.24, 2.58] },
+  outdoor: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
+  waterfall: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
 };
 const FEED_COIN_COST = 10;
 const COUCH_PET_OFFSET = { x: 0.02, y: 0.38 };
 const OUTDOOR_BACKDROP_DECOR_Z = -6.4;
 const OUTDOOR_BACKDROP_DECOR_SCALE = 1.05;
 const OUTDOOR_BACKDROP_DECOR_X_SCALE = 2.2;
+const OUTDOOR_BACKDROP_DECOR_Y_DRAG_SCALE = 2.35;
 const OUTDOOR_BACKDROP_DECOR_Y_OFFSET = -0.22;
 const SECRET_AWARDS = {
   couchCritic: { title: "Couch Critic", coins: 40, gems: 1, glow: 12 },
   snackChef: { title: "Snack Chef", coins: 35, gems: 1, glow: 10 },
   parkMvp: { title: "Park MVP", coins: 35, gems: 1, glow: 10 },
   lanternTrail: { title: "Lantern Trail", coins: 45, gems: 1, glow: 12 },
+};
+const TV_CHANNELS = [
+  { tex: "homeTvOff", label: "TV off" },
+  { tex: "homeTvAnimal", label: "animal show" },
+  { tex: "homeTvNature", label: "nature channel" },
+  { tex: "homeTvMath", label: "math stars" },
+];
+const TOGGLEABLE_DECOR = {
+  lamp: { onName: "lamp on", offName: "lamp off" },
+  tv: { onName: "next channel", offName: "TV off" },
+  kitchenFridge: { onName: "fridge open", offName: "fridge closed" },
+  oven: { onName: "oven open", offName: "oven closed" },
 };
 
 const els = {
@@ -235,15 +292,16 @@ if (IS_DEMO) {
     energy: 76,
     growth: 44,
     glow: 18,
-    coins: 140,
-    gems: 2,
+    coins: 420,
+    gems: 6,
     location: "home",
     waterfallUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "snackCart", "kitchenFridge", "bowlStation", "bench", "ball", "waterfallLog", "waterfallLantern"],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "snackCart", "kitchenFridge", "bowlStation", "bench", "ball", "waterfallLog", "waterfallLantern"],
-    decorPlaced: ["couch", "plant", "tv", "snackCart", "bowlStation", "bench", "ball", "waterfallLog", "waterfallLantern"],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern"],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern"],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern"],
     decorPositions: {},
+    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, oven: 0 },
     petPositions: {
       home: { x: -0.18, y: 0.48 },
       kitchen: { x: -0.12, y: 0.46 },
@@ -282,6 +340,7 @@ function createInitialState() {
     decorOwned: [],
     decorPlaced: [],
     decorPositions: {},
+    decorStates: {},
     petPositions: {
       home: { ...DEFAULT_PET_POSITIONS.home },
       kitchen: { ...DEFAULT_PET_POSITIONS.kitchen },
@@ -364,8 +423,9 @@ function loadState() {
       decorOwned,
       decorPlaced,
       decorPositions: normalizeDecorPositions(saved.decorPositions),
+      decorStates: normalizeDecorStates(saved.decorStates, saved.tvChannel),
       petPositions: normalizePetPositions(saved.petPositions),
-      tvChannel: clamp(saved.tvChannel ?? 0, 0, 1),
+      tvChannel: clamp(saved.tvChannel ?? saved.decorStates?.tv ?? 0, 0, TV_CHANNELS.length - 1),
       secretAwards,
       unlocked: unlockedLooks,
       ownedLooks,
@@ -417,6 +477,17 @@ function normalizeDecorPositions(value) {
   }, {});
 }
 
+function normalizeDecorStates(value, legacyTvChannel = 0) {
+  const source = value && typeof value === "object" ? value : {};
+  return Object.keys(TOGGLEABLE_DECOR).reduce((states, id) => {
+    const raw = id === "tv" ? source[id] ?? legacyTvChannel : source[id];
+    states[id] = id === "tv"
+      ? clamp(Number(raw || 0), 0, TV_CHANNELS.length - 1)
+      : raw ? 1 : 0;
+    return states;
+  }, {});
+}
+
 function normalizePetPositions(value) {
   const source = value && typeof value === "object" ? value : {};
   return DECOR_SCENES.reduce((positions, scene) => {
@@ -443,12 +514,16 @@ function currentPetVariantName() {
   return PET_VARIANTS[currentPetVariant()]?.name || PET_VARIANTS.golden.name;
 }
 
-function petTextureKeyFor(frame, variant = currentPetVariant()) {
+function petTextureKeyFor(frame, variant = currentPetVariant(), look = state.equipped?.look || "none") {
+  const dressedKey = look !== "none" && ACTION_LOOK_FRAMES.includes(frame)
+    ? `pet-${variant}-${look}-${frame}`
+    : "";
+  if (dressedKey && ASSETS[dressedKey]) return dressedKey;
   return `pet-${variant}-${frame}`;
 }
 
-function petFrameAsset(frame, variant = currentPetVariant()) {
-  return ASSETS[petTextureKeyFor(frame, variant)] || ASSETS[petTextureKeyFor("base", "golden")];
+function petFrameAsset(frame, variant = currentPetVariant(), look = state.equipped?.look || "none") {
+  return ASSETS[petTextureKeyFor(frame, variant, look)] || ASSETS[petTextureKeyFor("base", "golden", "none")];
 }
 
 function currentScene() {
@@ -540,13 +615,67 @@ function isDecorPlaced(id) {
   return isDecorOwned(id) && state.decorPlaced.includes(id);
 }
 
+function decorStateValue(id) {
+  if (id === "tv") return clamp(state.tvChannel ?? state.decorStates?.tv ?? 0, 0, TV_CHANNELS.length - 1);
+  return state.decorStates?.[id] ? 1 : 0;
+}
+
+function setDecorStateValue(id, value) {
+  if (!state.decorStates || typeof state.decorStates !== "object") state.decorStates = {};
+  const normalized = id === "tv"
+    ? clamp(Number(value || 0), 0, TV_CHANNELS.length - 1)
+    : value ? 1 : 0;
+  state.decorStates[id] = normalized;
+  if (id === "tv") state.tvChannel = normalized;
+}
+
+function isToggleableDecor(id) {
+  return Boolean(TOGGLEABLE_DECOR[id]);
+}
+
+function toggleDecorState(id) {
+  if (!isToggleableDecor(id) || !isDecorPlaced(id)) return false;
+  const next = id === "tv"
+    ? (decorStateValue("tv") + 1) % TV_CHANNELS.length
+    : decorStateValue(id) ? 0 : 1;
+  setDecorStateValue(id, next);
+  const label = id === "tv"
+    ? TV_CHANNELS[next]?.label || TOGGLEABLE_DECOR[id].offName
+    : next ? TOGGLEABLE_DECOR[id].onName : TOGGLEABLE_DECOR[id].offName;
+  showToast(`${decorItemById(id)?.name || "Decor"}: ${label}.`);
+  if (id === "tv") checkSecretAwards("tv");
+  if (id === "kitchenFridge" || id === "oven") checkSecretAwards("kitchen-state");
+  return true;
+}
+
+function handleDecorTap(id) {
+  if (id === "remote") return toggleDecorState("tv");
+  return toggleDecorState(id);
+}
+
+function decorTextureForItem(item) {
+  if (item.id === "tv") return TV_CHANNELS[decorStateValue("tv")]?.tex || "homeTvOff";
+  if (item.id === "lamp") return decorStateValue("lamp") ? "homeLampOn" : "homeLamp";
+  if (item.id === "kitchenFridge") return decorStateValue("kitchenFridge") ? "kitchenFridgeOpen" : "kitchenFridge";
+  if (item.id === "oven") return decorStateValue("oven") ? "kitchenOvenOpen" : "kitchenOven";
+  return item.tex;
+}
+
+function decorLayoutForItem(item) {
+  if (item.id === "kitchenFridge" && decorStateValue("kitchenFridge")) return { w: item.w * 1.45, h: item.h };
+  if (item.id === "oven" && decorStateValue("oven")) return { w: item.w * 1.12, h: item.h * 1.05 };
+  return { w: item.w, h: item.h };
+}
+
 function nextDecorItem(scene) {
   return decorItemsForScene(scene).find((item) => !isDecorUnlocked(item.id));
 }
 
 function livingRoomDecorComplete(ids = state.decorUnlocked) {
   const unlocked = new Set(Array.isArray(ids) ? ids : []);
-  return decorItemsForScene("home").every((item) => unlocked.has(item.id));
+  return decorItemsForScene("home")
+    .filter((item) => !item.optional)
+    .every((item) => unlocked.has(item.id));
 }
 
 function unlockKitchenIfReady() {
@@ -646,7 +775,9 @@ function restartGame() {
 }
 
 function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, Number(value)));
+  const numeric = Number(value);
+  const safeValue = Number.isFinite(numeric) ? numeric : min;
+  return Math.max(min, Math.min(max, safeValue));
 }
 
 function choose(list) {
@@ -845,7 +976,7 @@ function renderDecor() {
         : `Buy ${costText(item.cost)}`;
     cards.push(`
       <button class="decor-item ${active ? "active" : ""} ${unlocked ? "" : "locked"}" data-decor-id="${item.id}" type="button">
-        <img src="${ASSETS[item.tex]}" alt="" />
+        <img src="${ASSETS[decorTextureForItem(item)]}" alt="" />
         <strong>${item.name}</strong>
         <span>${status}</span>
       </button>
@@ -929,6 +1060,13 @@ function finishDrag(event) {
     els.canvas.releasePointerCapture(event.pointerId);
   } catch {
     /* Pointer capture may already be released by the browser. */
+  }
+  const clickDistance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
+  if (clickDistance < 8 && dragState.target.type === "decor" && handleDecorTap(dragState.target.id)) {
+    dragState = null;
+    saveState();
+    renderHud();
+    return;
   }
   snapDraggedTarget(dragState.target);
   dragState = null;
@@ -1883,11 +2021,10 @@ els.meadowHotspot.addEventListener("click", () => {
 });
 els.tvHotspot.addEventListener("click", () => {
   if (!isDecorPlaced("tv")) return;
-  state.tvChannel = state.tvChannel ? 0 : 1;
+  toggleDecorState("tv");
   saveState();
   renderHud();
   triggerPetAction("celebrate", 900);
-  showToast(state.tvChannel ? "The TV shows a starry puppy channel." : "The TV is now on the calm channel.");
   checkSecretAwards("tv");
 });
 
@@ -1980,11 +2117,9 @@ els.canvas.addEventListener("pointermove", (event) => {
   if (!dragState || dragState.pointerId !== event.pointerId) return;
   event.preventDefault();
   const pointerPosition = pointerToScenePosition(dragState.scene, event.clientX, event.clientY);
-  const backdropDragScale = dragState.target.type === "decor" && (dragState.scene === "outdoor" || dragState.scene === "waterfall")
-    ? OUTDOOR_BACKDROP_DECOR_X_SCALE
-    : 1;
-  const dx = (pointerPosition.x - dragState.startPointerPosition.x) / backdropDragScale;
-  const dy = pointerPosition.y - dragState.startPointerPosition.y;
+  const backdropLockedDrag = dragState.target.type === "decor" && (dragState.scene === "outdoor" || dragState.scene === "waterfall");
+  const dx = (pointerPosition.x - dragState.startPointerPosition.x) / (backdropLockedDrag ? OUTDOOR_BACKDROP_DECOR_X_SCALE : 1);
+  const dy = (pointerPosition.y - dragState.startPointerPosition.y) * (backdropLockedDrag ? OUTDOOR_BACKDROP_DECOR_Y_DRAG_SCALE : 1);
   setTargetPosition(dragState.target, {
     x: dragState.startPosition.x + dx,
     y: dragState.startPosition.y + dy,
@@ -2171,14 +2306,15 @@ function decorObjectsForScene(scene) {
       const position = getDecorPosition(item);
       const backdropLocked = scene === "outdoor" || scene === "waterfall";
       const renderScale = backdropLocked ? OUTDOOR_BACKDROP_DECOR_SCALE : 1;
+      const layout = decorLayoutForItem(item);
       return {
         ...item,
-        tex: item.id === "tv" ? (state.tvChannel ? "homeTvStar" : "homeTvOff") : item.tex,
+        tex: decorTextureForItem(item),
         x: backdropLocked ? position.x * OUTDOOR_BACKDROP_DECOR_X_SCALE : position.x,
         y: backdropLocked ? position.y + OUTDOOR_BACKDROP_DECOR_Y_OFFSET : position.y,
         z: backdropLocked ? OUTDOOR_BACKDROP_DECOR_Z : item.z,
-        w: item.w * renderScale,
-        h: item.h * renderScale,
+        w: layout.w * renderScale,
+        h: layout.h * renderScale,
         rx: 0,
         a: 1,
         interactive: { type: "decor", id: item.id },

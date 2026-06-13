@@ -12,18 +12,21 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Quest gates require enough correct answers; wrong attempts do not pass the level.
 - The pet hatches from one of three mystery eggs into a golden puppy, corgi puppy, or husky puppy.
 - Each puppy uses full integrated sprite variants for outfits and action poses, not square overlay shapes.
+- Equipped outfits now persist through action and interaction poses using breed/outfit/action PNG sprite variants.
 - Companion actions trigger light sprite loops: wagging for feed/fetch/call and roll-over for rub.
 - Dragging a pet close to the home couch snaps it into a couch-sit sprite pose.
 - Decor and pet placement use direct drag only; the old arrow move controls were removed.
 - Quest modals include a touch/mouse whiteboard for scratch math work.
 - Math content is now aimed at accelerated 4th-grade work: distributive property, combining like terms, equations, fraction equations, decimals as fractions, and area/perimeter.
 - Math problems are generated with a recent-prompt filter to avoid obvious repeats during a session.
-- The cottage can be entered after hatching; home and outdoor math unlock arrangeable decorations, and the TV can change channels.
+- The cottage can be entered after hatching; home and outdoor math unlock arrangeable decorations, and the TV/remote can cycle multiple channels.
 - Completing all living-room decor unlocks a new Kitchen room with its own generated backdrop and kitchen decor sprites.
 - Secret one-time engagement awards can fire from specific action/decor combinations without listing the recipes in the UI.
+- Tapping placed stateful decor toggles real sprite states: TV channels, lamp on/off, fridge open/closed, and oven open/closed.
 - Math now drives a simple game economy: correct answers and quest clears earn coins, perfect clears and boss quests discover gems, and coins/gems buy snacks, wardrobe items, and decor.
-- Outdoor decor is anchored to the panning meadow backdrop so placed yard items do not drift separately from the scene.
+- Outdoor decor is anchored to the panning meadow backdrop and uses backdrop-scaled drag math so placed yard items can move freely while staying fixed to the scene.
 - Bridge Algebra now opens a real bridge crossing into Waterfall Clearing, with its own generated backdrop and waterfall decor sprites.
+- Repaired home/kitchen sprites replace cut-off and semi-transparent decor, with extra counter-scale kitchen items for player decoration.
 
 ## Files
 
@@ -38,6 +41,10 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - `tools/slice_yard_decor.py`: dependency-free PNG slicer for the outdoor decoration atlas.
 - `tools/slice_waterfall_decor.py`: dependency-free PNG slicer for the Waterfall Clearing decoration atlas.
 - `tools/slice_kitchen_decor.py`: dependency-free PNG slicer for the Kitchen decoration atlas.
+- `tools/slice_outfit_action_sprites.py`: dependency-free PNG slicer for breed/outfit/action sprite sheets.
+- `tools/slice_stateful_decor.py`: dependency-free PNG slicer for decor on/off and open/closed state pairs.
+- `tools/slice_magenta_repair_assets.py`: dependency-free slicer for magenta-key repaired decor and counter-item atlases.
+- `tools/remove_magenta_key.py`: dependency-free magenta-key transparency cleaner for individual repaired sprites.
 - `tools/generate_assets.py`: legacy procedural asset generator retained as a fallback, not the current visual direction.
 
 ## Local Preview
@@ -92,6 +99,31 @@ python3 tools/slice_kitchen_decor.py
 ```
 
 This reads `assets/gpt-kitchen-decor-atlas-source.png` and writes the Kitchen decor sprite PNGs.
+
+## Slice Outfit Action Atlases
+
+```bash
+python3 tools/slice_outfit_action_sprites.py
+```
+
+This reads `assets/gpt-puppy-{breed}-{look}-action-atlas-source.png` files and writes outfit-aware action sprites for thinking, celebrating, wagging, rolling, and couch-sitting.
+
+## Slice Stateful Decor Atlas
+
+```bash
+python3 tools/slice_stateful_decor.py
+```
+
+This reads `assets/gpt-stateful-decor-atlas-source.png` and writes TV, lamp, fridge, and oven state sprites.
+
+## Slice Repaired Decor And Counter Items
+
+```bash
+python3 tools/slice_magenta_repair_assets.py
+python3 tools/remove_magenta_key.py
+```
+
+These tools process magenta-key repaired decor atlases and individual sprites for home/kitchen fixes, TV channels, remote, and counter-scale kitchen decorations.
 
 ## GitHub Pages
 
