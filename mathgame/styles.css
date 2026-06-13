@@ -130,6 +130,16 @@ button {
   top: 35%;
 }
 
+.kitchen-hotspot {
+  right: max(54px, 6vw);
+  top: 36%;
+}
+
+.living-room-hotspot {
+  left: max(44px, 4vw);
+  top: 38%;
+}
+
 .tv-hotspot {
   right: max(90px, 8vw);
   top: 46%;

@@ -37,6 +37,7 @@ const ASSETS = {
   backdrop: "assets/gpt-meadow-backdrop.png",
   waterfall: "assets/gpt-waterfall-backdrop.png",
   home: "assets/gpt-home-interior.png",
+  kitchen: "assets/gpt-kitchen-backdrop.png",
   egg: "assets/gpt-egg.png",
   ...PET_ASSETS,
   homeCouch: "assets/gpt-home-couch.png",
@@ -47,6 +48,10 @@ const ASSETS = {
   homeRug: "assets/gpt-home-rug.png",
   homeLamp: "assets/gpt-home-lamp.png",
   homeTable: "assets/gpt-home-table.png",
+  kitchenSnackCart: "assets/gpt-kitchen-snack-cart.png",
+  kitchenFridge: "assets/gpt-kitchen-fridge.png",
+  kitchenBowlStation: "assets/gpt-kitchen-bowl-station.png",
+  kitchenBreakfastTable: "assets/gpt-kitchen-breakfast-table.png",
   yardBench: "assets/gpt-yard-bench.png",
   yardBall: "assets/gpt-yard-ball.png",
   yardToys: "assets/gpt-yard-toys.png",
@@ -89,6 +94,10 @@ const DECOR_ITEMS = [
   { id: "chair", scene: "home", name: "Mint chair", tex: "homeChair", x: -0.95, y: 0.93, z: 0.4, w: 1.22, h: 1.1, reward: "Home math", cost: { coins: 55, gems: 0 } },
   { id: "lamp", scene: "home", name: "Warm lamp", tex: "homeLamp", x: 2.88, y: 1.0, z: 0.42, w: 0.56, h: 1.0, reward: "Home math", cost: { coins: 45, gems: 0 } },
   { id: "table", scene: "home", name: "Reading table", tex: "homeTable", x: 0.75, y: 0.54, z: 0.55, w: 0.86, h: 0.81, reward: "Home math", cost: { coins: 50, gems: 0 } },
+  { id: "snackCart", scene: "kitchen", name: "Snack cart", tex: "kitchenSnackCart", x: -2.15, y: 0.78, z: 0.42, w: 1.6, h: 1.42, reward: "Kitchen quests", cost: { coins: 95, gems: 0 } },
+  { id: "kitchenFridge", scene: "kitchen", name: "Mint fridge", tex: "kitchenFridge", x: 2.62, y: 1.0, z: 0.38, w: 1.08, h: 1.42, reward: "Kitchen quests", cost: { coins: 110, gems: 1 } },
+  { id: "bowlStation", scene: "kitchen", name: "Bowl station", tex: "kitchenBowlStation", x: -0.78, y: 0.28, z: 0.56, w: 1.24, h: 0.66, reward: "Kitchen quests", cost: { coins: 70, gems: 0 } },
+  { id: "breakfastTable", scene: "kitchen", name: "Breakfast table", tex: "kitchenBreakfastTable", x: 1.18, y: 0.58, z: 0.5, w: 1.36, h: 1.0, reward: "Kitchen quests", cost: { coins: 85, gems: 0 } },
   { id: "bench", scene: "outdoor", name: "Garden bench", tex: "yardBench", x: -1.65, y: 0.58, z: 0.42, w: 1.78, h: 1.45, reward: "Outdoor quests", cost: { coins: 75, gems: 0 } },
   { id: "ball", scene: "outdoor", name: "Treat ball", tex: "yardBall", x: 1.08, y: 0.34, z: 0.72, w: 0.7, h: 0.7, reward: "Outdoor quests", cost: { coins: 35, gems: 0 } },
   { id: "toys", scene: "outdoor", name: "Rope toys", tex: "yardToys", x: 0.28, y: 0.31, z: 0.74, w: 0.94, h: 0.6, reward: "Outdoor quests", cost: { coins: 45, gems: 0 } },
@@ -99,14 +108,16 @@ const DECOR_ITEMS = [
   { id: "waterfallBasket", scene: "waterfall", name: "Picnic basket", tex: "waterfallBasket", x: 2.36, y: 0.45, z: 0.52, w: 1.05, h: 0.9, reward: "Waterfall quests", cost: { coins: 85, gems: 1 } },
 ];
 
-const DECOR_SCENES = ["home", "outdoor", "waterfall"];
+const DECOR_SCENES = ["home", "kitchen", "outdoor", "waterfall"];
 const DEFAULT_PET_POSITIONS = {
   home: { x: -0.06, y: 0.48 },
+  kitchen: { x: -0.05, y: 0.46 },
   outdoor: { x: 0.12, y: 0.5 },
   waterfall: { x: 0.05, y: 0.5 },
 };
 const MOVE_BOUNDS = {
   home: { x: [-4.35, 4.35], y: [0.12, 2.08] },
+  kitchen: { x: [-4.35, 4.35], y: [0.1, 2.02] },
   outdoor: { x: [-3.85, 3.85], y: [0.06, 2.02] },
   waterfall: { x: [-3.85, 3.85], y: [0.06, 2.02] },
 };
@@ -116,6 +127,12 @@ const OUTDOOR_BACKDROP_DECOR_Z = -6.4;
 const OUTDOOR_BACKDROP_DECOR_SCALE = 1.05;
 const OUTDOOR_BACKDROP_DECOR_X_SCALE = 2.2;
 const OUTDOOR_BACKDROP_DECOR_Y_OFFSET = -0.22;
+const SECRET_AWARDS = {
+  couchCritic: { title: "Couch Critic", coins: 40, gems: 1, glow: 12 },
+  snackChef: { title: "Snack Chef", coins: 35, gems: 1, glow: 10 },
+  parkMvp: { title: "Park MVP", coins: 35, gems: 1, glow: 10 },
+  lanternTrail: { title: "Lantern Trail", coins: 45, gems: 1, glow: 12 },
+};
 
 const els = {
   canvas: document.querySelector("#worldCanvas"),
@@ -135,6 +152,7 @@ const els = {
   closeDecorButton: document.querySelector("#closeDecorButton"),
   decorGrid: document.querySelector("#decorGrid"),
   decorHomeTab: document.querySelector("#decorHomeTab"),
+  decorKitchenTab: document.querySelector("#decorKitchenTab"),
   decorOutdoorTab: document.querySelector("#decorOutdoorTab"),
   decorWaterfallTab: document.querySelector("#decorWaterfallTab"),
   objectiveTitle: document.querySelector("#objectiveTitle"),
@@ -157,6 +175,8 @@ const els = {
   exitHomeButton: document.querySelector("#exitHomeButton"),
   bridgeHotspot: document.querySelector("#bridgeHotspot"),
   meadowHotspot: document.querySelector("#meadowHotspot"),
+  kitchenHotspot: document.querySelector("#kitchenHotspot"),
+  livingRoomHotspot: document.querySelector("#livingRoomHotspot"),
   tvHotspot: document.querySelector("#tvHotspot"),
   toast: document.querySelector("#toast"),
   questOverlay: document.querySelector("#questOverlay"),
@@ -219,16 +239,19 @@ if (IS_DEMO) {
     gems: 2,
     location: "home",
     waterfallUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "bench", "ball", "waterfallLog", "waterfallLantern"],
-    decorOwned: ["couch", "plant", "tv", "bench", "ball", "waterfallLog", "waterfallLantern"],
-    decorPlaced: ["couch", "plant", "tv", "bench", "ball", "waterfallLog", "waterfallLantern"],
+    kitchenUnlocked: true,
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "snackCart", "kitchenFridge", "bowlStation", "bench", "ball", "waterfallLog", "waterfallLantern"],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "snackCart", "kitchenFridge", "bowlStation", "bench", "ball", "waterfallLog", "waterfallLantern"],
+    decorPlaced: ["couch", "plant", "tv", "snackCart", "bowlStation", "bench", "ball", "waterfallLog", "waterfallLantern"],
     decorPositions: {},
     petPositions: {
       home: { x: -0.18, y: 0.48 },
+      kitchen: { x: -0.12, y: 0.46 },
       outdoor: { x: 0.35, y: 0.56 },
       waterfall: { x: 0.08, y: 0.5 },
     },
     tvChannel: 1,
+    secretAwards: [],
     unlocked: ["none"],
     ownedLooks: ["none"],
     equipped: { look: "none" },
@@ -254,16 +277,19 @@ function createInitialState() {
     gems: 0,
     location: "outdoor",
     waterfallUnlocked: false,
+    kitchenUnlocked: false,
     decorUnlocked: [],
     decorOwned: [],
     decorPlaced: [],
     decorPositions: {},
     petPositions: {
       home: { ...DEFAULT_PET_POSITIONS.home },
+      kitchen: { ...DEFAULT_PET_POSITIONS.kitchen },
       outdoor: { ...DEFAULT_PET_POSITIONS.outdoor },
       waterfall: { ...DEFAULT_PET_POSITIONS.waterfall },
     },
     tvChannel: 0,
+    secretAwards: [],
     unlocked: ["none"],
     ownedLooks: ["none"],
     equipped: {
@@ -301,11 +327,21 @@ function loadState() {
       || Number(saved.questStep || 0) > 1
       || Number(saved.world || 0) > 0
     );
+    const kitchenUnlocked = Boolean(
+      saved.kitchenUnlocked
+      || saved.location === "kitchen"
+      || livingRoomDecorComplete(decorUnlocked)
+    );
     const location = saved.location === "home"
       ? "home"
+      : saved.location === "kitchen" && kitchenUnlocked
+        ? "kitchen"
       : saved.location === "waterfall" && waterfallUnlocked
         ? "waterfall"
         : "outdoor";
+    const secretAwards = Array.isArray(saved.secretAwards)
+      ? Array.from(new Set(saved.secretAwards)).filter((id) => SECRET_AWARDS[id])
+      : [];
     return {
       setup: Boolean(saved.setup),
       playerName: saved.playerName || "",
@@ -323,12 +359,14 @@ function loadState() {
       gems: Math.max(0, Number(saved.gems || 0)),
       location,
       waterfallUnlocked,
+      kitchenUnlocked,
       decorUnlocked,
       decorOwned,
       decorPlaced,
       decorPositions: normalizeDecorPositions(saved.decorPositions),
       petPositions: normalizePetPositions(saved.petPositions),
       tvChannel: clamp(saved.tvChannel ?? 0, 0, 1),
+      secretAwards,
       unlocked: unlockedLooks,
       ownedLooks,
       equipped: {
@@ -415,28 +453,33 @@ function petFrameAsset(frame, variant = currentPetVariant()) {
 
 function currentScene() {
   if (state.location === "home") return "home";
+  if (state.location === "kitchen" && state.kitchenUnlocked) return "kitchen";
   if (state.location === "waterfall" && state.waterfallUnlocked) return "waterfall";
   return "outdoor";
 }
 
 function decorSceneLabel(scene) {
   if (scene === "home") return "Home";
+  if (scene === "kitchen") return "Kitchen";
   if (scene === "waterfall") return "Waterfall";
   return "Outside";
 }
 
 function isDecorSceneAvailable(scene) {
+  if (scene === "kitchen") return state.kitchenUnlocked;
   return scene !== "waterfall" || state.waterfallUnlocked;
 }
 
 function decorTabForScene(scene) {
   if (scene === "home") return els.decorHomeTab;
+  if (scene === "kitchen") return els.decorKitchenTab;
   if (scene === "waterfall") return els.decorWaterfallTab;
   return els.decorOutdoorTab;
 }
 
 function sceneWorldLabel(scene = currentScene()) {
   if (scene === "home") return "Cozy Home";
+  if (scene === "kitchen") return "Kitchen";
   if (scene === "waterfall") return "Waterfall Clearing";
   const world = currentWorld();
   return `${world.name}  ${state.world + 1}/${WORLDS.length}`;
@@ -444,6 +487,7 @@ function sceneWorldLabel(scene = currentScene()) {
 
 function sceneBackdropTexture(scene = currentScene()) {
   if (scene === "home") return "home";
+  if (scene === "kitchen") return "kitchen";
   if (scene === "waterfall") return "waterfall";
   return "backdrop";
 }
@@ -500,6 +544,23 @@ function nextDecorItem(scene) {
   return decorItemsForScene(scene).find((item) => !isDecorUnlocked(item.id));
 }
 
+function livingRoomDecorComplete(ids = state.decorUnlocked) {
+  const unlocked = new Set(Array.isArray(ids) ? ids : []);
+  return decorItemsForScene("home").every((item) => unlocked.has(item.id));
+}
+
+function unlockKitchenIfReady() {
+  if (state.kitchenUnlocked || !livingRoomDecorComplete()) return "";
+  state.kitchenUnlocked = true;
+  return "The kitchen door opened inside the house.";
+}
+
+function lockedDecorReason(scene) {
+  if (scene === "kitchen") return "Living room decor";
+  if (scene === "waterfall") return "Bridge Algebra";
+  return "Quest locked";
+}
+
 function costText(cost = {}) {
   const parts = [];
   const coins = Number(cost.coins || 0);
@@ -530,6 +591,40 @@ function discoverGems(amount) {
   const found = Math.max(0, Number(amount || 0));
   state.gems += found;
   return found;
+}
+
+function grantSecretAward(id) {
+  const award = SECRET_AWARDS[id];
+  if (!award || state.secretAwards.includes(id)) return false;
+  state.secretAwards.push(id);
+  state.coins += award.coins;
+  state.gems += award.gems;
+  state.glow += award.glow;
+  triggerPetAction("celebrate", 1400);
+  showToast(`Secret award: ${award.title}. +${award.coins} coins +${award.gems} gem.`);
+  return true;
+}
+
+function checkSecretAwards(trigger = "") {
+  if (state.stage === "egg") return false;
+  let awarded = false;
+  if (isDecorPlaced("couch") && isDecorPlaced("tv") && state.tvChannel === 1 && petIsOnCouch()) {
+    awarded = grantSecretAward("couchCritic") || awarded;
+  }
+  if (state.location === "kitchen" && trigger === "feed" && isDecorPlaced("snackCart") && isDecorPlaced("bowlStation")) {
+    awarded = grantSecretAward("snackChef") || awarded;
+  }
+  if (state.location === "outdoor" && trigger === "fetch" && isDecorPlaced("bench") && isDecorPlaced("ball") && isDecorPlaced("toys")) {
+    awarded = grantSecretAward("parkMvp") || awarded;
+  }
+  if (state.location === "waterfall" && isDecorPlaced("waterfallLog") && isDecorPlaced("waterfallLantern") && isDecorPlaced("waterfallLilypads")) {
+    awarded = grantSecretAward("lanternTrail") || awarded;
+  }
+  if (awarded) {
+    saveState();
+    renderHud();
+  }
+  return awarded;
 }
 
 function restartGame() {
@@ -621,30 +716,43 @@ function renderHud() {
   const size = currentQuestSize();
   const scene = currentScene();
   const inHome = scene === "home";
+  const inKitchen = scene === "kitchen";
+  const indoors = inHome || inKitchen;
   const inWaterfall = scene === "waterfall";
   const nextDecor = nextDecorItem(scene);
+  const secretCount = state.secretAwards?.length || 0;
+  let objectiveTitle = `${questName}: ${world.name}`;
+  let objectiveText = nextDecor
+    ? `${quest === "fraction" && !state.waterfallUnlocked ? "Pass Bridge Algebra to open the bridge crossing. " : ""}Practice ${world.focus}. Passing makes ${nextDecor.name} available and earns coins.`
+    : `${quest === "fraction" && !state.waterfallUnlocked ? "Pass Bridge Algebra to open the bridge crossing. " : ""}Pass with ${pass}/${size} correct to earn coins and keep growing.`;
+
+  if (state.stage === "egg") {
+    objectiveTitle = "Hatch the puppy";
+    objectiveText = "Click Practice Math. Pass the first growth quest to hatch the egg.";
+  } else if (inHome) {
+    objectiveTitle = "Cozy Home";
+    if (nextDecor) {
+      objectiveText = `Do home math to make ${nextDecor.name} available. Coins buy it in Decor.`;
+    } else {
+      objectiveText = state.kitchenUnlocked
+        ? "Living room decor is stocked. The kitchen is open from inside the house."
+        : "Living room decor is stocked. The next room opens when the last piece is available.";
+    }
+  } else if (inKitchen) {
+    objectiveTitle = "Kitchen";
+    objectiveText = nextDecor
+      ? `Clear kitchen math to make ${nextDecor.name} available. Coins buy it in Decor.`
+      : "Kitchen decor is stocked. Keep practicing to earn coins, gems, and growth XP.";
+  } else if (inWaterfall) {
+    objectiveTitle = "Waterfall Clearing";
+    objectiveText = nextDecor
+      ? `Practice at the waterfall to make ${nextDecor.name} available.`
+      : "Waterfall decor is stocked. Math here keeps opening future paths.";
+  }
 
   els.setupOverlay.classList.toggle("show", !state.setup);
-  els.objectiveTitle.textContent = state.stage === "egg"
-    ? "Hatch the puppy"
-    : inHome
-      ? "Cozy Home"
-      : inWaterfall
-        ? "Waterfall Clearing"
-        : `${questName}: ${world.name}`;
-  els.objectiveText.textContent = state.stage === "egg"
-    ? "Click Practice Math. Pass the first growth quest to hatch the egg."
-    : inHome
-      ? nextDecor
-        ? `Do home math to make ${nextDecor.name} available. Coins buy it in Decor.`
-        : "Home decor is available. Earn coins, discover gems, and arrange furniture."
-      : inWaterfall
-        ? nextDecor
-          ? `Practice at the waterfall to make ${nextDecor.name} available.`
-          : "Waterfall decor is stocked. Math here keeps opening future paths."
-      : nextDecor
-        ? `${quest === "fraction" && !state.waterfallUnlocked ? "Pass Bridge Algebra to open the bridge crossing. " : ""}Practice ${world.focus}. Passing makes ${nextDecor.name} available and earns coins.`
-        : `${quest === "fraction" && !state.waterfallUnlocked ? "Pass Bridge Algebra to open the bridge crossing. " : ""}Pass with ${pass}/${size} correct to earn coins and keep growing.`;
+  els.objectiveTitle.textContent = objectiveTitle;
+  els.objectiveText.textContent = objectiveText;
   els.petNameLabel.textContent = state.stage === "egg" ? `${state.petName}'s egg` : `${state.petName} the ${currentPetVariantName()}`;
   els.foodBar.style.width = `${state.food}%`;
   els.energyBar.style.width = `${state.energy}%`;
@@ -652,12 +760,14 @@ function renderHud() {
   els.worldLabel.textContent = sceneWorldLabel(scene);
   els.coinLabel.textContent = `${state.coins} coins`;
   els.gemLabel.textContent = `${state.gems} ${state.gems === 1 ? "gem" : "gems"}`;
-  els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor`;
-  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inWaterfall ? "Waterfall Quest" : questName;
+  els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor${secretCount ? `  ${secretCount} secret` : ""}`;
+  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && scene === "outdoor");
-  els.exitHomeButton.classList.toggle("show", state.setup && inHome);
+  els.exitHomeButton.classList.toggle("show", state.setup && indoors);
   els.bridgeHotspot.classList.toggle("show", state.setup && scene === "outdoor" && state.waterfallUnlocked);
   els.meadowHotspot.classList.toggle("show", state.setup && inWaterfall);
+  els.kitchenHotspot.classList.toggle("show", state.setup && inHome && state.kitchenUnlocked);
+  els.livingRoomHotspot.classList.toggle("show", state.setup && inKitchen);
   els.tvHotspot.classList.toggle("show", state.setup && inHome && isDecorPlaced("tv"));
   renderCloset();
   renderDecor();
@@ -665,9 +775,13 @@ function renderHud() {
 
 function unlockNextDecorReward(scene) {
   const item = nextDecorItem(scene);
-  if (!item) return `${decorSceneLabel(scene)} shop is fully stocked.`;
+  if (!item) {
+    const kitchenMessage = scene === "home" ? unlockKitchenIfReady() : "";
+    return kitchenMessage || `${decorSceneLabel(scene)} shop is fully stocked.`;
+  }
   state.decorUnlocked.push(item.id);
-  return `${item.name} is now available in Decor for ${costText(item.cost)}.`;
+  const kitchenMessage = scene === "home" ? unlockKitchenIfReady() : "";
+  return `${item.name} is now available in Decor for ${costText(item.cost)}.${kitchenMessage ? ` ${kitchenMessage}` : ""}`;
 }
 
 function renderCloset() {
@@ -715,7 +829,7 @@ function renderDecor() {
     <button class="decor-item locked" type="button" disabled>
       <span class="closet-empty">?</span>
       <strong>${decorSceneLabel(activeDecorScene)} locked</strong>
-      <span>Bridge Algebra</span>
+      <span>${lockedDecorReason(activeDecorScene)}</span>
     </button>
   `];
 
@@ -769,6 +883,7 @@ function toggleDecorItem(itemId) {
     if (!state.decorPositions[item.id]) state.decorPositions[item.id] = defaultDecorPosition(item);
     selectedMoveTarget = { type: "decor", id: item.id };
     showToast(`${item.name} purchased and placed.`);
+    checkSecretAwards("decor");
     saveState();
     renderHud();
     return;
@@ -788,6 +903,7 @@ function toggleDecorItem(itemId) {
     selectedMoveTarget = { type: "decor", id: item.id };
     showToast(`${item.name} placed.`);
   }
+  checkSecretAwards("decor");
   saveState();
   renderHud();
 }
@@ -840,6 +956,7 @@ function snapDraggedTarget(target) {
   setPetPosition("home", couchSeat);
   triggerPetAction("couch", 1800);
   showToast(`${state.petName} climbed onto the couch.`);
+  checkSecretAwards("move");
 }
 
 function couchPetPosition() {
@@ -906,6 +1023,7 @@ function feedPet() {
   renderHud();
   triggerPetAction("wag", 1100);
   showToast(`${state.petName} ate a snack. -${FEED_COIN_COST} coins.`);
+  checkSecretAwards("feed");
 }
 
 function rubPet() {
@@ -940,6 +1058,7 @@ function playFetch() {
   renderHud();
   triggerPetAction("wag", 1250);
   showToast(`${state.petName} chased the toy. Call brings them back if they run off-screen.`);
+  checkSecretAwards("fetch");
 }
 
 function startQuest() {
@@ -955,7 +1074,7 @@ function startQuest() {
   const size = currentQuestSize();
   activeRound = {
     type,
-    location: state.location,
+    location: currentScene(),
     index: 0,
     size,
     pass: currentQuestPass(),
@@ -1144,8 +1263,8 @@ function finishRound() {
   state.growth = clamp(state.growth + 14, 0, 100);
   state.glow += type === "boss" ? 20 : 8;
 
-  if (roundLocation === "home") {
-    showToast(`${message}. ${unlockNextDecorReward("home")}`);
+  if (roundLocation === "home" || roundLocation === "kitchen") {
+    showToast(`${message}. ${unlockNextDecorReward(roundLocation)}`);
     saveState();
     renderHud();
     triggerPetAction("celebrate", 1300);
@@ -1717,6 +1836,28 @@ els.exitHomeButton.addEventListener("click", () => {
   triggerPetAction("wag", 900);
   showToast(`${state.petName} went back outside.`);
 });
+els.kitchenHotspot.addEventListener("click", () => {
+  if (!state.kitchenUnlocked) {
+    showToast("Open every living room decor option to unlock the kitchen.");
+    return;
+  }
+  state.location = "kitchen";
+  activeDecorScene = "kitchen";
+  selectedMoveTarget = { type: "pet", scene: "kitchen" };
+  saveState();
+  renderHud();
+  triggerPetAction("wag", 1000);
+  showToast(`${state.petName} padded into the kitchen.`);
+});
+els.livingRoomHotspot.addEventListener("click", () => {
+  state.location = "home";
+  activeDecorScene = "home";
+  selectedMoveTarget = { type: "pet", scene: "home" };
+  saveState();
+  renderHud();
+  triggerPetAction("wag", 900);
+  showToast(`${state.petName} returned to the living room.`);
+});
 els.bridgeHotspot.addEventListener("click", () => {
   if (!state.waterfallUnlocked) {
     showToast("Pass Bridge Algebra to open the crossing.");
@@ -1729,6 +1870,7 @@ els.bridgeHotspot.addEventListener("click", () => {
   renderHud();
   triggerPetAction("wag", 1000);
   showToast(`${state.petName} crossed into Waterfall Clearing.`);
+  checkSecretAwards("enter-waterfall");
 });
 els.meadowHotspot.addEventListener("click", () => {
   state.location = "outdoor";
@@ -1746,6 +1888,7 @@ els.tvHotspot.addEventListener("click", () => {
   renderHud();
   triggerPetAction("celebrate", 900);
   showToast(state.tvChannel ? "The TV shows a starry puppy channel." : "The TV is now on the calm channel.");
+  checkSecretAwards("tv");
 });
 
 els.questButton.addEventListener("click", startQuest);
@@ -1794,7 +1937,7 @@ els.decorButton.addEventListener("click", () => {
   setOverlay(els.decorOverlay, true);
 });
 els.closeDecorButton.addEventListener("click", () => setOverlay(els.decorOverlay, false));
-[els.decorHomeTab, els.decorOutdoorTab, els.decorWaterfallTab].forEach((tab) => {
+[els.decorHomeTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab].forEach((tab) => {
   tab.addEventListener("click", () => {
     activeDecorScene = tab.dataset.decorScene;
     selectedMoveTarget = { type: "pet", scene: activeDecorScene };
@@ -1837,7 +1980,7 @@ els.canvas.addEventListener("pointermove", (event) => {
   if (!dragState || dragState.pointerId !== event.pointerId) return;
   event.preventDefault();
   const pointerPosition = pointerToScenePosition(dragState.scene, event.clientX, event.clientY);
-  const backdropDragScale = dragState.target.type === "decor" && dragState.scene !== "home"
+  const backdropDragScale = dragState.target.type === "decor" && (dragState.scene === "outdoor" || dragState.scene === "waterfall")
     ? OUTDOOR_BACKDROP_DECOR_X_SCALE
     : 1;
   const dx = (pointerPosition.x - dragState.startPointerPosition.x) / backdropDragScale;
@@ -1977,11 +2120,11 @@ function drawScene(time) {
   const aspect = gl.canvas.width / Math.max(1, gl.canvas.height);
   const pulse = Math.max(0, petPulseUntil - time) / 1200;
   const scene = currentScene();
-  const inHome = scene === "home";
-  const cameraX = Math.sin(time * 0.00018) * (inHome ? 0.18 : 0.42) + pulse * 0.16;
-  const cameraY = (inHome ? 2.05 : 2.25) + Math.sin(time * 0.00027) * 0.08;
+  const indoors = scene === "home" || scene === "kitchen";
+  const cameraX = Math.sin(time * 0.00018) * (indoors ? 0.18 : 0.42) + pulse * 0.16;
+  const cameraY = (indoors ? 2.05 : 2.25) + Math.sin(time * 0.00027) * 0.08;
   const projection = perspective(Math.PI / 4.5, aspect, 0.1, 80);
-  const view = lookAt([cameraX, cameraY, 7.2], [0, inHome ? 0.85 : 0.9, -1.2], [0, 1, 0]);
+  const view = lookAt([cameraX, cameraY, 7.2], [0, indoors ? 0.85 : 0.9, -1.2], [0, 1, 0]);
   const pv = multiply(projection, view);
 
   const objects = [
@@ -2026,7 +2169,7 @@ function decorObjectsForScene(scene) {
   return placedDecorForScene(scene)
     .map((item) => {
       const position = getDecorPosition(item);
-      const backdropLocked = scene !== "home";
+      const backdropLocked = scene === "outdoor" || scene === "waterfall";
       const renderScale = backdropLocked ? OUTDOOR_BACKDROP_DECOR_SCALE : 1;
       return {
         ...item,
@@ -2086,7 +2229,7 @@ function petTextureKey(time = performance.now()) {
 
 function petScaleForScene(scene) {
   if (state.stage === "egg") return 1.0;
-  const base = scene === "home" ? 1.03 : scene === "waterfall" ? 1.12 : 1.08;
+  const base = scene === "home" || scene === "kitchen" ? 1.03 : scene === "waterfall" ? 1.12 : 1.08;
   return base + Math.min(0.18, state.growth / 650);
 }
 
