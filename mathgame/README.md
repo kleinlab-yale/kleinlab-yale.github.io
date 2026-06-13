@@ -13,6 +13,8 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - The pet uses full integrated sprite variants for outfits, not square overlay shapes.
 - Math content is now aimed at accelerated 4th-grade work: distributive property, combining like terms, equations, fraction equations, decimals as fractions, and area/perimeter.
 - The cottage can be entered after hatching; home and outdoor math unlock arrangeable decorations, and the TV can change channels.
+- Math now drives a simple game economy: correct answers and quest clears earn coins, perfect clears and boss quests discover gems, and coins/gems buy snacks, wardrobe items, and decor.
+- Outdoor decor is anchored to the panning meadow backdrop so placed yard items do not drift separately from the scene.
 
 ## Files
 

@@ -26,6 +26,7 @@ html,
 body {
   width: 100%;
   height: 100%;
+  min-height: 100%;
   margin: 0;
   overflow: hidden;
   background: #101b28;
@@ -50,6 +51,14 @@ button {
   height: 100vh;
   isolation: isolate;
   overflow: hidden;
+}
+
+@supports (height: 100dvh) {
+  html,
+  body,
+  .game-shell {
+    height: 100dvh;
+  }
 }
 
 #worldCanvas {
@@ -279,8 +288,10 @@ button {
   right: max(18px, env(safe-area-inset-right));
   bottom: max(22px, env(safe-area-inset-bottom));
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
+  max-width: min(520px, calc(100vw - 36px));
   padding: 11px 14px;
   border-radius: 999px;
   color: rgba(23, 38, 50, 0.76);
@@ -289,6 +300,14 @@ button {
 
 .world-strip span:first-child {
   color: var(--ink);
+}
+
+#coinLabel {
+  color: #9c6421;
+}
+
+#gemLabel {
+  color: #4f62c9;
 }
 
 .bottom-controls {
@@ -677,7 +696,7 @@ input:focus {
   cursor: not-allowed;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 820px) {
   .hud-top {
     display: grid;
   }
@@ -688,16 +707,23 @@ input:focus {
 
   .pet-card {
     width: min(230px, calc(100vw - 160px));
-    bottom: 104px;
+    bottom: 184px;
   }
 
   .world-strip {
     left: max(18px, env(safe-area-inset-left));
-    right: auto;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: calc(104px + env(safe-area-inset-bottom));
+    justify-content: center;
+    max-width: none;
+    gap: 8px 10px;
+    padding: 9px 12px;
+    border-radius: 24px;
+    font-size: 0.82rem;
   }
 
   .bottom-controls {
-    width: calc(100vw - 32px);
+    width: min(520px, calc(100vw - 32px));
     justify-content: center;
   }
 
@@ -722,5 +748,26 @@ input:focus {
 
   .answer-area {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1120px) {
+  .world-strip {
+    bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-height: 760px) and (min-width: 821px) {
+  .bottom-controls {
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .quest-button {
+    min-height: 62px;
+    padding-block: 10px;
+  }
+
+  .world-strip {
+    padding-block: 9px;
   }
 }

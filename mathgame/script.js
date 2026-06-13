@@ -46,23 +46,23 @@ const QUEST_LABELS = {
 };
 
 const CLOSET = [
-  { id: "none", name: "No extra", asset: null, kind: "all", unlock: true },
-  { id: "sweater", name: "Peach sweater", asset: "assets/gpt-puppy-sweater.png", kind: "look" },
-  { id: "bow", name: "Berry bow", asset: "assets/gpt-puppy-bow.png", kind: "look" },
-  { id: "collar", name: "Bell collar", asset: "assets/gpt-puppy-collar.png", kind: "look" },
+  { id: "none", name: "No extra", asset: null, kind: "all", unlock: true, cost: { coins: 0, gems: 0 } },
+  { id: "sweater", name: "Peach sweater", asset: "assets/gpt-puppy-sweater.png", kind: "look", cost: { coins: 65, gems: 0 } },
+  { id: "bow", name: "Berry bow", asset: "assets/gpt-puppy-bow.png", kind: "look", cost: { coins: 90, gems: 1 } },
+  { id: "collar", name: "Bell collar", asset: "assets/gpt-puppy-collar.png", kind: "look", cost: { coins: 80, gems: 0 } },
 ];
 
 const DECOR_ITEMS = [
-  { id: "couch", scene: "home", name: "Peach couch", tex: "homeCouch", x: -1.9, y: 0.94, z: 0.35, w: 2.15, h: 1.46, reward: "Home math" },
-  { id: "plant", scene: "home", name: "Leafy plant", tex: "homePlant", x: 1.98, y: 0.9, z: 0.36, w: 0.92, h: 1.0, reward: "Home math" },
-  { id: "tv", scene: "home", name: "Star TV", tex: "homeTvOff", x: 1.92, y: 1.28, z: 0.38, w: 1.38, h: 1.34, reward: "Home math" },
-  { id: "chair", scene: "home", name: "Mint chair", tex: "homeChair", x: -0.95, y: 0.93, z: 0.4, w: 1.22, h: 1.1, reward: "Home math" },
-  { id: "lamp", scene: "home", name: "Warm lamp", tex: "homeLamp", x: 2.88, y: 1.0, z: 0.42, w: 0.56, h: 1.0, reward: "Home math" },
-  { id: "table", scene: "home", name: "Reading table", tex: "homeTable", x: 0.75, y: 0.54, z: 0.55, w: 0.86, h: 0.81, reward: "Home math" },
-  { id: "bench", scene: "outdoor", name: "Garden bench", tex: "yardBench", x: -1.65, y: 0.58, z: 0.42, w: 1.78, h: 1.45, reward: "Outdoor quests" },
-  { id: "ball", scene: "outdoor", name: "Treat ball", tex: "yardBall", x: 1.08, y: 0.34, z: 0.72, w: 0.7, h: 0.7, reward: "Outdoor quests" },
-  { id: "toys", scene: "outdoor", name: "Rope toys", tex: "yardToys", x: 0.28, y: 0.31, z: 0.74, w: 0.94, h: 0.6, reward: "Outdoor quests" },
-  { id: "basket", scene: "outdoor", name: "Toy basket", tex: "yardBasket", x: 2.18, y: 0.52, z: 0.48, w: 1.22, h: 1.02, reward: "Outdoor quests" },
+  { id: "couch", scene: "home", name: "Peach couch", tex: "homeCouch", x: -1.9, y: 0.94, z: 0.35, w: 2.15, h: 1.46, reward: "Home math", cost: { coins: 80, gems: 0 } },
+  { id: "plant", scene: "home", name: "Leafy plant", tex: "homePlant", x: 1.98, y: 0.9, z: 0.36, w: 0.92, h: 1.0, reward: "Home math", cost: { coins: 35, gems: 0 } },
+  { id: "tv", scene: "home", name: "Star TV", tex: "homeTvOff", x: 1.92, y: 1.28, z: 0.38, w: 1.38, h: 1.34, reward: "Home math", cost: { coins: 95, gems: 1 } },
+  { id: "chair", scene: "home", name: "Mint chair", tex: "homeChair", x: -0.95, y: 0.93, z: 0.4, w: 1.22, h: 1.1, reward: "Home math", cost: { coins: 55, gems: 0 } },
+  { id: "lamp", scene: "home", name: "Warm lamp", tex: "homeLamp", x: 2.88, y: 1.0, z: 0.42, w: 0.56, h: 1.0, reward: "Home math", cost: { coins: 45, gems: 0 } },
+  { id: "table", scene: "home", name: "Reading table", tex: "homeTable", x: 0.75, y: 0.54, z: 0.55, w: 0.86, h: 0.81, reward: "Home math", cost: { coins: 50, gems: 0 } },
+  { id: "bench", scene: "outdoor", name: "Garden bench", tex: "yardBench", x: -1.65, y: 0.58, z: 0.42, w: 1.78, h: 1.45, reward: "Outdoor quests", cost: { coins: 75, gems: 0 } },
+  { id: "ball", scene: "outdoor", name: "Treat ball", tex: "yardBall", x: 1.08, y: 0.34, z: 0.72, w: 0.7, h: 0.7, reward: "Outdoor quests", cost: { coins: 35, gems: 0 } },
+  { id: "toys", scene: "outdoor", name: "Rope toys", tex: "yardToys", x: 0.28, y: 0.31, z: 0.74, w: 0.94, h: 0.6, reward: "Outdoor quests", cost: { coins: 45, gems: 0 } },
+  { id: "basket", scene: "outdoor", name: "Toy basket", tex: "yardBasket", x: 2.18, y: 0.52, z: 0.48, w: 1.22, h: 1.02, reward: "Outdoor quests", cost: { coins: 90, gems: 1 } },
 ];
 
 const DECOR_SCENES = ["home", "outdoor"];
@@ -74,7 +74,11 @@ const MOVE_BOUNDS = {
   home: { x: [-2.85, 2.95], y: [0.26, 1.35] },
   outdoor: { x: [-2.65, 2.7], y: [0.24, 1.22] },
 };
-const FEED_GLOW_COST = 4;
+const FEED_COIN_COST = 10;
+const OUTDOOR_BACKDROP_DECOR_Z = -6.4;
+const OUTDOOR_BACKDROP_DECOR_SCALE = 1.05;
+const OUTDOOR_BACKDROP_DECOR_X_SCALE = 2.2;
+const OUTDOOR_BACKDROP_DECOR_Y_OFFSET = -0.22;
 
 const els = {
   canvas: document.querySelector("#worldCanvas"),
@@ -107,6 +111,8 @@ const els = {
   rubButton: document.querySelector("#rubButton"),
   fetchButton: document.querySelector("#fetchButton"),
   worldLabel: document.querySelector("#worldLabel"),
+  coinLabel: document.querySelector("#coinLabel"),
+  gemLabel: document.querySelector("#gemLabel"),
   sparkleLabel: document.querySelector("#sparkleLabel"),
   questButton: document.querySelector("#questButton"),
   questButtonLabel: document.querySelector("#questButtonLabel"),
@@ -160,8 +166,11 @@ if (IS_DEMO) {
     energy: 76,
     growth: 44,
     glow: 18,
+    coins: 140,
+    gems: 2,
     location: "home",
     decorUnlocked: ["couch", "plant", "tv", "bench", "ball"],
+    decorOwned: ["couch", "plant", "tv", "bench", "ball"],
     decorPlaced: ["couch", "plant", "tv", "bench", "ball"],
     decorPositions: {},
     petPositions: {
@@ -170,6 +179,7 @@ if (IS_DEMO) {
     },
     tvChannel: 1,
     unlocked: ["none"],
+    ownedLooks: ["none"],
     equipped: { look: "none" },
   };
 }
@@ -187,8 +197,11 @@ function createInitialState() {
     energy: 52,
     growth: 0,
     glow: 0,
+    coins: 0,
+    gems: 0,
     location: "outdoor",
     decorUnlocked: [],
+    decorOwned: [],
     decorPlaced: [],
     decorPositions: {},
     petPositions: {
@@ -197,6 +210,7 @@ function createInitialState() {
     },
     tvChannel: 0,
     unlocked: ["none"],
+    ownedLooks: ["none"],
     equipped: {
       look: "none",
     },
@@ -209,14 +223,23 @@ function loadState() {
     if (!saved || typeof saved !== "object") return null;
     const legacyHomeItems = Array.isArray(saved.homeItems) ? saved.homeItems : [];
     const savedDecorUnlocked = Array.isArray(saved.decorUnlocked) ? saved.decorUnlocked : [];
+    const savedDecorOwned = Array.isArray(saved.decorOwned) ? saved.decorOwned : [];
     const savedDecorPlaced = Array.isArray(saved.decorPlaced) ? saved.decorPlaced : [];
     const decorUnlocked = normalizeDecorIds([
       ...legacyHomeItems,
       ...savedDecorUnlocked,
       ...savedDecorPlaced,
+      ...savedDecorOwned,
+    ]);
+    const decorOwned = normalizeDecorIds(savedDecorOwned.length ? savedDecorOwned : [
+      ...legacyHomeItems,
+      ...savedDecorPlaced,
+      ...savedDecorUnlocked,
     ]);
     const decorPlaced = normalizeDecorIds(savedDecorPlaced.length ? savedDecorPlaced : legacyHomeItems)
-      .filter((id) => decorUnlocked.includes(id));
+      .filter((id) => decorUnlocked.includes(id) && decorOwned.includes(id));
+    const unlockedLooks = Array.isArray(saved.unlocked) ? Array.from(new Set(["none", ...saved.unlocked])) : ["none"];
+    const ownedLooks = Array.isArray(saved.ownedLooks) ? Array.from(new Set(["none", ...saved.ownedLooks])) : unlockedLooks;
     return {
       setup: Boolean(saved.setup),
       playerName: saved.playerName || "",
@@ -229,13 +252,17 @@ function loadState() {
       energy: clamp(saved.energy ?? 52, 0, 100),
       growth: clamp(saved.growth ?? 0, 0, 100),
       glow: Math.max(0, Number(saved.glow || 0)),
+      coins: Math.max(0, Number(saved.coins || 0)),
+      gems: Math.max(0, Number(saved.gems || 0)),
       location: saved.location === "home" ? "home" : "outdoor",
       decorUnlocked,
+      decorOwned,
       decorPlaced,
       decorPositions: normalizeDecorPositions(saved.decorPositions),
       petPositions: normalizePetPositions(saved.petPositions),
       tvChannel: clamp(saved.tvChannel ?? 0, 0, 1),
-      unlocked: Array.isArray(saved.unlocked) ? Array.from(new Set(["none", ...saved.unlocked])) : ["none"],
+      unlocked: unlockedLooks,
+      ownedLooks,
       equipped: {
         look: saved.equipped?.look || saved.equipped?.sweater || saved.equipped?.hat || saved.equipped?.collar || "none",
       },
@@ -340,12 +367,48 @@ function isDecorUnlocked(id) {
   return state.decorUnlocked.includes(id);
 }
 
+function isDecorOwned(id) {
+  return state.decorOwned.includes(id);
+}
+
 function isDecorPlaced(id) {
-  return state.decorPlaced.includes(id);
+  return isDecorOwned(id) && state.decorPlaced.includes(id);
 }
 
 function nextDecorItem(scene) {
   return decorItemsForScene(scene).find((item) => !isDecorUnlocked(item.id));
+}
+
+function costText(cost = {}) {
+  const parts = [];
+  const coins = Number(cost.coins || 0);
+  const gems = Number(cost.gems || 0);
+  if (coins) parts.push(`${coins} coins`);
+  if (gems) parts.push(`${gems} ${gems === 1 ? "gem" : "gems"}`);
+  return parts.length ? parts.join(" + ") : "Free";
+}
+
+function canAfford(cost = {}) {
+  return state.coins >= Number(cost.coins || 0) && state.gems >= Number(cost.gems || 0);
+}
+
+function spendCost(cost = {}) {
+  if (!canAfford(cost)) return false;
+  state.coins = Math.max(0, state.coins - Number(cost.coins || 0));
+  state.gems = Math.max(0, state.gems - Number(cost.gems || 0));
+  return true;
+}
+
+function rewardCoins(amount) {
+  const earned = Math.max(0, Number(amount || 0));
+  state.coins += earned;
+  return earned;
+}
+
+function discoverGems(amount) {
+  const found = Math.max(0, Number(amount || 0));
+  state.gems += found;
+  return found;
 }
 
 function restartGame() {
@@ -426,16 +489,18 @@ function renderHud() {
     ? "Click Practice Math. Pass the first growth quest to hatch the egg."
     : inHome
       ? nextDecor
-        ? `Do home math to unlock the ${nextDecor.name}. Pass with ${pass}/${size} correct.`
-        : "Home decor is earned. Use Decor to arrange furniture or go outside."
+        ? `Do home math to make ${nextDecor.name} available. Coins buy it in Decor.`
+        : "Home decor is available. Earn coins, discover gems, and arrange furniture."
       : nextDecor
-        ? `Practice ${world.focus}. Passing unlocks ${nextDecor.name}, growth XP, and the next beat.`
-        : `Practice ${world.focus}. Pass with ${pass}/${size} correct to keep growing.`;
+        ? `Practice ${world.focus}. Passing makes ${nextDecor.name} available and earns coins. Perfect clears discover gems.`
+        : `Practice ${world.focus}. Pass with ${pass}/${size} correct to earn coins and keep growing.`;
   els.petNameLabel.textContent = state.stage === "egg" ? `${state.petName}'s egg` : state.petName;
   els.foodBar.style.width = `${state.food}%`;
   els.energyBar.style.width = `${state.energy}%`;
   els.growthBar.style.width = `${state.growth}%`;
   els.worldLabel.textContent = inHome ? "Cozy Home" : `${world.name}  ${state.world + 1}/${WORLDS.length}`;
+  els.coinLabel.textContent = `${state.coins} coins`;
+  els.gemLabel.textContent = `${state.gems} ${state.gems === 1 ? "gem" : "gems"}`;
   els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor`;
   els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && !inHome);
@@ -447,25 +512,29 @@ function renderHud() {
 
 function unlockNextDecorReward(scene) {
   const item = nextDecorItem(scene);
-  if (!item) return `${decorSceneLabel(scene)} decor is fully unlocked.`;
+  if (!item) return `${decorSceneLabel(scene)} shop is fully stocked.`;
   state.decorUnlocked.push(item.id);
-  if (!state.decorPlaced.includes(item.id)) state.decorPlaced.push(item.id);
-  if (!state.decorPositions[item.id]) state.decorPositions[item.id] = defaultDecorPosition(item);
-  return `${item.name} unlocked for ${decorSceneLabel(scene).toLowerCase()}.`;
+  return `${item.name} is now available in Decor for ${costText(item.cost)}.`;
 }
 
 function renderCloset() {
   els.closetGrid.innerHTML = CLOSET.map((item) => {
     const unlocked = item.unlock || state.unlocked.includes(item.id);
+    const owned = item.id === "none" || state.ownedLooks.includes(item.id);
     const active = item.id === "none"
       ? state.equipped.look === "none"
       : state.equipped.look === item.id;
     const image = item.asset ? `<img src="${item.asset}" alt="" />` : `<span class="closet-empty">Base</span>`;
+    const status = !unlocked
+      ? "Locked"
+      : owned
+        ? (active ? "Wearing" : "Tap to wear")
+        : `Buy ${costText(item.cost)}`;
     return `
       <button class="closet-item ${active ? "active" : ""} ${unlocked ? "" : "locked"}" data-closet="${item.id}" ${unlocked ? "" : "disabled"} type="button">
         ${image}
         <strong>${item.name}</strong>
-        <span>${unlocked ? (active ? "Wearing" : "Tap to wear") : "Locked"}</span>
+        <span>${status}</span>
       </button>
     `;
   }).join("");
@@ -490,9 +559,14 @@ function renderDecor() {
 
   decorItemsForScene(activeDecorScene).forEach((item) => {
     const unlocked = isDecorUnlocked(item.id);
+    const owned = isDecorOwned(item.id);
     const placed = isDecorPlaced(item.id);
     const active = selectedMoveTarget.type === "decor" && selectedMoveTarget.id === item.id;
-    const status = unlocked ? (placed ? "Placed" : "Unlocked") : item.reward;
+    const status = !unlocked
+      ? item.reward
+      : owned
+        ? (placed ? "Placed" : "Owned")
+        : `Buy ${costText(item.cost)}`;
     cards.push(`
       <button class="decor-item ${active ? "active" : ""} ${unlocked ? "" : "locked"}" data-decor-id="${item.id}" type="button">
         <img src="${ASSETS[item.tex]}" alt="" />
@@ -529,6 +603,20 @@ function toggleDecorItem(itemId) {
   if (!item) return;
   if (!isDecorUnlocked(item.id)) {
     showToast(`${item.name} unlocks from ${item.reward.toLowerCase()}.`);
+    return;
+  }
+  if (!isDecorOwned(item.id)) {
+    if (!spendCost(item.cost)) {
+      showToast(`${item.name} costs ${costText(item.cost)}.`);
+      return;
+    }
+    state.decorOwned.push(item.id);
+    state.decorPlaced.push(item.id);
+    if (!state.decorPositions[item.id]) state.decorPositions[item.id] = defaultDecorPosition(item);
+    selectedMoveTarget = { type: "decor", id: item.id };
+    showToast(`${item.name} purchased and placed.`);
+    saveState();
+    renderHud();
     return;
   }
   if (isDecorPlaced(item.id)) {
@@ -635,6 +723,14 @@ function unlock(itemId) {
 function equip(itemId) {
   const item = CLOSET.find((entry) => entry.id === itemId);
   if (!item || (!item.unlock && !state.unlocked.includes(item.id))) return;
+  if (item.id !== "none" && !state.ownedLooks.includes(item.id)) {
+    if (!spendCost(item.cost)) {
+      showToast(`${item.name} costs ${costText(item.cost)}.`);
+      return;
+    }
+    state.ownedLooks.push(item.id);
+    showToast(`${item.name} purchased.`);
+  }
   state.equipped.look = item.id;
   saveState();
   renderHud();
@@ -647,17 +743,17 @@ function feedPet() {
     petPulseUntil = performance.now() + 700;
     return;
   }
-  if (state.glow < FEED_GLOW_COST) {
-    showToast(`Earn ${FEED_GLOW_COST} glow in math to buy a snack.`);
+  if (state.coins < FEED_COIN_COST) {
+    showToast(`Earn ${FEED_COIN_COST} coins in math to buy a snack.`);
     return;
   }
-  state.glow -= FEED_GLOW_COST;
+  state.coins -= FEED_COIN_COST;
   state.food = clamp(state.food + 30, 0, 100);
   state.energy = clamp(state.energy + 3, 0, 100);
   saveState();
   renderHud();
   petPulseUntil = performance.now() + 1000;
-  showToast(`${state.petName} ate a snack. -${FEED_GLOW_COST} glow.`);
+  showToast(`${state.petName} ate a snack. -${FEED_COIN_COST} coins.`);
 }
 
 function rubPet() {
@@ -698,7 +794,7 @@ function startQuest() {
     showToast(`${state.petName} is tired. Rub first, then practice.`);
     return;
   }
-  if (state.stage !== "egg" && state.food < 5 && state.glow >= FEED_GLOW_COST) {
+  if (state.stage !== "egg" && state.food < 5 && state.coins >= FEED_COIN_COST) {
     showToast(`${state.petName} is hungry. Feed a snack before practice.`);
     return;
   }
@@ -723,7 +819,7 @@ function nextProblem() {
   els.questPrompt.textContent = activeProblem.prompt;
   renderLesson(activeProblem);
   els.questFeedback.className = "quest-feedback";
-  els.questFeedback.textContent = "A correct answer adds glow. Wrong answers are practice, not progress.";
+  els.questFeedback.textContent = "Correct answers earn coins. Perfect clears can discover gems.";
   els.answerInput.value = "";
   els.answerInput.placeholder = activeProblem.placeholder || "Type answer";
   if (activeProblem.choices) {
@@ -786,11 +882,12 @@ function submitAnswer(raw) {
   const correct = isCorrect(value, activeProblem);
   if (correct) {
     activeRound.correct += 1;
+    const earnedCoins = rewardCoins(activeRound.type === "boss" ? 4 : 3);
     state.glow += activeRound.type === "boss" ? 2 : 1;
     state.food = clamp(state.food - 1, 0, 100);
     state.energy = clamp(state.energy - 1, 0, 100);
     state.growth = clamp(state.growth + 3, 0, 100);
-    els.questFeedback.textContent = "Correct. You earned glow and growth XP.";
+    els.questFeedback.textContent = `Correct. +${earnedCoins} coins, glow, and growth XP.`;
     els.questFeedback.className = "quest-feedback good";
     petPulseUntil = performance.now() + 800;
   } else {
@@ -831,14 +928,17 @@ function finishRound() {
     return;
   }
 
-  let message = `${QUEST_LABELS[type]} cleared: ${correct}/${pass}`;
+  const passCoins = rewardCoins((type === "boss" ? 30 : 16) + correct * 4);
+  const foundGems = discoverGems(type === "boss" || correct === currentQuestSize() ? 1 : 0);
+  let message = `${QUEST_LABELS[type]} cleared: ${correct}/${pass}. +${passCoins} coins`;
+  if (foundGems) message += ` and ${foundGems} gem discovered`;
   state.food = clamp(state.food - 3, 0, 100);
   state.energy = clamp(state.energy + 6, 0, 100);
   state.growth = clamp(state.growth + 14, 0, 100);
   state.glow += type === "boss" ? 20 : 8;
 
   if (roundLocation === "home") {
-    showToast(`${QUEST_LABELS[type]} cleared: ${correct}/${pass}. ${unlockNextDecorReward("home")}`);
+    showToast(`${message}. ${unlockNextDecorReward("home")}`);
     saveState();
     renderHud();
     petPulseUntil = performance.now() + 1300;
@@ -850,12 +950,15 @@ function finishRound() {
     state.equipped.look = "none";
     message = `${state.petName} hatched. Click the cottage to enter the cozy home.`;
   } else if (type === "geometry") {
-    if (unlock("sweater")) message = "Peach sweater unlocked from the build quest.";
+    if (unlock("sweater")) {
+      const sweater = CLOSET.find((item) => item.id === "sweater");
+      message += `. Peach sweater is now available in Closet for ${costText(sweater.cost)}`;
+    }
   } else if (type === "boss") {
     const rewards = [];
     if (unlock("bow")) rewards.push("Berry bow");
     if (unlock("collar")) rewards.push("Bell collar");
-    if (rewards.length) message = `Boss cleared. ${rewards.join(" and ")} unlocked.`;
+    if (rewards.length) message += `. ${rewards.join(" and ")} available in Closet`;
     if (state.world < WORLDS.length - 1) {
       state.world += 1;
       state.questStep = 0;
@@ -867,7 +970,7 @@ function finishRound() {
   }
 
   const decorMessage = unlockNextDecorReward("outdoor");
-  if (!decorMessage.includes("fully unlocked")) message += ` ${decorMessage}`;
+  if (!decorMessage.includes("fully stocked")) message += `. ${decorMessage}`;
 
   if (type !== "boss") {
     state.questStep = clamp(state.questStep + 1, 0, QUEST_FLOW.length - 1);
@@ -1534,16 +1637,21 @@ function decorObjectsForScene(scene) {
   return placedDecorForScene(scene)
     .map((item) => {
       const position = getDecorPosition(item);
+      const backdropLocked = scene === "outdoor";
+      const renderScale = backdropLocked ? OUTDOOR_BACKDROP_DECOR_SCALE : 1;
       return {
-      ...item,
-      tex: item.id === "tv" ? (state.tvChannel ? "homeTvStar" : "homeTvOff") : item.tex,
-      x: position.x,
-      y: position.y,
-      rx: 0,
-      a: 1,
-      interactive: { type: "decor", id: item.id },
-    };
-  });
+        ...item,
+        tex: item.id === "tv" ? (state.tvChannel ? "homeTvStar" : "homeTvOff") : item.tex,
+        x: backdropLocked ? position.x * OUTDOOR_BACKDROP_DECOR_X_SCALE : position.x,
+        y: backdropLocked ? position.y + OUTDOOR_BACKDROP_DECOR_Y_OFFSET : position.y,
+        z: backdropLocked ? OUTDOOR_BACKDROP_DECOR_Z : item.z,
+        w: item.w * renderScale,
+        h: item.h * renderScale,
+        rx: 0,
+        a: 1,
+        interactive: { type: "decor", id: item.id },
+      };
+    });
 }
 
 function petTextureKey() {
