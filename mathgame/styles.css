@@ -59,6 +59,7 @@ button {
   height: 100%;
   display: block;
   background: linear-gradient(180deg, #88d5ee, #aee0bd);
+  touch-action: none;
 }
 
 .world-vignette {
@@ -201,7 +202,11 @@ button {
 .quest-button:hover,
 .primary-button:hover,
 .egg-pick:hover,
-.closet-item:hover {
+.closet-item:hover,
+.decor-item:hover,
+.care-actions button:hover,
+.decor-tabs button:hover,
+.move-buttons button:hover {
   transform: translateY(-2px);
 }
 
@@ -251,6 +256,23 @@ button {
 
 .meter-row:nth-child(4) b {
   background: linear-gradient(90deg, var(--mint), var(--aqua));
+}
+
+.care-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.care-actions button {
+  min-height: 36px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 8px 18px rgba(28, 54, 76, 0.12);
+  color: rgba(23, 38, 50, 0.84);
+  font-size: 0.78rem;
+  font-weight: 950;
+  transition: transform 160ms ease, background 160ms ease;
 }
 
 .world-strip {
@@ -365,7 +387,8 @@ button {
 
 .setup-panel h1,
 .quest-panel h2,
-.closet-panel h2 {
+.closet-panel h2,
+.decor-panel h2 {
   margin: 0;
   color: var(--ink);
   font-size: clamp(2rem, 4vw, 3.35rem);
@@ -393,7 +416,8 @@ button {
 }
 
 .egg-pick,
-.closet-item {
+.closet-item,
+.decor-item {
   min-height: 138px;
   padding: 12px;
   border-radius: 24px;
@@ -404,7 +428,8 @@ button {
 }
 
 .egg-pick.active,
-.closet-item.active {
+.closet-item.active,
+.decor-item.active {
   outline: 3px solid rgba(255, 126, 182, 0.46);
 }
 
@@ -531,14 +556,16 @@ input:focus {
   color: var(--danger);
 }
 
-.closet-grid {
+.closet-grid,
+.decor-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin-top: 18px;
 }
 
-.closet-item {
+.closet-item,
+.decor-item {
   display: grid;
   gap: 6px;
   min-height: 120px;
@@ -546,12 +573,13 @@ input:focus {
   text-align: center;
 }
 
-.closet-item.locked {
+.closet-item.locked,
+.decor-item.locked {
   opacity: 0.48;
-  cursor: not-allowed;
 }
 
-.closet-item img {
+.closet-item img,
+.decor-item img {
   width: 72px;
   height: 72px;
   object-fit: contain;
@@ -566,6 +594,87 @@ input:focus {
   background: linear-gradient(135deg, rgba(255, 216, 111, 0.9), rgba(255, 126, 182, 0.8));
   color: #fff;
   font-weight: 950;
+}
+
+.decor-tabs {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(23, 38, 50, 0.08);
+}
+
+.decor-tabs button {
+  min-height: 38px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(23, 38, 50, 0.68);
+  font-weight: 950;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.decor-tabs button.active {
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 8px 18px rgba(28, 54, 76, 0.12);
+  color: var(--ink);
+}
+
+.decor-item {
+  position: relative;
+}
+
+.decor-item span {
+  color: rgba(23, 38, 50, 0.64);
+  font-size: 0.82rem;
+}
+
+.decor-item.locked::after {
+  content: "Locked";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(23, 38, 50, 0.72);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+.move-pad {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.move-pad strong {
+  color: rgba(23, 38, 50, 0.78);
+  font-size: 0.92rem;
+}
+
+.move-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.move-buttons button {
+  min-height: 42px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 8px 18px rgba(28, 54, 76, 0.12);
+  font-weight: 950;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.move-buttons button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 @media (max-width: 760px) {
@@ -597,9 +706,18 @@ input:focus {
     flex: 1;
   }
 
+  .hud-actions {
+    flex-wrap: wrap;
+  }
+
   .egg-row,
-  .closet-grid {
+  .closet-grid,
+  .decor-grid {
     grid-template-columns: 1fr;
+  }
+
+  .move-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .answer-area {

@@ -10,7 +10,7 @@
     <link rel="preload" href="assets/gpt-puppy-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-sweater.png" as="image" />
     <link rel="icon" href="assets/gpt-egg.png" />
-    <link rel="stylesheet" href="styles.css?v=20260612-homefeature" />
+    <link rel="stylesheet" href="styles.css?v=20260612-decor-sprites" />
   </head>
   <body>
     <main class="game-shell" id="gameShell">
@@ -35,6 +35,7 @@
         <div class="hud-actions">
           <button id="profileButton" class="ghost-button" type="button">Profile</button>
           <button id="closetButton" class="ghost-button" type="button">Closet</button>
+          <button id="decorButton" class="ghost-button" type="button">Decor</button>
           <button id="resetButton" class="ghost-button danger-button" type="button">Restart</button>
         </div>
       </section>
@@ -53,8 +54,13 @@
           <i><b id="energyBar"></b></i>
         </div>
         <div class="meter-row">
-          <span>Growth</span>
+          <span>Growth XP</span>
           <i><b id="growthBar"></b></i>
+        </div>
+        <div class="care-actions" aria-label="Companion care">
+          <button id="feedButton" type="button">Feed</button>
+          <button id="rubButton" type="button">Rub</button>
+          <button id="fetchButton" type="button">Fetch</button>
         </div>
       </section>
 
@@ -121,6 +127,30 @@
       </div>
     </section>
 
-    <script src="script.js?v=20260612-homefeature"></script>
+    <section class="overlay" id="decorOverlay" aria-label="Decor" aria-hidden="true">
+      <div class="glass-panel decor-panel">
+        <button class="close-button" id="closeDecorButton" type="button" aria-label="Close decor">x</button>
+        <span class="micro">Decor</span>
+        <h2>Arrange the world</h2>
+        <p class="panel-copy">Quest clears unlock furniture, yard toys, and places to arrange.</p>
+        <div class="decor-tabs" role="tablist" aria-label="Decor scene">
+          <button id="decorHomeTab" class="active" data-decor-scene="home" type="button">Home</button>
+          <button id="decorOutdoorTab" data-decor-scene="outdoor" type="button">Outside</button>
+        </div>
+        <div class="decor-grid" id="decorGrid"></div>
+        <div class="move-pad" id="movePad" aria-label="Move selected item">
+          <strong id="moveTargetLabel">Select an unlocked item</strong>
+          <div class="move-buttons">
+            <button data-move="up" type="button" aria-label="Move up">&uarr;</button>
+            <button data-move="left" type="button" aria-label="Move left">&larr;</button>
+            <button data-move="down" type="button" aria-label="Move down">&darr;</button>
+            <button data-move="right" type="button" aria-label="Move right">&rarr;</button>
+            <button data-move="reset" type="button">Reset</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="script.js?v=20260612-decor-sprites"></script>
   </body>
 </html>

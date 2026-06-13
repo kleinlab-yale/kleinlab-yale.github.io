@@ -21,6 +21,10 @@ const ASSETS = {
   homeRug: "assets/gpt-home-rug.png",
   homeLamp: "assets/gpt-home-lamp.png",
   homeTable: "assets/gpt-home-table.png",
+  yardBench: "assets/gpt-yard-bench.png",
+  yardBall: "assets/gpt-yard-ball.png",
+  yardToys: "assets/gpt-yard-toys.png",
+  yardBasket: "assets/gpt-yard-basket.png",
 };
 
 const WORLDS = [
@@ -48,15 +52,29 @@ const CLOSET = [
   { id: "collar", name: "Bell collar", asset: "assets/gpt-puppy-collar.png", kind: "look" },
 ];
 
-const HOME_ITEMS = [
-  { id: "rug", name: "cozy rug", tex: "homeRug", x: -0.08, y: 0.16, z: 0.72, w: 2.05, h: 1.25 },
-  { id: "couch", name: "peach couch", tex: "homeCouch", x: -1.9, y: 0.94, z: 0.35, w: 2.15, h: 1.46 },
-  { id: "plant", name: "leafy plant", tex: "homePlant", x: 1.98, y: 0.9, z: 0.36, w: 0.92, h: 1.0 },
-  { id: "tv", name: "star TV", tex: "homeTvOff", x: 1.92, y: 1.28, z: 0.38, w: 1.38, h: 1.34 },
-  { id: "chair", name: "mint chair", tex: "homeChair", x: -0.95, y: 0.93, z: 0.4, w: 1.22, h: 1.1 },
-  { id: "lamp", name: "warm lamp", tex: "homeLamp", x: 2.88, y: 1.0, z: 0.42, w: 0.56, h: 1.0 },
-  { id: "table", name: "reading table", tex: "homeTable", x: 0.75, y: 0.54, z: 0.55, w: 0.86, h: 0.81 },
+const DECOR_ITEMS = [
+  { id: "couch", scene: "home", name: "Peach couch", tex: "homeCouch", x: -1.9, y: 0.94, z: 0.35, w: 2.15, h: 1.46, reward: "Home math" },
+  { id: "plant", scene: "home", name: "Leafy plant", tex: "homePlant", x: 1.98, y: 0.9, z: 0.36, w: 0.92, h: 1.0, reward: "Home math" },
+  { id: "tv", scene: "home", name: "Star TV", tex: "homeTvOff", x: 1.92, y: 1.28, z: 0.38, w: 1.38, h: 1.34, reward: "Home math" },
+  { id: "chair", scene: "home", name: "Mint chair", tex: "homeChair", x: -0.95, y: 0.93, z: 0.4, w: 1.22, h: 1.1, reward: "Home math" },
+  { id: "lamp", scene: "home", name: "Warm lamp", tex: "homeLamp", x: 2.88, y: 1.0, z: 0.42, w: 0.56, h: 1.0, reward: "Home math" },
+  { id: "table", scene: "home", name: "Reading table", tex: "homeTable", x: 0.75, y: 0.54, z: 0.55, w: 0.86, h: 0.81, reward: "Home math" },
+  { id: "bench", scene: "outdoor", name: "Garden bench", tex: "yardBench", x: -1.65, y: 0.58, z: 0.42, w: 1.78, h: 1.45, reward: "Outdoor quests" },
+  { id: "ball", scene: "outdoor", name: "Treat ball", tex: "yardBall", x: 1.08, y: 0.34, z: 0.72, w: 0.7, h: 0.7, reward: "Outdoor quests" },
+  { id: "toys", scene: "outdoor", name: "Rope toys", tex: "yardToys", x: 0.28, y: 0.31, z: 0.74, w: 0.94, h: 0.6, reward: "Outdoor quests" },
+  { id: "basket", scene: "outdoor", name: "Toy basket", tex: "yardBasket", x: 2.18, y: 0.52, z: 0.48, w: 1.22, h: 1.02, reward: "Outdoor quests" },
 ];
+
+const DECOR_SCENES = ["home", "outdoor"];
+const DEFAULT_PET_POSITIONS = {
+  home: { x: -0.06, y: 0.48 },
+  outdoor: { x: 0.12, y: 0.56 },
+};
+const MOVE_BOUNDS = {
+  home: { x: [-2.85, 2.95], y: [0.26, 1.35] },
+  outdoor: { x: [-2.65, 2.7], y: [0.24, 1.22] },
+};
+const FEED_GLOW_COST = 4;
 
 const els = {
   canvas: document.querySelector("#worldCanvas"),
@@ -67,16 +85,27 @@ const els = {
   petInput: document.querySelector("#petInput"),
   profileButton: document.querySelector("#profileButton"),
   closetButton: document.querySelector("#closetButton"),
+  decorButton: document.querySelector("#decorButton"),
   resetButton: document.querySelector("#resetButton"),
   closetOverlay: document.querySelector("#closetOverlay"),
   closeClosetButton: document.querySelector("#closeClosetButton"),
   closetGrid: document.querySelector("#closetGrid"),
+  decorOverlay: document.querySelector("#decorOverlay"),
+  closeDecorButton: document.querySelector("#closeDecorButton"),
+  decorGrid: document.querySelector("#decorGrid"),
+  decorHomeTab: document.querySelector("#decorHomeTab"),
+  decorOutdoorTab: document.querySelector("#decorOutdoorTab"),
+  movePad: document.querySelector("#movePad"),
+  moveTargetLabel: document.querySelector("#moveTargetLabel"),
   objectiveTitle: document.querySelector("#objectiveTitle"),
   objectiveText: document.querySelector("#objectiveText"),
   petNameLabel: document.querySelector("#petNameLabel"),
   foodBar: document.querySelector("#foodBar"),
   energyBar: document.querySelector("#energyBar"),
   growthBar: document.querySelector("#growthBar"),
+  feedButton: document.querySelector("#feedButton"),
+  rubButton: document.querySelector("#rubButton"),
+  fetchButton: document.querySelector("#fetchButton"),
   worldLabel: document.querySelector("#worldLabel"),
   sparkleLabel: document.querySelector("#sparkleLabel"),
   questButton: document.querySelector("#questButton"),
@@ -102,6 +131,10 @@ let toastTimer = 0;
 let petPulseUntil = 0;
 let activeRound = null;
 let activeProblem = null;
+let activeDecorScene = "home";
+let selectedMoveTarget = { type: "pet", scene: "home" };
+let lastInteractiveObjects = [];
+let dragState = null;
 const URL_PARAMS = new URLSearchParams(window.location.search);
 const IS_DEMO = URL_PARAMS.has("demo");
 const SHOULD_RESET = URL_PARAMS.has("reset");
@@ -128,7 +161,13 @@ if (IS_DEMO) {
     growth: 44,
     glow: 18,
     location: "home",
-    homeItems: ["rug", "couch", "plant", "tv"],
+    decorUnlocked: ["couch", "plant", "tv", "bench", "ball"],
+    decorPlaced: ["couch", "plant", "tv", "bench", "ball"],
+    decorPositions: {},
+    petPositions: {
+      home: { x: -0.18, y: 0.48 },
+      outdoor: { x: 0.35, y: 0.56 },
+    },
     tvChannel: 1,
     unlocked: ["none"],
     equipped: { look: "none" },
@@ -149,7 +188,13 @@ function createInitialState() {
     growth: 0,
     glow: 0,
     location: "outdoor",
-    homeItems: [],
+    decorUnlocked: [],
+    decorPlaced: [],
+    decorPositions: {},
+    petPositions: {
+      home: { ...DEFAULT_PET_POSITIONS.home },
+      outdoor: { ...DEFAULT_PET_POSITIONS.outdoor },
+    },
     tvChannel: 0,
     unlocked: ["none"],
     equipped: {
@@ -162,6 +207,16 @@ function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
     if (!saved || typeof saved !== "object") return null;
+    const legacyHomeItems = Array.isArray(saved.homeItems) ? saved.homeItems : [];
+    const savedDecorUnlocked = Array.isArray(saved.decorUnlocked) ? saved.decorUnlocked : [];
+    const savedDecorPlaced = Array.isArray(saved.decorPlaced) ? saved.decorPlaced : [];
+    const decorUnlocked = normalizeDecorIds([
+      ...legacyHomeItems,
+      ...savedDecorUnlocked,
+      ...savedDecorPlaced,
+    ]);
+    const decorPlaced = normalizeDecorIds(savedDecorPlaced.length ? savedDecorPlaced : legacyHomeItems)
+      .filter((id) => decorUnlocked.includes(id));
     return {
       setup: Boolean(saved.setup),
       playerName: saved.playerName || "",
@@ -175,7 +230,10 @@ function loadState() {
       growth: clamp(saved.growth ?? 0, 0, 100),
       glow: Math.max(0, Number(saved.glow || 0)),
       location: saved.location === "home" ? "home" : "outdoor",
-      homeItems: Array.isArray(saved.homeItems) ? saved.homeItems.filter((id) => HOME_ITEMS.some((item) => item.id === id)) : [],
+      decorUnlocked,
+      decorPlaced,
+      decorPositions: normalizeDecorPositions(saved.decorPositions),
+      petPositions: normalizePetPositions(saved.petPositions),
       tvChannel: clamp(saved.tvChannel ?? 0, 0, 1),
       unlocked: Array.isArray(saved.unlocked) ? Array.from(new Set(["none", ...saved.unlocked])) : ["none"],
       equipped: {
@@ -207,11 +265,95 @@ function resetLocalSaves() {
   }
 }
 
+function decorItemById(id) {
+  return DECOR_ITEMS.find((item) => item.id === id) || null;
+}
+
+function normalizeDecorIds(ids) {
+  return Array.from(new Set(ids))
+    .filter((id) => DECOR_ITEMS.some((item) => item.id === id));
+}
+
+function normalizeDecorPositions(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return DECOR_ITEMS.reduce((positions, item) => {
+    if (source[item.id] && typeof source[item.id] === "object") {
+      positions[item.id] = clampScenePosition(item.scene, source[item.id]);
+    }
+    return positions;
+  }, {});
+}
+
+function normalizePetPositions(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return DECOR_SCENES.reduce((positions, scene) => {
+    positions[scene] = clampScenePosition(scene, source[scene] || DEFAULT_PET_POSITIONS[scene]);
+    return positions;
+  }, {});
+}
+
+function currentScene() {
+  return state.location === "home" ? "home" : "outdoor";
+}
+
+function decorSceneLabel(scene) {
+  return scene === "home" ? "Home" : "Outside";
+}
+
+function decorItemsForScene(scene) {
+  return DECOR_ITEMS.filter((item) => item.scene === scene);
+}
+
+function placedDecorForScene(scene) {
+  return decorItemsForScene(scene).filter((item) => state.decorPlaced.includes(item.id));
+}
+
+function defaultDecorPosition(item) {
+  return { x: item.x, y: item.y };
+}
+
+function getDecorPosition(item) {
+  return state.decorPositions[item.id] || defaultDecorPosition(item);
+}
+
+function setDecorPosition(item, position) {
+  state.decorPositions[item.id] = clampScenePosition(item.scene, position);
+}
+
+function getPetPosition(scene = currentScene()) {
+  return state.petPositions?.[scene] || DEFAULT_PET_POSITIONS[scene];
+}
+
+function setPetPosition(scene, position) {
+  state.petPositions[scene] = clampScenePosition(scene, position);
+}
+
+function clampScenePosition(scene, position) {
+  const bounds = MOVE_BOUNDS[scene] || MOVE_BOUNDS.outdoor;
+  return {
+    x: clamp(position?.x ?? 0, bounds.x[0], bounds.x[1]),
+    y: clamp(position?.y ?? 0, bounds.y[0], bounds.y[1]),
+  };
+}
+
+function isDecorUnlocked(id) {
+  return state.decorUnlocked.includes(id);
+}
+
+function isDecorPlaced(id) {
+  return state.decorPlaced.includes(id);
+}
+
+function nextDecorItem(scene) {
+  return decorItemsForScene(scene).find((item) => !isDecorUnlocked(item.id));
+}
+
 function restartGame() {
   resetLocalSaves();
   selectedEgg = "sunny";
   activeRound = null;
   activeProblem = null;
+  dragState = null;
   state = createInitialState();
   els.playerInput.value = "";
   els.petInput.value = "";
@@ -220,6 +362,7 @@ function restartGame() {
   });
   setOverlay(els.questOverlay, false);
   setOverlay(els.closetOverlay, false);
+  setOverlay(els.decorOverlay, false);
   setOverlay(els.setupOverlay, true);
   renderHud();
   showToast("Restarted. Choose a new egg.");
@@ -272,45 +415,43 @@ function renderHud() {
   const pass = currentQuestPass();
   const size = currentQuestSize();
   const inHome = state.location === "home";
-  const nextDecor = nextHomeItem();
+  const scene = currentScene();
+  const nextDecor = nextDecorItem(scene);
 
   els.setupOverlay.classList.toggle("show", !state.setup);
   els.objectiveTitle.textContent = state.stage === "egg"
     ? "Hatch the puppy"
     : inHome ? "Cozy Home" : `${questName}: ${world.name}`;
   els.objectiveText.textContent = state.stage === "egg"
-    ? "Click Practice Math. Pass the first snack quest to hatch the egg."
+    ? "Click Practice Math. Pass the first growth quest to hatch the egg."
     : inHome
       ? nextDecor
         ? `Do home math to unlock the ${nextDecor.name}. Pass with ${pass}/${size} correct.`
-        : "The living room is fully decorated. Click the TV to change channels or go outside."
-      : `Practice ${world.focus}. Pass with ${pass}/${size} correct to unlock the next beat. Click the cottage to visit home.`;
+        : "Home decor is earned. Use Decor to arrange furniture or go outside."
+      : nextDecor
+        ? `Practice ${world.focus}. Passing unlocks ${nextDecor.name}, growth XP, and the next beat.`
+        : `Practice ${world.focus}. Pass with ${pass}/${size} correct to keep growing.`;
   els.petNameLabel.textContent = state.stage === "egg" ? `${state.petName}'s egg` : state.petName;
   els.foodBar.style.width = `${state.food}%`;
   els.energyBar.style.width = `${state.energy}%`;
   els.growthBar.style.width = `${state.growth}%`;
   els.worldLabel.textContent = inHome ? "Cozy Home" : `${world.name}  ${state.world + 1}/${WORLDS.length}`;
-  els.sparkleLabel.textContent = inHome ? `${state.homeItems.length}/${HOME_ITEMS.length} decor` : `${state.glow} glow`;
+  els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor`;
   els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && !inHome);
   els.exitHomeButton.classList.toggle("show", state.setup && inHome);
-  els.tvHotspot.classList.toggle("show", state.setup && inHome && state.homeItems.includes("tv"));
+  els.tvHotspot.classList.toggle("show", state.setup && inHome && isDecorPlaced("tv"));
   renderCloset();
+  renderDecor();
 }
 
-function nextHomeItem() {
-  return HOME_ITEMS.find((item) => !state.homeItems.includes(item.id));
-}
-
-function unlockHomeReward() {
-  const item = nextHomeItem();
-  if (!item) return "The home is fully decorated.";
-  state.homeItems.push(item.id);
-  return `${capitalize(item.name)} unlocked for the living room.`;
-}
-
-function capitalize(value) {
-  return String(value).charAt(0).toUpperCase() + String(value).slice(1);
+function unlockNextDecorReward(scene) {
+  const item = nextDecorItem(scene);
+  if (!item) return `${decorSceneLabel(scene)} decor is fully unlocked.`;
+  state.decorUnlocked.push(item.id);
+  if (!state.decorPlaced.includes(item.id)) state.decorPlaced.push(item.id);
+  if (!state.decorPositions[item.id]) state.decorPositions[item.id] = defaultDecorPosition(item);
+  return `${item.name} unlocked for ${decorSceneLabel(scene).toLowerCase()}.`;
 }
 
 function renderCloset() {
@@ -330,6 +471,159 @@ function renderCloset() {
   }).join("");
 }
 
+function renderDecor() {
+  if (!els.decorGrid) return;
+  DECOR_SCENES.forEach((scene) => {
+    const tab = scene === "home" ? els.decorHomeTab : els.decorOutdoorTab;
+    tab.classList.toggle("active", activeDecorScene === scene);
+  });
+
+  const petImage = state.stage === "egg" ? ASSETS.egg : ASSETS.puppy;
+  const petActive = selectedMoveTarget.type === "pet" && selectedMoveTarget.scene === activeDecorScene;
+  const cards = [`
+    <button class="decor-item ${petActive ? "active" : ""}" data-decor-pet="${activeDecorScene}" type="button">
+      <img src="${petImage}" alt="" />
+      <strong>${state.stage === "egg" ? "Egg spot" : "Pet spot"}</strong>
+      <span>Placed</span>
+    </button>
+  `];
+
+  decorItemsForScene(activeDecorScene).forEach((item) => {
+    const unlocked = isDecorUnlocked(item.id);
+    const placed = isDecorPlaced(item.id);
+    const active = selectedMoveTarget.type === "decor" && selectedMoveTarget.id === item.id;
+    const status = unlocked ? (placed ? "Placed" : "Unlocked") : item.reward;
+    cards.push(`
+      <button class="decor-item ${active ? "active" : ""} ${unlocked ? "" : "locked"}" data-decor-id="${item.id}" type="button">
+        <img src="${ASSETS[item.tex]}" alt="" />
+        <strong>${item.name}</strong>
+        <span>${status}</span>
+      </button>
+    `);
+  });
+
+  els.decorGrid.innerHTML = cards.join("");
+  renderMovePad();
+}
+
+function renderMovePad() {
+  const target = selectedTarget();
+  els.moveTargetLabel.textContent = target ? `Move: ${target.name}` : "Select an unlocked item";
+  els.movePad.querySelectorAll("[data-move]").forEach((button) => {
+    button.disabled = !target;
+  });
+}
+
+function selectedTarget() {
+  if (selectedMoveTarget.type === "pet") {
+    if (selectedMoveTarget.scene !== activeDecorScene) return null;
+    return { type: "pet", scene: activeDecorScene, name: state.stage === "egg" ? "Egg spot" : "Pet spot" };
+  }
+  const item = decorItemById(selectedMoveTarget.id);
+  if (!item || item.scene !== activeDecorScene || !isDecorUnlocked(item.id) || !isDecorPlaced(item.id)) return null;
+  return { type: "decor", item, name: item.name };
+}
+
+function toggleDecorItem(itemId) {
+  const item = decorItemById(itemId);
+  if (!item) return;
+  if (!isDecorUnlocked(item.id)) {
+    showToast(`${item.name} unlocks from ${item.reward.toLowerCase()}.`);
+    return;
+  }
+  if (isDecorPlaced(item.id)) {
+    if (selectedMoveTarget.type === "decor" && selectedMoveTarget.id === item.id) {
+      state.decorPlaced = state.decorPlaced.filter((id) => id !== item.id);
+      selectedMoveTarget = { type: "pet", scene: item.scene };
+      showToast(`${item.name} put away.`);
+    } else {
+      selectedMoveTarget = { type: "decor", id: item.id };
+      showToast(`${item.name} selected.`);
+    }
+  } else {
+    state.decorPlaced.push(item.id);
+    if (!state.decorPositions[item.id]) state.decorPositions[item.id] = defaultDecorPosition(item);
+    selectedMoveTarget = { type: "decor", id: item.id };
+    showToast(`${item.name} placed.`);
+  }
+  saveState();
+  renderHud();
+}
+
+function moveSelectedTarget(direction) {
+  const target = selectedTarget();
+  if (!target) return;
+  const step = 0.12;
+  const delta = {
+    left: { x: -step, y: 0 },
+    right: { x: step, y: 0 },
+    up: { x: 0, y: step },
+    down: { x: 0, y: -step },
+  }[direction];
+
+  if (direction === "reset") {
+    if (target.type === "pet") setPetPosition(target.scene, DEFAULT_PET_POSITIONS[target.scene]);
+    if (target.type === "decor") setDecorPosition(target.item, defaultDecorPosition(target.item));
+  } else if (delta) {
+    if (target.type === "pet") {
+      const position = getPetPosition(target.scene);
+      setPetPosition(target.scene, { x: position.x + delta.x, y: position.y + delta.y });
+    } else {
+      const position = getDecorPosition(target.item);
+      setDecorPosition(target.item, { x: position.x + delta.x, y: position.y + delta.y });
+    }
+  }
+
+  saveState();
+  renderHud();
+}
+
+function getTargetPosition(target) {
+  if (target.type === "pet") return getPetPosition(target.scene || currentScene());
+  const item = decorItemById(target.id);
+  return item ? getDecorPosition(item) : { x: 0, y: 0 };
+}
+
+function setTargetPosition(target, position) {
+  if (target.type === "pet") {
+    setPetPosition(target.scene || currentScene(), position);
+    return;
+  }
+  const item = decorItemById(target.id);
+  if (item) setDecorPosition(item, position);
+}
+
+function dragWorldScale(scene) {
+  return scene === "home"
+    ? { x: 6.4, y: 2.9 }
+    : { x: 6.0, y: 3.1 };
+}
+
+function finishDrag(event) {
+  if (!dragState || dragState.pointerId !== event.pointerId) return;
+  try {
+    els.canvas.releasePointerCapture(event.pointerId);
+  } catch {
+    /* Pointer capture may already be released by the browser. */
+  }
+  dragState = null;
+  saveState();
+  renderHud();
+}
+
+function pickInteractiveObject(clientX, clientY) {
+  const rect = els.canvas.getBoundingClientRect();
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  for (let index = lastInteractiveObjects.length - 1; index >= 0; index -= 1) {
+    const entry = lastInteractiveObjects[index];
+    if (x >= entry.left && x <= entry.right && y >= entry.top && y <= entry.bottom) {
+      return entry;
+    }
+  }
+  return null;
+}
+
 function unlock(itemId) {
   if (!state.unlocked.includes(itemId)) {
     state.unlocked.push(itemId);
@@ -347,7 +641,67 @@ function equip(itemId) {
   petPulseUntil = performance.now() + 900;
 }
 
+function feedPet() {
+  if (state.stage === "egg") {
+    showToast("Hatch the egg first, then snacks can help.");
+    petPulseUntil = performance.now() + 700;
+    return;
+  }
+  if (state.glow < FEED_GLOW_COST) {
+    showToast(`Earn ${FEED_GLOW_COST} glow in math to buy a snack.`);
+    return;
+  }
+  state.glow -= FEED_GLOW_COST;
+  state.food = clamp(state.food + 30, 0, 100);
+  state.energy = clamp(state.energy + 3, 0, 100);
+  saveState();
+  renderHud();
+  petPulseUntil = performance.now() + 1000;
+  showToast(`${state.petName} ate a snack. -${FEED_GLOW_COST} glow.`);
+}
+
+function rubPet() {
+  if (state.stage === "egg") {
+    petPulseUntil = performance.now() + 900;
+    showToast("The egg wiggles. Math growth will hatch it.");
+    return;
+  }
+  state.energy = clamp(state.energy + 18, 0, 100);
+  state.food = clamp(state.food - 1, 0, 100);
+  state.growth = clamp(state.growth + 1, 0, 100);
+  saveState();
+  renderHud();
+  petPulseUntil = performance.now() + 1000;
+  showToast(`${state.petName} relaxed and recovered energy.`);
+}
+
+function playFetch() {
+  if (state.stage === "egg") {
+    showToast("Fetch unlocks after the egg hatches.");
+    return;
+  }
+  if (state.energy < 8 || state.food < 8) {
+    showToast("Feed or rub first, then fetch will help growth.");
+    return;
+  }
+  state.energy = clamp(state.energy - 8, 0, 100);
+  state.food = clamp(state.food - 5, 0, 100);
+  state.growth = clamp(state.growth + 5, 0, 100);
+  saveState();
+  renderHud();
+  petPulseUntil = performance.now() + 1200;
+  showToast(`${state.petName} played fetch and gained growth XP.`);
+}
+
 function startQuest() {
+  if (state.stage !== "egg" && state.energy < 8) {
+    showToast(`${state.petName} is tired. Rub first, then practice.`);
+    return;
+  }
+  if (state.stage !== "egg" && state.food < 5 && state.glow >= FEED_GLOW_COST) {
+    showToast(`${state.petName} is hungry. Feed a snack before practice.`);
+    return;
+  }
   const type = currentQuestType();
   const size = currentQuestSize();
   activeRound = {
@@ -433,13 +787,14 @@ function submitAnswer(raw) {
   if (correct) {
     activeRound.correct += 1;
     state.glow += activeRound.type === "boss" ? 2 : 1;
-    state.food = clamp(state.food + 8, 0, 100);
-    state.energy = clamp(state.energy + 5, 0, 100);
-    state.growth = clamp(state.growth + 4, 0, 100);
-    els.questFeedback.textContent = "Correct. The meadow glows brighter.";
+    state.food = clamp(state.food - 1, 0, 100);
+    state.energy = clamp(state.energy - 1, 0, 100);
+    state.growth = clamp(state.growth + 3, 0, 100);
+    els.questFeedback.textContent = "Correct. You earned glow and growth XP.";
     els.questFeedback.className = "quest-feedback good";
     petPulseUntil = performance.now() + 800;
   } else {
+    state.food = clamp(state.food - 2, 0, 100);
     state.energy = clamp(state.energy - 5, 0, 100);
     els.questFeedback.textContent = `Not this time. Answer: ${activeProblem.displayAnswer}. It does not count toward passing.`;
     els.questFeedback.className = "quest-feedback bad";
@@ -471,20 +826,19 @@ function finishRound() {
 
   if (!passed) {
     showToast(`Retry needed: ${correct}/${pass} correct`);
-    state.growth = clamp(state.growth - 6, 0, 100);
     saveState();
     renderHud();
     return;
   }
 
   let message = `${QUEST_LABELS[type]} cleared: ${correct}/${pass}`;
-  state.food = clamp(state.food + 10, 0, 100);
-  state.energy = clamp(state.energy + 9, 0, 100);
+  state.food = clamp(state.food - 3, 0, 100);
+  state.energy = clamp(state.energy + 6, 0, 100);
   state.growth = clamp(state.growth + 14, 0, 100);
   state.glow += type === "boss" ? 20 : 8;
 
   if (roundLocation === "home") {
-    showToast(`${QUEST_LABELS[type]} cleared: ${correct}/${pass}. ${unlockHomeReward()}`);
+    showToast(`${QUEST_LABELS[type]} cleared: ${correct}/${pass}. ${unlockNextDecorReward("home")}`);
     saveState();
     renderHud();
     petPulseUntil = performance.now() + 1300;
@@ -505,13 +859,15 @@ function finishRound() {
     if (state.world < WORLDS.length - 1) {
       state.world += 1;
       state.questStep = 0;
-      state.growth = 18;
       message += ` ${currentWorld().name} opened.`;
     } else {
       state.growth = 100;
       message = `${state.petName} mastered Aurora Academy.`;
     }
   }
+
+  const decorMessage = unlockNextDecorReward("outdoor");
+  if (!decorMessage.includes("fully unlocked")) message += ` ${decorMessage}`;
 
   if (type !== "boss") {
     state.questStep = clamp(state.questStep + 1, 0, QUEST_FLOW.length - 1);
@@ -887,6 +1243,8 @@ els.homeHotspot.addEventListener("click", () => {
     return;
   }
   state.location = "home";
+  activeDecorScene = "home";
+  selectedMoveTarget = { type: "pet", scene: "home" };
   saveState();
   renderHud();
   petPulseUntil = performance.now() + 1200;
@@ -894,13 +1252,15 @@ els.homeHotspot.addEventListener("click", () => {
 });
 els.exitHomeButton.addEventListener("click", () => {
   state.location = "outdoor";
+  activeDecorScene = "outdoor";
+  selectedMoveTarget = { type: "pet", scene: "outdoor" };
   saveState();
   renderHud();
   petPulseUntil = performance.now() + 900;
   showToast(`${state.petName} went back outside.`);
 });
 els.tvHotspot.addEventListener("click", () => {
-  if (!state.homeItems.includes("tv")) return;
+  if (!isDecorPlaced("tv")) return;
   state.tvChannel = state.tvChannel ? 0 : 1;
   saveState();
   renderHud();
@@ -910,9 +1270,15 @@ els.tvHotspot.addEventListener("click", () => {
 
 els.questButton.addEventListener("click", startQuest);
 els.callPetButton.addEventListener("click", () => {
+  setPetPosition(currentScene(), DEFAULT_PET_POSITIONS[currentScene()]);
+  saveState();
+  renderHud();
   petPulseUntil = performance.now() + 1200;
   showToast(state.stage === "egg" ? "The egg wiggles." : `${state.petName} trots closer.`);
 });
+els.feedButton.addEventListener("click", feedPet);
+els.rubButton.addEventListener("click", rubPet);
+els.fetchButton.addEventListener("click", playFetch);
 
 els.closeQuestButton.addEventListener("click", () => setOverlay(els.questOverlay, false));
 els.questForm.addEventListener("submit", (event) => {
@@ -934,6 +1300,70 @@ els.closetGrid.addEventListener("click", (event) => {
   if (!button || button.disabled) return;
   equip(button.dataset.closet);
 });
+els.decorButton.addEventListener("click", () => {
+  activeDecorScene = currentScene();
+  selectedMoveTarget = { type: "pet", scene: activeDecorScene };
+  renderDecor();
+  setOverlay(els.decorOverlay, true);
+});
+els.closeDecorButton.addEventListener("click", () => setOverlay(els.decorOverlay, false));
+[els.decorHomeTab, els.decorOutdoorTab].forEach((tab) => {
+  tab.addEventListener("click", () => {
+    activeDecorScene = tab.dataset.decorScene;
+    selectedMoveTarget = { type: "pet", scene: activeDecorScene };
+    renderDecor();
+  });
+});
+els.decorGrid.addEventListener("click", (event) => {
+  const petButton = event.target.closest("[data-decor-pet]");
+  if (petButton) {
+    activeDecorScene = petButton.dataset.decorPet;
+    selectedMoveTarget = { type: "pet", scene: activeDecorScene };
+    renderDecor();
+    return;
+  }
+  const decorButton = event.target.closest("[data-decor-id]");
+  if (!decorButton) return;
+  toggleDecorItem(decorButton.dataset.decorId);
+});
+els.movePad.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-move]");
+  if (!button || button.disabled) return;
+  moveSelectedTarget(button.dataset.move);
+});
+els.canvas.addEventListener("pointerdown", (event) => {
+  const picked = pickInteractiveObject(event.clientX, event.clientY);
+  if (!picked) return;
+  event.preventDefault();
+  activeDecorScene = currentScene();
+  selectedMoveTarget = picked.type === "pet"
+    ? { type: "pet", scene: currentScene() }
+    : { type: "decor", id: picked.id };
+  dragState = {
+    pointerId: event.pointerId,
+    target: { ...selectedMoveTarget },
+    startX: event.clientX,
+    startY: event.clientY,
+    startPosition: getTargetPosition(selectedMoveTarget),
+    scene: currentScene(),
+  };
+  els.canvas.setPointerCapture(event.pointerId);
+  renderHud();
+});
+els.canvas.addEventListener("pointermove", (event) => {
+  if (!dragState || dragState.pointerId !== event.pointerId) return;
+  event.preventDefault();
+  const scale = dragWorldScale(dragState.scene);
+  const rect = els.canvas.getBoundingClientRect();
+  const dx = ((event.clientX - dragState.startX) / Math.max(1, rect.width)) * scale.x;
+  const dy = -((event.clientY - dragState.startY) / Math.max(1, rect.height)) * scale.y;
+  setTargetPosition(dragState.target, {
+    x: dragState.startPosition.x + dx,
+    y: dragState.startPosition.y + dy,
+  });
+});
+els.canvas.addEventListener("pointerup", finishDrag);
+els.canvas.addEventListener("pointercancel", finishDrag);
 
 function createRenderer() {
   const gl = els.canvas.getContext("webgl", { alpha: false, antialias: true });
@@ -1071,39 +1501,49 @@ function drawScene(time) {
   const objects = [
     { tex: inHome ? "home" : "backdrop", x: 0, y: 1.15, z: -6.4, w: 24.0, h: 13.5, rx: 0, a: 1 },
   ];
+  const decorObjects = decorObjectsForScene(currentScene());
 
-  if (inHome) {
-    objects.push(...homeDecorObjects());
-  }
+  objects.push(...decorObjects);
 
   objects.forEach((obj) => drawObject(gl, textures[obj.tex], pv, obj, matrix, alpha));
 
   const bob = Math.sin(time * 0.004) * 0.045 + pulse * 0.08;
   const scale = state.stage === "egg" ? 1.15 : (inHome ? 1.38 : 1.72) + Math.min(0.25, state.growth / 500);
+  const petPosition = getPetPosition(currentScene());
   const pet = {
     tex: state.stage === "egg" ? "egg" : petTextureKey(),
-    x: inHome ? -0.06 : 0.12,
-    y: (inHome ? 0.48 : 0.56) + bob,
+    x: petPosition.x,
+    y: petPosition.y + bob,
     z: 0.55,
     w: scale,
     h: scale * 1.1,
     rx: 0,
     a: 1,
+    interactive: { type: "pet", scene: currentScene() },
   };
   drawObject(gl, textures[pet.tex], pv, pet, matrix, alpha);
+  lastInteractiveObjects = [
+    ...decorObjects.map((obj) => interactiveBounds(gl, pv, obj)).filter(Boolean),
+    interactiveBounds(gl, pv, pet),
+  ].filter(Boolean);
 
   requestAnimationFrame(drawScene);
 }
 
-function homeDecorObjects() {
-  return HOME_ITEMS
-    .filter((item) => state.homeItems.includes(item.id))
-    .map((item) => ({
+function decorObjectsForScene(scene) {
+  return placedDecorForScene(scene)
+    .map((item) => {
+      const position = getDecorPosition(item);
+      return {
       ...item,
       tex: item.id === "tv" ? (state.tvChannel ? "homeTvStar" : "homeTvOff") : item.tex,
+      x: position.x,
+      y: position.y,
       rx: 0,
       a: 1,
-    }));
+      interactive: { type: "decor", id: item.id },
+    };
+  });
 }
 
 function petTextureKey() {
@@ -1124,6 +1564,44 @@ function drawObject(gl, texture, pv, obj, matrixLocation, alphaLocation) {
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
+function interactiveBounds(gl, pv, obj) {
+  if (!obj.interactive) return null;
+  const halfW = obj.w / 2;
+  const halfH = obj.h / 2;
+  const corners = [
+    [obj.x - halfW, obj.y - halfH, obj.z],
+    [obj.x + halfW, obj.y - halfH, obj.z],
+    [obj.x - halfW, obj.y + halfH, obj.z],
+    [obj.x + halfW, obj.y + halfH, obj.z],
+  ].map((point) => projectPoint(gl, pv, point)).filter(Boolean);
+  if (!corners.length) return null;
+  const xs = corners.map((point) => point.x);
+  const ys = corners.map((point) => point.y);
+  const padding = obj.interactive.type === "pet" ? 12 : 8;
+  return {
+    ...obj.interactive,
+    left: Math.min(...xs) - padding,
+    right: Math.max(...xs) + padding,
+    top: Math.min(...ys) - padding,
+    bottom: Math.max(...ys) + padding,
+  };
+}
+
+function projectPoint(gl, matrix, point) {
+  const [x, y, z] = point;
+  const clipX = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12];
+  const clipY = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13];
+  const clipW = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
+  if (!clipW) return null;
+  const ndcX = clipX / clipW;
+  const ndcY = clipY / clipW;
+  if (!Number.isFinite(ndcX) || !Number.isFinite(ndcY)) return null;
+  return {
+    x: (ndcX * 0.5 + 0.5) * gl.canvas.clientWidth,
+    y: (1 - (ndcY * 0.5 + 0.5)) * gl.canvas.clientHeight,
+  };
+}
+
 function compose(x, y, z, rx, sx, sy, sz) {
   return multiply(multiply(translation(x, y, z), xRotation(rx)), scaling(sx, sy, sz));
 }
@@ -1140,12 +1618,12 @@ function perspective(fieldOfView, aspect, near, far) {
 }
 
 function lookAt(camera, target, up) {
-  const zAxis = normalize([
+  const zAxis = normalizeVec3([
     camera[0] - target[0],
     camera[1] - target[1],
     camera[2] - target[2],
   ]);
-  const xAxis = normalize(cross(up, zAxis));
+  const xAxis = normalizeVec3(cross(up, zAxis));
   const yAxis = cross(zAxis, xAxis);
   return new Float32Array([
     xAxis[0], yAxis[0], zAxis[0], 0,
@@ -1227,7 +1705,7 @@ function dot(a, b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-function normalize(v) {
+function normalizeVec3(v) {
   const length = Math.hypot(v[0], v[1], v[2]) || 1;
   return [v[0] / length, v[1] / length, v[2] / length];
 }
