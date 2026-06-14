@@ -6,6 +6,13 @@ from slice_puppy_variants import read_png, trim_alpha, write_png
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS = os.path.join(ROOT, "assets")
+PRESERVE_EXISTING = {
+    # These were repaired from individual magenta-key sources because the atlas
+    # crops were not clean enough for in-game placement.
+    "gpt-home-couch.png",
+    "gpt-home-plant.png",
+    "gpt-kitchen-snack-cart.png",
+}
 
 ATLASES = [
     {
@@ -53,6 +60,19 @@ ATLASES = [
             ("gpt-kitchen-puppy-mug.png", 1, 2),
         ],
     },
+    {
+        "source": "gpt-mountain-decor-atlas-source.png",
+        "cols": 3,
+        "rows": 2,
+        "frames": [
+            ("gpt-mountain-tent.png", 0, 0),
+            ("gpt-mountain-campfire-off.png", 1, 0),
+            ("gpt-mountain-campfire-on.png", 2, 0),
+            ("gpt-mountain-snacks.png", 0, 1),
+            ("gpt-mountain-shelter.png", 1, 1),
+            ("gpt-mountain-lantern.png", 2, 1),
+        ],
+    },
 ]
 
 
@@ -89,6 +109,9 @@ def main():
     for atlas in ATLASES:
         width, height, rgba = read_png(os.path.join(ASSETS, atlas["source"]))
         for name, col, row in atlas["frames"]:
+            if name in PRESERVE_EXISTING and os.path.exists(os.path.join(ASSETS, name)):
+                print(name, "preserved")
+                continue
             out_w, out_h, out = crop_and_key(width, height, rgba, atlas["cols"], atlas["rows"], col, row)
             write_png(os.path.join(ASSETS, name), out_w, out_h, out)
             print(name, out_w, out_h)

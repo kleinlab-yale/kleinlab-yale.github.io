@@ -8,12 +8,13 @@
     <link rel="preload" href="assets/gpt-home-interior.png" as="image" />
     <link rel="preload" href="assets/gpt-kitchen-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-waterfall-backdrop.png" as="image" />
+    <link rel="preload" href="assets/gpt-mountain-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-egg.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-golden-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-corgi-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-husky-base.png" as="image" />
     <link rel="icon" href="assets/gpt-egg.png" />
-    <link rel="stylesheet" href="styles.css?v=20260613-polish" />
+    <link rel="stylesheet" href="styles.css?v=20260613-mountain" />
   </head>
   <body>
     <main class="game-shell" id="gameShell">
@@ -30,6 +31,12 @@
       </button>
       <button id="meadowHotspot" class="scene-hotspot meadow-hotspot" type="button">
         <span>Back Meadow</span>
+      </button>
+      <button id="mountainHotspot" class="scene-hotspot mountain-hotspot" type="button">
+        <span>Summit Trail</span>
+      </button>
+      <button id="waterfallHotspot" class="scene-hotspot waterfall-hotspot" type="button">
+        <span>Back Waterfall</span>
       </button>
       <button id="kitchenHotspot" class="scene-hotspot kitchen-hotspot" type="button">
         <span>Kitchen</span>
@@ -162,11 +169,12 @@
           <button id="decorKitchenTab" data-decor-scene="kitchen" type="button">Kitchen</button>
           <button id="decorOutdoorTab" data-decor-scene="outdoor" type="button">Outside</button>
           <button id="decorWaterfallTab" data-decor-scene="waterfall" type="button">Waterfall</button>
+          <button id="decorMountainTab" data-decor-scene="mountain" type="button">Mountain</button>
         </div>
         <div class="decor-grid" id="decorGrid"></div>
       </div>
     </section>
 
-    <script src="script.js?v=20260613-polish"></script>
+    <script src="script.js?v=20260613-mountain"></script>
   </body>
 </html>

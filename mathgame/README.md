@@ -22,10 +22,11 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - The cottage can be entered after hatching; home and outdoor math unlock arrangeable decorations, and the TV/remote can cycle multiple channels.
 - Completing all living-room decor unlocks a new Kitchen room with its own generated backdrop and kitchen decor sprites.
 - Secret one-time engagement awards can fire from specific action/decor combinations without listing the recipes in the UI.
-- Tapping placed stateful decor toggles real sprite states: TV channels, lamp on/off, fridge open/closed, and oven open/closed.
+- Tapping placed stateful decor toggles real sprite states: TV channels, lamp on/off, fridge open/closed, oven open/closed, and campfire lit/out.
 - Math now drives a simple game economy: correct answers and quest clears earn coins, perfect clears and boss quests discover gems, and coins/gems buy snacks, wardrobe items, and decor.
 - Outdoor decor is anchored to the panning meadow backdrop and uses backdrop-scaled drag math so placed yard items can move freely while staying fixed to the scene.
 - Bridge Algebra now opens a real bridge crossing into Waterfall Clearing, with its own generated backdrop and waterfall decor sprites.
+- Clearing the boss quest at Waterfall opens Mountain Shelter, with a mountain backdrop, camp decor, and a hidden camp routine award.
 - Repaired home/kitchen sprites replace cut-off and semi-transparent decor, with extra counter-scale kitchen items for player decoration.
 
 ## Files
@@ -43,7 +44,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - `tools/slice_kitchen_decor.py`: dependency-free PNG slicer for the Kitchen decoration atlas.
 - `tools/slice_outfit_action_sprites.py`: dependency-free PNG slicer for breed/outfit/action sprite sheets.
 - `tools/slice_stateful_decor.py`: dependency-free PNG slicer for decor on/off and open/closed state pairs.
-- `tools/slice_magenta_repair_assets.py`: dependency-free slicer for magenta-key repaired decor and counter-item atlases.
+- `tools/slice_magenta_repair_assets.py`: dependency-free slicer for magenta-key repaired decor, counter-item, and mountain camp atlases.
 - `tools/remove_magenta_key.py`: dependency-free magenta-key transparency cleaner for individual repaired sprites.
 - `tools/generate_assets.py`: legacy procedural asset generator retained as a fallback, not the current visual direction.
 
@@ -123,7 +124,7 @@ python3 tools/slice_magenta_repair_assets.py
 python3 tools/remove_magenta_key.py
 ```
 
-These tools process magenta-key repaired decor atlases and individual sprites for home/kitchen fixes, TV channels, remote, and counter-scale kitchen decorations.
+These tools process magenta-key repaired decor atlases and individual sprites for home/kitchen fixes, TV channels, remote, counter-scale kitchen decorations, and Mountain Shelter camp items.
 
 ## GitHub Pages
 

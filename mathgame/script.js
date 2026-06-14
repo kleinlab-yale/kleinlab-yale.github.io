@@ -55,6 +55,7 @@ const PET_ASSETS = Object.fromEntries(
 const ASSETS = {
   backdrop: "assets/gpt-meadow-backdrop.png",
   waterfall: "assets/gpt-waterfall-backdrop.png",
+  mountain: "assets/gpt-mountain-backdrop.png",
   home: "assets/gpt-home-interior.png",
   kitchen: "assets/gpt-kitchen-backdrop.png",
   egg: "assets/gpt-egg.png",
@@ -94,6 +95,12 @@ const ASSETS = {
   waterfallLantern: "assets/gpt-waterfall-lantern.png",
   waterfallLilypads: "assets/gpt-waterfall-lilypads.png",
   waterfallBasket: "assets/gpt-waterfall-basket.png",
+  mountainTent: "assets/gpt-mountain-tent.png",
+  mountainCampfireOff: "assets/gpt-mountain-campfire-off.png",
+  mountainCampfireOn: "assets/gpt-mountain-campfire-on.png",
+  mountainSnacks: "assets/gpt-mountain-snacks.png",
+  mountainShelter: "assets/gpt-mountain-shelter.png",
+  mountainLantern: "assets/gpt-mountain-lantern.png",
 };
 
 const WORLDS = [
@@ -150,20 +157,27 @@ const DECOR_ITEMS = [
   { id: "waterfallLantern", scene: "waterfall", name: "Firefly lantern", tex: "waterfallLantern", x: 2.05, y: 0.72, z: 0.44, w: 0.82, h: 1.34, reward: "Waterfall quests", cost: { coins: 90, gems: 1 } },
   { id: "waterfallLilypads", scene: "waterfall", name: "Lily stepping stones", tex: "waterfallLilypads", x: 0.86, y: 0.27, z: 0.56, w: 1.15, h: 0.84, reward: "Waterfall quests", cost: { coins: 55, gems: 0 } },
   { id: "waterfallBasket", scene: "waterfall", name: "Picnic basket", tex: "waterfallBasket", x: 2.36, y: 0.45, z: 0.52, w: 1.05, h: 0.9, reward: "Waterfall quests", cost: { coins: 85, gems: 1 } },
+  { id: "mountainTent", scene: "mountain", name: "Summit tent", tex: "mountainTent", x: -2.25, y: 0.74, z: 0.42, w: 1.52, h: 1.38, reward: "Summit Trail", cost: { coins: 125, gems: 1 } },
+  { id: "mountainCampfire", scene: "mountain", name: "Campfire ring", tex: "mountainCampfireOff", x: 0.02, y: 0.42, z: 0.62, w: 1.0, h: 0.9, reward: "Mountain quests", cost: { coins: 95, gems: 1 } },
+  { id: "mountainSnacks", scene: "mountain", name: "Trail snacks", tex: "mountainSnacks", x: 1.42, y: 0.46, z: 0.58, w: 0.86, h: 0.86, reward: "Mountain quests", cost: { coins: 75, gems: 0 } },
+  { id: "mountainShelter", scene: "mountain", name: "Pup shelter", tex: "mountainShelter", x: 2.55, y: 0.95, z: 0.42, w: 1.34, h: 1.24, reward: "Mountain quests", cost: { coins: 140, gems: 2 } },
+  { id: "mountainLantern", scene: "mountain", name: "Star lantern", tex: "mountainLantern", x: -0.98, y: 0.74, z: 0.5, w: 0.62, h: 1.04, reward: "Mountain quests", cost: { coins: 85, gems: 1 } },
 ];
 
-const DECOR_SCENES = ["home", "kitchen", "outdoor", "waterfall"];
+const DECOR_SCENES = ["home", "kitchen", "outdoor", "waterfall", "mountain"];
 const DEFAULT_PET_POSITIONS = {
   home: { x: -0.06, y: 0.48 },
   kitchen: { x: -0.05, y: 0.46 },
   outdoor: { x: 0.12, y: 0.5 },
   waterfall: { x: 0.05, y: 0.5 },
+  mountain: { x: 0.1, y: 0.52 },
 };
 const MOVE_BOUNDS = {
   home: { x: [-5.05, 5.05], y: [-0.24, 2.62] },
   kitchen: { x: [-5.05, 5.05], y: [-0.24, 2.58] },
   outdoor: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
   waterfall: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
+  mountain: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
 };
 const FEED_COIN_COST = 10;
 const COUCH_PET_OFFSET = { x: 0.02, y: 0.38 };
@@ -177,6 +191,7 @@ const SECRET_AWARDS = {
   snackChef: { title: "Snack Chef", coins: 35, gems: 1, glow: 10 },
   parkMvp: { title: "Park MVP", coins: 35, gems: 1, glow: 10 },
   lanternTrail: { title: "Lantern Trail", coins: 45, gems: 1, glow: 12 },
+  summitSupper: { title: "Summit Supper", coins: 60, gems: 2, glow: 16 },
 };
 const TV_CHANNELS = [
   { tex: "homeTvOff", label: "TV off" },
@@ -189,6 +204,7 @@ const TOGGLEABLE_DECOR = {
   tv: { onName: "next channel", offName: "TV off" },
   kitchenFridge: { onName: "fridge open", offName: "fridge closed" },
   oven: { onName: "oven open", offName: "oven closed" },
+  mountainCampfire: { onName: "fire lit", offName: "fire out" },
 };
 
 const els = {
@@ -212,6 +228,7 @@ const els = {
   decorKitchenTab: document.querySelector("#decorKitchenTab"),
   decorOutdoorTab: document.querySelector("#decorOutdoorTab"),
   decorWaterfallTab: document.querySelector("#decorWaterfallTab"),
+  decorMountainTab: document.querySelector("#decorMountainTab"),
   objectiveTitle: document.querySelector("#objectiveTitle"),
   objectiveText: document.querySelector("#objectiveText"),
   petNameLabel: document.querySelector("#petNameLabel"),
@@ -232,6 +249,8 @@ const els = {
   exitHomeButton: document.querySelector("#exitHomeButton"),
   bridgeHotspot: document.querySelector("#bridgeHotspot"),
   meadowHotspot: document.querySelector("#meadowHotspot"),
+  mountainHotspot: document.querySelector("#mountainHotspot"),
+  waterfallHotspot: document.querySelector("#waterfallHotspot"),
   kitchenHotspot: document.querySelector("#kitchenHotspot"),
   livingRoomHotspot: document.querySelector("#livingRoomHotspot"),
   tvHotspot: document.querySelector("#tvHotspot"),
@@ -296,17 +315,19 @@ if (IS_DEMO) {
     gems: 6,
     location: "home",
     waterfallUnlocked: true,
+    mountainUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern"],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern"],
-    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern"],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern"],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern"],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern"],
     decorPositions: {},
-    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, oven: 0 },
+    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, oven: 0, mountainCampfire: 1 },
     petPositions: {
       home: { x: -0.18, y: 0.48 },
       kitchen: { x: -0.12, y: 0.46 },
       outdoor: { x: 0.35, y: 0.56 },
       waterfall: { x: 0.08, y: 0.5 },
+      mountain: { x: 0.18, y: 0.54 },
     },
     tvChannel: 1,
     secretAwards: [],
@@ -335,6 +356,7 @@ function createInitialState() {
     gems: 0,
     location: "outdoor",
     waterfallUnlocked: false,
+    mountainUnlocked: false,
     kitchenUnlocked: false,
     decorUnlocked: [],
     decorOwned: [],
@@ -346,6 +368,7 @@ function createInitialState() {
       kitchen: { ...DEFAULT_PET_POSITIONS.kitchen },
       outdoor: { ...DEFAULT_PET_POSITIONS.outdoor },
       waterfall: { ...DEFAULT_PET_POSITIONS.waterfall },
+      mountain: { ...DEFAULT_PET_POSITIONS.mountain },
     },
     tvChannel: 0,
     secretAwards: [],
@@ -391,10 +414,16 @@ function loadState() {
       || saved.location === "kitchen"
       || livingRoomDecorComplete(decorUnlocked)
     );
+    const mountainUnlocked = Boolean(
+      saved.mountainUnlocked
+      || saved.location === "mountain"
+    );
     const location = saved.location === "home"
       ? "home"
       : saved.location === "kitchen" && kitchenUnlocked
         ? "kitchen"
+      : saved.location === "mountain" && mountainUnlocked
+        ? "mountain"
       : saved.location === "waterfall" && waterfallUnlocked
         ? "waterfall"
         : "outdoor";
@@ -418,6 +447,7 @@ function loadState() {
       gems: Math.max(0, Number(saved.gems || 0)),
       location,
       waterfallUnlocked,
+      mountainUnlocked,
       kitchenUnlocked,
       decorUnlocked,
       decorOwned,
@@ -529,6 +559,7 @@ function petFrameAsset(frame, variant = currentPetVariant(), look = state.equipp
 function currentScene() {
   if (state.location === "home") return "home";
   if (state.location === "kitchen" && state.kitchenUnlocked) return "kitchen";
+  if (state.location === "mountain" && state.mountainUnlocked) return "mountain";
   if (state.location === "waterfall" && state.waterfallUnlocked) return "waterfall";
   return "outdoor";
 }
@@ -537,11 +568,13 @@ function decorSceneLabel(scene) {
   if (scene === "home") return "Home";
   if (scene === "kitchen") return "Kitchen";
   if (scene === "waterfall") return "Waterfall";
+  if (scene === "mountain") return "Mountain";
   return "Outside";
 }
 
 function isDecorSceneAvailable(scene) {
   if (scene === "kitchen") return state.kitchenUnlocked;
+  if (scene === "mountain") return state.mountainUnlocked;
   return scene !== "waterfall" || state.waterfallUnlocked;
 }
 
@@ -549,6 +582,7 @@ function decorTabForScene(scene) {
   if (scene === "home") return els.decorHomeTab;
   if (scene === "kitchen") return els.decorKitchenTab;
   if (scene === "waterfall") return els.decorWaterfallTab;
+  if (scene === "mountain") return els.decorMountainTab;
   return els.decorOutdoorTab;
 }
 
@@ -556,6 +590,7 @@ function sceneWorldLabel(scene = currentScene()) {
   if (scene === "home") return "Cozy Home";
   if (scene === "kitchen") return "Kitchen";
   if (scene === "waterfall") return "Waterfall Clearing";
+  if (scene === "mountain") return "Mountain Shelter";
   const world = currentWorld();
   return `${world.name}  ${state.world + 1}/${WORLDS.length}`;
 }
@@ -564,6 +599,7 @@ function sceneBackdropTexture(scene = currentScene()) {
   if (scene === "home") return "home";
   if (scene === "kitchen") return "kitchen";
   if (scene === "waterfall") return "waterfall";
+  if (scene === "mountain") return "mountain";
   return "backdrop";
 }
 
@@ -658,6 +694,7 @@ function decorTextureForItem(item) {
   if (item.id === "lamp") return decorStateValue("lamp") ? "homeLampOn" : "homeLamp";
   if (item.id === "kitchenFridge") return decorStateValue("kitchenFridge") ? "kitchenFridgeOpen" : "kitchenFridge";
   if (item.id === "oven") return decorStateValue("oven") ? "kitchenOvenOpen" : "kitchenOven";
+  if (item.id === "mountainCampfire") return decorStateValue("mountainCampfire") ? "mountainCampfireOn" : "mountainCampfireOff";
   return item.tex;
 }
 
@@ -687,6 +724,7 @@ function unlockKitchenIfReady() {
 function lockedDecorReason(scene) {
   if (scene === "kitchen") return "Living room decor";
   if (scene === "waterfall") return "Bridge Algebra";
+  if (scene === "mountain") return "Waterfall Boss";
   return "Quest locked";
 }
 
@@ -748,6 +786,17 @@ function checkSecretAwards(trigger = "") {
   }
   if (state.location === "waterfall" && isDecorPlaced("waterfallLog") && isDecorPlaced("waterfallLantern") && isDecorPlaced("waterfallLilypads")) {
     awarded = grantSecretAward("lanternTrail") || awarded;
+  }
+  if (
+    state.location === "mountain"
+    && trigger === "feed"
+    && isDecorPlaced("mountainTent")
+    && isDecorPlaced("mountainCampfire")
+    && decorStateValue("mountainCampfire")
+    && isDecorPlaced("mountainSnacks")
+    && isDecorPlaced("mountainShelter")
+  ) {
+    awarded = grantSecretAward("summitSupper") || awarded;
   }
   if (awarded) {
     saveState();
@@ -850,6 +899,7 @@ function renderHud() {
   const inKitchen = scene === "kitchen";
   const indoors = inHome || inKitchen;
   const inWaterfall = scene === "waterfall";
+  const inMountain = scene === "mountain";
   const nextDecor = nextDecorItem(scene);
   const secretCount = state.secretAwards?.length || 0;
   let objectiveTitle = `${questName}: ${world.name}`;
@@ -878,7 +928,14 @@ function renderHud() {
     objectiveTitle = "Waterfall Clearing";
     objectiveText = nextDecor
       ? `Practice at the waterfall to make ${nextDecor.name} available.`
-      : "Waterfall decor is stocked. Math here keeps opening future paths.";
+      : state.mountainUnlocked
+        ? "Waterfall decor is stocked. The summit trail is open."
+        : "Waterfall decor is stocked. Clear the boss quest here to open the summit trail.";
+  } else if (inMountain) {
+    objectiveTitle = "Mountain Shelter";
+    objectiveText = nextDecor
+      ? `Practice at the mountain to make ${nextDecor.name} available.`
+      : "Mountain camp is stocked. Try making a cozy camp routine with the fire, tent, snacks, and shelter.";
   }
 
   els.setupOverlay.classList.toggle("show", !state.setup);
@@ -892,11 +949,13 @@ function renderHud() {
   els.coinLabel.textContent = `${state.coins} coins`;
   els.gemLabel.textContent = `${state.gems} ${state.gems === 1 ? "gem" : "gems"}`;
   els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor${secretCount ? `  ${secretCount} secret` : ""}`;
-  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : questName;
+  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : inMountain ? "Mountain Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && scene === "outdoor");
   els.exitHomeButton.classList.toggle("show", state.setup && indoors);
   els.bridgeHotspot.classList.toggle("show", state.setup && scene === "outdoor" && state.waterfallUnlocked);
   els.meadowHotspot.classList.toggle("show", state.setup && inWaterfall);
+  els.mountainHotspot.classList.toggle("show", state.setup && inWaterfall && state.mountainUnlocked);
+  els.waterfallHotspot.classList.toggle("show", state.setup && inMountain);
   els.kitchenHotspot.classList.toggle("show", state.setup && inHome && state.kitchenUnlocked);
   els.livingRoomHotspot.classList.toggle("show", state.setup && inKitchen);
   els.tvHotspot.classList.toggle("show", state.setup && inHome && isDecorPlaced("tv"));
@@ -1428,6 +1487,12 @@ function finishRound() {
     if (unlock("bow")) rewards.push("Berry bow");
     if (unlock("collar")) rewards.push("Bell collar");
     if (rewards.length) message += `. ${rewards.join(" and ")} available in Closet`;
+    if (roundLocation === "waterfall" && !state.mountainUnlocked) {
+      state.mountainUnlocked = true;
+      message += `. The summit trail to Mountain Shelter opened`;
+      const mountainMessage = unlockNextDecorReward("mountain");
+      if (!mountainMessage.includes("fully stocked")) message += `. ${mountainMessage}`;
+    }
     if (state.world < WORLDS.length - 1) {
       state.world += 1;
       state.questStep = 0;
@@ -1438,7 +1503,7 @@ function finishRound() {
     }
   }
 
-  const rewardScene = roundLocation === "waterfall" ? "waterfall" : "outdoor";
+  const rewardScene = roundLocation === "waterfall" || roundLocation === "mountain" ? roundLocation : "outdoor";
   const decorMessage = unlockNextDecorReward(rewardScene);
   if (!decorMessage.includes("fully stocked")) message += `. ${decorMessage}`;
 
@@ -2019,6 +2084,29 @@ els.meadowHotspot.addEventListener("click", () => {
   triggerPetAction("wag", 900);
   showToast(`${state.petName} crossed back to the meadow.`);
 });
+els.mountainHotspot.addEventListener("click", () => {
+  if (!state.mountainUnlocked) {
+    showToast("Clear the Waterfall boss quest to open the summit trail.");
+    return;
+  }
+  state.location = "mountain";
+  activeDecorScene = "mountain";
+  selectedMoveTarget = { type: "pet", scene: "mountain" };
+  saveState();
+  renderHud();
+  triggerPetAction("wag", 1000);
+  showToast(`${state.petName} climbed to Mountain Shelter.`);
+  checkSecretAwards("enter-mountain");
+});
+els.waterfallHotspot.addEventListener("click", () => {
+  state.location = "waterfall";
+  activeDecorScene = "waterfall";
+  selectedMoveTarget = { type: "pet", scene: "waterfall" };
+  saveState();
+  renderHud();
+  triggerPetAction("wag", 900);
+  showToast(`${state.petName} padded back to Waterfall Clearing.`);
+});
 els.tvHotspot.addEventListener("click", () => {
   if (!isDecorPlaced("tv")) return;
   toggleDecorState("tv");
@@ -2074,7 +2162,7 @@ els.decorButton.addEventListener("click", () => {
   setOverlay(els.decorOverlay, true);
 });
 els.closeDecorButton.addEventListener("click", () => setOverlay(els.decorOverlay, false));
-[els.decorHomeTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab].forEach((tab) => {
+[els.decorHomeTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab, els.decorMountainTab].forEach((tab) => {
   tab.addEventListener("click", () => {
     activeDecorScene = tab.dataset.decorScene;
     selectedMoveTarget = { type: "pet", scene: activeDecorScene };
@@ -2117,7 +2205,7 @@ els.canvas.addEventListener("pointermove", (event) => {
   if (!dragState || dragState.pointerId !== event.pointerId) return;
   event.preventDefault();
   const pointerPosition = pointerToScenePosition(dragState.scene, event.clientX, event.clientY);
-  const backdropLockedDrag = dragState.target.type === "decor" && (dragState.scene === "outdoor" || dragState.scene === "waterfall");
+  const backdropLockedDrag = dragState.target.type === "decor" && (dragState.scene === "outdoor" || dragState.scene === "waterfall" || dragState.scene === "mountain");
   const dx = (pointerPosition.x - dragState.startPointerPosition.x) / (backdropLockedDrag ? OUTDOOR_BACKDROP_DECOR_X_SCALE : 1);
   const dy = (pointerPosition.y - dragState.startPointerPosition.y) * (backdropLockedDrag ? OUTDOOR_BACKDROP_DECOR_Y_DRAG_SCALE : 1);
   setTargetPosition(dragState.target, {
@@ -2304,7 +2392,7 @@ function decorObjectsForScene(scene) {
   return placedDecorForScene(scene)
     .map((item) => {
       const position = getDecorPosition(item);
-      const backdropLocked = scene === "outdoor" || scene === "waterfall";
+      const backdropLocked = scene === "outdoor" || scene === "waterfall" || scene === "mountain";
       const renderScale = backdropLocked ? OUTDOOR_BACKDROP_DECOR_SCALE : 1;
       const layout = decorLayoutForItem(item);
       return {
@@ -2365,7 +2453,7 @@ function petTextureKey(time = performance.now()) {
 
 function petScaleForScene(scene) {
   if (state.stage === "egg") return 1.0;
-  const base = scene === "home" || scene === "kitchen" ? 1.03 : scene === "waterfall" ? 1.12 : 1.08;
+  const base = scene === "home" || scene === "kitchen" ? 1.03 : (scene === "waterfall" || scene === "mountain") ? 1.12 : 1.08;
   return base + Math.min(0.18, state.growth / 650);
 }
 

@@ -130,6 +130,16 @@ button {
   top: 35%;
 }
 
+.mountain-hotspot {
+  right: max(52px, 5vw);
+  top: 28%;
+}
+
+.waterfall-hotspot {
+  left: max(42px, 4vw);
+  top: 36%;
+}
+
 .kitchen-hotspot {
   right: max(54px, 6vw);
   top: 36%;
