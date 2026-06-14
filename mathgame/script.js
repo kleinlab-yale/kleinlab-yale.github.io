@@ -39,6 +39,17 @@ const ACTION_LOOK_FRAMES = [
   "couch-sit",
 ];
 const OUTFIT_LOOKS = ["sweater", "bow", "collar"];
+const SCUBA_FRAMES = [
+  "base",
+  "thinking",
+  "celebrate",
+  "sleepy",
+  "wag-a",
+  "wag-b",
+  "roll-a",
+  "roll-b",
+  "roll-c",
+];
 const PET_ASSETS = Object.fromEntries(
   [
     ...Object.keys(PET_VARIANTS).flatMap((variant) => (
@@ -49,6 +60,9 @@ const PET_ASSETS = Object.fromEntries(
         ACTION_LOOK_FRAMES.map((frame) => [`pet-${variant}-${look}-${frame}`, `assets/gpt-puppy-${variant}-${look}-${frame}.png`])
       ))
     )),
+    ...Object.keys(PET_VARIANTS).flatMap((variant) => (
+      SCUBA_FRAMES.map((frame) => [`pet-${variant}-scuba-${frame}`, `assets/gpt-puppy-${variant}-scuba-${frame}.png`])
+    )),
   ]
 );
 
@@ -56,6 +70,7 @@ const ASSETS = {
   backdrop: "assets/gpt-meadow-backdrop.png",
   waterfall: "assets/gpt-waterfall-backdrop.png",
   mountain: "assets/gpt-mountain-backdrop.png",
+  underwater: "assets/gpt-underwater-backdrop.png",
   home: "assets/gpt-home-interior.png",
   kitchen: "assets/gpt-kitchen-backdrop.png",
   egg: "assets/gpt-egg.png",
@@ -101,6 +116,12 @@ const ASSETS = {
   mountainSnacks: "assets/gpt-mountain-snacks.png",
   mountainShelter: "assets/gpt-mountain-shelter.png",
   mountainLantern: "assets/gpt-mountain-lantern.png",
+  underwaterShellSeat: "assets/gpt-underwater-shell-seat.png",
+  underwaterPearlLampOff: "assets/gpt-underwater-pearl-lamp-off.png",
+  underwaterPearlLampOn: "assets/gpt-underwater-pearl-lamp-on.png",
+  underwaterTreasureChest: "assets/gpt-underwater-treasure-chest.png",
+  underwaterBubbleHoop: "assets/gpt-underwater-bubble-hoop.png",
+  underwaterKelpHideout: "assets/gpt-underwater-kelp-hideout.png",
 };
 
 const WORLDS = [
@@ -108,7 +129,7 @@ const WORLDS = [
   { name: "Ribbon Bridge", focus: "simplifying expressions" },
   { name: "Shape Grove", focus: "area and perimeter" },
   { name: "Equation Dunes", focus: "solving equations" },
-  { name: "Crystal Decimal Cove", focus: "decimals and fractions" },
+  { name: "Crystal Decimal Cove", focus: "decimal operations, percents, and powers of 10" },
   { name: "Workshop Meadow", focus: "distributive property mastery" },
   { name: "Aurora Academy", focus: "mixed accelerated mastery" },
 ];
@@ -162,15 +183,21 @@ const DECOR_ITEMS = [
   { id: "mountainSnacks", scene: "mountain", name: "Trail snacks", tex: "mountainSnacks", x: 1.42, y: 0.46, z: 0.58, w: 0.86, h: 0.86, reward: "Mountain quests", cost: { coins: 75, gems: 0 } },
   { id: "mountainShelter", scene: "mountain", name: "Pup shelter", tex: "mountainShelter", x: 2.55, y: 0.95, z: 0.42, w: 1.34, h: 1.24, reward: "Mountain quests", cost: { coins: 140, gems: 2 } },
   { id: "mountainLantern", scene: "mountain", name: "Star lantern", tex: "mountainLantern", x: -0.98, y: 0.74, z: 0.5, w: 0.62, h: 1.04, reward: "Mountain quests", cost: { coins: 85, gems: 1 } },
+  { id: "underwaterShellSeat", scene: "underwater", name: "Shell lounge", tex: "underwaterShellSeat", x: -2.3, y: 0.65, z: 0.42, w: 1.36, h: 1.24, reward: "Deep Dive", cost: { coins: 130, gems: 1 } },
+  { id: "underwaterPearlLamp", scene: "underwater", name: "Pearl lamp", tex: "underwaterPearlLampOff", x: 1.92, y: 0.78, z: 0.44, w: 0.86, h: 1.12, reward: "Underwater quests", cost: { coins: 105, gems: 1 } },
+  { id: "underwaterTreasureChest", scene: "underwater", name: "Snack treasure", tex: "underwaterTreasureChest", x: -0.38, y: 0.43, z: 0.58, w: 1.08, h: 0.9, reward: "Underwater quests", cost: { coins: 125, gems: 1 } },
+  { id: "underwaterBubbleHoop", scene: "underwater", name: "Bubble hoop", tex: "underwaterBubbleHoop", x: 2.7, y: 0.9, z: 0.46, w: 0.94, h: 1.2, reward: "Underwater quests", cost: { coins: 95, gems: 0 } },
+  { id: "underwaterKelpHideout", scene: "underwater", name: "Kelp hideout", tex: "underwaterKelpHideout", x: 0.92, y: 0.74, z: 0.45, w: 1.24, h: 1.2, reward: "Underwater quests", cost: { coins: 145, gems: 2 } },
 ];
 
-const DECOR_SCENES = ["home", "kitchen", "outdoor", "waterfall", "mountain"];
+const DECOR_SCENES = ["home", "kitchen", "outdoor", "waterfall", "mountain", "underwater"];
 const DEFAULT_PET_POSITIONS = {
   home: { x: -0.06, y: 0.48 },
   kitchen: { x: -0.05, y: 0.46 },
   outdoor: { x: 0.12, y: 0.5 },
   waterfall: { x: 0.05, y: 0.5 },
   mountain: { x: 0.1, y: 0.52 },
+  underwater: { x: 0.0, y: 0.54 },
 };
 const MOVE_BOUNDS = {
   home: { x: [-5.05, 5.05], y: [-0.24, 2.62] },
@@ -178,6 +205,7 @@ const MOVE_BOUNDS = {
   outdoor: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
   waterfall: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
   mountain: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
+  underwater: { x: [-12, 12], y: [-1.1, 4.15] },
 };
 const FEED_COIN_COST = 10;
 const COUCH_PET_OFFSET = { x: 0.02, y: 0.38 };
@@ -186,12 +214,23 @@ const OUTDOOR_BACKDROP_DECOR_SCALE = 1.05;
 const OUTDOOR_BACKDROP_DECOR_X_SCALE = 2.2;
 const OUTDOOR_BACKDROP_DECOR_Y_DRAG_SCALE = 2.35;
 const OUTDOOR_BACKDROP_DECOR_Y_OFFSET = -0.22;
+const PANORAMA_SCENES = new Set(["underwater"]);
+const PANORAMA_WIDTH = 24;
+const VIEW_PAN_SCENES = new Set(["home", "kitchen", "outdoor", "waterfall", "mountain"]);
+const VIEW_PAN_LIMITS = {
+  home: 1.1,
+  kitchen: 1.1,
+  outdoor: 1.45,
+  waterfall: 1.45,
+  mountain: 1.45,
+};
 const SECRET_AWARDS = {
   couchCritic: { title: "Couch Critic", coins: 40, gems: 1, glow: 12 },
   snackChef: { title: "Snack Chef", coins: 35, gems: 1, glow: 10 },
   parkMvp: { title: "Park MVP", coins: 35, gems: 1, glow: 10 },
   lanternTrail: { title: "Lantern Trail", coins: 45, gems: 1, glow: 12 },
   summitSupper: { title: "Summit Supper", coins: 60, gems: 2, glow: 16 },
+  reefTreasure: { title: "Reef Treasure", coins: 70, gems: 2, glow: 18 },
 };
 const TV_CHANNELS = [
   { tex: "homeTvOff", label: "TV off" },
@@ -205,6 +244,7 @@ const TOGGLEABLE_DECOR = {
   kitchenFridge: { onName: "fridge open", offName: "fridge closed" },
   oven: { onName: "oven open", offName: "oven closed" },
   mountainCampfire: { onName: "fire lit", offName: "fire out" },
+  underwaterPearlLamp: { onName: "pearl glowing", offName: "pearl dim" },
 };
 
 const els = {
@@ -229,6 +269,7 @@ const els = {
   decorOutdoorTab: document.querySelector("#decorOutdoorTab"),
   decorWaterfallTab: document.querySelector("#decorWaterfallTab"),
   decorMountainTab: document.querySelector("#decorMountainTab"),
+  decorUnderwaterTab: document.querySelector("#decorUnderwaterTab"),
   objectiveTitle: document.querySelector("#objectiveTitle"),
   objectiveText: document.querySelector("#objectiveText"),
   petNameLabel: document.querySelector("#petNameLabel"),
@@ -251,6 +292,8 @@ const els = {
   meadowHotspot: document.querySelector("#meadowHotspot"),
   mountainHotspot: document.querySelector("#mountainHotspot"),
   waterfallHotspot: document.querySelector("#waterfallHotspot"),
+  underwaterHotspot: document.querySelector("#underwaterHotspot"),
+  surfaceHotspot: document.querySelector("#surfaceHotspot"),
   kitchenHotspot: document.querySelector("#kitchenHotspot"),
   livingRoomHotspot: document.querySelector("#livingRoomHotspot"),
   tvHotspot: document.querySelector("#tvHotspot"),
@@ -316,19 +359,23 @@ if (IS_DEMO) {
     location: "home",
     waterfallUnlocked: true,
     mountainUnlocked: true,
+    underwaterUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern"],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern"],
-    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern"],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
     decorPositions: {},
-    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, oven: 0, mountainCampfire: 1 },
+    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1 },
     petPositions: {
       home: { x: -0.18, y: 0.48 },
       kitchen: { x: -0.12, y: 0.46 },
       outdoor: { x: 0.35, y: 0.56 },
       waterfall: { x: 0.08, y: 0.5 },
       mountain: { x: 0.18, y: 0.54 },
+      underwater: { x: 0.12, y: 0.56 },
     },
+    scenePan: { underwater: 0 },
+    viewPan: {},
     tvChannel: 1,
     secretAwards: [],
     unlocked: ["none"],
@@ -357,6 +404,7 @@ function createInitialState() {
     location: "outdoor",
     waterfallUnlocked: false,
     mountainUnlocked: false,
+    underwaterUnlocked: false,
     kitchenUnlocked: false,
     decorUnlocked: [],
     decorOwned: [],
@@ -369,7 +417,10 @@ function createInitialState() {
       outdoor: { ...DEFAULT_PET_POSITIONS.outdoor },
       waterfall: { ...DEFAULT_PET_POSITIONS.waterfall },
       mountain: { ...DEFAULT_PET_POSITIONS.mountain },
+      underwater: { ...DEFAULT_PET_POSITIONS.underwater },
     },
+    scenePan: { underwater: 0 },
+    viewPan: {},
     tvChannel: 0,
     secretAwards: [],
     unlocked: ["none"],
@@ -418,10 +469,16 @@ function loadState() {
       saved.mountainUnlocked
       || saved.location === "mountain"
     );
+    const underwaterUnlocked = Boolean(
+      saved.underwaterUnlocked
+      || saved.location === "underwater"
+    );
     const location = saved.location === "home"
       ? "home"
       : saved.location === "kitchen" && kitchenUnlocked
         ? "kitchen"
+      : saved.location === "underwater" && underwaterUnlocked
+        ? "underwater"
       : saved.location === "mountain" && mountainUnlocked
         ? "mountain"
       : saved.location === "waterfall" && waterfallUnlocked
@@ -448,6 +505,7 @@ function loadState() {
       location,
       waterfallUnlocked,
       mountainUnlocked,
+      underwaterUnlocked,
       kitchenUnlocked,
       decorUnlocked,
       decorOwned,
@@ -455,6 +513,8 @@ function loadState() {
       decorPositions: normalizeDecorPositions(saved.decorPositions),
       decorStates: normalizeDecorStates(saved.decorStates, saved.tvChannel),
       petPositions: normalizePetPositions(saved.petPositions),
+      scenePan: normalizeScenePan(saved.scenePan),
+      viewPan: normalizeViewPan(saved.viewPan),
       tvChannel: clamp(saved.tvChannel ?? saved.decorStates?.tv ?? 0, 0, TV_CHANNELS.length - 1),
       secretAwards,
       unlocked: unlockedLooks,
@@ -526,6 +586,21 @@ function normalizePetPositions(value) {
   }, {});
 }
 
+function normalizeScenePan(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    underwater: wrap01(source.underwater || 0),
+  };
+}
+
+function normalizeViewPan(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return Object.fromEntries(Array.from(VIEW_PAN_SCENES).map((scene) => [
+    scene,
+    clamp(source[scene] || 0, -VIEW_PAN_LIMITS[scene], VIEW_PAN_LIMITS[scene]),
+  ]));
+}
+
 function variantForEgg(eggId) {
   return EGG_CHOICES.find((choice) => choice.id === eggId)?.variant || "golden";
 }
@@ -545,6 +620,10 @@ function currentPetVariantName() {
 }
 
 function petTextureKeyFor(frame, variant = currentPetVariant(), look = state.equipped?.look || "none") {
+  if (currentScene() === "underwater") {
+    const scubaFrame = SCUBA_FRAMES.includes(frame) ? frame : "base";
+    return `pet-${variant}-scuba-${scubaFrame}`;
+  }
   const dressedKey = look !== "none" && ACTION_LOOK_FRAMES.includes(frame)
     ? `pet-${variant}-${look}-${frame}`
     : "";
@@ -559,6 +638,7 @@ function petFrameAsset(frame, variant = currentPetVariant(), look = state.equipp
 function currentScene() {
   if (state.location === "home") return "home";
   if (state.location === "kitchen" && state.kitchenUnlocked) return "kitchen";
+  if (state.location === "underwater" && state.underwaterUnlocked) return "underwater";
   if (state.location === "mountain" && state.mountainUnlocked) return "mountain";
   if (state.location === "waterfall" && state.waterfallUnlocked) return "waterfall";
   return "outdoor";
@@ -569,12 +649,14 @@ function decorSceneLabel(scene) {
   if (scene === "kitchen") return "Kitchen";
   if (scene === "waterfall") return "Waterfall";
   if (scene === "mountain") return "Mountain";
+  if (scene === "underwater") return "Underwater";
   return "Outside";
 }
 
 function isDecorSceneAvailable(scene) {
   if (scene === "kitchen") return state.kitchenUnlocked;
   if (scene === "mountain") return state.mountainUnlocked;
+  if (scene === "underwater") return state.underwaterUnlocked;
   return scene !== "waterfall" || state.waterfallUnlocked;
 }
 
@@ -583,6 +665,7 @@ function decorTabForScene(scene) {
   if (scene === "kitchen") return els.decorKitchenTab;
   if (scene === "waterfall") return els.decorWaterfallTab;
   if (scene === "mountain") return els.decorMountainTab;
+  if (scene === "underwater") return els.decorUnderwaterTab;
   return els.decorOutdoorTab;
 }
 
@@ -591,6 +674,7 @@ function sceneWorldLabel(scene = currentScene()) {
   if (scene === "kitchen") return "Kitchen";
   if (scene === "waterfall") return "Waterfall Clearing";
   if (scene === "mountain") return "Mountain Shelter";
+  if (scene === "underwater") return "Underwater Reef";
   const world = currentWorld();
   return `${world.name}  ${state.world + 1}/${WORLDS.length}`;
 }
@@ -600,6 +684,7 @@ function sceneBackdropTexture(scene = currentScene()) {
   if (scene === "kitchen") return "kitchen";
   if (scene === "waterfall") return "waterfall";
   if (scene === "mountain") return "mountain";
+  if (scene === "underwater") return "underwater";
   return "backdrop";
 }
 
@@ -634,7 +719,9 @@ function setPetPosition(scene, position) {
 function clampScenePosition(scene, position) {
   const bounds = MOVE_BOUNDS[scene] || MOVE_BOUNDS.outdoor;
   return {
-    x: clamp(position?.x ?? 0, bounds.x[0], bounds.x[1]),
+    x: isPanoramaScene(scene)
+      ? wrapPanoramaX(position?.x ?? 0)
+      : clamp(position?.x ?? 0, bounds.x[0], bounds.x[1]),
     y: clamp(position?.y ?? 0, bounds.y[0], bounds.y[1]),
   };
 }
@@ -681,6 +768,7 @@ function toggleDecorState(id) {
   showToast(`${decorItemById(id)?.name || "Decor"}: ${label}.`);
   if (id === "tv") checkSecretAwards("tv");
   if (id === "kitchenFridge" || id === "oven") checkSecretAwards("kitchen-state");
+  if (id === "underwaterPearlLamp") checkSecretAwards("underwater-state");
   return true;
 }
 
@@ -695,6 +783,7 @@ function decorTextureForItem(item) {
   if (item.id === "kitchenFridge") return decorStateValue("kitchenFridge") ? "kitchenFridgeOpen" : "kitchenFridge";
   if (item.id === "oven") return decorStateValue("oven") ? "kitchenOvenOpen" : "kitchenOven";
   if (item.id === "mountainCampfire") return decorStateValue("mountainCampfire") ? "mountainCampfireOn" : "mountainCampfireOff";
+  if (item.id === "underwaterPearlLamp") return decorStateValue("underwaterPearlLamp") ? "underwaterPearlLampOn" : "underwaterPearlLampOff";
   return item.tex;
 }
 
@@ -725,6 +814,7 @@ function lockedDecorReason(scene) {
   if (scene === "kitchen") return "Living room decor";
   if (scene === "waterfall") return "Bridge Algebra";
   if (scene === "mountain") return "Waterfall Boss";
+  if (scene === "underwater") return "Mountain Boss";
   return "Quest locked";
 }
 
@@ -798,6 +888,17 @@ function checkSecretAwards(trigger = "") {
   ) {
     awarded = grantSecretAward("summitSupper") || awarded;
   }
+  if (
+    state.location === "underwater"
+    && trigger === "fetch"
+    && isDecorPlaced("underwaterPearlLamp")
+    && decorStateValue("underwaterPearlLamp")
+    && isDecorPlaced("underwaterTreasureChest")
+    && isDecorPlaced("underwaterBubbleHoop")
+    && isDecorPlaced("underwaterKelpHideout")
+  ) {
+    awarded = grantSecretAward("reefTreasure") || awarded;
+  }
   if (awarded) {
     saveState();
     renderHud();
@@ -827,6 +928,76 @@ function clamp(value, min, max) {
   const numeric = Number(value);
   const safeValue = Number.isFinite(numeric) ? numeric : min;
   return Math.max(min, Math.min(max, safeValue));
+}
+
+function wrap01(value) {
+  const numeric = Number(value) || 0;
+  return ((numeric % 1) + 1) % 1;
+}
+
+function isPanoramaScene(scene) {
+  return PANORAMA_SCENES.has(scene);
+}
+
+function isCompactViewport() {
+  return window.innerWidth <= 720 || window.innerHeight <= 520;
+}
+
+function maxViewPan(scene) {
+  if (!VIEW_PAN_SCENES.has(scene) || !isCompactViewport()) return 0;
+  const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+  const shortLandscape = window.innerHeight <= 520 && aspect > 1.65;
+  const narrowPortrait = window.innerWidth <= 540 && aspect < 0.9;
+  const base = VIEW_PAN_LIMITS[scene] || 1.1;
+  const boost = shortLandscape ? 1.15 : narrowPortrait ? 1.25 : 1;
+  return base * boost;
+}
+
+function canViewPan(scene) {
+  return maxViewPan(scene) > 0.05;
+}
+
+function getViewPan(scene) {
+  const max = maxViewPan(scene);
+  if (!max) return 0;
+  return clamp(state.viewPan?.[scene] || 0, -max, max);
+}
+
+function setViewPan(scene, value) {
+  if (!state.viewPan || typeof state.viewPan !== "object") state.viewPan = normalizeViewPan();
+  const max = maxViewPan(scene);
+  state.viewPan[scene] = max ? clamp(value, -max, max) : 0;
+}
+
+function getScenePan(scene) {
+  return wrap01(state.scenePan?.[scene] || 0);
+}
+
+function setScenePan(scene, value) {
+  if (!state.scenePan || typeof state.scenePan !== "object") state.scenePan = normalizeScenePan();
+  state.scenePan[scene] = wrap01(value);
+}
+
+function panoramaOffset(scene) {
+  return isPanoramaScene(scene) ? getScenePan(scene) * PANORAMA_WIDTH : 0;
+}
+
+function visibleDefaultPetPosition(scene) {
+  const base = DEFAULT_PET_POSITIONS[scene] || DEFAULT_PET_POSITIONS.outdoor;
+  return {
+    ...base,
+    x: isPanoramaScene(scene)
+      ? wrapPanoramaX(base.x + panoramaOffset(scene))
+      : base.x + getViewPan(scene),
+  };
+}
+
+function wrapPanoramaX(x, width = PANORAMA_WIDTH) {
+  return (((x + width / 2) % width) + width) % width - width / 2;
+}
+
+function isBackdropLockedScene(scene) {
+  return scene === "outdoor" || scene === "waterfall" || scene === "mountain" || scene === "underwater";
 }
 
 function choose(list) {
@@ -900,6 +1071,7 @@ function renderHud() {
   const indoors = inHome || inKitchen;
   const inWaterfall = scene === "waterfall";
   const inMountain = scene === "mountain";
+  const inUnderwater = scene === "underwater";
   const nextDecor = nextDecorItem(scene);
   const secretCount = state.secretAwards?.length || 0;
   let objectiveTitle = `${questName}: ${world.name}`;
@@ -935,7 +1107,14 @@ function renderHud() {
     objectiveTitle = "Mountain Shelter";
     objectiveText = nextDecor
       ? `Practice at the mountain to make ${nextDecor.name} available.`
-      : "Mountain camp is stocked. Try making a cozy camp routine with the fire, tent, snacks, and shelter.";
+      : state.underwaterUnlocked
+        ? "Mountain camp is stocked. Dive below the waterfall to explore the underwater reef."
+        : "Mountain camp is stocked. Clear the boss quest here to open the dive below the waterfall.";
+  } else if (inUnderwater) {
+    objectiveTitle = "Underwater Reef";
+    objectiveText = nextDecor
+      ? `Scuba gear is on. Practice underwater math to make ${nextDecor.name} available.`
+      : "The reef is stocked. Try a pearl-lit fetch through the bubble hoop near the treasure.";
   }
 
   els.setupOverlay.classList.toggle("show", !state.setup);
@@ -949,13 +1128,15 @@ function renderHud() {
   els.coinLabel.textContent = `${state.coins} coins`;
   els.gemLabel.textContent = `${state.gems} ${state.gems === 1 ? "gem" : "gems"}`;
   els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor${secretCount ? `  ${secretCount} secret` : ""}`;
-  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : inMountain ? "Mountain Quest" : questName;
+  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : inMountain ? "Mountain Quest" : inUnderwater ? "Reef Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && scene === "outdoor");
   els.exitHomeButton.classList.toggle("show", state.setup && indoors);
   els.bridgeHotspot.classList.toggle("show", state.setup && scene === "outdoor" && state.waterfallUnlocked);
   els.meadowHotspot.classList.toggle("show", state.setup && inWaterfall);
   els.mountainHotspot.classList.toggle("show", state.setup && inWaterfall && state.mountainUnlocked);
   els.waterfallHotspot.classList.toggle("show", state.setup && inMountain);
+  els.underwaterHotspot.classList.toggle("show", state.setup && inWaterfall && state.underwaterUnlocked);
+  els.surfaceHotspot.classList.toggle("show", state.setup && inUnderwater);
   els.kitchenHotspot.classList.toggle("show", state.setup && inHome && state.kitchenUnlocked);
   els.livingRoomHotspot.classList.toggle("show", state.setup && inKitchen);
   els.tvHotspot.classList.toggle("show", state.setup && inHome && isDecorPlaced("tv"));
@@ -1120,6 +1301,12 @@ function finishDrag(event) {
   } catch {
     /* Pointer capture may already be released by the browser. */
   }
+  if (dragState.type === "pan") {
+    dragState = null;
+    saveState();
+    renderHud();
+    return;
+  }
   const clickDistance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
   if (clickDistance < 8 && dragState.target.type === "decor" && handleDecorTap(dragState.target.id)) {
     dragState = null;
@@ -1138,8 +1325,11 @@ function pointerToScenePosition(scene, clientX, clientY) {
   const bounds = MOVE_BOUNDS[scene] || MOVE_BOUNDS.outdoor;
   const nx = clamp((clientX - rect.left) / Math.max(1, rect.width), 0, 1);
   const ny = clamp((clientY - rect.top) / Math.max(1, rect.height), 0, 1);
+  const screenX = bounds.x[0] + nx * (bounds.x[1] - bounds.x[0]);
   return {
-    x: bounds.x[0] + nx * (bounds.x[1] - bounds.x[0]),
+    x: isPanoramaScene(scene)
+      ? wrapPanoramaX(screenX + panoramaOffset(scene))
+      : screenX + getViewPan(scene),
     y: bounds.y[1] - ny * (bounds.y[1] - bounds.y[0]),
   };
 }
@@ -1493,6 +1683,12 @@ function finishRound() {
       const mountainMessage = unlockNextDecorReward("mountain");
       if (!mountainMessage.includes("fully stocked")) message += `. ${mountainMessage}`;
     }
+    if (roundLocation === "mountain" && !state.underwaterUnlocked) {
+      state.underwaterUnlocked = true;
+      message += `. The dive below Waterfall Clearing opened`;
+      const underwaterMessage = unlockNextDecorReward("underwater");
+      if (!underwaterMessage.includes("fully stocked")) message += `. ${underwaterMessage}`;
+    }
     if (state.world < WORLDS.length - 1) {
       state.world += 1;
       state.questStep = 0;
@@ -1503,7 +1699,7 @@ function finishRound() {
     }
   }
 
-  const rewardScene = roundLocation === "waterfall" || roundLocation === "mountain" ? roundLocation : "outdoor";
+  const rewardScene = roundLocation === "waterfall" || roundLocation === "mountain" || roundLocation === "underwater" ? roundLocation : "outdoor";
   const decorMessage = unlockNextDecorReward(rewardScene);
   if (!decorMessage.includes("fully stocked")) message += `. ${decorMessage}`;
 
@@ -1534,22 +1730,26 @@ function makeProblemCandidate(type, world) {
   if (type === "number") return makeNumberProblem(world);
   if (type === "fraction") return makeBridgeProblem(world);
   if (type === "geometry") return makeGeometryProblem(world);
-  return choose([makeNumberProblem, makeBridgeProblem, makeGeometryProblem])(Math.min(world + 1, WORLDS.length - 1));
+  const bossWorld = Math.min(world + 1, WORLDS.length - 1);
+  const bossMakers = [makeNumberProblem, makeBridgeProblem, makeGeometryProblem];
+  if (bossWorld >= 4) bossMakers.push(makeDecimalFluencyProblem);
+  return choose(bossMakers)(bossWorld);
 }
 
 function makeNumberProblem(world) {
   if (world <= 1) return makeMultiplicationProblem();
   if (world <= 2) return choose([makeExpressionProblem, makeWordEquationProblem])();
-  if (world <= 4) return makeEquationProblem();
-  if (world <= 5) return choose([makeDecimalFractionProblem, makeExpressionProblem])();
-  return choose([makeExpressionProblem, makeEquationProblem, makeWordEquationProblem, makeDecimalFractionProblem])();
+  if (world <= 3) return makeEquationProblem();
+  if (world <= 4) return choose([makeDecimalFluencyProblem, makeDecimalFractionProblem])();
+  if (world <= 5) return choose([makeDecimalFluencyProblem, makeDecimalFractionProblem, makeExpressionProblem])();
+  return choose([makeExpressionProblem, makeEquationProblem, makeWordEquationProblem, makeDecimalFractionProblem, makeDecimalFluencyProblem])();
 }
 
 function makeBridgeProblem(world) {
   if (world <= 1) return makeExpressionProblem();
   if (world <= 3) return choose([makeExpressionProblem, makeEquationProblem])();
-  if (world <= 4) return choose([makeEquationProblem, makeDecimalFractionProblem])();
-  return choose([makeExpressionProblem, makeEquationProblem, makeDecimalFractionProblem, makeWordEquationProblem])();
+  if (world <= 4) return choose([makeDecimalFluencyProblem, makeDecimalFractionProblem, makeEquationProblem])();
+  return choose([makeExpressionProblem, makeEquationProblem, makeDecimalFractionProblem, makeDecimalFluencyProblem, makeWordEquationProblem])();
 }
 
 function makeGeometryProblem(world) {
@@ -1815,6 +2015,134 @@ function makeDecimalFractionProblem() {
   ], "rational", null, formatRationalValue(answer), "Example: 7/10");
 }
 
+function makeDecimalFluencyProblem() {
+  return choose([
+    makeDecimalOfWholeProblem,
+    makeDecimalDivisionProblem,
+    makeDecimalAsPercentProblem,
+    makeFractionAsPercentProblem,
+    makeFractionAsDecimalProblem,
+    makePowerOfTenDecimalProblem,
+  ])();
+}
+
+function makeDecimalOfWholeProblem() {
+  const rate = choose([
+    { decimal: 0.5, text: "0.5" },
+    { decimal: 0.25, text: "0.25" },
+    { decimal: 0.75, text: "0.75" },
+    { decimal: 0.1, text: "0.1" },
+    { decimal: 0.2, text: "0.2" },
+  ]);
+  const whole = choose([10, 20, 40, 50, 80, 100, 120, 200]);
+  const answer = rate.decimal * whole;
+  return problem(`${rate.text} of ${whole} = ?`, answer, "Decimals as multiplication", [
+    `"Of" means multiply.`,
+    `Think of ${rate.text} as part of one whole.`,
+    "Multiply the decimal by the number.",
+  ], "number", null, formatDecimal(answer), "Type the value");
+}
+
+function makeDecimalDivisionProblem() {
+  const item = choose([
+    { prompt: "15 / 1.5", answer: 10 },
+    { prompt: "12 / 0.6", answer: 20 },
+    { prompt: "4.5 / 0.5", answer: 9 },
+    { prompt: "2.4 / 0.3", answer: 8 },
+    { prompt: "7.5 / 2.5", answer: 3 },
+    { prompt: "18 / 0.9", answer: 20 },
+    { prompt: "6.4 / 0.8", answer: 8 },
+  ]);
+  return problem(`${item.prompt} = ?`, item.answer, "Decimal division", [
+    "Move both decimals the same number of places to make the divisor a whole number.",
+    "The quotient stays the same.",
+    "Then divide.",
+  ], "number", null, formatDecimal(item.answer), "Type quotient");
+}
+
+function makeDecimalAsPercentProblem() {
+  const item = choose([
+    { decimal: "0.05", percent: 5 },
+    { decimal: "0.1", percent: 10 },
+    { decimal: "0.2", percent: 20 },
+    { decimal: "0.25", percent: 25 },
+    { decimal: "0.5", percent: 50 },
+    { decimal: "0.75", percent: 75 },
+    { decimal: "1.25", percent: 125 },
+  ]);
+  return percentProblem(`What is ${item.decimal} as a percent?`, item.percent, "Decimals as percents", [
+    "Percent means out of 100.",
+    "Multiply the decimal by 100.",
+    "Write the answer with a percent sign.",
+  ]);
+}
+
+function makeFractionAsPercentProblem() {
+  const item = choose([
+    { fraction: "1/10", percent: 10 },
+    { fraction: "1/5", percent: 20 },
+    { fraction: "2/5", percent: 40 },
+    { fraction: "3/5", percent: 60 },
+    { fraction: "1/4", percent: 25 },
+    { fraction: "1/2", percent: 50 },
+    { fraction: "3/4", percent: 75 },
+    { fraction: "1/8", percent: 12.5 },
+  ]);
+  return percentProblem(`${item.fraction} is what percent?`, item.percent, "Fractions as percents", [
+    "Turn the fraction into a decimal.",
+    "Multiply by 100 to convert to percent.",
+    "A percent answer like 25% or 25 is accepted.",
+  ]);
+}
+
+function makeFractionAsDecimalProblem() {
+  const item = choose([
+    { fraction: "1/10", decimal: 0.1 },
+    { fraction: "1/5", decimal: 0.2 },
+    { fraction: "2/5", decimal: 0.4 },
+    { fraction: "1/4", decimal: 0.25 },
+    { fraction: "1/2", decimal: 0.5 },
+    { fraction: "3/4", decimal: 0.75 },
+    { fraction: "1/8", decimal: 0.125 },
+    { fraction: "3/8", decimal: 0.375 },
+  ]);
+  return problem(`${item.fraction} = what decimal?`, item.decimal, "Fractions as decimals", [
+    "Divide the numerator by the denominator.",
+    "Use familiar benchmark fractions when possible.",
+    "Write the answer as a decimal.",
+  ], "decimal", null, formatDecimal(item.decimal), "Example: 0.25");
+}
+
+function makePowerOfTenDecimalProblem() {
+  const item = choose([
+    { prompt: "0.5 x 10", answer: 5 },
+    { prompt: "0.25 x 100", answer: 25 },
+    { prompt: "1.5 x 10", answer: 15 },
+    { prompt: "0.03 x 100", answer: 3 },
+    { prompt: "2.5 x 100", answer: 250 },
+    { prompt: "0.25 x 1000", answer: 250 },
+    { prompt: "15 / 10", answer: 1.5 },
+    { prompt: "15 / 100", answer: 0.15 },
+    { prompt: "3.6 / 10", answer: 0.36 },
+  ]);
+  return problem(`${item.prompt} = ?`, item.answer, "Powers of 10", [
+    "Multiplying by 10, 100, or 1000 moves digits left into larger place values.",
+    "Dividing by 10 or 100 moves digits right into smaller place values.",
+    "Check that the decimal point moved the right number of places.",
+  ], "number", null, formatDecimal(item.answer), "Type value");
+}
+
+function percentProblem(promptText, answer, lessonTitle, steps) {
+  return problem(promptText, answer, lessonTitle, steps, "percent", null, `${formatDecimal(answer)}%`, "Example: 25%");
+}
+
+function formatDecimal(value) {
+  const rounded = Math.round((Number(value) + Number.EPSILON) * 1000) / 1000;
+  const text = String(rounded);
+  if (!text.includes(".")) return text;
+  return text.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+}
+
 function problem(prompt, answer, lessonTitle, steps, answerType = "number", choices = null, displayAnswer = null, placeholder = "Type answer") {
   return {
     prompt,
@@ -1831,11 +2159,26 @@ function problem(prompt, answer, lessonTitle, steps, answerType = "number", choi
 function isCorrect(value, item) {
   if (item.answerType === "number") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
   if (item.answerType === "decimal") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
+  if (item.answerType === "percent") return samePercent(value, item.answer);
   if (item.answerType === "remainder") return normalize(value) === normalize(item.answer).replace("remainder", "r");
   if (item.answerType === "choice") return normalizeChoice(value) === normalizeChoice(item.answer);
   if (item.answerType === "linear") return sameLinearExpression(value, item.answer);
   if (item.answerType === "rational") return sameRational(value, item.answer);
   return normalize(value) === normalize(item.answer);
+}
+
+function samePercent(value, expected) {
+  const actual = parsePercent(value);
+  return actual !== null && Math.abs(actual - Number(expected)) < 0.001;
+}
+
+function parsePercent(value) {
+  let text = String(value).toLowerCase().replace(/[−–—]/g, "-").trim();
+  if (!text) return null;
+  if (text.includes("=")) text = text.split("=").pop().trim();
+  text = text.replace(/percent/g, "%").replace(/\s+/g, "");
+  const match = text.match(/^(-?\d+(\.\d+)?)%?$/);
+  return match ? Number(match[1]) : null;
 }
 
 function rational(numerator, denominator = 1) {
@@ -2107,6 +2450,28 @@ els.waterfallHotspot.addEventListener("click", () => {
   triggerPetAction("wag", 900);
   showToast(`${state.petName} padded back to Waterfall Clearing.`);
 });
+els.underwaterHotspot.addEventListener("click", () => {
+  if (!state.underwaterUnlocked) {
+    showToast("Clear the Mountain boss quest to unlock scuba diving.");
+    return;
+  }
+  state.location = "underwater";
+  activeDecorScene = "underwater";
+  selectedMoveTarget = { type: "pet", scene: "underwater" };
+  saveState();
+  renderHud();
+  triggerPetAction("wag", 1100);
+  showToast(`${state.petName} put on scuba gear and dove below the waterfall.`);
+});
+els.surfaceHotspot.addEventListener("click", () => {
+  state.location = "waterfall";
+  activeDecorScene = "waterfall";
+  selectedMoveTarget = { type: "pet", scene: "waterfall" };
+  saveState();
+  renderHud();
+  triggerPetAction("wag", 900);
+  showToast(`${state.petName} surfaced at Waterfall Clearing.`);
+});
 els.tvHotspot.addEventListener("click", () => {
   if (!isDecorPlaced("tv")) return;
   toggleDecorState("tv");
@@ -2119,7 +2484,7 @@ els.tvHotspot.addEventListener("click", () => {
 els.questButton.addEventListener("click", startQuest);
 els.callPetButton.addEventListener("click", () => {
   petHiddenUntil = 0;
-  setPetPosition(currentScene(), DEFAULT_PET_POSITIONS[currentScene()]);
+  setPetPosition(currentScene(), visibleDefaultPetPosition(currentScene()));
   saveState();
   renderHud();
   triggerPetAction("wag", 1200);
@@ -2162,7 +2527,7 @@ els.decorButton.addEventListener("click", () => {
   setOverlay(els.decorOverlay, true);
 });
 els.closeDecorButton.addEventListener("click", () => setOverlay(els.decorOverlay, false));
-[els.decorHomeTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab, els.decorMountainTab].forEach((tab) => {
+[els.decorHomeTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab, els.decorMountainTab, els.decorUnderwaterTab].forEach((tab) => {
   tab.addEventListener("click", () => {
     activeDecorScene = tab.dataset.decorScene;
     selectedMoveTarget = { type: "pet", scene: activeDecorScene };
@@ -2183,13 +2548,28 @@ els.decorGrid.addEventListener("click", (event) => {
 });
 els.canvas.addEventListener("pointerdown", (event) => {
   const picked = pickInteractiveObject(event.clientX, event.clientY);
-  if (!picked) return;
+  if (!picked) {
+    const scene = currentScene();
+    if (!isPanoramaScene(scene) && !canViewPan(scene)) return;
+    event.preventDefault();
+    dragState = {
+      type: "pan",
+      mode: isPanoramaScene(scene) ? "panorama" : "view",
+      pointerId: event.pointerId,
+      scene,
+      startX: event.clientX,
+      startPan: isPanoramaScene(scene) ? getScenePan(scene) : getViewPan(scene),
+    };
+    els.canvas.setPointerCapture(event.pointerId);
+    return;
+  }
   event.preventDefault();
   activeDecorScene = currentScene();
   selectedMoveTarget = picked.type === "pet"
     ? { type: "pet", scene: currentScene() }
     : { type: "decor", id: picked.id };
   dragState = {
+    type: "move",
     pointerId: event.pointerId,
     target: { ...selectedMoveTarget },
     startX: event.clientX,
@@ -2204,8 +2584,18 @@ els.canvas.addEventListener("pointerdown", (event) => {
 els.canvas.addEventListener("pointermove", (event) => {
   if (!dragState || dragState.pointerId !== event.pointerId) return;
   event.preventDefault();
+  if (dragState.type === "pan") {
+    const rect = els.canvas.getBoundingClientRect();
+    const dx = (event.clientX - dragState.startX) / Math.max(1, rect.width);
+    if (dragState.mode === "panorama") {
+      setScenePan(dragState.scene, dragState.startPan - dx);
+    } else {
+      setViewPan(dragState.scene, dragState.startPan - dx * maxViewPan(dragState.scene) * 2.2);
+    }
+    return;
+  }
   const pointerPosition = pointerToScenePosition(dragState.scene, event.clientX, event.clientY);
-  const backdropLockedDrag = dragState.target.type === "decor" && (dragState.scene === "outdoor" || dragState.scene === "waterfall" || dragState.scene === "mountain");
+  const backdropLockedDrag = dragState.target.type === "decor" && isBackdropLockedScene(dragState.scene);
   const dx = (pointerPosition.x - dragState.startPointerPosition.x) / (backdropLockedDrag ? OUTDOOR_BACKDROP_DECOR_X_SCALE : 1);
   const dy = (pointerPosition.y - dragState.startPointerPosition.y) * (backdropLockedDrag ? OUTDOOR_BACKDROP_DECOR_Y_DRAG_SCALE : 1);
   setTargetPosition(dragState.target, {
@@ -2344,15 +2734,14 @@ function drawScene(time) {
   const pulse = Math.max(0, petPulseUntil - time) / 1200;
   const scene = currentScene();
   const indoors = scene === "home" || scene === "kitchen";
-  const cameraX = Math.sin(time * 0.00018) * (indoors ? 0.18 : 0.42) + pulse * 0.16;
+  const viewPan = getViewPan(scene);
+  const cameraX = viewPan + Math.sin(time * 0.00018) * (indoors ? 0.18 : 0.42) + pulse * 0.16;
   const cameraY = (indoors ? 2.05 : 2.25) + Math.sin(time * 0.00027) * 0.08;
   const projection = perspective(Math.PI / 4.5, aspect, 0.1, 80);
-  const view = lookAt([cameraX, cameraY, 7.2], [0, indoors ? 0.85 : 0.9, -1.2], [0, 1, 0]);
+  const view = lookAt([cameraX, cameraY, 7.2], [viewPan, indoors ? 0.85 : 0.9, -1.2], [0, 1, 0]);
   const pv = multiply(projection, view);
 
-  const objects = [
-    { tex: sceneBackdropTexture(scene), x: 0, y: 1.15, z: -6.4, w: 24.0, h: 13.5, rx: 0, a: 1 },
-  ];
+  const objects = backdropObjectsForScene(scene);
   const decorObjects = decorObjectsForScene(scene);
 
   objects.push(...decorObjects);
@@ -2369,7 +2758,7 @@ function drawScene(time) {
     const petLayout = petFrameLayout(petFrame, scale);
     pet = {
       tex: state.stage === "egg" ? "egg" : petTextureKeyFor(petFrame),
-      x: petPosition.x,
+      x: scene === "underwater" ? wrapPanoramaX(petPosition.x - panoramaOffset(scene)) : petPosition.x,
       y: petPosition.y + bob + petLayout.yOffset,
       z: 0.55,
       w: petLayout.w,
@@ -2388,17 +2777,40 @@ function drawScene(time) {
   requestAnimationFrame(drawScene);
 }
 
+function backdropObjectsForScene(scene) {
+  const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+  const shortLandscape = window.innerHeight <= 520 && aspect > 1.7;
+  const widthBoost = shortLandscape ? clamp(aspect / 2.15, 1.18, 1.58) : 1;
+  const heightBoost = shortLandscape ? clamp(aspect / 2.75, 1.02, 1.18) : 1;
+  const base = {
+    tex: sceneBackdropTexture(scene),
+    y: shortLandscape ? 1.24 : 1.15,
+    z: -6.4,
+    w: 24.0 * widthBoost,
+    h: 13.5 * heightBoost,
+    rx: 0,
+    a: 1,
+  };
+  if (!isPanoramaScene(scene)) return [{ ...base, x: 0 }];
+  const offset = panoramaOffset(scene);
+  return [-1, 0, 1, 2].map((copy) => ({
+    ...base,
+    x: -offset + copy * PANORAMA_WIDTH,
+  }));
+}
+
 function decorObjectsForScene(scene) {
   return placedDecorForScene(scene)
-    .map((item) => {
+    .flatMap((item) => {
       const position = getDecorPosition(item);
-      const backdropLocked = scene === "outdoor" || scene === "waterfall" || scene === "mountain";
+      const backdropLocked = isBackdropLockedScene(scene);
       const renderScale = backdropLocked ? OUTDOOR_BACKDROP_DECOR_SCALE : 1;
       const layout = decorLayoutForItem(item);
-      return {
+      const x = backdropLocked ? position.x * OUTDOOR_BACKDROP_DECOR_X_SCALE : position.x;
+      const baseObject = {
         ...item,
         tex: decorTextureForItem(item),
-        x: backdropLocked ? position.x * OUTDOOR_BACKDROP_DECOR_X_SCALE : position.x,
+        x: scene === "underwater" ? wrapPanoramaX(x - panoramaOffset(scene)) : x,
         y: backdropLocked ? position.y + OUTDOOR_BACKDROP_DECOR_Y_OFFSET : position.y,
         z: backdropLocked ? OUTDOOR_BACKDROP_DECOR_Z : item.z,
         w: layout.w * renderScale,
@@ -2407,6 +2819,11 @@ function decorObjectsForScene(scene) {
         a: 1,
         interactive: { type: "decor", id: item.id },
       };
+      if (scene !== "underwater") return [baseObject];
+      return [-1, 0, 1].map((copy) => ({
+        ...baseObject,
+        x: baseObject.x + copy * PANORAMA_WIDTH,
+      }));
     });
 }
 
@@ -2453,7 +2870,7 @@ function petTextureKey(time = performance.now()) {
 
 function petScaleForScene(scene) {
   if (state.stage === "egg") return 1.0;
-  const base = scene === "home" || scene === "kitchen" ? 1.03 : (scene === "waterfall" || scene === "mountain") ? 1.12 : 1.08;
+  const base = scene === "home" || scene === "kitchen" ? 1.03 : (scene === "waterfall" || scene === "mountain" || scene === "underwater") ? 1.12 : 1.08;
   return base + Math.min(0.18, state.growth / 650);
 }
 

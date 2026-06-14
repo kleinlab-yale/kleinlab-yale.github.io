@@ -18,7 +18,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Dragging a pet close to the home couch snaps it into a couch-sit sprite pose.
 - Decor and pet placement use direct drag only; the old arrow move controls were removed.
 - Quest modals include a touch/mouse whiteboard for scratch math work.
-- Math content is now aimed at accelerated 4th-grade work: distributive property, combining like terms, equations, fraction equations, decimals as fractions, and area/perimeter.
+- Math content is now aimed at accelerated 4th-grade work: distributive property, combining like terms, equations, fraction equations, decimal multiplication/division, decimal-percent-fraction conversions, powers-of-10 decimal shifts, and area/perimeter.
 - Math problems are generated with a recent-prompt filter to avoid obvious repeats during a session.
 - The cottage can be entered after hatching; home and outdoor math unlock arrangeable decorations, and the TV/remote can cycle multiple channels.
 - Completing all living-room decor unlocks a new Kitchen room with its own generated backdrop and kitchen decor sprites.
@@ -28,6 +28,8 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Outdoor decor is anchored to the panning meadow backdrop and uses backdrop-scaled drag math so placed yard items can move freely while staying fixed to the scene.
 - Bridge Algebra now opens a real bridge crossing into Waterfall Clearing, with its own generated backdrop and waterfall decor sprites.
 - Clearing the boss quest at Waterfall opens Mountain Shelter, with a mountain backdrop, camp decor, and a hidden camp routine award.
+- Clearing the boss quest at Mountain Shelter opens a dive path below Waterfall Clearing into Underwater Reef, with a wraparound pannable backdrop, reef decor, and a hidden pearl-lit fetch award.
+- Underwater Reef switches each puppy to breed-specific scuba action sprites so idle, thinking, celebrate, wag, and roll actions keep visual continuity.
 - Repaired home/kitchen sprites replace cut-off and semi-transparent decor, with extra counter-scale kitchen items for player decoration.
 
 ## Files
@@ -44,6 +46,8 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - `tools/slice_waterfall_decor.py`: dependency-free PNG slicer for the Waterfall Clearing decoration atlas.
 - `tools/slice_kitchen_decor.py`: dependency-free PNG slicer for the Kitchen decoration atlas.
 - `tools/slice_outfit_action_sprites.py`: dependency-free PNG slicer for breed/outfit/action sprite sheets.
+- `tools/slice_underwater_decor.py`: dependency-free magenta-key slicer for Underwater Reef decor sprites.
+- `tools/slice_scuba_puppy_variants.py`: dependency-free magenta-key slicer for breed-specific scuba puppy action sprites.
 - `tools/slice_stateful_decor.py`: dependency-free PNG slicer for decor on/off and open/closed state pairs.
 - `tools/slice_magenta_repair_assets.py`: dependency-free slicer for magenta-key repaired decor, counter-item, and mountain camp atlases.
 - `tools/remove_magenta_key.py`: dependency-free magenta-key transparency cleaner for individual repaired sprites.
@@ -126,6 +130,15 @@ python3 tools/remove_magenta_key.py
 ```
 
 These tools process magenta-key repaired decor atlases and individual sprites for home/kitchen fixes, TV channels, remote, counter-scale kitchen decorations, and Mountain Shelter camp items.
+
+## Slice Underwater Reef Assets
+
+```bash
+python3 tools/slice_underwater_decor.py
+python3 tools/slice_scuba_puppy_variants.py
+```
+
+These tools process the Underwater Reef decor atlas and the golden, corgi, and husky scuba action atlases into transparent in-game PNG sprites.
 
 ## GitHub Pages
 

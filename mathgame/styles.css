@@ -143,6 +143,16 @@ button {
   top: 36%;
 }
 
+.underwater-hotspot {
+  right: max(44px, 5vw);
+  top: 62%;
+}
+
+.surface-hotspot {
+  left: max(42px, 4vw);
+  top: 32%;
+}
+
 .kitchen-hotspot {
   right: max(54px, 6vw);
   top: 36%;
@@ -876,17 +886,31 @@ input:focus {
   .exit-home-button,
   .meadow-hotspot,
   .waterfall-hotspot,
-  .living-room-hotspot {
+  .living-room-hotspot,
+  .surface-hotspot {
     left: max(12px, env(safe-area-inset-left));
     top: 42%;
   }
 
-  .bridge-hotspot,
-  .mountain-hotspot,
-  .kitchen-hotspot,
-  .tv-hotspot {
+  .bridge-hotspot {
     right: max(12px, env(safe-area-inset-right));
     top: 42%;
+  }
+
+  .mountain-hotspot,
+  .kitchen-hotspot {
+    right: max(12px, env(safe-area-inset-right));
+    top: 34%;
+  }
+
+  .tv-hotspot {
+    right: max(12px, env(safe-area-inset-right));
+    top: 46%;
+  }
+
+  .underwater-hotspot {
+    right: max(12px, env(safe-area-inset-right));
+    top: 58%;
   }
 
   .pet-card {
@@ -1079,30 +1103,34 @@ input:focus {
   }
 
   .objective-chip {
-    width: min(270px, 42vw);
-    padding: 8px 10px;
-    border-radius: 16px;
+    width: min(230px, 32vw);
+    padding: 6px 9px;
+    border-radius: 14px;
   }
 
   .objective-chip span:last-child {
     display: none;
   }
 
+  .objective-chip .micro {
+    font-size: 0.5rem;
+  }
+
   .objective-chip strong {
-    font-size: 0.86rem;
+    font-size: 0.78rem;
   }
 
   .hud-actions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, auto);
     justify-content: flex-end;
-    gap: 5px;
+    gap: 4px;
   }
 
   .ghost-button {
-    min-height: 32px;
-    padding: 6px 8px;
-    font-size: 0.66rem;
+    min-height: 28px;
+    padding: 5px 7px;
+    font-size: 0.6rem;
   }
 
   .pet-card {
@@ -1112,48 +1140,56 @@ input:focus {
   .world-strip {
     left: max(8px, env(safe-area-inset-left));
     right: auto;
-    bottom: max(8px, env(safe-area-inset-bottom));
-    max-width: min(310px, calc(100vw - 360px));
-    padding: 7px 9px;
-    border-radius: 16px;
-    font-size: 0.64rem;
+    bottom: max(6px, env(safe-area-inset-bottom));
+    max-width: min(258px, 38vw);
+    gap: 4px 7px;
+    padding: 5px 8px;
+    border-radius: 14px;
+    font-size: 0.58rem;
+    line-height: 1.05;
+  }
+
+  .world-strip span:nth-child(4) {
+    display: none;
   }
 
   .bottom-controls {
     right: max(8px, env(safe-area-inset-right));
     left: auto;
-    bottom: max(8px, env(safe-area-inset-bottom));
-    width: min(310px, 52vw);
-    gap: 8px;
+    bottom: max(6px, env(safe-area-inset-bottom));
+    width: min(270px, 42vw);
+    gap: 6px;
     transform: none;
   }
 
   .quest-button {
     min-width: 0;
     flex: 1;
-    min-height: 48px;
-    padding: 7px 12px;
+    min-height: 42px;
+    padding: 6px 10px;
   }
 
   .quest-button span {
-    font-size: 0.56rem;
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
   }
 
   .quest-button strong {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
   }
 
   .round-action {
-    width: 48px;
-    height: 48px;
-    min-height: 48px;
+    width: 42px;
+    height: 42px;
+    min-height: 42px;
+    font-size: 0.68rem;
   }
 
   .scene-hotspot {
-    min-width: 72px;
-    min-height: 32px;
-    padding: 6px 9px;
-    font-size: 0.66rem;
+    min-width: 66px;
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 0.6rem;
   }
 
   .glass-panel {
@@ -1162,13 +1198,13 @@ input:focus {
   }
 }
 
-@media (min-width: 821px) and (max-width: 1120px) {
+@media (min-width: 821px) and (max-width: 1120px) and (min-height: 521px) {
   .world-strip {
     bottom: calc(104px + env(safe-area-inset-bottom));
   }
 }
 
-@media (max-height: 760px) and (min-width: 821px) {
+@media (max-height: 760px) and (min-width: 821px) and (min-height: 521px) {
   .bottom-controls {
     bottom: max(14px, env(safe-area-inset-bottom));
   }

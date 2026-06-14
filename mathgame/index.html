@@ -9,12 +9,16 @@
     <link rel="preload" href="assets/gpt-kitchen-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-waterfall-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-mountain-backdrop.png" as="image" />
+    <link rel="preload" href="assets/gpt-underwater-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-egg.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-golden-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-corgi-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-husky-base.png" as="image" />
+    <link rel="preload" href="assets/gpt-puppy-golden-scuba-base.png" as="image" />
+    <link rel="preload" href="assets/gpt-puppy-corgi-scuba-base.png" as="image" />
+    <link rel="preload" href="assets/gpt-puppy-husky-scuba-base.png" as="image" />
     <link rel="icon" href="assets/gpt-egg.png" />
-    <link rel="stylesheet" href="styles.css?v=20260614-iphone2" />
+    <link rel="stylesheet" href="styles.css?v=20260614-decimal-fluency" />
   </head>
   <body>
     <main class="game-shell" id="gameShell">
@@ -37,6 +41,12 @@
       </button>
       <button id="waterfallHotspot" class="scene-hotspot waterfall-hotspot" type="button">
         <span>Back Waterfall</span>
+      </button>
+      <button id="underwaterHotspot" class="scene-hotspot underwater-hotspot" type="button">
+        <span>Dive Below</span>
+      </button>
+      <button id="surfaceHotspot" class="scene-hotspot surface-hotspot" type="button">
+        <span>Surface</span>
       </button>
       <button id="kitchenHotspot" class="scene-hotspot kitchen-hotspot" type="button">
         <span>Kitchen</span>
@@ -170,11 +180,12 @@
           <button id="decorOutdoorTab" data-decor-scene="outdoor" type="button">Outside</button>
           <button id="decorWaterfallTab" data-decor-scene="waterfall" type="button">Waterfall</button>
           <button id="decorMountainTab" data-decor-scene="mountain" type="button">Mountain</button>
+          <button id="decorUnderwaterTab" data-decor-scene="underwater" type="button">Underwater</button>
         </div>
         <div class="decor-grid" id="decorGrid"></div>
       </div>
     </section>
 
-    <script src="script.js?v=20260614-iphone2"></script>
+    <script src="script.js?v=20260614-decimal-fluency"></script>
   </body>
 </html>
