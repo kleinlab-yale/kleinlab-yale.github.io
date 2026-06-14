@@ -7,6 +7,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Full-screen game space instead of dashboard cards.
 - WebGL-rendered world using GPT-generated raster PNG assets.
 - Small HUD: current objective, pet meters, world progress, closet, and one main math button.
+- Phone-safe HUD and overlays: iPhone-sized screens use compact controls, safe-area padding, and scrollable modals.
 - Math appears only when the player clicks `Practice Math`.
 - Same-device save data through `localStorage`.
 - Quest gates require enough correct answers; wrong attempts do not pass the level.
