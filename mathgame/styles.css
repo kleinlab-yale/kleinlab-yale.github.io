@@ -163,11 +163,6 @@ button {
   top: 38%;
 }
 
-.tv-hotspot {
-  right: max(90px, 8vw);
-  top: 46%;
-}
-
 .hud-top,
 .pet-card,
 .world-strip,
@@ -395,6 +390,62 @@ button {
   height: 64px;
   color: white;
   background: linear-gradient(135deg, #6bd5ef, #8178f4);
+}
+
+.decor-remove-target {
+  position: absolute;
+  z-index: 8;
+  left: max(18px, env(safe-area-inset-left));
+  top: calc(max(18px, env(safe-area-inset-top)) + 132px);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 112px;
+  min-height: 54px;
+  padding: 10px 13px 10px 10px;
+  border: 2px dashed rgba(222, 82, 100, 0.56);
+  border-radius: 22px;
+  background: rgba(255, 252, 240, 0.86);
+  box-shadow: var(--small-shadow);
+  color: var(--danger);
+  font-weight: 950;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px) scale(0.96);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.decor-remove-target.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.decor-remove-target.active {
+  border-color: rgba(255, 255, 255, 0.82);
+  background: rgba(222, 82, 100, 0.92);
+  color: #fff;
+  transform: translateY(0) scale(1.04);
+}
+
+.decor-remove-target span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.decor-remove-target.active span {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--danger);
+}
+
+.decor-remove-target strong {
+  font-size: 0.82rem;
 }
 
 .toast {
@@ -628,8 +679,19 @@ input:focus {
 
 .whiteboard-tools {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 14px;
+}
+
+.whiteboard-mode {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba(23, 38, 50, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.48);
 }
 
 .whiteboard-tools button {
@@ -642,6 +704,12 @@ input:focus {
   font-size: 0.82rem;
   font-weight: 950;
   transition: transform 160ms ease, background 160ms ease;
+}
+
+.whiteboard-tools button.active,
+.whiteboard-tools button[aria-pressed="true"] {
+  background: var(--ink);
+  color: #fffdf4;
 }
 
 .work-board {
@@ -670,6 +738,10 @@ input:focus {
   background-size: 28px 28px;
   touch-action: none;
   cursor: crosshair;
+}
+
+#whiteboardCanvas.eraser-mode {
+  cursor: cell;
 }
 
 .quest-feedback.good {
@@ -903,11 +975,6 @@ input:focus {
     top: 34%;
   }
 
-  .tv-hotspot {
-    right: max(12px, env(safe-area-inset-right));
-    top: 46%;
-  }
-
   .underwater-hotspot {
     right: max(12px, env(safe-area-inset-right));
     top: 58%;
@@ -987,6 +1054,19 @@ input:focus {
     padding: 9px 12px;
     border-radius: 18px;
     font-size: 0.78rem;
+  }
+
+  .decor-remove-target {
+    left: max(10px, env(safe-area-inset-left));
+    top: calc(max(8px, env(safe-area-inset-top)) + 124px);
+    min-width: 52px;
+    min-height: 52px;
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  .decor-remove-target strong {
+    display: none;
   }
 
   .overlay {
@@ -1190,6 +1270,10 @@ input:focus {
     min-height: 30px;
     padding: 5px 8px;
     font-size: 0.6rem;
+  }
+
+  .decor-remove-target {
+    top: max(48px, env(safe-area-inset-top));
   }
 
   .glass-panel {

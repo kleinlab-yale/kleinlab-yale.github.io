@@ -18,7 +18,7 @@
     <link rel="preload" href="assets/gpt-puppy-corgi-scuba-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-husky-scuba-base.png" as="image" />
     <link rel="icon" href="assets/gpt-egg.png" />
-    <link rel="stylesheet" href="styles.css?v=20260614-meadow-drag" />
+    <link rel="stylesheet" href="styles.css?v=20260615-appliance-states" />
   </head>
   <body>
     <main class="game-shell" id="gameShell">
@@ -54,10 +54,6 @@
       <button id="livingRoomHotspot" class="scene-hotspot living-room-hotspot" type="button">
         <span>Living Room</span>
       </button>
-      <button id="tvHotspot" class="scene-hotspot tv-hotspot" type="button">
-        <span>Change TV</span>
-      </button>
-
       <section class="hud-top" aria-label="Game status">
         <div class="objective-chip">
           <span class="micro">Current Quest</span>
@@ -111,6 +107,11 @@
         <button id="callPetButton" class="round-action" type="button" aria-label="Call pet">Call</button>
       </div>
 
+      <div id="decorRemoveTarget" class="decor-remove-target" aria-hidden="true">
+        <span>-</span>
+        <strong>Put away</strong>
+      </div>
+
       <div class="toast" id="toast" aria-live="polite"></div>
     </main>
 
@@ -144,6 +145,10 @@
         <div class="lesson-box" id="lessonBox"></div>
         <div class="whiteboard-tools">
           <button id="whiteboardToggle" type="button">Whiteboard</button>
+          <div class="whiteboard-mode" role="group" aria-label="Whiteboard drawing tool">
+            <button id="whiteboardPenButton" class="active" type="button" aria-pressed="true">Pen</button>
+            <button id="whiteboardEraserButton" type="button" aria-pressed="false">Erase</button>
+          </div>
           <button id="clearWhiteboardButton" type="button">Clear</button>
         </div>
         <div class="work-board" id="workBoard" aria-label="Scratch whiteboard">
@@ -186,6 +191,6 @@
       </div>
     </section>
 
-    <script src="script.js?v=20260614-meadow-drag"></script>
+    <script src="script.js?v=20260615-appliance-states"></script>
   </body>
 </html>

@@ -124,9 +124,39 @@ def write_png(path, width, height, rgba):
         fh.write(data)
 
 
-def crop_and_key(width, height, rgba, col, row):
-    cell_w = width // 4
-    cell_h = height // 2
+def green_key(r, g, b, a):
+    return a > 0 and g > 170 and g - max(r, b) > 58
+
+
+def green_soft_alpha(r, g, b, a):
+    score = g - max(r, b)
+    if a > 0 and g > 120 and score > 24:
+        return max(0, min(a, int((70 - score) * 5)))
+    return None
+
+
+def scrub_green(r, g, b):
+    return r, min(g, max(r, b) + 18), b
+
+
+def magenta_key(r, g, b, a):
+    return a > 0 and r > 185 and b > 185 and g < 115 and min(r, b) - g > 85
+
+
+def magenta_soft_alpha(r, g, b, a):
+    score = min(r, b) - g
+    if a > 0 and r > 150 and b > 150 and g < 155 and score > 42:
+        return max(0, min(a, int((95 - score) * 6)))
+    return None
+
+
+def scrub_magenta(r, g, b):
+    return min(r, max(g, b) + 18), g, min(b, max(r, g) + 18)
+
+
+def crop_cell(width, height, rgba, cols, rows, col, row):
+    cell_w = width // cols
+    cell_h = height // rows
     pad_x = int(cell_w * 0.035)
     pad_y = int(cell_h * 0.035)
     x0 = col * cell_w + pad_x
@@ -138,19 +168,125 @@ def crop_and_key(width, height, rgba, col, row):
         for x in range(out_w):
             src = ((y0 + y) * width + x0 + x) * 4
             dst = (y * out_w + x) * 4
-            r, g, b, a = rgba[src:src + 4]
-            green_score = g - max(r, b)
-            if g > 150 and green_score > 45:
-                alpha = 0
-            elif g > 120 and green_score > 22:
-                alpha = max(0, min(255, int((45 - green_score) * 10)))
-            else:
-                alpha = a
-            out[dst] = r
-            out[dst + 1] = min(g, max(r, b) + 18) if alpha < 255 else g
-            out[dst + 2] = b
-            out[dst + 3] = alpha
-    return trim_alpha(out_w, out_h, out)
+            out[dst:dst + 4] = rgba[src:src + 4]
+    return out_w, out_h, out
+
+
+def _masked_neighbor(mask, width, height, x, y):
+    for yy in range(max(0, y - 1), min(height, y + 2)):
+        for xx in range(max(0, x - 1), min(width, x + 2)):
+            if xx == x and yy == y:
+                continue
+            if mask[yy * width + xx]:
+                return True
+    return False
+
+
+def key_connected_background(width, height, rgba, key_fn, soft_alpha_fn, scrub_fn):
+    mask = [False] * (width * height)
+    seen = [False] * (width * height)
+    stack = []
+
+    def visit(x, y):
+        index = y * width + x
+        if seen[index]:
+            return
+        seen[index] = True
+        pixel = index * 4
+        if key_fn(*rgba[pixel:pixel + 4]):
+            mask[index] = True
+            stack.append((x, y))
+
+    for x in range(width):
+        visit(x, 0)
+        visit(x, height - 1)
+    for y in range(1, height - 1):
+        visit(0, y)
+        visit(width - 1, y)
+
+    while stack:
+        x, y = stack.pop()
+        if x > 0:
+            visit(x - 1, y)
+        if x < width - 1:
+            visit(x + 1, y)
+        if y > 0:
+            visit(x, y - 1)
+        if y < height - 1:
+            visit(x, y + 1)
+
+    out = bytearray(rgba)
+    for index, is_background in enumerate(mask):
+        if is_background:
+            out[index * 4 + 3] = 0
+
+    for y in range(height):
+        for x in range(width):
+            index = y * width + x
+            if mask[index] or not _masked_neighbor(mask, width, height, x, y):
+                continue
+            pixel = index * 4
+            r, g, b, a = out[pixel:pixel + 4]
+            alpha = soft_alpha_fn(r, g, b, a)
+            if alpha is None or alpha >= a:
+                continue
+            out[pixel], out[pixel + 1], out[pixel + 2] = scrub_fn(r, g, b)
+            out[pixel + 3] = alpha
+
+    return trim_alpha(width, height, out)
+
+
+def keep_largest_component(width, height, rgba, alpha_threshold=8):
+    labels = [-1] * (width * height)
+    components = []
+
+    for start in range(width * height):
+        if labels[start] != -1 or rgba[start * 4 + 3] <= alpha_threshold:
+            continue
+        label = len(components)
+        labels[start] = label
+        stack = [start]
+        pixels = []
+        while stack:
+            index = stack.pop()
+            pixels.append(index)
+            x = index % width
+            y = index // width
+            neighbors = []
+            if x > 0:
+                neighbors.append(index - 1)
+            if x < width - 1:
+                neighbors.append(index + 1)
+            if y > 0:
+                neighbors.append(index - width)
+            if y < height - 1:
+                neighbors.append(index + width)
+            for neighbor in neighbors:
+                if labels[neighbor] == -1 and rgba[neighbor * 4 + 3] > alpha_threshold:
+                    labels[neighbor] = label
+                    stack.append(neighbor)
+        components.append(pixels)
+
+    if len(components) <= 1:
+        return width, height, rgba
+
+    keep = max(range(len(components)), key=lambda index: len(components[index]))
+    out = bytearray(rgba)
+    for label, pixels in enumerate(components):
+        if label == keep:
+            continue
+        for index in pixels:
+            out[index * 4 + 3] = 0
+    return trim_alpha(width, height, out)
+
+
+def crop_keyed_cell(width, height, rgba, cols, rows, col, row, key_fn, soft_alpha_fn, scrub_fn):
+    out_w, out_h, out = crop_cell(width, height, rgba, cols, rows, col, row)
+    return key_connected_background(out_w, out_h, out, key_fn, soft_alpha_fn, scrub_fn)
+
+
+def crop_and_key(width, height, rgba, col, row):
+    return crop_keyed_cell(width, height, rgba, 4, 2, col, row, green_key, green_soft_alpha, scrub_green)
 
 
 def trim_alpha(width, height, rgba):

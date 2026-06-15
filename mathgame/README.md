@@ -20,7 +20,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Quest modals include a touch/mouse whiteboard for scratch math work.
 - Math content is now aimed at accelerated 4th-grade work: distributive property, combining like terms, equations, fraction equations, decimal multiplication/division, decimal-percent-fraction conversions, powers-of-10 decimal shifts, and area/perimeter.
 - Math problems are generated with a recent-prompt filter to avoid obvious repeats during a session.
-- The cottage can be entered after hatching; home and outdoor math unlock arrangeable decorations, and the TV/remote can cycle multiple channels.
+- The cottage can be entered after hatching; home and outdoor math unlock arrangeable decorations, and the placed remote cycles fixed-frame TV channels.
 - Completing all living-room decor unlocks a new Kitchen room with its own generated backdrop and kitchen decor sprites.
 - Secret one-time engagement awards can fire from specific action/decor combinations without listing the recipes in the UI.
 - Tapping placed stateful decor toggles real sprite states: TV channels, lamp on/off, fridge open/closed, oven open/closed, and campfire lit/out.
@@ -29,7 +29,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Outdoor decor is anchored to the panning meadow backdrop and uses backdrop-scaled drag math so placed yard items can move freely while staying fixed to the scene.
 - Bridge Algebra now opens a real bridge crossing into Waterfall Clearing, with its own generated backdrop and waterfall decor sprites.
 - Clearing the boss quest at Waterfall opens Mountain Shelter, with a mountain backdrop, camp decor, and a hidden camp routine award.
-- Clearing the boss quest at Mountain Shelter opens a dive path below Waterfall Clearing into Underwater Reef, with a wraparound pannable backdrop, reef decor, and a hidden pearl-lit fetch award.
+- A hidden Waterfall secret unlocks Diving Gear and opens the dive path below Waterfall Clearing into Underwater Reef.
 - Underwater Reef switches each puppy to breed-specific scuba action sprites so idle, thinking, celebrate, wag, and roll actions keep visual continuity.
 - Repaired home/kitchen sprites replace cut-off and semi-transparent decor, with extra counter-scale kitchen items for player decoration.
 
