@@ -87,6 +87,7 @@ const ASSETS = {
   homeLamp: "assets/gpt-home-lamp-off.png",
   homeLampOn: "assets/gpt-home-lamp-on.png",
   homeTable: "assets/gpt-home-table.png",
+  homeRockingDogToy: "assets/gpt-home-rocking-dog-toy.png",
   kitchenCounter: "assets/gpt-kitchen-counter.png",
   kitchenWallShelves: "assets/gpt-kitchen-wall-shelves.png",
   kitchenSnackCart: "assets/gpt-kitchen-snack-cart.png",
@@ -116,6 +117,7 @@ const ASSETS = {
   waterfallLantern: "assets/gpt-waterfall-lantern.png",
   waterfallLilypads: "assets/gpt-waterfall-lilypads.png",
   waterfallBasket: "assets/gpt-waterfall-basket.png",
+  waterfallLavenderPlush: "assets/gpt-waterfall-lavender-plush.png",
   mountainTent: "assets/gpt-mountain-tent.png",
   mountainCampfireOff: "assets/gpt-mountain-campfire-off.png",
   mountainCampfireOn: "assets/gpt-mountain-campfire-on.png",
@@ -163,6 +165,7 @@ const DECOR_ITEMS = [
   { id: "lamp", scene: "home", name: "Warm lamp", tex: "homeLamp", x: 2.82, y: 1.16, z: 0.42, w: 0.8, h: 1.42, reward: "Home math", cost: { coins: 45, gems: 0 } },
   { id: "table", scene: "home", name: "Reading table", tex: "homeTable", x: 0.74, y: 0.66, z: 0.55, w: 1.12, h: 1.06, reward: "Home math", cost: { coins: 50, gems: 0 } },
   { id: "remote", scene: "home", name: "TV remote", tex: "homeRemote", x: 0.05, y: 0.34, z: 0.62, w: 0.45, h: 0.32, reward: "TV decor", cost: { coins: 25, gems: 0 }, optional: true },
+  { id: "rockingDogToy", scene: "home", name: "Rocking puppy", tex: "homeRockingDogToy", x: -2.75, y: 0.48, z: 0.64, w: 1.12, h: 1.22, reward: "Home math", cost: { coins: 70, gems: 0 }, optional: true },
   { id: "kitchenCounter", scene: "kitchen", name: "Kitchen counter", tex: "kitchenCounter", x: -1.88, y: 0.58, z: 0.43, w: 2.35, h: 0.95, reward: "Kitchen quests", cost: { coins: 115, gems: 1 } },
   { id: "kitchenWallShelves", scene: "kitchen", name: "Wall shelves", tex: "kitchenWallShelves", x: -2.38, y: 1.86, z: 0.41, w: 1.74, h: 0.92, reward: "Kitchen quests", cost: { coins: 85, gems: 0 } },
   { id: "snackCart", scene: "kitchen", name: "Snack cart", tex: "kitchenSnackCart", x: -3.6, y: 0.58, z: 0.42, w: 1.36, h: 1.28, reward: "Kitchen quests", cost: { coins: 95, gems: 0 } },
@@ -187,6 +190,7 @@ const DECOR_ITEMS = [
   { id: "waterfallLantern", scene: "waterfall", name: "Firefly lantern", tex: "waterfallLantern", x: 2.05, y: 0.72, z: 0.44, w: 0.82, h: 1.34, reward: "Waterfall quests", cost: { coins: 90, gems: 1 } },
   { id: "waterfallLilypads", scene: "waterfall", name: "Lily stepping stones", tex: "waterfallLilypads", x: 0.86, y: 0.27, z: 0.56, w: 1.15, h: 0.84, reward: "Waterfall quests", cost: { coins: 55, gems: 0 } },
   { id: "waterfallBasket", scene: "waterfall", name: "Picnic basket", tex: "waterfallBasket", x: 2.36, y: 0.45, z: 0.52, w: 1.05, h: 0.9, reward: "Waterfall quests", cost: { coins: 85, gems: 1 } },
+  { id: "lavenderPlush", scene: "waterfall", name: "Lavender plush", tex: "waterfallLavenderPlush", x: -2.62, y: 0.42, z: 0.62, w: 1.0, h: 0.93, reward: "Waterfall quests", cost: { coins: 70, gems: 0 }, optional: true },
   { id: "mountainTent", scene: "mountain", name: "Summit tent", tex: "mountainTent", x: -2.25, y: 0.74, z: 0.42, w: 1.52, h: 1.38, reward: "Summit Trail", cost: { coins: 125, gems: 1 } },
   { id: "mountainCampfire", scene: "mountain", name: "Campfire ring", tex: "mountainCampfireOff", x: 0.02, y: 0.42, z: 0.62, w: 1.0, h: 0.9, reward: "Mountain quests", cost: { coins: 95, gems: 1 } },
   { id: "mountainSnacks", scene: "mountain", name: "Trail snacks", tex: "mountainSnacks", x: 1.42, y: 0.46, z: 0.58, w: 0.86, h: 0.86, reward: "Mountain quests", cost: { coins: 75, gems: 0 } },
@@ -360,6 +364,7 @@ let selectedMoveTarget = { type: "pet", scene: "home" };
 let lastInteractiveObjects = [];
 let dragState = null;
 let recentProblemKeys = [];
+let workbookProblemIndex = 0;
 let whiteboardDrawing = null;
 let whiteboardTool = "pen";
 const URL_PARAMS = new URLSearchParams(window.location.search);
@@ -396,9 +401,9 @@ if (IS_DEMO) {
     mountainUnlocked: true,
     underwaterUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
-    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
     decorPositions: {},
     decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1 },
     petPositions: {
@@ -1854,6 +1859,8 @@ function finishRound() {
 }
 
 function makeProblem(type, world) {
+  const workbookProblem = nextWorkbookProblem();
+  if (workbookProblem) return workbookProblem;
   for (let attempt = 0; attempt < 18; attempt += 1) {
     const item = makeProblemCandidate(type, world);
     const key = `${type}:${item.prompt}`;
@@ -1864,6 +1871,23 @@ function makeProblem(type, world) {
     }
   }
   return makeProblemCandidate(type, world);
+}
+
+function nextWorkbookProblem() {
+  const bank = Array.isArray(window.MATHGAME_WORKBOOK_QUESTIONS) ? window.MATHGAME_WORKBOOK_QUESTIONS : [];
+  if (!bank.length) return null;
+  const raw = bank[workbookProblemIndex % bank.length];
+  workbookProblemIndex += 1;
+  return {
+    prompt: raw.prompt,
+    answer: raw.answer,
+    answerType: raw.answerType || "number",
+    displayAnswer: raw.displayAnswer ?? String(raw.answer),
+    lessonTitle: raw.lessonTitle || "Workbook question",
+    steps: Array.isArray(raw.steps) ? [...raw.steps] : ["Use the worksheet strategy.", "Work carefully.", "Check your answer."],
+    choices: Array.isArray(raw.choices) ? [...raw.choices] : null,
+    placeholder: raw.placeholder || "Type answer",
+  };
 }
 
 function makeProblemCandidate(type, world) {
@@ -2303,8 +2327,27 @@ function isCorrect(value, item) {
   if (item.answerType === "remainder") return normalize(value) === normalize(item.answer).replace("remainder", "r");
   if (item.answerType === "choice") return normalizeChoice(value) === normalizeChoice(item.answer);
   if (item.answerType === "linear") return sameLinearExpression(value, item.answer);
+  if (item.answerType === "numberList") return sameNumberList(value, item.answer);
+  if (item.answerType === "text") return sameTextAnswer(value, item.answer);
   if (item.answerType === "rational") return sameRational(value, item.answer);
   return normalize(value) === normalize(item.answer);
+}
+
+function sameNumberList(value, expected) {
+  const actual = String(value).match(/-?\d+(\.\d+)?/g)?.map(Number) || [];
+  return Array.isArray(expected)
+    && actual.length >= expected.length
+    && expected.every((number, index) => Math.abs(actual[index] - Number(number)) < 0.001);
+}
+
+function sameTextAnswer(value, expected) {
+  const actual = normalize(value);
+  const target = normalize(expected);
+  if (actual === target) return true;
+  if (target === "3halvesand2thirds") {
+    return actual.includes("3") && actual.includes("half") && actual.includes("2") && actual.includes("third");
+  }
+  return false;
 }
 
 function samePercent(value, expected) {
@@ -2385,6 +2428,8 @@ function sameLinearExpression(value, expected) {
   return Boolean(actual)
     && actual.a === (expected.a || 0)
     && actual.b === (expected.b || 0)
+    && actual.x === (expected.x || 0)
+    && actual.y === (expected.y || 0)
     && actual.c === (expected.c || 0);
 }
 
@@ -2397,7 +2442,7 @@ function parseLinearExpression(value) {
   if (!/^[+-]/.test(text)) text = `+${text}`;
   const parts = text.match(/[+-][^+-]+/g);
   if (!parts) return null;
-  const result = { a: 0, b: 0, c: 0 };
+  const result = { a: 0, b: 0, x: 0, y: 0, c: 0 };
 
   for (const part of parts) {
     const sign = part[0] === "-" ? -1 : 1;
@@ -2409,6 +2454,12 @@ function parseLinearExpression(value) {
     } else if (body.includes("b")) {
       const coefficient = body.replace("b", "");
       result.b += sign * parseCoefficient(coefficient);
+    } else if (body.includes("x")) {
+      const coefficient = body.replace("x", "");
+      result.x += sign * parseCoefficient(coefficient);
+    } else if (body.includes("y")) {
+      const coefficient = body.replace("y", "");
+      result.y += sign * parseCoefficient(coefficient);
     } else if (/^\d+$/.test(body)) {
       result.c += sign * Number(body);
     } else {
@@ -2429,6 +2480,8 @@ function formatLinear(expression) {
   const terms = [];
   addLinearTerm(terms, expression.a || 0, "a");
   addLinearTerm(terms, expression.b || 0, "b");
+  addLinearTerm(terms, expression.x || 0, "x");
+  addLinearTerm(terms, expression.y || 0, "y");
   addConstantTerm(terms, expression.c || 0);
   return terms.length ? terms.join(" ") : "0";
 }
