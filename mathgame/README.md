@@ -25,6 +25,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Secret one-time engagement awards can fire from specific action/decor combinations without listing the recipes in the UI.
 - Tapping placed stateful decor toggles real sprite states: TV channels, lamp on/off, fridge open/closed, oven open/closed, and campfire lit/out.
 - Math now drives a simple game economy: correct answers and quest clears earn coins, perfect clears and boss quests discover gems, and coins/gems buy snacks, wardrobe items, and decor.
+- Optional Outdoor toy decor can use user-reference generated PNG sprites, such as the Piggy car toy, without blocking required world progression.
 - Outdoor decor is anchored to the panning meadow backdrop and uses backdrop-scaled drag math so placed yard items can move freely while staying fixed to the scene.
 - Bridge Algebra now opens a real bridge crossing into Waterfall Clearing, with its own generated backdrop and waterfall decor sprites.
 - Clearing the boss quest at Waterfall opens Mountain Shelter, with a mountain backdrop, camp decor, and a hidden camp routine award.
