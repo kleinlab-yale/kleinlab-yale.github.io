@@ -209,6 +209,12 @@ const MOVE_BOUNDS = {
   mountain: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
   underwater: { x: [-12, 12], y: [-1.1, 4.15] },
 };
+const BACKDROP_DECOR_MOVE_BOUNDS = {
+  outdoor: { x: [-5.45, 5.45], y: [-3.85, 4.15] },
+  waterfall: { x: [-5.45, 5.45], y: [-3.85, 4.15] },
+  mountain: { x: [-5.45, 5.45], y: [-3.85, 4.15] },
+  underwater: { x: [-12, 12], y: [-3.85, 4.15] },
+};
 const FEED_COIN_COST = 10;
 const COUCH_PET_OFFSET = { x: 0.02, y: 0.38 };
 const OUTDOOR_BACKDROP_DECOR_Z = -6.4;
@@ -563,7 +569,7 @@ function normalizeDecorPositions(value) {
   const source = value && typeof value === "object" ? value : {};
   return DECOR_ITEMS.reduce((positions, item) => {
     if (source[item.id] && typeof source[item.id] === "object") {
-      positions[item.id] = clampScenePosition(item.scene, source[item.id]);
+      positions[item.id] = clampDecorPosition(item, source[item.id]);
     }
     return positions;
   }, {});
@@ -707,7 +713,7 @@ function getDecorPosition(item) {
 }
 
 function setDecorPosition(item, position) {
-  state.decorPositions[item.id] = clampScenePosition(item.scene, position);
+  state.decorPositions[item.id] = clampDecorPosition(item, position);
 }
 
 function getPetPosition(scene = currentScene()) {
@@ -722,6 +728,16 @@ function clampScenePosition(scene, position) {
   const bounds = MOVE_BOUNDS[scene] || MOVE_BOUNDS.outdoor;
   return {
     x: isPanoramaScene(scene)
+      ? wrapPanoramaX(position?.x ?? 0)
+      : clamp(position?.x ?? 0, bounds.x[0], bounds.x[1]),
+    y: clamp(position?.y ?? 0, bounds.y[0], bounds.y[1]),
+  };
+}
+
+function clampDecorPosition(item, position) {
+  const bounds = BACKDROP_DECOR_MOVE_BOUNDS[item.scene] || MOVE_BOUNDS[item.scene] || MOVE_BOUNDS.outdoor;
+  return {
+    x: isPanoramaScene(item.scene)
       ? wrapPanoramaX(position?.x ?? 0)
       : clamp(position?.x ?? 0, bounds.x[0], bounds.x[1]),
     y: clamp(position?.y ?? 0, bounds.y[0], bounds.y[1]),
