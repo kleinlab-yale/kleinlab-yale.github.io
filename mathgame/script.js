@@ -87,7 +87,7 @@ const ASSETS = {
   homeLamp: "assets/gpt-home-lamp-off.png",
   homeLampOn: "assets/gpt-home-lamp-on.png",
   homeTable: "assets/gpt-home-table.png",
-  homeRockingDogToy: "assets/gpt-home-rocking-dog-toy.png",
+  homeRockingDogToy: "assets/gpt-home-rocking-dog-toy.png?v=20260615-rocking-dog-v2",
   kitchenCounter: "assets/gpt-kitchen-counter.png",
   kitchenWallShelves: "assets/gpt-kitchen-wall-shelves.png",
   kitchenSnackCart: "assets/gpt-kitchen-snack-cart.png",
