@@ -121,7 +121,7 @@ const ASSETS = {
   waterfallLantern: "assets/gpt-waterfall-lantern.png",
   waterfallLilypads: "assets/gpt-waterfall-lilypads.png",
   waterfallBasket: "assets/gpt-waterfall-basket.png",
-  waterfallLavenderPlush: "assets/gpt-waterfall-lavender-plush.png",
+  waterfallLavenderPlush: "assets/gpt-waterfall-lavender-plush.png?v=20260616-lavender-plush-v2",
   mountainTent: "assets/gpt-mountain-tent.png",
   mountainCampfireOff: "assets/gpt-mountain-campfire-off.png",
   mountainCampfireOn: "assets/gpt-mountain-campfire-on.png",
