@@ -2321,8 +2321,8 @@ function problem(prompt, answer, lessonTitle, steps, answerType = "number", choi
 }
 
 function isCorrect(value, item) {
-  if (item.answerType === "number") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
-  if (item.answerType === "decimal") return Math.abs(Number(value) - Number(item.answer)) < 0.001;
+  if (item.answerType === "number") return sameNumberAnswer(value, item.answer);
+  if (item.answerType === "decimal") return sameNumberAnswer(value, item.answer);
   if (item.answerType === "percent") return samePercent(value, item.answer);
   if (item.answerType === "remainder") return normalize(value) === normalize(item.answer).replace("remainder", "r");
   if (item.answerType === "choice") return normalizeChoice(value) === normalizeChoice(item.answer);
@@ -2331,6 +2331,27 @@ function isCorrect(value, item) {
   if (item.answerType === "text") return sameTextAnswer(value, item.answer);
   if (item.answerType === "rational") return sameRational(value, item.answer);
   return normalize(value) === normalize(item.answer);
+}
+
+function sameNumberAnswer(value, expected) {
+  const actual = parseNumberAnswer(value);
+  const target = Number(expected);
+  return actual !== null && Number.isFinite(target) && Math.abs(actual - target) < 0.001;
+}
+
+function parseNumberAnswer(value) {
+  const rationalValue = parseRational(String(value).replace(/,/g, ""));
+  if (rationalValue && rationalValue.d) return rationalValue.n / rationalValue.d;
+
+  let text = String(value).toLowerCase().replace(/[−–—]/g, "-").trim();
+  if (!text) return null;
+  if (text.includes("=")) text = text.split("=").pop().trim();
+  text = text
+    .replace(/^(x|y|n)\s+(is|equals?)\s+/i, "")
+    .replace(/^(x|y|n)\s+/i, "")
+    .replace(/\s+/g, "");
+  const match = text.match(/^-?\d+(\.\d+)?$/);
+  return match ? Number(match[0]) : null;
 }
 
 function sameNumberList(value, expected) {
