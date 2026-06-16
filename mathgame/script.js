@@ -786,6 +786,18 @@ function clampDecorPosition(item, position) {
   };
 }
 
+function centeredDecorPosition(item) {
+  const bounds = BACKDROP_DECOR_MOVE_BOUNDS[item.scene] || MOVE_BOUNDS[item.scene] || MOVE_BOUNDS.outdoor;
+  return clampDecorPosition(item, {
+    x: isPanoramaScene(item.scene) ? 0 : (bounds.x[0] + bounds.x[1]) / 2,
+    y: (bounds.y[0] + bounds.y[1]) / 2,
+  });
+}
+
+function resetDecorPosition(item) {
+  state.decorPositions[item.id] = centeredDecorPosition(item);
+}
+
 function isDecorUnlocked(id) {
   return state.decorUnlocked.includes(id);
 }
@@ -1334,19 +1346,14 @@ function toggleDecorItem(itemId) {
     return;
   }
   if (isDecorPlaced(item.id)) {
-    if (selectedMoveTarget.type === "decor" && selectedMoveTarget.id === item.id) {
-      state.decorPlaced = state.decorPlaced.filter((id) => id !== item.id);
-      selectedMoveTarget = { type: "pet", scene: item.scene };
-      showToast(`${item.name} put away.`);
-    } else {
-      selectedMoveTarget = { type: "decor", id: item.id };
-      showToast(`${item.name} selected.`);
-    }
+    state.decorPlaced = state.decorPlaced.filter((id) => id !== item.id);
+    selectedMoveTarget = { type: "pet", scene: item.scene };
+    showToast(`${item.name} put away. Tap it again to place it in the center.`);
   } else {
     state.decorPlaced.push(item.id);
-    if (!state.decorPositions[item.id]) state.decorPositions[item.id] = defaultDecorPosition(item);
+    resetDecorPosition(item);
     selectedMoveTarget = { type: "decor", id: item.id };
-    showToast(`${item.name} placed.`);
+    showToast(`${item.name} placed in the center.`);
   }
   checkSecretAwards("decor");
   saveState();
@@ -2127,7 +2134,7 @@ function makeMixedFractionEquationProblem() {
   const part = rand(1, denominator - 1);
   const right = rational(rand(1, denominator - 1), denominator);
   const answer = rational(whole * denominator + part + right.n, denominator);
-  return rationalProblem(`Solve: x - ${whole} ${part}/${denominator} = ${right.n}/${right.d}`, answer, "Mixed-number equation", [
+  return rationalProblem(`Solve: x - ${formatMixedNumberText(whole, part, denominator)} = ${right.n}/${right.d}`, answer, "Mixed-number equation", [
     "Add the mixed number to both sides.",
     "Rename fractions with a common denominator.",
     "Mixed-number answers are accepted.",
@@ -2150,8 +2157,12 @@ function formatRationalValue(value) {
   if (value.d === 1) return String(value.n);
   const whole = Math.trunc(value.n / value.d);
   const remainder = Math.abs(value.n % value.d);
-  if (whole && remainder) return `${whole} ${remainder}/${value.d}`;
+  if (whole && remainder) return formatMixedNumberText(whole, remainder, value.d);
   return `${value.n}/${value.d}`;
+}
+
+function formatMixedNumberText(whole, numerator, denominator) {
+  return `${whole} and ${numerator}/${denominator}`;
 }
 
 function makeWordEquationProblem() {
@@ -2415,7 +2426,11 @@ function parseRational(value) {
   let text = String(value).toLowerCase().replace(/[−–—]/g, "-").trim();
   if (!text) return null;
   if (text.includes("=")) text = text.split("=").pop().trim();
-  text = text.replace(/^x\s*/i, "").trim();
+  text = text
+    .replace(/^(x|y|n)\s+(is|equals?)\s+/i, "")
+    .replace(/^(x|y|n)\s*/i, "")
+    .replace(/(-?\d+)\s*and\s*(\d+\/\d+)/i, "$1 $2")
+    .trim();
   text = text.replace(/\s+/g, " ");
 
   const mixed = text.match(/^(-?\d+)\s+(\d+)\/(\d+)$/);
