@@ -1,6 +1,8 @@
 const SAVE_KEY = "math-pet-sky-meadow-v3";
 const QUEST_PASS = 3;
 const BOSS_PASS = 5;
+const RECENT_PROBLEM_LIMIT = 60;
+const KITCHEN_WORKBOOK_RATE = 0.35;
 
 const PET_VARIANTS = {
   golden: { name: "golden puppy", egg: "sunny" },
@@ -87,7 +89,7 @@ const ASSETS = {
   homeLamp: "assets/gpt-home-lamp-off.png",
   homeLampOn: "assets/gpt-home-lamp-on.png",
   homeTable: "assets/gpt-home-table.png",
-  homeRockingDogToy: "assets/gpt-home-rocking-dog-toy.png?v=20260615-rocking-dog-v2",
+  homeRockingDogToy: "assets/gpt-home-rocking-dog-toy.png?v=20260615-rocking-dog-v3",
   kitchenCounter: "assets/gpt-kitchen-counter.png",
   kitchenWallShelves: "assets/gpt-kitchen-wall-shelves.png",
   kitchenSnackCart: "assets/gpt-kitchen-snack-cart.png",
@@ -108,6 +110,8 @@ const ASSETS = {
   kitchenRecipeBook: "assets/gpt-kitchen-recipe-book.png",
   kitchenHerbPlanter: "assets/gpt-kitchen-herb-planter.png",
   kitchenPuppyMug: "assets/gpt-kitchen-puppy-mug.png",
+  kitchenSink: "assets/gpt-kitchen-sink.png?v=20260616-kitchen-sink",
+  kitchenSinkOn: "assets/gpt-kitchen-sink-on.png?v=20260616-kitchen-sink",
   yardBench: "assets/gpt-yard-bench.png",
   yardBall: "assets/gpt-yard-ball.png",
   yardToys: "assets/gpt-yard-toys.png",
@@ -167,6 +171,7 @@ const DECOR_ITEMS = [
   { id: "remote", scene: "home", name: "TV remote", tex: "homeRemote", x: 0.05, y: 0.34, z: 0.62, w: 0.45, h: 0.32, reward: "TV decor", cost: { coins: 25, gems: 0 }, optional: true },
   { id: "rockingDogToy", scene: "home", name: "Rocking puppy", tex: "homeRockingDogToy", x: -2.75, y: 0.48, z: 0.64, w: 1.12, h: 1.22, reward: "Home math", cost: { coins: 70, gems: 0 }, optional: true },
   { id: "kitchenCounter", scene: "kitchen", name: "Kitchen counter", tex: "kitchenCounter", x: -1.88, y: 0.58, z: 0.43, w: 2.35, h: 0.95, reward: "Kitchen quests", cost: { coins: 115, gems: 1 } },
+  { id: "kitchenSink", scene: "kitchen", name: "Paw sink", tex: "kitchenSink", x: -0.18, y: 0.76, z: 0.43, w: 1.25, h: 1.54, reward: "Kitchen quests", cost: { coins: 95, gems: 0 } },
   { id: "kitchenWallShelves", scene: "kitchen", name: "Wall shelves", tex: "kitchenWallShelves", x: -2.38, y: 1.86, z: 0.41, w: 1.74, h: 0.92, reward: "Kitchen quests", cost: { coins: 85, gems: 0 } },
   { id: "snackCart", scene: "kitchen", name: "Snack cart", tex: "kitchenSnackCart", x: -3.6, y: 0.58, z: 0.42, w: 1.36, h: 1.28, reward: "Kitchen quests", cost: { coins: 95, gems: 0 } },
   { id: "kitchenFridge", scene: "kitchen", name: "Mint fridge", tex: "kitchenFridge", x: 3.5, y: 1.12, z: 0.38, w: 1.5, h: 2.34, reward: "Kitchen quests", cost: { coins: 110, gems: 1 } },
@@ -278,6 +283,7 @@ const TOGGLEABLE_DECOR = {
   lamp: { onName: "lamp on", offName: "lamp off" },
   tv: { onName: "next channel", offName: "TV off" },
   kitchenFridge: { onName: "fridge open", offName: "fridge closed" },
+  kitchenSink: { onName: "tap running", offName: "tap off" },
   oven: { onName: "next oven food", offName: "oven closed" },
   mountainCampfire: { onName: "fire lit", offName: "fire out" },
   underwaterPearlLamp: { onName: "pearl glowing", offName: "pearl dim" },
@@ -365,6 +371,8 @@ let lastInteractiveObjects = [];
 let dragState = null;
 let recentProblemKeys = [];
 let workbookProblemIndex = 0;
+let workbookQuestionOrder = [];
+let workbookQuestionCursor = 0;
 let whiteboardDrawing = null;
 let whiteboardTool = "pen";
 const URL_PARAMS = new URLSearchParams(window.location.search);
@@ -401,11 +409,11 @@ if (IS_DEMO) {
     mountainUnlocked: true,
     underwaterUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
-    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
     decorPositions: {},
-    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1 },
+    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, kitchenSink: 0, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1 },
     petPositions: {
       home: { x: -0.18, y: 0.48 },
       kitchen: { x: -0.12, y: 0.46 },
@@ -860,6 +868,7 @@ function decorTextureForItem(item) {
   if (item.id === "tv") return "homeTvOff";
   if (item.id === "lamp") return decorStateValue("lamp") ? "homeLampOn" : "homeLamp";
   if (item.id === "kitchenFridge") return decorStateValue("kitchenFridge") ? "kitchenFridgeOpen" : "kitchenFridge";
+  if (item.id === "kitchenSink") return decorStateValue("kitchenSink") ? "kitchenSinkOn" : "kitchenSink";
   if (item.id === "oven") return OVEN_STATES[decorStateValue("oven")]?.tex || "kitchenOven";
   if (item.id === "mountainCampfire") return decorStateValue("mountainCampfire") ? "mountainCampfireOn" : "mountainCampfireOff";
   if (item.id === "underwaterPearlLamp") return decorStateValue("underwaterPearlLamp") ? "underwaterPearlLampOn" : "underwaterPearlLampOff";
@@ -1866,25 +1875,70 @@ function finishRound() {
 }
 
 function makeProblem(type, world) {
-  const workbookProblem = nextWorkbookProblem();
-  if (workbookProblem) return workbookProblem;
-  for (let attempt = 0; attempt < 18; attempt += 1) {
-    const item = makeProblemCandidate(type, world);
-    const key = `${type}:${item.prompt}`;
-    if (!recentProblemKeys.includes(key) || attempt === 17) {
-      recentProblemKeys.push(key);
-      recentProblemKeys = recentProblemKeys.slice(-18);
-      return item;
-    }
+  const roundLocation = activeRound?.location || currentScene();
+  const workbookFirst = roundLocation !== "kitchen" || Math.random() < KITCHEN_WORKBOOK_RATE;
+  if (workbookFirst) {
+    const workbookProblem = nextWorkbookProblem(type);
+    if (workbookProblem) return workbookProblem;
   }
+  const generatedProblem = nextGeneratedProblem(type, world, roundLocation);
+  if (generatedProblem) return generatedProblem;
+  const workbookProblem = nextWorkbookProblem(type);
+  if (workbookProblem) return workbookProblem;
   return makeProblemCandidate(type, world);
 }
 
-function nextWorkbookProblem() {
+function nextGeneratedProblem(type, world, roundLocation = currentScene()) {
+  for (let attempt = 0; attempt < 18; attempt += 1) {
+    const item = makeProblemCandidateForScene(type, world, roundLocation);
+    const key = problemKey("generated", type, item);
+    if (!recentProblemKeys.includes(key) || attempt === 17) {
+      rememberProblemKey(key);
+      return item;
+    }
+  }
+  return null;
+}
+
+function makeProblemCandidateForScene(type, world, scene) {
+  if (scene === "kitchen") return makeKitchenProblemCandidate(type, world);
+  return makeProblemCandidate(type, world);
+}
+
+function nextWorkbookProblem(type = "workbook") {
   const bank = Array.isArray(window.MATHGAME_WORKBOOK_QUESTIONS) ? window.MATHGAME_WORKBOOK_QUESTIONS : [];
   if (!bank.length) return null;
-  const raw = bank[workbookProblemIndex % bank.length];
-  workbookProblemIndex += 1;
+  if (workbookQuestionOrder.length !== bank.length) {
+    workbookQuestionOrder = shuffledIndexes(bank.length);
+    workbookQuestionCursor = workbookProblemIndex % Math.max(1, bank.length);
+  }
+
+  let fallback = null;
+  for (let attempt = 0; attempt < bank.length; attempt += 1) {
+    if (workbookQuestionCursor >= workbookQuestionOrder.length) {
+      workbookQuestionOrder = shuffledIndexes(bank.length);
+      workbookQuestionCursor = 0;
+    }
+    const raw = bank[workbookQuestionOrder[workbookQuestionCursor]];
+    workbookQuestionCursor += 1;
+    workbookProblemIndex += 1;
+    const item = workbookProblemFromRaw(raw);
+    const key = problemKey("workbook", type, item);
+    fallback = fallback || { item, key };
+    if (!recentProblemKeys.includes(key) || attempt === bank.length - 1) {
+      rememberProblemKey(key);
+      return item;
+    }
+  }
+
+  if (fallback) {
+    rememberProblemKey(fallback.key);
+    return fallback.item;
+  }
+  return null;
+}
+
+function workbookProblemFromRaw(raw) {
   return {
     prompt: raw.prompt,
     answer: raw.answer,
@@ -1897,6 +1951,24 @@ function nextWorkbookProblem() {
   };
 }
 
+function shuffledIndexes(length) {
+  const indexes = Array.from({ length }, (_, index) => index);
+  for (let index = indexes.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [indexes[index], indexes[swap]] = [indexes[swap], indexes[index]];
+  }
+  return indexes;
+}
+
+function problemKey(source, type, item) {
+  return `${source}:${type}:${normalize(item.prompt)}`;
+}
+
+function rememberProblemKey(key) {
+  recentProblemKeys.push(key);
+  recentProblemKeys = recentProblemKeys.slice(-RECENT_PROBLEM_LIMIT);
+}
+
 function makeProblemCandidate(type, world) {
   if (type === "number") return makeNumberProblem(world);
   if (type === "fraction") return makeBridgeProblem(world);
@@ -1905,6 +1977,198 @@ function makeProblemCandidate(type, world) {
   const bossMakers = [makeNumberProblem, makeBridgeProblem, makeGeometryProblem];
   if (bossWorld >= 4) bossMakers.push(makeDecimalFluencyProblem);
   return choose(bossMakers)(bossWorld);
+}
+
+function makeKitchenProblemCandidate(type, world) {
+  if (type === "number") return makeKitchenNumberProblem();
+  if (type === "fraction") return makeKitchenFractionProblem();
+  if (type === "geometry") return makeKitchenGeometryProblem();
+  return choose([
+    makeKitchenNumberProblem,
+    makeKitchenFractionProblem,
+    makeKitchenGeometryProblem,
+    () => makeNumberProblem(Math.max(world, 3)),
+    () => makeBridgeProblem(Math.max(world, 3)),
+  ])();
+}
+
+function makeKitchenNumberProblem() {
+  return choose([
+    makeKitchenTrayMultiplicationProblem,
+    makeKitchenSnackCartProblem,
+    makeKitchenShelfCountingProblem,
+    makeKitchenChangeProblem,
+    makeKitchenScaleRecipeProblem,
+    makeMultiplicationProblem,
+    makeEquationProblem,
+  ])();
+}
+
+function makeKitchenFractionProblem() {
+  return choose([
+    makeKitchenFractionOfNumberProblem,
+    makeKitchenRecipeFractionProblem,
+    makeKitchenRecipeEquationProblem,
+    makeKitchenUnitFractionProblem,
+    makeFractionEquationProblem,
+    makeMixedFractionEquationProblem,
+    makeDecimalFractionProblem,
+  ])();
+}
+
+function makeKitchenGeometryProblem() {
+  return choose([
+    makeKitchenTileAreaProblem,
+    makeKitchenTilePerimeterProblem,
+    makeKitchenBacksplashAreaProblem,
+    makeKitchenShelfPerimeterProblem,
+    makeLShapeAreaProblem,
+    makeRightTriangleAreaProblem,
+    makeRectangleTriangleAreaProblem,
+    makeCompositePerimeterProblem,
+  ])();
+}
+
+function makeKitchenTrayMultiplicationProblem() {
+  const trays = rand(3, 9);
+  const treats = rand(8, 18);
+  return problem(`Kitchen trays: each tray has ${treats} puppy treats. How many treats are on ${trays} trays?`, trays * treats, "Kitchen multiplication", [
+    "Multiply treats per tray by the number of trays.",
+    "Use partial products if the numbers feel large.",
+    "Check that the answer is reasonable.",
+  ], "number", null, null, "Type treats");
+}
+
+function makeKitchenSnackCartProblem() {
+  const jars = rand(4, 9);
+  const perJar = rand(6, 15);
+  const served = rand(8, 28);
+  return problem(`Snack cart: ${jars} jars each hold ${perJar} biscuits. After ${served} biscuits are served, how many are left?`, jars * perJar - served, "Multi-step kitchen problem", [
+    "First find the total biscuits.",
+    "Then subtract the biscuits served.",
+    "Use the remaining amount as the answer.",
+  ], "number", null, null, "Type remaining");
+}
+
+function makeKitchenShelfCountingProblem() {
+  const shelves = rand(3, 7);
+  const bowls = rand(4, 12);
+  const extras = rand(5, 24);
+  return problem(`Kitchen shelves: ${shelves} shelves hold ${bowls} bowls each, plus ${extras} bowls on the counter. How many bowls are there?`, shelves * bowls + extras, "Shelf counting", [
+    "Multiply shelves by bowls per shelf.",
+    "Add the bowls on the counter.",
+    "This is a two-step total.",
+  ], "number", null, null, "Type bowls");
+}
+
+function makeKitchenChangeProblem() {
+  const price = choose([1.25, 1.5, 1.75, 2.25, 2.5, 3.25, 3.5]);
+  const count = rand(2, 6);
+  const paid = choose([10, 12, 15, 20]);
+  const total = Math.round(price * count * 100) / 100;
+  const answer = Math.round((paid - total) * 100) / 100;
+  if (answer <= 0) return makeKitchenTrayMultiplicationProblem();
+  return problem(`Kitchen shop: ${count} snacks cost $${formatDecimal(price)} each. If you pay $${paid}, how much change do you get?`, answer, "Decimal money problem", [
+    "Multiply price by number of snacks.",
+    "Subtract the cost from the money paid.",
+    "Write dollars as a decimal.",
+  ], "decimal", null, formatDecimal(answer), "Example: 2.50");
+}
+
+function makeKitchenScaleRecipeProblem() {
+  const batches = rand(3, 8);
+  const perBatch = rand(12, 35);
+  return problem(`Recipe scale: one batch makes ${perBatch} cookies. How many cookies do ${batches} batches make?`, batches * perBatch, "Recipe scaling", [
+    "Each batch is the same size.",
+    "Multiply cookies per batch by batches.",
+    "Use the total as the answer.",
+  ], "number", null, null, "Type cookies");
+}
+
+function makeKitchenFractionOfNumberProblem() {
+  const denominator = choose([3, 4, 5, 6, 8, 10, 12]);
+  const numerator = rand(1, denominator - 1);
+  const whole = denominator * rand(3, 14);
+  return problem(`Kitchen prep: find ${numerator}/${denominator} of ${whole} treats.`, (whole / denominator) * numerator, "Fraction of a number", [
+    "Divide the total by the denominator.",
+    "Multiply by the numerator.",
+    "This gives the fraction of the treats.",
+  ], "number", null, null, "Type treats");
+}
+
+function makeKitchenRecipeFractionProblem() {
+  const denominator = choose([2, 3, 4, 5, 6, 8]);
+  const numerator = rand(1, denominator - 1);
+  const batches = rand(2, 7);
+  const answer = rational(numerator * batches, denominator);
+  return rationalProblem(`Recipe water: one batch uses ${numerator}/${denominator} cup. How many cups for ${batches} batches?`, answer, "Recipe fractions", [
+    "Multiply the fraction by the number of batches.",
+    "Simplify the fraction if possible.",
+    "Mixed numbers and improper fractions are accepted.",
+  ], formatRationalValue(answer));
+}
+
+function makeKitchenRecipeEquationProblem() {
+  const denominator = choose([4, 5, 6, 8, 10, 12]);
+  const used = rand(1, denominator - 1);
+  const left = rand(used + 1, denominator + used);
+  const answer = rational(left - used, denominator);
+  return rationalProblem(`Solve: x + ${used}/${denominator} cup = ${left}/${denominator} cup`, answer, "Recipe fraction equation", [
+    "Subtract the used amount from both sides.",
+    "Keep the common denominator.",
+    "Write x as a fraction.",
+  ], `x = ${formatRationalValue(answer)}`);
+}
+
+function makeKitchenUnitFractionProblem() {
+  const denominator = choose([3, 4, 5, 6, 8, 10]);
+  const scoops = rand(2, 9);
+  const answer = rational(scoops, denominator);
+  return rationalProblem(`Sink cups: ${scoops} scoops are each 1/${denominator} cup. How many cups is that?`, answer, "Unit fractions", [
+    "Each scoop is one unit fraction.",
+    "Add the unit fraction repeatedly.",
+    "Simplify or write as a mixed number.",
+  ], formatRationalValue(answer));
+}
+
+function makeKitchenTileAreaProblem() {
+  const rows = rand(4, 12);
+  const columns = rand(5, 14);
+  return problem(`Kitchen floor tiles: ${rows} rows with ${columns} tiles in each row. How many tiles total?`, rows * columns, "Array area", [
+    "Rows times columns gives the total.",
+    "This is also the area in square tiles.",
+    "Multiply carefully.",
+  ], "number", null, null, "Type tiles");
+}
+
+function makeKitchenTilePerimeterProblem() {
+  const length = rand(5, 16);
+  const width = rand(3, 10);
+  return problem(`Sink mat: a rectangular mat is ${length} by ${width}. What is its perimeter?`, 2 * (length + width), "Rectangle perimeter", [
+    "Perimeter is the distance around.",
+    "Add length and width, then double.",
+    "Do not multiply for area.",
+  ], "number", null, null, "Type perimeter");
+}
+
+function makeKitchenBacksplashAreaProblem() {
+  const width = rand(4, 14);
+  const height = rand(2, 8);
+  return problem(`Kitchen backsplash: a rectangle is ${width} by ${height}. What is the area?`, width * height, "Rectangle area", [
+    "Area is length times height.",
+    "Use square units.",
+    "Only multiply the two side lengths.",
+  ], "number", null, null, "Type area");
+}
+
+function makeKitchenShelfPerimeterProblem() {
+  const sideA = rand(5, 13);
+  const sideB = rand(2, 8);
+  return problem(`Wall shelf label: a rectangle is ${sideA} by ${sideB}. What is the perimeter of the label?`, 2 * (sideA + sideB), "Rectangle perimeter", [
+    "A rectangle has two of each side length.",
+    "Add all four sides.",
+    "Perimeter is a length.",
+  ], "number", null, null, "Type perimeter");
 }
 
 function makeNumberProblem(world) {
