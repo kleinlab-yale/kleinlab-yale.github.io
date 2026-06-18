@@ -3,6 +3,7 @@ const QUEST_PASS = 3;
 const BOSS_PASS = 5;
 const RECENT_PROBLEM_LIMIT = 60;
 const KITCHEN_WORKBOOK_RATE = 0.35;
+const EMMA_PROFILE_KEY = "emma";
 
 const PET_VARIANTS = {
   golden: { name: "golden puppy", egg: "sunny" },
@@ -328,6 +329,7 @@ const els = {
   coinLabel: document.querySelector("#coinLabel"),
   gemLabel: document.querySelector("#gemLabel"),
   sparkleLabel: document.querySelector("#sparkleLabel"),
+  dollarBankLabel: document.querySelector("#dollarBankLabel"),
   questButton: document.querySelector("#questButton"),
   questButtonLabel: document.querySelector("#questButtonLabel"),
   callPetButton: document.querySelector("#callPetButton"),
@@ -375,6 +377,7 @@ let recentProblemKeys = [];
 let workbookProblemIndex = 0;
 let workbookQuestionOrder = [];
 let workbookQuestionCursor = 0;
+let workbookQuestionBankId = "";
 let whiteboardDrawing = null;
 let whiteboardTool = "pen";
 const URL_PARAMS = new URLSearchParams(window.location.search);
@@ -406,14 +409,16 @@ if (IS_DEMO) {
     glow: 18,
     coins: 420,
     gems: 6,
+    dollars: 0,
+    bankedSections: [],
     location: "home",
     waterfallUnlocked: true,
     mountainUnlocked: true,
     underwaterUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
-    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
     decorPositions: {},
     decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, kitchenSink: 0, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1 },
     petPositions: {
@@ -433,6 +438,8 @@ if (IS_DEMO) {
     equipped: { look: "none" },
   };
 }
+const migratedBankSections = depositCompletedDecorSections();
+if (migratedBankSections.length) saveState();
 selectedEgg = state.egg || "sunny";
 
 function createInitialState() {
@@ -451,6 +458,8 @@ function createInitialState() {
     glow: 0,
     coins: 0,
     gems: 0,
+    dollars: 0,
+    bankedSections: [],
     location: "outdoor",
     waterfallUnlocked: false,
     mountainUnlocked: false,
@@ -507,6 +516,9 @@ function loadState() {
     const secretAwards = Array.isArray(saved.secretAwards)
       ? Array.from(new Set(saved.secretAwards)).filter((id) => SECRET_AWARDS[id])
       : [];
+    const bankedSections = Array.isArray(saved.bankedSections)
+      ? Array.from(new Set(saved.bankedSections)).filter((scene) => DECOR_SCENES.includes(scene))
+      : [];
     const waterfallUnlocked = Boolean(
       saved.waterfallUnlocked
       || saved.location === "waterfall"
@@ -553,6 +565,8 @@ function loadState() {
       glow: Math.max(0, Number(saved.glow || 0)),
       coins: Math.max(0, Number(saved.coins || 0)),
       gems: Math.max(0, Number(saved.gems || 0)),
+      dollars: Math.max(0, Math.floor(Number(saved.dollars || 0))),
+      bankedSections,
       location,
       waterfallUnlocked,
       mountainUnlocked,
@@ -896,6 +910,27 @@ function livingRoomDecorComplete(ids = state.decorUnlocked) {
     .every((item) => unlocked.has(item.id));
 }
 
+function completedDecorSections(ownedIds = []) {
+  const owned = new Set(Array.isArray(ownedIds) ? ownedIds : []);
+  return DECOR_SCENES.filter((scene) => {
+    const items = decorItemsForScene(scene);
+    return items.length > 0 && items.every((item) => owned.has(item.id));
+  });
+}
+
+function newlyCompletedDecorSections(ownedIds = [], bankedSections = []) {
+  const banked = new Set(Array.isArray(bankedSections) ? bankedSections : []);
+  return completedDecorSections(ownedIds).filter((scene) => !banked.has(scene));
+}
+
+function depositCompletedDecorSections() {
+  const completed = newlyCompletedDecorSections(state.decorOwned, state.bankedSections);
+  if (!completed.length) return [];
+  state.bankedSections = Array.from(new Set([...(state.bankedSections || []), ...completed]));
+  state.dollars = Math.max(0, Math.floor(Number(state.dollars || 0))) + completed.length;
+  return completed;
+}
+
 function unlockKitchenIfReady() {
   if (state.kitchenUnlocked || !livingRoomDecorComplete()) return "";
   state.kitchenUnlocked = true;
@@ -1226,6 +1261,7 @@ function renderHud() {
   els.coinLabel.textContent = `${state.coins} coins`;
   els.gemLabel.textContent = `${state.gems} ${state.gems === 1 ? "gem" : "gems"}`;
   els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor${secretCount ? `  ${secretCount} secret` : ""}`;
+  els.dollarBankLabel.textContent = `$ Bank · $${state.dollars}`;
   els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : inMountain ? "Mountain Quest" : inUnderwater ? "Reef Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && scene === "outdoor");
   els.exitHomeButton.classList.toggle("show", state.setup && indoors);
@@ -1350,8 +1386,15 @@ function toggleDecorItem(itemId) {
     state.decorPlaced.push(item.id);
     if (!state.decorPositions[item.id]) state.decorPositions[item.id] = defaultDecorPosition(item);
     selectedMoveTarget = { type: "decor", id: item.id };
-    showToast(`${item.name} purchased and placed.`);
-    checkSecretAwards("decor");
+    const completedSections = depositCompletedDecorSections();
+    const secretAwarded = checkSecretAwards("decor");
+    if (completedSections.length) {
+      const sectionNames = completedSections.map(decorSceneLabel).join(" and ");
+      showToast(`${sectionNames} complete! +$${completedSections.length} deposited in your bank.`);
+      triggerPetAction("celebrate", 1400);
+    } else if (!secretAwarded) {
+      showToast(`${item.name} purchased and placed.`);
+    }
     saveState();
     renderHud();
     return;
@@ -1878,7 +1921,7 @@ function finishRound() {
 
 function makeProblem(type, world) {
   const roundLocation = activeRound?.location || currentScene();
-  const workbookFirst = roundLocation !== "kitchen" || Math.random() < KITCHEN_WORKBOOK_RATE;
+  const workbookFirst = currentMathProfile() === EMMA_PROFILE_KEY || roundLocation !== "kitchen" || Math.random() < KITCHEN_WORKBOOK_RATE;
   if (workbookFirst) {
     const workbookProblem = nextWorkbookProblem(type);
     if (workbookProblem) return workbookProblem;
@@ -1907,10 +1950,37 @@ function makeProblemCandidateForScene(type, world, scene) {
   return makeProblemCandidate(type, world);
 }
 
+function currentMathProfile() {
+  return playerProfileKey(state.playerName);
+}
+
+function playerProfileKey(name) {
+  const compact = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  return compact === EMMA_PROFILE_KEY ? EMMA_PROFILE_KEY : "kk";
+}
+
+function currentWorkbookBank() {
+  const standardBank = Array.isArray(window.MATHGAME_WORKBOOK_QUESTIONS) ? window.MATHGAME_WORKBOOK_QUESTIONS : [];
+  const emmaBank = Array.isArray(window.MATHGAME_EMMA_QUESTIONS) ? window.MATHGAME_EMMA_QUESTIONS : [];
+  if (currentMathProfile() === EMMA_PROFILE_KEY && emmaBank.length) {
+    return { id: EMMA_PROFILE_KEY, bank: emmaBank };
+  }
+  return { id: "kk", bank: standardBank };
+}
+
+function resetQuestionRotation() {
+  recentProblemKeys = [];
+  workbookProblemIndex = 0;
+  workbookQuestionOrder = [];
+  workbookQuestionCursor = 0;
+  workbookQuestionBankId = "";
+}
+
 function nextWorkbookProblem(type = "workbook") {
-  const bank = Array.isArray(window.MATHGAME_WORKBOOK_QUESTIONS) ? window.MATHGAME_WORKBOOK_QUESTIONS : [];
+  const { id: bankId, bank } = currentWorkbookBank();
   if (!bank.length) return null;
-  if (workbookQuestionOrder.length !== bank.length) {
+  if (workbookQuestionBankId !== bankId || workbookQuestionOrder.length !== bank.length) {
+    workbookQuestionBankId = bankId;
     workbookQuestionOrder = shuffledIndexes(bank.length);
     workbookQuestionCursor = workbookProblemIndex % Math.max(1, bank.length);
   }
@@ -2044,8 +2114,9 @@ function makeKitchenTrayMultiplicationProblem() {
 function makeKitchenSnackCartProblem() {
   const jars = rand(4, 9);
   const perJar = rand(6, 15);
-  const served = rand(8, 28);
-  return problem(`Snack cart: ${jars} jars each hold ${perJar} biscuits. After ${served} biscuits are served, how many are left?`, jars * perJar - served, "Multi-step kitchen problem", [
+  const total = jars * perJar;
+  const served = rand(8, Math.min(28, total));
+  return problem(`Snack cart: ${jars} jars each hold ${perJar} biscuits. After ${served} biscuits are served, how many are left?`, total - served, "Multi-step kitchen problem", [
     "First find the total biscuits.",
     "Then subtract the biscuits served.",
     "Use the remaining amount as the answer.",
@@ -2372,7 +2443,8 @@ function makeLinearEquationProblem() {
 function makeDistributedEquationProblem() {
   const solution = rand(-6, 24);
   const m = rand(2, 8);
-  const n = rand(2, 8);
+  let n = rand(2, 8);
+  if (n === m) n = n === 8 ? 7 : n + 1;
   const p = rand(-5, 9);
   const q = m * (solution + p) - n * solution;
   return rationalProblem(`Solve: ${m}(x ${signedText(p)}) = ${n}x ${signedText(q)}`, rational(solution), "Distribute then solve", [
@@ -2385,8 +2457,9 @@ function makeDistributedEquationProblem() {
 function makeFractionEquationProblem() {
   const denominator = choose([4, 5, 6, 8, 10, 12]);
   const add = rand(1, denominator - 1);
-  const answer = rational(rand(1, denominator - 1), denominator);
-  const total = rational(answer.n + add, denominator);
+  const answerNumerator = rand(1, denominator - 1);
+  const answer = rational(answerNumerator, denominator);
+  const total = rational(answerNumerator + add, denominator);
   return rationalProblem(`Solve: x + ${add}/${denominator} = ${total.n}/${total.d}`, answer, "Fraction equation", [
     "Subtract the fraction from both sides.",
     "Use common denominators.",
@@ -2398,8 +2471,9 @@ function makeMixedFractionEquationProblem() {
   const denominator = choose([5, 10, 20]);
   const whole = rand(1, 3);
   const part = rand(1, denominator - 1);
-  const right = rational(rand(1, denominator - 1), denominator);
-  const answer = rational(whole * denominator + part + right.n, denominator);
+  const rightNumerator = rand(1, denominator - 1);
+  const right = rational(rightNumerator, denominator);
+  const answer = rational(whole * denominator + part + rightNumerator, denominator);
   return rationalProblem(`Solve: x - ${formatMixedNumberText(whole, part, denominator)} = ${right.n}/${right.d}`, answer, "Mixed-number equation", [
     "Add the mixed number to both sides.",
     "Rename fractions with a common denominator.",
@@ -2813,7 +2887,9 @@ function normalize(value) {
 }
 
 function normalizeChoice(value) {
-  const normalized = normalize(value).replace(/&lt;|‹|less-than|lessthan|less/g, "<")
+  const normalized = normalize(value).replace(/≤|&le;|lessthanorequal|less-than-or-equal/g, "<=")
+    .replace(/≥|&ge;|greaterthanorequal|greater-than-or-equal/g, ">=")
+    .replace(/&lt;|‹|less-than|lessthan|less/g, "<")
     .replace(/&gt;|›|greater-than|greaterthan|morethan|greater|more/g, ">")
     .replace(/equalto|equals|same/g, "=");
   if (normalized === "<") return "less-than";
@@ -2825,9 +2901,11 @@ function normalizeChoice(value) {
 els.setupForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const canChooseEgg = !state.setup || state.stage === "egg";
+  const previousMathProfile = currentMathProfile();
   state.setup = true;
   state.playerName = els.playerInput.value.trim().slice(0, 18) || "Explorer";
   state.petName = els.petInput.value.trim().slice(0, 18) || "Mochi";
+  if (playerProfileKey(state.playerName) !== previousMathProfile) resetQuestionRotation();
   if (canChooseEgg) {
     state.egg = selectedEgg;
     state.petVariant = variantForEgg(selectedEgg);

@@ -329,7 +329,7 @@ button {
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  max-width: min(520px, calc(100vw - 36px));
+  max-width: min(450px, calc(100vw - 36px));
   padding: 11px 14px;
   border-radius: 999px;
   color: rgba(23, 38, 50, 0.76);
@@ -346,6 +346,15 @@ button {
 
 #gemLabel {
   color: #4f62c9;
+}
+
+#dollarBankLabel {
+  padding: 5px 9px;
+  border: 1px solid rgba(36, 157, 112, 0.2);
+  border-radius: 999px;
+  background: rgba(120, 219, 154, 0.22);
+  color: #187453;
+  white-space: nowrap;
 }
 
 .bottom-controls {
