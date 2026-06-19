@@ -75,6 +75,7 @@ const ASSETS = {
   mountain: "assets/gpt-mountain-backdrop.png",
   underwater: "assets/gpt-underwater-backdrop.png",
   home: "assets/gpt-home-interior.png",
+  bedroom: "assets/gpt-bedroom-backdrop.png",
   kitchen: "assets/gpt-kitchen-backdrop.png",
   egg: "assets/gpt-egg.png",
   ...PET_ASSETS,
@@ -91,6 +92,14 @@ const ASSETS = {
   homeLampOn: "assets/gpt-home-lamp-on.png",
   homeTable: "assets/gpt-home-table.png",
   homeRockingDogToy: "assets/gpt-home-rocking-dog-toy.png?v=20260615-rocking-dog-v3",
+  bedroomBed: "assets/gpt-bedroom-bed.png?v=20260618-bedroom",
+  bedroomDesk: "assets/gpt-bedroom-desk.png?v=20260618-bedroom",
+  bedroomToyDresser: "assets/gpt-bedroom-toy-dresser.png?v=20260618-bedroom",
+  bedroomCubby: "assets/gpt-bedroom-cubby.png?v=20260618-bedroom",
+  bedroomLamp: "assets/gpt-bedroom-lamp.png?v=20260618-bedroom",
+  bedroomPlushies: "assets/gpt-bedroom-plushies.png?v=20260618-bedroom",
+  bedroomBalletBag: "assets/gpt-bedroom-ballet-bag.png?v=20260618-bedroom",
+  bedroomHamper: "assets/gpt-bedroom-hamper.png?v=20260618-bedroom",
   kitchenCounter: "assets/gpt-kitchen-counter.png",
   kitchenWallShelves: "assets/gpt-kitchen-wall-shelves.png",
   kitchenSnackCart: "assets/gpt-kitchen-snack-cart.png",
@@ -126,6 +135,7 @@ const ASSETS = {
   mountainTent: "assets/gpt-mountain-tent.png?v=20260616-mountain-camp-v2",
   mountainCampfireOff: "assets/gpt-mountain-campfire-off.png?v=20260616-mountain-camp-v2",
   mountainCampfireOn: "assets/gpt-mountain-campfire-on.png?v=20260616-mountain-camp-v2",
+  mountainCampfireFlame: "assets/gpt-mountain-campfire-flame-source.png?v=20260618-campfire-flicker",
   mountainFairyLights: "assets/gpt-mountain-fairy-lights.png?v=20260616-mountain-camp-v2",
   mountainSnacks: "assets/gpt-mountain-snacks.png",
   mountainShelter: "assets/gpt-mountain-shelter.png",
@@ -201,14 +211,33 @@ const DECOR_ITEMS = [
   { id: "mountainTent", scene: "mountain", name: "Summit tent", tex: "mountainTent", x: -2.25, y: 0.74, z: 0.42, w: 1.52, h: 1.38, reward: "Summit Trail", cost: { coins: 125, gems: 1 } },
   { id: "mountainCampfire", scene: "mountain", name: "Campfire ring", tex: "mountainCampfireOff", x: 0.02, y: 0.42, z: 0.62, w: 1.0, h: 0.9, reward: "Mountain quests", cost: { coins: 95, gems: 1 } },
   { id: "mountainFairyLights", scene: "mountain", name: "Fairy lights", tex: "mountainFairyLights", x: 0.16, y: 1.36, z: 0.34, w: 1.32, h: 0.45, reward: "Mountain quests", cost: { coins: 115, gems: 1 }, optional: true },
-  { id: "mountainSnacks", scene: "mountain", name: "Trail snacks", tex: "mountainSnacks", x: 1.42, y: 0.46, z: 0.58, w: 0.86, h: 0.86, reward: "Mountain quests", cost: { coins: 75, gems: 0 } },
-  { id: "mountainShelter", scene: "mountain", name: "Pup shelter", tex: "mountainShelter", x: 2.55, y: 0.95, z: 0.42, w: 1.34, h: 1.24, reward: "Mountain quests", cost: { coins: 140, gems: 2 } },
+  { id: "mountainSnacks", scene: "mountain", name: "Trail snacks", tex: "mountainSnacks", x: 1.42, y: 0.46, z: 0.58, w: 0.62, h: 0.62, reward: "Mountain quests", cost: { coins: 75, gems: 0 } },
+  { id: "mountainShelter", scene: "mountain", name: "Pup shelter", tex: "mountainShelter", x: 2.55, y: 0.95, z: 0.42, w: 1.0, h: 0.93, reward: "Mountain quests", cost: { coins: 140, gems: 2 } },
   { id: "mountainLantern", scene: "mountain", name: "Star lantern", tex: "mountainLantern", x: -0.98, y: 0.74, z: 0.5, w: 0.62, h: 1.04, reward: "Mountain quests", cost: { coins: 85, gems: 1 } },
   { id: "underwaterShellSeat", scene: "underwater", name: "Shell lounge", tex: "underwaterShellSeat", x: -2.3, y: 0.65, z: 0.42, w: 1.36, h: 1.24, reward: "Deep Dive", cost: { coins: 130, gems: 1 } },
   { id: "underwaterPearlLamp", scene: "underwater", name: "Pearl lamp", tex: "underwaterPearlLampOff", x: 1.92, y: 0.78, z: 0.44, w: 0.86, h: 1.12, reward: "Underwater quests", cost: { coins: 105, gems: 1 } },
   { id: "underwaterTreasureChest", scene: "underwater", name: "Snack treasure", tex: "underwaterTreasureChest", x: -0.38, y: 0.43, z: 0.58, w: 1.08, h: 0.9, reward: "Underwater quests", cost: { coins: 125, gems: 1 } },
   { id: "underwaterBubbleHoop", scene: "underwater", name: "Bubble hoop", tex: "underwaterBubbleHoop", x: 2.7, y: 0.9, z: 0.46, w: 0.94, h: 1.2, reward: "Underwater quests", cost: { coins: 95, gems: 0 } },
   { id: "underwaterKelpHideout", scene: "underwater", name: "Kelp hideout", tex: "underwaterKelpHideout", x: 0.92, y: 0.74, z: 0.45, w: 1.24, h: 1.2, reward: "Underwater quests", cost: { coins: 145, gems: 2 } },
+  { id: "bedroomBed", scene: "bedroom", name: "Blush canopy bed", tex: "bedroomBed", x: -2.65, y: 0.72, z: 0.35, w: 2.65, h: 2.05, reward: "Bedroom quests", cost: { coins: 120, gems: 1 } },
+  { id: "bedroomDesk", scene: "bedroom", name: "Keepsake desk", tex: "bedroomDesk", x: 2.65, y: 0.92, z: 0.38, w: 2.05, h: 2.22, reward: "Bedroom quests", cost: { coins: 115, gems: 1 } },
+  { id: "bedroomToyDresser", scene: "bedroom", name: "Toy-town dresser", tex: "bedroomToyDresser", x: 1.18, y: 0.72, z: 0.42, w: 1.9, h: 1.72, reward: "Bedroom quests", cost: { coins: 105, gems: 1 } },
+  { id: "bedroomCubby", scene: "bedroom", name: "Dollhouse cubby", tex: "bedroomCubby", x: -0.92, y: 0.96, z: 0.43, w: 1.28, h: 1.78, reward: "Bedroom quests", cost: { coins: 85, gems: 0 } },
+  { id: "bedroomLamp", scene: "bedroom", name: "Crystal unicorn lamp", tex: "bedroomLamp", x: -1.12, y: 1.14, z: 0.54, w: 0.72, h: 1.28, reward: "Bedroom quests", cost: { coins: 70, gems: 0 } },
+  { id: "bedroomPlushies", scene: "bedroom", name: "Bedtime plushies", tex: "bedroomPlushies", x: -1.82, y: 0.32, z: 0.62, w: 1.28, h: 1.0, reward: "Bedroom quests", cost: { coins: 65, gems: 0 } },
+  { id: "bedroomBalletBag", scene: "bedroom", name: "Ballet tote", tex: "bedroomBalletBag", x: 0.12, y: 0.28, z: 0.64, w: 0.82, h: 0.9, reward: "Bedroom quests", cost: { coins: 55, gems: 0 } },
+  { id: "bedroomHamper", scene: "bedroom", name: "Striped hamper", tex: "bedroomHamper", x: 3.88, y: 0.48, z: 0.5, w: 0.78, h: 1.2, reward: "Bedroom quests", cost: { coins: 60, gems: 0 } },
+];
+
+const BEDROOM_DECOR_IDS = [
+  "bedroomBed",
+  "bedroomDesk",
+  "bedroomToyDresser",
+  "bedroomCubby",
+  "bedroomLamp",
+  "bedroomPlushies",
+  "bedroomBalletBag",
+  "bedroomHamper",
 ];
 
 const DECOR_POSITION_MIGRATIONS = {
@@ -217,9 +246,10 @@ const DECOR_POSITION_MIGRATIONS = {
   table: { x: 0.75, y: 0.54 },
 };
 
-const DECOR_SCENES = ["home", "kitchen", "outdoor", "waterfall", "mountain", "underwater"];
+const DECOR_SCENES = ["home", "kitchen", "bedroom", "outdoor", "waterfall", "mountain", "underwater"];
 const DEFAULT_PET_POSITIONS = {
   home: { x: -0.06, y: 0.48 },
+  bedroom: { x: 0.08, y: 0.46 },
   kitchen: { x: -0.05, y: 0.46 },
   outdoor: { x: 0.12, y: 0.5 },
   waterfall: { x: 0.05, y: 0.5 },
@@ -228,6 +258,7 @@ const DEFAULT_PET_POSITIONS = {
 };
 const MOVE_BOUNDS = {
   home: { x: [-5.05, 5.05], y: [-0.24, 2.62] },
+  bedroom: { x: [-5.05, 5.05], y: [-0.24, 2.62] },
   kitchen: { x: [-5.05, 5.05], y: [-0.24, 2.58] },
   outdoor: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
   waterfall: { x: [-5.45, 5.45], y: [-1.1, 4.15] },
@@ -236,6 +267,7 @@ const MOVE_BOUNDS = {
 };
 const BACKDROP_DECOR_MOVE_BOUNDS = {
   home: { x: [-5.45, 5.45], y: [-1.45, 3.25] },
+  bedroom: { x: [-5.45, 5.45], y: [-1.45, 3.25] },
   kitchen: { x: [-5.45, 5.45], y: [-1.45, 3.25] },
   outdoor: { x: [-5.45, 5.45], y: [-3.85, 4.15] },
   waterfall: { x: [-5.45, 5.45], y: [-3.85, 4.15] },
@@ -252,9 +284,10 @@ const OUTDOOR_BACKDROP_DECOR_Y_OFFSET = -0.22;
 const MOUNTAIN_DECOR_SCALE = 1.5;
 const PANORAMA_SCENES = new Set(["underwater"]);
 const PANORAMA_WIDTH = 24;
-const VIEW_PAN_SCENES = new Set(["home", "kitchen", "outdoor", "waterfall", "mountain"]);
+const VIEW_PAN_SCENES = new Set(["home", "bedroom", "kitchen", "outdoor", "waterfall", "mountain"]);
 const VIEW_PAN_LIMITS = {
   home: 1.1,
+  bedroom: 1.1,
   kitchen: 1.1,
   outdoor: 1.45,
   waterfall: 1.45,
@@ -292,6 +325,45 @@ const TOGGLEABLE_DECOR = {
   underwaterPearlLamp: { onName: "pearl glowing", offName: "pearl dim" },
 };
 
+const FETCH_DURATION = 5200;
+const PET_HIDE_DURATION = 1250;
+const PET_RECALL_DURATION = 1800;
+const PET_HIDE_MIN_DELAY = 35000;
+const PET_HIDE_MAX_DELAY = 75000;
+const CAMPFIRE_FLICKER_DURATION = 3000;
+const DEFAULT_FETCH_TOY = { id: "", name: "favorite ball", tex: "yardBall", w: 0.36, h: 0.36 };
+const FETCH_TOYS = {
+  home: [
+    { id: "remote", name: "TV remote", tex: "homeRemote", w: 0.34, h: 0.22 },
+    { id: "rockingDogToy", name: "rocking puppy toy", tex: "homeRockingDogToy", w: 0.38, h: 0.42 },
+  ],
+  bedroom: [
+    { id: "bedroomPlushies", name: "bedtime plushie", tex: "bedroomPlushies", w: 0.44, h: 0.34 },
+    { id: "bedroomBalletBag", name: "ballet tote", tex: "bedroomBalletBag", w: 0.4, h: 0.34 },
+  ],
+  kitchen: [
+    { id: "puppyMug", name: "puppy mug", tex: "kitchenPuppyMug", w: 0.3, h: 0.3 },
+    { id: "recipeBook", name: "recipe book", tex: "kitchenRecipeBook", w: 0.38, h: 0.26 },
+  ],
+  outdoor: [
+    { id: "ball", name: "treat ball", tex: "yardBall", w: 0.38, h: 0.38 },
+    { id: "toys", name: "rope toy", tex: "yardToys", w: 0.48, h: 0.3 },
+    { id: "piggyCarToy", name: "piggy car", tex: "yardPiggyCarToy", w: 0.4, h: 0.38 },
+  ],
+  waterfall: [
+    { id: "lavenderPlush", name: "lavender plush", tex: "waterfallLavenderPlush", w: 0.38, h: 0.36 },
+    { id: "waterfallBasket", name: "picnic basket", tex: "waterfallBasket", w: 0.4, h: 0.34 },
+  ],
+  mountain: [
+    { id: "mountainSnacks", name: "trail snack pouch", tex: "mountainSnacks", w: 0.36, h: 0.36 },
+    { id: "mountainLantern", name: "star lantern", tex: "mountainLantern", w: 0.3, h: 0.42 },
+  ],
+  underwater: [
+    { id: "underwaterTreasureChest", name: "snack treasure", tex: "underwaterTreasureChest", w: 0.42, h: 0.34 },
+    { id: "underwaterPearlLamp", name: "pearl", tex: "underwaterPearlLampOn", w: 0.3, h: 0.38 },
+  ],
+};
+
 const els = {
   canvas: document.querySelector("#worldCanvas"),
   setupOverlay: document.querySelector("#setupOverlay"),
@@ -310,6 +382,7 @@ const els = {
   closeDecorButton: document.querySelector("#closeDecorButton"),
   decorGrid: document.querySelector("#decorGrid"),
   decorHomeTab: document.querySelector("#decorHomeTab"),
+  decorBedroomTab: document.querySelector("#decorBedroomTab"),
   decorKitchenTab: document.querySelector("#decorKitchenTab"),
   decorOutdoorTab: document.querySelector("#decorOutdoorTab"),
   decorWaterfallTab: document.querySelector("#decorWaterfallTab"),
@@ -342,6 +415,7 @@ const els = {
   underwaterHotspot: document.querySelector("#underwaterHotspot"),
   surfaceHotspot: document.querySelector("#surfaceHotspot"),
   kitchenHotspot: document.querySelector("#kitchenHotspot"),
+  bedroomHotspot: document.querySelector("#bedroomHotspot"),
   livingRoomHotspot: document.querySelector("#livingRoomHotspot"),
   toast: document.querySelector("#toast"),
   questOverlay: document.querySelector("#questOverlay"),
@@ -366,7 +440,12 @@ let toastTimer = 0;
 let petPulseUntil = 0;
 let petAction = null;
 let petActionUntil = 0;
-let petHiddenUntil = 0;
+let petActivity = null;
+let petIsAway = false;
+let petHiddenSide = 1;
+let petNextHideAt = 0;
+let petPresenceScene = "";
+let mountainCampfireFlickerStartedAt = 0;
 let activeRound = null;
 let activeProblem = null;
 let activeDecorScene = "home";
@@ -416,13 +495,14 @@ if (IS_DEMO) {
     mountainUnlocked: true,
     underwaterUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
-    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout"],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS],
     decorPositions: {},
     decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, kitchenSink: 0, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1 },
     petPositions: {
       home: { x: -0.18, y: 0.48 },
+      bedroom: { x: 0.08, y: 0.46 },
       kitchen: { x: -0.12, y: 0.46 },
       outdoor: { x: 0.35, y: 0.56 },
       waterfall: { x: 0.08, y: 0.5 },
@@ -472,6 +552,7 @@ function createInitialState() {
     decorStates: {},
     petPositions: {
       home: { ...DEFAULT_PET_POSITIONS.home },
+      bedroom: { ...DEFAULT_PET_POSITIONS.bedroom },
       kitchen: { ...DEFAULT_PET_POSITIONS.kitchen },
       outdoor: { ...DEFAULT_PET_POSITIONS.outdoor },
       waterfall: { ...DEFAULT_PET_POSITIONS.waterfall },
@@ -541,6 +622,8 @@ function loadState() {
     );
     const location = saved.location === "home"
       ? "home"
+      : saved.location === "bedroom" && saved.stage !== "egg"
+        ? "bedroom"
       : saved.location === "kitchen" && kitchenUnlocked
         ? "kitchen"
       : saved.location === "underwater" && underwaterUnlocked
@@ -711,6 +794,7 @@ function petFrameAsset(frame, variant = currentPetVariant(), look = state.equipp
 
 function currentScene() {
   if (state.location === "home") return "home";
+  if (state.location === "bedroom" && state.stage !== "egg") return "bedroom";
   if (state.location === "kitchen" && state.kitchenUnlocked) return "kitchen";
   if (state.location === "underwater" && state.underwaterUnlocked) return "underwater";
   if (state.location === "mountain" && state.mountainUnlocked) return "mountain";
@@ -720,6 +804,7 @@ function currentScene() {
 
 function decorSceneLabel(scene) {
   if (scene === "home") return "Home";
+  if (scene === "bedroom") return "Bedroom";
   if (scene === "kitchen") return "Kitchen";
   if (scene === "waterfall") return "Waterfall";
   if (scene === "mountain") return "Mountain";
@@ -728,6 +813,7 @@ function decorSceneLabel(scene) {
 }
 
 function isDecorSceneAvailable(scene) {
+  if (scene === "bedroom") return state.stage !== "egg";
   if (scene === "kitchen") return state.kitchenUnlocked;
   if (scene === "mountain") return state.mountainUnlocked;
   if (scene === "underwater") return state.underwaterUnlocked;
@@ -736,6 +822,7 @@ function isDecorSceneAvailable(scene) {
 
 function decorTabForScene(scene) {
   if (scene === "home") return els.decorHomeTab;
+  if (scene === "bedroom") return els.decorBedroomTab;
   if (scene === "kitchen") return els.decorKitchenTab;
   if (scene === "waterfall") return els.decorWaterfallTab;
   if (scene === "mountain") return els.decorMountainTab;
@@ -745,6 +832,7 @@ function decorTabForScene(scene) {
 
 function sceneWorldLabel(scene = currentScene()) {
   if (scene === "home") return "Cozy Home";
+  if (scene === "bedroom") return "Pink Bedroom";
   if (scene === "kitchen") return "Kitchen";
   if (scene === "waterfall") return "Waterfall Clearing";
   if (scene === "mountain") return "Mountain Shelter";
@@ -755,6 +843,7 @@ function sceneWorldLabel(scene = currentScene()) {
 
 function sceneBackdropTexture(scene = currentScene()) {
   if (scene === "home") return "home";
+  if (scene === "bedroom") return "bedroom";
   if (scene === "kitchen") return "kitchen";
   if (scene === "waterfall") return "waterfall";
   if (scene === "mountain") return "mountain";
@@ -863,6 +952,9 @@ function toggleDecorState(id) {
       ? (decorStateValue("oven") + 1) % OVEN_STATES.length
     : decorStateValue(id) ? 0 : 1;
   setDecorStateValue(id, next);
+  if (id === "mountainCampfire") {
+    mountainCampfireFlickerStartedAt = next ? performance.now() : 0;
+  }
   const label = id === "tv"
     ? TV_CHANNELS[next]?.label || TOGGLEABLE_DECOR[id].offName
     : id === "oven"
@@ -938,6 +1030,7 @@ function unlockKitchenIfReady() {
 }
 
 function lockedDecorReason(scene) {
+  if (scene === "bedroom") return "Hatch the puppy";
   if (scene === "kitchen") return "Living room decor";
   if (scene === "waterfall") return "Bridge Algebra";
   if (scene === "mountain") return "Waterfall Boss";
@@ -1175,6 +1268,143 @@ function triggerPetAction(action, duration = 1000) {
   petActionUntil = performance.now() + duration;
 }
 
+function scheduleNextPetHide(time = performance.now()) {
+  petNextHideAt = time + rand(PET_HIDE_MIN_DELAY, PET_HIDE_MAX_DELAY);
+}
+
+function petBehaviorPaused() {
+  return Boolean(activeRound || dragState || document.querySelector(".overlay.show"));
+}
+
+function updateCallPetButton() {
+  const needsCall = state.stage !== "egg" && (
+    petIsAway
+    || petActivity?.type === "hide"
+    || petActivity?.type === "recall"
+  );
+  els.callPetButton.classList.toggle("is-needed", needsCall);
+  els.callPetButton.textContent = needsCall ? "Call!" : "Call";
+  els.callPetButton.setAttribute("aria-label", needsCall ? `Call ${state.petName} back` : "Call pet");
+}
+
+function updatePetCareButtons() {
+  const petBusy = state.stage !== "egg" && Boolean(petIsAway || petActivity);
+  els.feedButton.disabled = petBusy;
+  els.rubButton.disabled = petBusy;
+  els.fetchButton.disabled = petBusy;
+  els.fetchButton.textContent = petActivity?.type === "fetch" ? "Fetching..." : "Fetch";
+}
+
+function resetPetPresenceForScene(scene, time = performance.now()) {
+  petPresenceScene = scene;
+  petActivity = null;
+  petIsAway = false;
+  petHiddenSide = Math.random() < 0.5 ? -1 : 1;
+  scheduleNextPetHide(time);
+  updateCallPetButton();
+  updatePetCareButtons();
+}
+
+function startPetHide(time = performance.now()) {
+  if (state.stage === "egg" || petActivity || petIsAway || petBehaviorPaused()) return false;
+  petHiddenSide = Math.random() < 0.5 ? -1 : 1;
+  petActivity = {
+    type: "hide",
+    scene: currentScene(),
+    start: time,
+    duration: PET_HIDE_DURATION,
+    side: petHiddenSide,
+  };
+  updateCallPetButton();
+  updatePetCareButtons();
+  showToast(`${state.petName} spotted a secret hiding place...`);
+  return true;
+}
+
+function selectFetchToy(scene) {
+  const placed = (FETCH_TOYS[scene] || []).filter((toy) => toy.id && isDecorPlaced(toy.id));
+  return placed.length ? { ...choose(placed) } : { ...DEFAULT_FETCH_TOY };
+}
+
+function startPetRecall(time = performance.now()) {
+  const interruptedFetch = petActivity?.type === "fetch";
+  const side = petActivity?.side || petHiddenSide || 1;
+  petActivity = {
+    type: "recall",
+    scene: currentScene(),
+    start: time,
+    duration: PET_RECALL_DURATION,
+    side,
+  };
+  petIsAway = false;
+  updateCallPetButton();
+  updatePetCareButtons();
+  showToast(interruptedFetch
+    ? `You whistle. ${state.petName} leaves the toy and races back!`
+    : `You whistle for ${state.petName}...`);
+}
+
+function finishPetActivity(activity, time) {
+  petActivity = null;
+  if (activity.type === "hide") {
+    petIsAway = true;
+    updateCallPetButton();
+    updatePetCareButtons();
+    showToast(`${state.petName} is hiding off-screen. Tap Call to bring them back.`);
+    return;
+  }
+  petIsAway = false;
+  scheduleNextPetHide(time);
+  if (activity.type === "recall") {
+    setPetPosition(currentScene(), visibleDefaultPetPosition(currentScene()));
+    saveState();
+    triggerPetAction("wag", 1300);
+    showToast(`${state.petName} came racing back!`);
+  } else if (activity.type === "fetch") {
+    triggerPetAction("celebrate", 1350);
+    showToast(`${state.petName} brought back the ${activity.toy.name}!`);
+  }
+  updateCallPetButton();
+  updatePetCareButtons();
+}
+
+function updatePetBehavior(time, scene) {
+  if (petPresenceScene !== scene) resetPetPresenceForScene(scene, time);
+  if (petActivity && petActivity.scene !== scene) resetPetPresenceForScene(scene, time);
+  if (petActivity && time >= petActivity.start + petActivity.duration) {
+    finishPetActivity(petActivity, time);
+  }
+  if (state.stage === "egg") {
+    if (!petNextHideAt || time >= petNextHideAt) scheduleNextPetHide(time);
+    return;
+  }
+  if (!petActivity && !petIsAway && petNextHideAt && time >= petNextHideAt) {
+    if (!startPetHide(time)) petNextHideAt = time + 5000;
+  }
+}
+
+function callPet() {
+  if (state.stage === "egg") {
+    triggerPetAction("celebrate", 900);
+    showToast("The egg wiggles when you call.");
+    return;
+  }
+  const now = performance.now();
+  if (petActivity?.type === "recall") {
+    showToast(`${state.petName} is already on the way!`);
+    return;
+  }
+  if (petIsAway || petActivity?.type === "hide" || petActivity?.type === "fetch") {
+    startPetRecall(now);
+    return;
+  }
+  setPetPosition(currentScene(), visibleDefaultPetPosition(currentScene()));
+  saveState();
+  scheduleNextPetHide(now);
+  triggerPetAction("wag", 1200);
+  showToast(`${state.petName} trots closer.`);
+}
+
 function setOverlay(overlay, show) {
   overlay.classList.toggle("show", show);
   overlay.setAttribute("aria-hidden", show ? "false" : "true");
@@ -1200,8 +1430,9 @@ function renderHud() {
   const size = currentQuestSize();
   const scene = currentScene();
   const inHome = scene === "home";
+  const inBedroom = scene === "bedroom";
   const inKitchen = scene === "kitchen";
-  const indoors = inHome || inKitchen;
+  const indoors = inHome || inBedroom || inKitchen;
   const inWaterfall = scene === "waterfall";
   const inMountain = scene === "mountain";
   const inUnderwater = scene === "underwater";
@@ -1224,6 +1455,11 @@ function renderHud() {
         ? "Living room decor is stocked. The kitchen is open from inside the house."
         : "Living room decor is stocked. The next room opens when the last piece is available.";
     }
+  } else if (inBedroom) {
+    objectiveTitle = "Pink Bedroom";
+    objectiveText = nextDecor
+      ? `Clear bedroom math to make ${nextDecor.name} available. Coins buy it in Decor.`
+      : "The bedroom is cozy and complete. Arrange keepsakes, play fetch with a plushie, or return to the living room.";
   } else if (inKitchen) {
     objectiveTitle = "Kitchen";
     objectiveText = nextDecor
@@ -1262,9 +1498,9 @@ function renderHud() {
   els.gemLabel.textContent = `${state.gems} ${state.gems === 1 ? "gem" : "gems"}`;
   els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor${secretCount ? `  ${secretCount} secret` : ""}`;
   els.dollarBankLabel.textContent = `$ Bank · $${state.dollars}`;
-  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : inMountain ? "Mountain Quest" : inUnderwater ? "Reef Quest" : questName;
+  els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inBedroom ? "Bedroom Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : inMountain ? "Mountain Quest" : inUnderwater ? "Reef Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && scene === "outdoor");
-  els.exitHomeButton.classList.toggle("show", state.setup && indoors);
+  els.exitHomeButton.classList.toggle("show", state.setup && indoors && !inBedroom);
   els.bridgeHotspot.classList.toggle("show", state.setup && scene === "outdoor" && state.waterfallUnlocked);
   els.meadowHotspot.classList.toggle("show", state.setup && inWaterfall);
   els.mountainHotspot.classList.toggle("show", state.setup && inWaterfall && state.mountainUnlocked);
@@ -1272,7 +1508,10 @@ function renderHud() {
   els.underwaterHotspot.classList.toggle("show", state.setup && inWaterfall && state.underwaterUnlocked);
   els.surfaceHotspot.classList.toggle("show", state.setup && inUnderwater);
   els.kitchenHotspot.classList.toggle("show", state.setup && inHome && state.kitchenUnlocked);
-  els.livingRoomHotspot.classList.toggle("show", state.setup && inKitchen);
+  els.bedroomHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && inHome);
+  els.livingRoomHotspot.classList.toggle("show", state.setup && (inKitchen || inBedroom));
+  updateCallPetButton();
+  updatePetCareButtons();
   renderCloset();
   renderDecor();
 }
@@ -1615,6 +1854,10 @@ function playFetch() {
     showToast("Fetch unlocks after the egg hatches.");
     return;
   }
+  if (petIsAway || petActivity) {
+    showToast(petIsAway ? `Call ${state.petName} back before playing fetch.` : `${state.petName} is already busy.`);
+    return;
+  }
   if (state.energy < 8 || state.food < 8) {
     showToast("Feed or rub first, then fetch will help growth.");
     return;
@@ -1622,11 +1865,20 @@ function playFetch() {
   state.energy = clamp(state.energy - 8, 0, 100);
   state.food = clamp(state.food - 5, 0, 100);
   state.growth = clamp(state.growth + 5, 0, 100);
-  petHiddenUntil = performance.now() + 1500;
+  const now = performance.now();
+  const toy = selectFetchToy(currentScene());
+  petActivity = {
+    type: "fetch",
+    scene: currentScene(),
+    start: now,
+    duration: FETCH_DURATION,
+    side: Math.random() < 0.5 ? -1 : 1,
+    toy,
+  };
+  petNextHideAt = Number.POSITIVE_INFINITY;
   saveState();
   renderHud();
-  triggerPetAction("wag", 1250);
-  showToast(`${state.petName} chased the toy. Call brings them back if they run off-screen.`);
+  showToast(`Fetch! ${state.petName} is chasing the ${toy.name}.`);
   checkSecretAwards("fetch");
 }
 
@@ -1862,7 +2114,7 @@ function finishRound() {
   state.growth = clamp(state.growth + 14, 0, 100);
   state.glow += type === "boss" ? 20 : 8;
 
-  if (roundLocation === "home" || roundLocation === "kitchen") {
+  if (roundLocation === "home" || roundLocation === "bedroom" || roundLocation === "kitchen") {
     showToast(`${message}. ${unlockNextDecorReward(roundLocation)}`);
     saveState();
     renderHud();
@@ -2968,6 +3220,19 @@ els.kitchenHotspot.addEventListener("click", () => {
   triggerPetAction("wag", 1000);
   showToast(`${state.petName} padded into the kitchen.`);
 });
+els.bedroomHotspot.addEventListener("click", () => {
+  if (state.stage === "egg") {
+    showToast("Hatch the puppy first, then the bedroom opens.");
+    return;
+  }
+  state.location = "bedroom";
+  activeDecorScene = "bedroom";
+  selectedMoveTarget = { type: "pet", scene: "bedroom" };
+  saveState();
+  renderHud();
+  triggerPetAction("wag", 1000);
+  showToast(`${state.petName} padded into the pink bedroom.`);
+});
 els.livingRoomHotspot.addEventListener("click", () => {
   state.location = "home";
   activeDecorScene = "home";
@@ -3047,14 +3312,7 @@ els.surfaceHotspot.addEventListener("click", () => {
 });
 
 els.questButton.addEventListener("click", startQuest);
-els.callPetButton.addEventListener("click", () => {
-  petHiddenUntil = 0;
-  setPetPosition(currentScene(), visibleDefaultPetPosition(currentScene()));
-  saveState();
-  renderHud();
-  triggerPetAction("wag", 1200);
-  showToast(state.stage === "egg" ? "The egg wiggles." : `${state.petName} trots closer.`);
-});
+els.callPetButton.addEventListener("click", callPet);
 els.feedButton.addEventListener("click", feedPet);
 els.rubButton.addEventListener("click", rubPet);
 els.fetchButton.addEventListener("click", playFetch);
@@ -3094,7 +3352,7 @@ els.decorButton.addEventListener("click", () => {
   setOverlay(els.decorOverlay, true);
 });
 els.closeDecorButton.addEventListener("click", () => setOverlay(els.decorOverlay, false));
-[els.decorHomeTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab, els.decorMountainTab, els.decorUnderwaterTab].forEach((tab) => {
+[els.decorHomeTab, els.decorBedroomTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab, els.decorMountainTab, els.decorUnderwaterTab].forEach((tab) => {
   tab.addEventListener("click", () => {
     activeDecorScene = tab.dataset.decorScene;
     selectedMoveTarget = { type: "pet", scene: activeDecorScene };
@@ -3296,6 +3554,142 @@ function resize(gl) {
   }
 }
 
+function lerp(start, end, amount) {
+  return start + (end - start) * amount;
+}
+
+function easeInOutCubic(value) {
+  const t = clamp(value, 0, 1);
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function easeOutCubic(value) {
+  const t = 1 - clamp(value, 0, 1);
+  return 1 - t * t * t;
+}
+
+function activityProgress(time, activity = petActivity) {
+  if (!activity) return 0;
+  return clamp((time - activity.start) / activity.duration, 0, 1);
+}
+
+function renderedPetBasePosition(scene) {
+  const position = getPetPosition(scene);
+  return {
+    x: scene === "underwater" ? wrapPanoramaX(position.x - panoramaOffset(scene)) : position.x,
+    y: position.y,
+  };
+}
+
+function petExitX(scene, side) {
+  return (scene === "underwater" ? 0 : getViewPan(scene)) + side * 6.25;
+}
+
+function petVisualState(time, scene) {
+  const base = renderedPetBasePosition(scene);
+  if (petIsAway && !petActivity) return { ...base, visible: false, carrying: false };
+  if (!petActivity) return { ...base, visible: true, carrying: false };
+
+  const progress = activityProgress(time);
+  const side = petActivity.side || 1;
+  const edgeX = petExitX(scene, side);
+  if (petActivity.type === "hide") {
+    const travel = easeInOutCubic(progress);
+    return {
+      x: lerp(base.x, edgeX, travel),
+      y: base.y + Math.sin(travel * Math.PI) * 0.2,
+      visible: progress < 0.98,
+      carrying: false,
+    };
+  }
+  if (petActivity.type === "recall") {
+    const travel = easeOutCubic(progress);
+    return {
+      x: lerp(edgeX, base.x, travel),
+      y: base.y + Math.sin(travel * Math.PI) * 0.22,
+      visible: progress > 0.02,
+      carrying: false,
+    };
+  }
+  if (petActivity.type === "fetch") {
+    if (progress < 0.16) return { ...base, visible: true, carrying: false };
+    if (progress < 0.42) {
+      const travel = easeInOutCubic((progress - 0.16) / 0.26);
+      return {
+        x: lerp(base.x, edgeX, travel),
+        y: base.y + Math.sin(travel * Math.PI) * 0.26,
+        visible: travel < 0.98,
+        carrying: false,
+      };
+    }
+    if (progress < 0.58) return { ...base, visible: false, carrying: false };
+    if (progress < 0.9) {
+      const travel = easeOutCubic((progress - 0.58) / 0.32);
+      return {
+        x: lerp(edgeX, base.x, travel),
+        y: base.y + Math.sin(travel * Math.PI) * 0.28,
+        visible: travel > 0.02,
+        carrying: true,
+      };
+    }
+    return { ...base, visible: true, carrying: false };
+  }
+  return { ...base, visible: true, carrying: false };
+}
+
+function fetchToyOrigin(scene, toy, fallback) {
+  const item = toy.id ? decorItemById(toy.id) : null;
+  if (!item) return { x: fallback.x, y: fallback.y + 0.18 };
+  const position = getDecorPosition(item);
+  const backdropLocked = isBackdropLockedScene(scene);
+  const rawX = backdropLocked ? position.x * OUTDOOR_BACKDROP_DECOR_X_SCALE : position.x;
+  return {
+    x: scene === "underwater" ? wrapPanoramaX(rawX - panoramaOffset(scene)) : rawX,
+    y: backdropLocked ? position.y + OUTDOOR_BACKDROP_DECOR_Y_OFFSET : position.y,
+  };
+}
+
+function fetchToyVisual(time, scene, petVisual) {
+  if (petActivity?.type !== "fetch" || petActivity.scene !== scene) return null;
+  const progress = activityProgress(time);
+  const toy = petActivity.toy;
+  const base = renderedPetBasePosition(scene);
+  const edgeX = petExitX(scene, petActivity.side || 1);
+  const origin = fetchToyOrigin(scene, toy, base);
+  let x = origin.x;
+  let y = origin.y;
+  let alpha = 1;
+  let scale = 1;
+
+  if (progress < 0.16) {
+    const flight = easeOutCubic(progress / 0.16);
+    x = lerp(origin.x, edgeX, flight);
+    y = lerp(origin.y, base.y + 0.2, flight) + Math.sin(flight * Math.PI) * 1.15;
+    scale = 0.88 + Math.sin(flight * Math.PI) * 0.25;
+  } else if (progress < 0.58) {
+    return null;
+  } else if (progress < 0.9 && petVisual.visible) {
+    x = petVisual.x;
+    y = petVisual.y + 0.28 + Math.sin(time * 0.012) * 0.025;
+    scale = 0.82;
+  } else {
+    const drop = easeOutCubic((progress - 0.9) / 0.1);
+    x = lerp(base.x, base.x + (petActivity.side || 1) * 0.42, drop);
+    y = lerp(base.y + 0.28, base.y - 0.18, drop) + Math.sin(drop * Math.PI) * 0.16;
+    alpha = 1 - clamp((progress - 0.98) / 0.02, 0, 1);
+  }
+  return {
+    tex: toy.tex,
+    x,
+    y,
+    z: 0.72,
+    w: toy.w * scale,
+    h: toy.h * scale,
+    rx: 0,
+    a: alpha,
+  };
+}
+
 function drawScene(time) {
   if (!renderer) return;
   const { gl, matrix, alpha, textures } = renderer;
@@ -3307,7 +3701,8 @@ function drawScene(time) {
   const aspect = gl.canvas.width / Math.max(1, gl.canvas.height);
   const pulse = Math.max(0, petPulseUntil - time) / 1200;
   const scene = currentScene();
-  const indoors = scene === "home" || scene === "kitchen";
+  updatePetBehavior(time, scene);
+  const indoors = scene === "home" || scene === "bedroom" || scene === "kitchen";
   const viewPan = getViewPan(scene);
   const cameraX = viewPan + Math.sin(time * 0.00018) * (indoors ? 0.18 : 0.42) + pulse * 0.16;
   const cameraY = (indoors ? 2.05 : 2.25) + Math.sin(time * 0.00027) * 0.08;
@@ -3316,33 +3711,35 @@ function drawScene(time) {
   const pv = multiply(projection, view);
 
   const objects = backdropObjectsForScene(scene);
-  const decorObjects = decorObjectsForScene(scene);
+  const decorObjects = decorObjectsForScene(scene, time);
 
   objects.push(...decorObjects);
 
   objects.forEach((obj) => drawObject(gl, textures[obj.tex], pv, obj, matrix, alpha));
 
   let pet = null;
-  if (!isPetHidden(time)) {
+  const petVisual = petVisualState(time, scene);
+  if (petVisual.visible) {
     const petFrame = state.stage === "egg" ? "egg" : currentPetFrame(time);
     const lowPose = petFrame === "sleepy" || petFrame.startsWith("roll") || petFrame === "couch-sit";
     const bob = lowPose ? pulse * 0.02 : Math.sin(time * 0.004) * 0.036 + pulse * 0.06;
     const scale = petScaleForScene(scene);
-    const petPosition = getPetPosition(scene);
     const petLayout = petFrameLayout(petFrame, scale);
     pet = {
       tex: state.stage === "egg" ? "egg" : petTextureKeyFor(petFrame),
-      x: scene === "underwater" ? wrapPanoramaX(petPosition.x - panoramaOffset(scene)) : petPosition.x,
-      y: petPosition.y + bob + petLayout.yOffset,
+      x: petVisual.x,
+      y: petVisual.y + bob + petLayout.yOffset,
       z: 0.55,
       w: petLayout.w,
       h: petLayout.h,
       rx: 0,
       a: 1,
-      interactive: { type: "pet", scene },
+      interactive: petActivity ? null : { type: "pet", scene },
     };
     drawObject(gl, textures[pet.tex], pv, pet, matrix, alpha);
   }
+  const fetchToy = fetchToyVisual(time, scene, petVisual);
+  if (fetchToy) drawObject(gl, textures[fetchToy.tex], pv, fetchToy, matrix, alpha);
   lastInteractiveObjects = [
     ...decorObjects.map((obj) => interactiveBounds(gl, pv, obj)).filter(Boolean),
     pet ? interactiveBounds(gl, pv, pet) : null,
@@ -3373,8 +3770,33 @@ function backdropObjectsForScene(scene) {
   }));
 }
 
-function decorObjectsForScene(scene) {
+function campfireFlameObject(baseObject, time) {
+  const elapsed = mountainCampfireFlickerStartedAt
+    ? Math.max(0, time - mountainCampfireFlickerStartedAt)
+    : CAMPFIRE_FLICKER_DURATION;
+  const ignitionStrength = 1 - clamp(elapsed / CAMPFIRE_FLICKER_DURATION, 0, 1);
+  const fastFlicker = Math.sin(time * 0.024) * 0.5 + Math.sin(time * 0.041 + 1.8) * 0.5;
+  const livelyFlicker = fastFlicker * ignitionStrength;
+  return {
+    ...baseObject,
+    tex: "mountainCampfireFlame",
+    x: baseObject.x + livelyFlicker * baseObject.w * 0.012,
+    y: baseObject.y + baseObject.h * 0.16 + Math.abs(livelyFlicker) * baseObject.h * 0.018,
+    z: baseObject.z,
+    w: baseObject.w * 0.285 * (1 + livelyFlicker * 0.08),
+    h: baseObject.h * 0.42 * (1 + livelyFlicker * 0.13),
+    a: 0.96 + livelyFlicker * 0.035,
+    interactive: null,
+  };
+}
+
+function decorObjectsForScene(scene, time = performance.now()) {
   return placedDecorForScene(scene)
+    .filter((item) => !(
+      petActivity?.type === "fetch"
+      && petActivity.scene === scene
+      && petActivity.toy?.id === item.id
+    ))
     .flatMap((item) => {
       const position = getDecorPosition(item);
       const backdropLocked = isBackdropLockedScene(scene);
@@ -3383,7 +3805,7 @@ function decorObjectsForScene(scene) {
       const x = backdropLocked ? position.x * OUTDOOR_BACKDROP_DECOR_X_SCALE : position.x;
       const baseObject = {
         ...item,
-        tex: decorTextureForItem(item),
+        tex: item.id === "mountainCampfire" ? "mountainCampfireOff" : decorTextureForItem(item),
         x: scene === "underwater" ? wrapPanoramaX(x - panoramaOffset(scene)) : x,
         y: backdropLocked ? position.y + OUTDOOR_BACKDROP_DECOR_Y_OFFSET : position.y,
         z: backdropLocked ? OUTDOOR_BACKDROP_DECOR_Z : item.z,
@@ -3394,6 +3816,9 @@ function decorObjectsForScene(scene) {
         interactive: { type: "decor", id: item.id },
       };
       const layerObjects = [baseObject];
+      if (item.id === "mountainCampfire" && decorStateValue("mountainCampfire")) {
+        layerObjects.push(campfireFlameObject(baseObject, time));
+      }
       const tvScreenTex = item.id === "tv" ? TV_CHANNELS[decorStateValue("tv")]?.screenTex : "";
       if (tvScreenTex) {
         layerObjects.push({
@@ -3421,6 +3846,14 @@ function currentPetFrame(time = performance.now()) {
   if (petAction && time >= petActionUntil) {
     petAction = null;
     petActionUntil = 0;
+  }
+  if (petActivity?.type === "fetch") {
+    const progress = activityProgress(time);
+    if (progress < 0.14 || progress >= 0.9) return "celebrate";
+    return Math.floor(time / 115) % 2 === 0 ? "wag-a" : "wag-b";
+  }
+  if (petActivity?.type === "hide" || petActivity?.type === "recall") {
+    return Math.floor(time / 125) % 2 === 0 ? "wag-a" : "wag-b";
   }
   if (petAction === "wag") return Math.floor(time / 170) % 2 === 0 ? "wag-a" : "wag-b";
   if (petAction === "roll") {
@@ -3453,13 +3886,13 @@ function petTextureKey(time = performance.now()) {
 
 function petScaleForScene(scene) {
   if (state.stage === "egg") return 1.0;
-  const base = scene === "home" || scene === "kitchen" ? 1.03 : (scene === "waterfall" || scene === "mountain" || scene === "underwater") ? 1.12 : 1.08;
+  const base = scene === "home" || scene === "bedroom" || scene === "kitchen" ? 1.03 : (scene === "waterfall" || scene === "mountain" || scene === "underwater") ? 1.12 : 1.08;
   return base + Math.min(0.18, state.growth / 650);
 }
 
 function isPetHidden(time = performance.now()) {
   if (state.stage === "egg") return false;
-  return time < petHiddenUntil;
+  return petIsAway || !petVisualState(time, currentScene()).visible;
 }
 
 function petIsOnCouch() {

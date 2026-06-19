@@ -158,6 +158,11 @@ button {
   top: 36%;
 }
 
+.bedroom-hotspot {
+  right: max(54px, 6vw);
+  top: 48%;
+}
+
 .living-room-hotspot {
   left: max(44px, 4vw);
   top: 38%;
@@ -322,6 +327,13 @@ button {
   transition: transform 160ms ease, background 160ms ease;
 }
 
+.care-actions button:disabled {
+  cursor: wait;
+  opacity: 0.56;
+  filter: saturate(0.6);
+  transform: none;
+}
+
 .world-strip {
   right: max(18px, env(safe-area-inset-right));
   bottom: max(22px, env(safe-area-inset-bottom));
@@ -399,6 +411,24 @@ button {
   height: 64px;
   color: white;
   background: linear-gradient(135deg, #6bd5ef, #8178f4);
+}
+
+.round-action.is-needed {
+  background: linear-gradient(135deg, #ff8f68, #f05b91);
+  box-shadow: 0 0 0 0 rgba(240, 91, 145, 0.48), 0 18px 45px rgba(255, 110, 120, 0.38);
+  animation: call-pet-pulse 1.2s ease-out infinite;
+}
+
+@keyframes call-pet-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(240, 91, 145, 0.48), 0 18px 45px rgba(255, 110, 120, 0.38); }
+  70% { box-shadow: 0 0 0 13px rgba(240, 91, 145, 0), 0 18px 45px rgba(255, 110, 120, 0.38); }
+  100% { box-shadow: 0 0 0 0 rgba(240, 91, 145, 0), 0 18px 45px rgba(255, 110, 120, 0.38); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .round-action.is-needed {
+    animation: none;
+  }
 }
 
 .decor-remove-target {
@@ -982,6 +1012,11 @@ input:focus {
   .kitchen-hotspot {
     right: max(12px, env(safe-area-inset-right));
     top: 34%;
+  }
+
+  .bedroom-hotspot {
+    right: max(12px, env(safe-area-inset-right));
+    top: 46%;
   }
 
   .underwater-hotspot {

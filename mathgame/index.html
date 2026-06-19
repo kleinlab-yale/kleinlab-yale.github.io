@@ -6,6 +6,7 @@
     <title>Math Pet Evolution: Sky Meadow</title>
     <link rel="preload" href="assets/gpt-meadow-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-home-interior.png" as="image" />
+    <link rel="preload" href="assets/gpt-bedroom-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-kitchen-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-waterfall-backdrop.png" as="image" />
     <link rel="preload" href="assets/gpt-mountain-backdrop.png" as="image" />
@@ -18,7 +19,7 @@
     <link rel="preload" href="assets/gpt-puppy-corgi-scuba-base.png" as="image" />
     <link rel="preload" href="assets/gpt-puppy-husky-scuba-base.png" as="image" />
     <link rel="icon" href="assets/gpt-egg.png" />
-    <link rel="stylesheet" href="styles.css?v=20260618-section-bank" />
+    <link rel="stylesheet" href="styles.css?v=20260618-bedroom" />
   </head>
   <body>
     <main class="game-shell" id="gameShell">
@@ -50,6 +51,9 @@
       </button>
       <button id="kitchenHotspot" class="scene-hotspot kitchen-hotspot" type="button">
         <span>Kitchen</span>
+      </button>
+      <button id="bedroomHotspot" class="scene-hotspot bedroom-hotspot" type="button">
+        <span>Bedroom</span>
       </button>
       <button id="livingRoomHotspot" class="scene-hotspot living-room-hotspot" type="button">
         <span>Living Room</span>
@@ -182,6 +186,7 @@
         <p class="panel-copy">Quest clears unlock furniture, yard toys, and places to arrange.</p>
         <div class="decor-tabs" role="tablist" aria-label="Decor scene">
           <button id="decorHomeTab" class="active" data-decor-scene="home" type="button">Home</button>
+          <button id="decorBedroomTab" data-decor-scene="bedroom" type="button">Bedroom</button>
           <button id="decorKitchenTab" data-decor-scene="kitchen" type="button">Kitchen</button>
           <button id="decorOutdoorTab" data-decor-scene="outdoor" type="button">Outside</button>
           <button id="decorWaterfallTab" data-decor-scene="waterfall" type="button">Waterfall</button>
@@ -192,7 +197,7 @@
       </div>
     </section>
 
-    <script src="script.js?v=20260618-section-bank"></script>
+    <script src="script.js?v=20260618-bedroom"></script>
     <script src="workbook-questions.js?v=20260618-answer-integrity"></script>
   </body>
 </html>
