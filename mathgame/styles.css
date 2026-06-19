@@ -579,6 +579,34 @@ button {
   transition: transform 160ms ease, outline 160ms ease, opacity 160ms ease;
 }
 
+.decor-item-shell {
+  position: relative;
+  display: grid;
+}
+
+.decor-item-shell .decor-item {
+  width: 100%;
+}
+
+.decor-orientation {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  min-height: 28px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(102, 217, 235, 0.95), rgba(136, 121, 255, 0.92));
+  box-shadow: 0 6px 14px rgba(42, 68, 103, 0.2);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+}
+
+.decor-orientation:hover {
+  transform: translateY(-1px);
+}
+
 .egg-pick {
   display: grid;
   gap: 4px;

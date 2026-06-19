@@ -157,7 +157,7 @@ def bleed_rgb_into_transparent(width, height, rgba):
     return out
 
 
-def trim_uploaded_asset(source, destination):
+def trim_uploaded_asset(source, destination, keep_all=False):
     width, height, rgba = read_png(source)
     mask = flood_connected_background(width, height, rgba)
     mask = remove_gray_halo(width, height, rgba, mask)
@@ -168,7 +168,8 @@ def trim_uploaded_asset(source, destination):
             keyed[index * 4 + 3] = 0
 
     keyed = remove_large_gray_checker_components(width, height, keyed)
-    width, height, keyed = keep_largest_component(width, height, keyed)
+    if not keep_all:
+        width, height, keyed = keep_largest_component(width, height, keyed)
     width, height, keyed = trim_alpha(width, height, keyed)
     keyed = bleed_rgb_into_transparent(width, height, keyed)
     write_png(destination, width, height, keyed)
@@ -176,10 +177,15 @@ def trim_uploaded_asset(source, destination):
 
 
 def main():
-    if len(sys.argv) < 3 or len(sys.argv[1:]) % 2:
-        raise SystemExit("usage: trim_checkerboard_uploads.py source.png destination.png [source.png destination.png ...]")
-    for source, destination in zip(sys.argv[1::2], sys.argv[2::2]):
-        trim_uploaded_asset(source, destination)
+    args = sys.argv[1:]
+    keep_all = False
+    if args and args[0] == "--keep-all":
+        keep_all = True
+        args = args[1:]
+    if len(args) < 2 or len(args) % 2:
+        raise SystemExit("usage: trim_checkerboard_uploads.py [--keep-all] source.png destination.png [source.png destination.png ...]")
+    for source, destination in zip(args[::2], args[1::2]):
+        trim_uploaded_asset(source, destination, keep_all=keep_all)
 
 
 if __name__ == "__main__":

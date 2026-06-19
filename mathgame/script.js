@@ -93,10 +93,18 @@ const ASSETS = {
   homeTable: "assets/gpt-home-table.png",
   homeRockingDogToy: "assets/gpt-home-rocking-dog-toy.png?v=20260615-rocking-dog-v3",
   bedroomBed: "assets/gpt-bedroom-bed.png?v=20260618-bedroom",
+  bedroomBedStraight: "assets/gpt-bedroom-bed-straight.png?v=20260619-bedroom-actions",
   bedroomDesk: "assets/gpt-bedroom-desk.png?v=20260618-bedroom",
+  bedroomDeskStraight: "assets/gpt-bedroom-desk-straight.png?v=20260619-bedroom-actions",
   bedroomToyDresser: "assets/gpt-bedroom-toy-dresser.png?v=20260618-bedroom",
+  bedroomToyDresserStraight: "assets/gpt-bedroom-toy-dresser-straight.png?v=20260619-bedroom-actions",
   bedroomCubby: "assets/gpt-bedroom-cubby.png?v=20260618-bedroom",
+  bedroomCubbyStraight: "assets/gpt-bedroom-cubby-straight.png?v=20260619-bedroom-actions",
   bedroomLamp: "assets/gpt-bedroom-lamp.png?v=20260618-bedroom",
+  bedroomLampOn: "assets/gpt-bedroom-lamp-on.png?v=20260619-bedroom-actions",
+  bedroomNightstand: "assets/gpt-bedroom-nightstand.png?v=20260619-bedroom-actions",
+  bedroomDirtyLaundry: "assets/gpt-bedroom-dirty-laundry.png?v=20260619-bedroom-actions",
+  bedroomBookFive: "assets/gpt-bedroom-book-five.png?v=20260619-bedroom-actions",
   bedroomPlushies: "assets/gpt-bedroom-plushies.png?v=20260618-bedroom",
   bedroomBalletBag: "assets/gpt-bedroom-ballet-bag.png?v=20260618-bedroom",
   bedroomHamper: "assets/gpt-bedroom-hamper.png?v=20260618-bedroom",
@@ -219,14 +227,17 @@ const DECOR_ITEMS = [
   { id: "underwaterTreasureChest", scene: "underwater", name: "Snack treasure", tex: "underwaterTreasureChest", x: -0.38, y: 0.43, z: 0.58, w: 1.08, h: 0.9, reward: "Underwater quests", cost: { coins: 125, gems: 1 } },
   { id: "underwaterBubbleHoop", scene: "underwater", name: "Bubble hoop", tex: "underwaterBubbleHoop", x: 2.7, y: 0.9, z: 0.46, w: 0.94, h: 1.2, reward: "Underwater quests", cost: { coins: 95, gems: 0 } },
   { id: "underwaterKelpHideout", scene: "underwater", name: "Kelp hideout", tex: "underwaterKelpHideout", x: 0.92, y: 0.74, z: 0.45, w: 1.24, h: 1.2, reward: "Underwater quests", cost: { coins: 145, gems: 2 } },
-  { id: "bedroomBed", scene: "bedroom", name: "Blush canopy bed", tex: "bedroomBed", x: -2.65, y: 0.72, z: 0.35, w: 2.65, h: 2.05, reward: "Bedroom quests", cost: { coins: 120, gems: 1 } },
-  { id: "bedroomDesk", scene: "bedroom", name: "Keepsake desk", tex: "bedroomDesk", x: 2.65, y: 0.92, z: 0.38, w: 2.05, h: 2.22, reward: "Bedroom quests", cost: { coins: 115, gems: 1 } },
-  { id: "bedroomToyDresser", scene: "bedroom", name: "Toy-town dresser", tex: "bedroomToyDresser", x: 1.18, y: 0.72, z: 0.42, w: 1.9, h: 1.72, reward: "Bedroom quests", cost: { coins: 105, gems: 1 } },
-  { id: "bedroomCubby", scene: "bedroom", name: "Dollhouse cubby", tex: "bedroomCubby", x: -0.92, y: 0.96, z: 0.43, w: 1.28, h: 1.78, reward: "Bedroom quests", cost: { coins: 85, gems: 0 } },
-  { id: "bedroomLamp", scene: "bedroom", name: "Crystal unicorn lamp", tex: "bedroomLamp", x: -1.12, y: 1.14, z: 0.54, w: 0.72, h: 1.28, reward: "Bedroom quests", cost: { coins: 70, gems: 0 } },
+  { id: "bedroomBed", scene: "bedroom", name: "Blush canopy bed", tex: "bedroomBed", straightTex: "bedroomBedStraight", x: -2.65, y: 0.72, z: 0.35, w: 2.65, h: 2.05, straightW: 2.5, straightH: 2.05, reward: "Bedroom quests", cost: { coins: 120, gems: 1 } },
+  { id: "bedroomDesk", scene: "bedroom", name: "Keepsake desk", tex: "bedroomDesk", straightTex: "bedroomDeskStraight", x: 2.65, y: 0.92, z: 0.38, w: 2.05, h: 2.22, straightW: 2.05, straightH: 2.18, reward: "Bedroom quests", cost: { coins: 115, gems: 1 } },
+  { id: "bedroomToyDresser", scene: "bedroom", name: "Toy-town dresser", tex: "bedroomToyDresser", straightTex: "bedroomToyDresserStraight", x: 1.18, y: 0.72, z: 0.42, w: 1.9, h: 1.72, straightW: 1.96, straightH: 1.78, reward: "Bedroom quests", cost: { coins: 105, gems: 1 } },
+  { id: "bedroomCubby", scene: "bedroom", name: "Dollhouse cubby", tex: "bedroomCubby", straightTex: "bedroomCubbyStraight", x: -0.92, y: 0.96, z: 0.43, w: 1.28, h: 1.78, straightW: 1.26, straightH: 1.82, reward: "Bedroom quests", cost: { coins: 85, gems: 0 } },
+  { id: "bedroomNightstand", scene: "bedroom", name: "Heart nightstand", tex: "bedroomNightstand", x: -4.08, y: 0.6, z: 0.46, w: 1.04, h: 1.12, reward: "Bedroom quests", cost: { coins: 75, gems: 0 } },
+  { id: "bedroomLamp", scene: "bedroom", name: "Crystal unicorn lamp", tex: "bedroomLamp", x: -1.12, y: 1.14, z: 0.54, w: 0.5, h: 0.86, reward: "Bedroom quests", cost: { coins: 70, gems: 0 } },
   { id: "bedroomPlushies", scene: "bedroom", name: "Bedtime plushies", tex: "bedroomPlushies", x: -1.82, y: 0.32, z: 0.62, w: 1.28, h: 1.0, reward: "Bedroom quests", cost: { coins: 65, gems: 0 } },
   { id: "bedroomBalletBag", scene: "bedroom", name: "Ballet tote", tex: "bedroomBalletBag", x: 0.12, y: 0.28, z: 0.64, w: 0.82, h: 0.9, reward: "Bedroom quests", cost: { coins: 55, gems: 0 } },
   { id: "bedroomHamper", scene: "bedroom", name: "Striped hamper", tex: "bedroomHamper", x: 3.88, y: 0.48, z: 0.5, w: 0.78, h: 1.2, reward: "Bedroom quests", cost: { coins: 60, gems: 0 } },
+  { id: "bedroomBookFive", scene: "bedroom", name: "Harry Potter Book 5", tex: "bedroomBookFive", x: -0.42, y: 0.26, z: 0.67, w: 0.72, h: 0.54, reward: "Bedroom quests", cost: { coins: 65, gems: 1 }, optional: true },
+  { id: "bedroomDirtyLaundry", scene: "bedroom", name: "Dirty laundry", tex: "bedroomDirtyLaundry", x: 2.9, y: 0.12, z: 0.7, w: 0.92, h: 0.64, reward: "Bedroom cleanup", cost: { coins: 0, gems: 0 }, optional: true, activity: true },
 ];
 
 const BEDROOM_DECOR_IDS = [
@@ -234,11 +245,18 @@ const BEDROOM_DECOR_IDS = [
   "bedroomDesk",
   "bedroomToyDresser",
   "bedroomCubby",
+  "bedroomNightstand",
   "bedroomLamp",
   "bedroomPlushies",
   "bedroomBalletBag",
   "bedroomHamper",
+  "bedroomBookFive",
 ];
+
+const BEDROOM_ACTIVITY_IDS = ["bedroomDirtyLaundry"];
+const ORIENTABLE_DECOR_IDS = new Set(["bedroomBed", "bedroomDesk", "bedroomToyDresser", "bedroomCubby"]);
+const NIGHTSTAND_LAMP_OFFSET = { x: 0, y: 0.63 };
+const LAUNDRY_HAMPER_DISTANCE = 0.92;
 
 const DECOR_POSITION_MIGRATIONS = {
   chair: { x: -0.95, y: 0.93 },
@@ -323,6 +341,7 @@ const TOGGLEABLE_DECOR = {
   oven: { onName: "next oven food", offName: "oven closed" },
   mountainCampfire: { onName: "fire lit", offName: "fire out" },
   underwaterPearlLamp: { onName: "pearl glowing", offName: "pearl dim" },
+  bedroomLamp: { onName: "lamp on", offName: "lamp off" },
 };
 
 const FETCH_DURATION = 5200;
@@ -495,11 +514,14 @@ if (IS_DEMO) {
     mountainUnlocked: true,
     underwaterUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS],
-    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
     decorPositions: {},
-    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, kitchenSink: 0, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1 },
+    decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, kitchenSink: 0, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1, bedroomLamp: 1 },
+    decorOrientations: { bedroomBed: 1, bedroomDesk: 1, bedroomToyDresser: 1, bedroomCubby: 1 },
+    bedroomLampOnNightstand: true,
+    bedroomLaundryCleaned: false,
     petPositions: {
       home: { x: -0.18, y: 0.48 },
       bedroom: { x: 0.08, y: 0.46 },
@@ -545,11 +567,14 @@ function createInitialState() {
     mountainUnlocked: false,
     underwaterUnlocked: false,
     kitchenUnlocked: false,
-    decorUnlocked: [],
-    decorOwned: [],
-    decorPlaced: [],
+    decorUnlocked: [...BEDROOM_ACTIVITY_IDS],
+    decorOwned: [...BEDROOM_ACTIVITY_IDS],
+    decorPlaced: [...BEDROOM_ACTIVITY_IDS],
     decorPositions: {},
     decorStates: {},
+    decorOrientations: {},
+    bedroomLampOnNightstand: false,
+    bedroomLaundryCleaned: false,
     petPositions: {
       home: { ...DEFAULT_PET_POSITIONS.home },
       bedroom: { ...DEFAULT_PET_POSITIONS.bedroom },
@@ -592,6 +617,12 @@ function loadState() {
     ]);
     const decorPlaced = normalizeDecorIds(savedDecorPlaced.length ? savedDecorPlaced : legacyHomeItems)
       .filter((id) => decorUnlocked.includes(id) && decorOwned.includes(id));
+    const bedroomLaundryCleaned = Boolean(saved.bedroomLaundryCleaned);
+    BEDROOM_ACTIVITY_IDS.forEach((id) => {
+      if (!decorUnlocked.includes(id)) decorUnlocked.push(id);
+      if (!decorOwned.includes(id)) decorOwned.push(id);
+      if (!bedroomLaundryCleaned && !decorPlaced.includes(id)) decorPlaced.push(id);
+    });
     const unlockedLooks = Array.isArray(saved.unlocked) ? Array.from(new Set(["none", ...saved.unlocked])) : ["none"];
     const ownedLooks = Array.isArray(saved.ownedLooks) ? Array.from(new Set(["none", ...saved.ownedLooks])) : unlockedLooks;
     const secretAwards = Array.isArray(saved.secretAwards)
@@ -660,6 +691,9 @@ function loadState() {
       decorPlaced,
       decorPositions: normalizeDecorPositions(saved.decorPositions),
       decorStates: normalizeDecorStates(saved.decorStates, saved.tvChannel),
+      decorOrientations: normalizeDecorOrientations(saved.decorOrientations),
+      bedroomLampOnNightstand: Boolean(saved.bedroomLampOnNightstand),
+      bedroomLaundryCleaned,
       petPositions: normalizePetPositions(saved.petPositions),
       scenePan: normalizeScenePan(saved.scenePan),
       viewPan: normalizeViewPan(saved.viewPan),
@@ -732,6 +766,14 @@ function normalizeDecorStates(value, legacyTvChannel = 0) {
         ? clamp(Number(raw || 0), 0, OVEN_STATES.length - 1)
       : raw ? 1 : 0;
     return states;
+  }, {});
+}
+
+function normalizeDecorOrientations(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return Array.from(ORIENTABLE_DECOR_IDS).reduce((orientations, id) => {
+    orientations[id] = source[id] ? 1 : 0;
+    return orientations;
   }, {});
 }
 
@@ -859,11 +901,23 @@ function placedDecorForScene(scene) {
   return decorItemsForScene(scene).filter((item) => state.decorPlaced.includes(item.id));
 }
 
+function countedDecorItemsForScene(scene) {
+  return decorItemsForScene(scene).filter((item) => !item.activity);
+}
+
 function defaultDecorPosition(item) {
   return { x: item.x, y: item.y };
 }
 
 function getDecorPosition(item) {
+  if (item.id === "bedroomLamp" && state.bedroomLampOnNightstand && isDecorPlaced("bedroomNightstand")) {
+    const nightstand = decorItemById("bedroomNightstand");
+    const position = nightstand ? getDecorPosition(nightstand) : defaultDecorPosition(item);
+    return {
+      x: position.x + NIGHTSTAND_LAMP_OFFSET.x,
+      y: position.y + NIGHTSTAND_LAMP_OFFSET.y,
+    };
+  }
   return state.decorPositions[item.id] || defaultDecorPosition(item);
 }
 
@@ -923,6 +977,22 @@ function isDecorPlaced(id) {
   return isDecorOwned(id) && state.decorPlaced.includes(id);
 }
 
+function decorOrientationValue(id) {
+  return state.decorOrientations?.[id] ? 1 : 0;
+}
+
+function toggleDecorOrientation(id) {
+  const item = decorItemById(id);
+  if (!item?.straightTex || !ORIENTABLE_DECOR_IDS.has(id) || !isDecorPlaced(id)) return false;
+  if (!state.decorOrientations || typeof state.decorOrientations !== "object") state.decorOrientations = {};
+  const next = decorOrientationValue(id) ? 0 : 1;
+  state.decorOrientations[id] = next;
+  showToast(`${item.name}: ${next ? "straight against the wall" : "angled into the room"}.`);
+  saveState();
+  renderDecor();
+  return true;
+}
+
 function decorStateValue(id) {
   if (id === "tv") return clamp(state.tvChannel ?? state.decorStates?.tv ?? 0, 0, TV_CHANNELS.length - 1);
   if (id === "oven") return clamp(state.decorStates?.oven ?? 0, 0, OVEN_STATES.length - 1);
@@ -969,10 +1039,12 @@ function toggleDecorState(id) {
 
 function handleDecorTap(id) {
   if (id === "remote") return toggleDecorState("tv");
+  if (ORIENTABLE_DECOR_IDS.has(id)) return toggleDecorOrientation(id);
   return toggleDecorState(id);
 }
 
 function decorTextureForItem(item) {
+  if (item.straightTex && decorOrientationValue(item.id)) return item.straightTex;
   if (item.id === "tv") return "homeTvOff";
   if (item.id === "lamp") return decorStateValue("lamp") ? "homeLampOn" : "homeLamp";
   if (item.id === "kitchenFridge") return decorStateValue("kitchenFridge") ? "kitchenFridgeOpen" : "kitchenFridge";
@@ -980,12 +1052,16 @@ function decorTextureForItem(item) {
   if (item.id === "oven") return OVEN_STATES[decorStateValue("oven")]?.tex || "kitchenOven";
   if (item.id === "mountainCampfire") return decorStateValue("mountainCampfire") ? "mountainCampfireOn" : "mountainCampfireOff";
   if (item.id === "underwaterPearlLamp") return decorStateValue("underwaterPearlLamp") ? "underwaterPearlLampOn" : "underwaterPearlLampOff";
+  if (item.id === "bedroomLamp") return decorStateValue("bedroomLamp") ? "bedroomLampOn" : "bedroomLamp";
   return item.tex;
 }
 
 function decorLayoutForItem(item) {
   if (item.id === "kitchenFridge" && decorStateValue("kitchenFridge")) {
     return { w: 2.12, h: 2.34 };
+  }
+  if (item.straightTex && decorOrientationValue(item.id)) {
+    return { w: item.straightW || item.w, h: item.straightH || item.h };
   }
   const scale = item.scene === "mountain" ? MOUNTAIN_DECOR_SCALE : 1;
   return { w: item.w * scale, h: item.h * scale };
@@ -1459,7 +1535,7 @@ function renderHud() {
     objectiveTitle = "Pink Bedroom";
     objectiveText = nextDecor
       ? `Clear bedroom math to make ${nextDecor.name} available. Coins buy it in Decor.`
-      : "The bedroom is cozy and complete. Arrange keepsakes, play fetch with a plushie, or return to the living room.";
+      : "Tap large furniture to switch angled/straight. Tap the nightstand lamp to glow, and drag dirty laundry into the hamper to clean up.";
   } else if (inKitchen) {
     objectiveTitle = "Kitchen";
     objectiveText = nextDecor
@@ -1496,7 +1572,9 @@ function renderHud() {
   els.worldLabel.textContent = sceneWorldLabel(scene);
   els.coinLabel.textContent = `${state.coins} coins`;
   els.gemLabel.textContent = `${state.gems} ${state.gems === 1 ? "gem" : "gems"}`;
-  els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorForScene(scene).length}/${decorItemsForScene(scene).length} decor${secretCount ? `  ${secretCount} secret` : ""}`;
+  const countedDecor = countedDecorItemsForScene(scene);
+  const placedDecorCount = countedDecor.filter((item) => state.decorPlaced.includes(item.id)).length;
+  els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorCount}/${countedDecor.length} decor${secretCount ? `  ${secretCount} secret` : ""}`;
   els.dollarBankLabel.textContent = `$ Bank · $${state.dollars}`;
   els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inBedroom ? "Bedroom Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : inMountain ? "Mountain Quest" : inUnderwater ? "Reef Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && scene === "outdoor");
@@ -1576,7 +1654,7 @@ function renderDecor() {
     </button>
   `];
 
-  decorItemsForScene(activeDecorScene).forEach((item) => {
+  decorItemsForScene(activeDecorScene).filter((item) => !item.activity).forEach((item) => {
     const unlocked = sceneAvailable && isDecorUnlocked(item.id);
     const owned = isDecorOwned(item.id);
     const placed = isDecorPlaced(item.id);
@@ -1586,12 +1664,18 @@ function renderDecor() {
       : owned
         ? (placed ? "Placed" : "Owned")
         : `Buy ${costText(item.cost)}`;
+    const orientationControl = item.straightTex && owned && placed
+      ? `<button class="decor-orientation" data-decor-orientation="${item.id}" type="button" aria-label="Change ${item.name} orientation">${decorOrientationValue(item.id) ? "Straight" : "Angled"}</button>`
+      : "";
     cards.push(`
-      <button class="decor-item ${active ? "active" : ""} ${unlocked ? "" : "locked"}" data-decor-id="${item.id}" type="button">
-        <img src="${ASSETS[decorTextureForItem(item)]}" alt="" />
-        <strong>${item.name}</strong>
-        <span>${status}</span>
-      </button>
+      <div class="decor-item-shell">
+        <button class="decor-item ${active ? "active" : ""} ${unlocked ? "" : "locked"}" data-decor-id="${item.id}" type="button">
+          <img src="${ASSETS[decorTextureForItem(item)]}" alt="" />
+          <strong>${item.name}</strong>
+          <span>${status}</span>
+        </button>
+        ${orientationControl}
+      </div>
     `);
   });
 
@@ -1683,7 +1767,7 @@ function pointerOverDecorRemoveTarget(clientX, clientY) {
 
 function putAwayDecorItem(id) {
   const item = decorItemById(id);
-  if (!item || !isDecorPlaced(item.id)) return false;
+  if (!item || item.activity || !isDecorPlaced(item.id)) return false;
   state.decorPlaced = state.decorPlaced.filter((decorId) => decorId !== item.id);
   if (selectedMoveTarget.type === "decor" && selectedMoveTarget.id === item.id) {
     selectedMoveTarget = { type: "pet", scene: item.scene };
@@ -1710,6 +1794,7 @@ function finishDrag(event) {
   const clickDistance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
   const shouldPutAway = event.type === "pointerup"
     && dragState.target.type === "decor"
+    && !decorItemById(dragState.target.id)?.activity
     && clickDistance >= 8
     && pointerOverDecorRemoveTarget(event.clientX, event.clientY);
   setDecorRemoveTargetState(false);
@@ -1756,6 +1841,37 @@ function pointerToScenePosition(scene, clientX, clientY, bounds = MOVE_BOUNDS[sc
 }
 
 function snapDraggedTarget(target) {
+  if (target.type === "decor" && target.id === "bedroomLamp") {
+    const lamp = decorItemById("bedroomLamp");
+    const nightstand = decorItemById("bedroomNightstand");
+    if (!lamp || !nightstand || !isDecorPlaced(nightstand.id)) return;
+    const lampPosition = getDecorPosition(lamp);
+    const standPosition = getDecorPosition(nightstand);
+    const snapPosition = {
+      x: standPosition.x + NIGHTSTAND_LAMP_OFFSET.x,
+      y: standPosition.y + NIGHTSTAND_LAMP_OFFSET.y,
+    };
+    if (Math.hypot(lampPosition.x - snapPosition.x, lampPosition.y - snapPosition.y) > 0.8) return;
+    state.bedroomLampOnNightstand = true;
+    showToast("The crystal lamp snapped onto the nightstand. Tap it to switch it on or off.");
+    return;
+  }
+  if (target.type === "decor" && target.id === "bedroomDirtyLaundry") {
+    const laundry = decorItemById("bedroomDirtyLaundry");
+    const hamper = decorItemById("bedroomHamper");
+    if (!laundry || !hamper || !isDecorPlaced(hamper.id)) return;
+    const laundryPosition = getDecorPosition(laundry);
+    const hamperPosition = getDecorPosition(hamper);
+    if (Math.hypot(laundryPosition.x - hamperPosition.x, laundryPosition.y - hamperPosition.y) > LAUNDRY_HAMPER_DISTANCE) return;
+    state.bedroomLaundryCleaned = true;
+    state.decorPlaced = state.decorPlaced.filter((id) => id !== laundry.id);
+    state.coins += 5;
+    state.glow += 4;
+    selectedMoveTarget = { type: "pet", scene: "bedroom" };
+    triggerPetAction("celebrate", 1400);
+    showToast("Laundry cleaned! The clothes disappeared into the hamper. +5 coins · +4 glow.");
+    return;
+  }
   if (target.type !== "pet" || target.scene !== "home" || !isDecorPlaced("couch")) return;
   const petPosition = getPetPosition("home");
   const couchSeat = couchPetPosition();
@@ -3360,6 +3476,11 @@ els.closeDecorButton.addEventListener("click", () => setOverlay(els.decorOverlay
   });
 });
 els.decorGrid.addEventListener("click", (event) => {
+  const orientationButton = event.target.closest("[data-decor-orientation]");
+  if (orientationButton) {
+    toggleDecorOrientation(orientationButton.dataset.decorOrientation);
+    return;
+  }
   const petButton = event.target.closest("[data-decor-pet]");
   if (petButton) {
     activeDecorScene = petButton.dataset.decorPet;
@@ -3395,13 +3516,15 @@ els.canvas.addEventListener("pointerdown", (event) => {
     ? { type: "pet", scene: currentScene() }
     : { type: "decor", id: picked.id };
   const moveBounds = pointerBoundsForTarget(selectedMoveTarget, currentScene());
+  const startPosition = getTargetPosition(selectedMoveTarget);
   dragState = {
     type: "move",
     pointerId: event.pointerId,
     target: { ...selectedMoveTarget },
     startX: event.clientX,
     startY: event.clientY,
-    startPosition: getTargetPosition(selectedMoveTarget),
+    startPosition,
+    lampWasOnNightstand: selectedMoveTarget.type === "decor" && selectedMoveTarget.id === "bedroomLamp" && state.bedroomLampOnNightstand,
     startPointerPosition: pointerToScenePosition(currentScene(), event.clientX, event.clientY, moveBounds),
     pointerBounds: moveBounds,
     scene: currentScene(),
@@ -3427,12 +3550,17 @@ els.canvas.addEventListener("pointermove", (event) => {
   const backdropLockedDrag = dragState.target.type === "decor" && isBackdropLockedScene(dragState.scene);
   const dx = (pointerPosition.x - dragState.startPointerPosition.x) / (backdropLockedDrag ? OUTDOOR_BACKDROP_DECOR_X_SCALE : 1);
   const dy = (pointerPosition.y - dragState.startPointerPosition.y) * (backdropLockedDrag ? OUTDOOR_BACKDROP_DECOR_Y_DRAG_SCALE : 1);
+  if (dragState.lampWasOnNightstand && state.bedroomLampOnNightstand && Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY) >= 8) {
+    state.bedroomLampOnNightstand = false;
+    state.decorPositions.bedroomLamp = { ...dragState.startPosition };
+  }
   setTargetPosition(dragState.target, {
     x: dragState.startPosition.x + dx,
     y: dragState.startPosition.y + dy,
   });
   if (dragState.target.type === "decor") {
-    setDecorRemoveTargetState(true, pointerOverDecorRemoveTarget(event.clientX, event.clientY));
+    const item = decorItemById(dragState.target.id);
+    setDecorRemoveTargetState(!item?.activity, !item?.activity && pointerOverDecorRemoveTarget(event.clientX, event.clientY));
   }
 });
 els.canvas.addEventListener("pointerup", finishDrag);

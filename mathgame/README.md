@@ -33,6 +33,8 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - A hidden Waterfall secret unlocks Diving Gear and opens the dive path below Waterfall Clearing into Underwater Reef.
 - Underwater Reef switches each puppy to breed-specific scuba action sprites so idle, thinking, celebrate, wag, and roll actions keep visual continuity.
 - Repaired home/kitchen sprites replace cut-off and semi-transparent decor, with extra counter-scale kitchen items for player decoration.
+- Bedroom furniture can switch between angled and straight-against-the-wall variants; a matching nightstand supports a toggleable crystal lamp.
+- A draggable dirty-laundry activity rewards cleaning clothes into the hamper, and a collectible magical Book Five prop joins the bedroom decor.
 
 ## Files
 
