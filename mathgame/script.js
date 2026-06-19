@@ -101,10 +101,11 @@ const ASSETS = {
   bedroomCubby: "assets/gpt-bedroom-cubby.png?v=20260618-bedroom",
   bedroomCubbyStraight: "assets/gpt-bedroom-cubby-straight.png?v=20260619-bedroom-actions",
   bedroomLamp: "assets/gpt-bedroom-lamp.png?v=20260618-bedroom",
-  bedroomLampOn: "assets/gpt-bedroom-lamp-on.png?v=20260619-bedroom-actions",
+  bedroomLampOn: "assets/gpt-bedroom-lamp-on.png?v=20260619-bedroom-secret",
   bedroomNightstand: "assets/gpt-bedroom-nightstand.png?v=20260619-bedroom-actions",
   bedroomDirtyLaundry: "assets/gpt-bedroom-dirty-laundry.png?v=20260619-bedroom-actions",
   bedroomBookFive: "assets/gpt-bedroom-book-five.png?v=20260619-bedroom-actions",
+  bedroomSecretHersheysPlush: "assets/gpt-bedroom-secret-hersheys-plush.png?v=20260619-bedroom-secret",
   bedroomPlushies: "assets/gpt-bedroom-plushies.png?v=20260618-bedroom",
   bedroomBalletBag: "assets/gpt-bedroom-ballet-bag.png?v=20260618-bedroom",
   bedroomHamper: "assets/gpt-bedroom-hamper.png?v=20260618-bedroom",
@@ -238,6 +239,7 @@ const DECOR_ITEMS = [
   { id: "bedroomHamper", scene: "bedroom", name: "Striped hamper", tex: "bedroomHamper", x: 3.88, y: 0.48, z: 0.5, w: 0.78, h: 1.2, reward: "Bedroom quests", cost: { coins: 60, gems: 0 } },
   { id: "bedroomBookFive", scene: "bedroom", name: "Harry Potter Book 5", tex: "bedroomBookFive", x: -0.42, y: 0.26, z: 0.67, w: 0.72, h: 0.54, reward: "Bedroom quests", cost: { coins: 65, gems: 1 }, optional: true },
   { id: "bedroomDirtyLaundry", scene: "bedroom", name: "Dirty laundry", tex: "bedroomDirtyLaundry", x: 2.9, y: 0.12, z: 0.7, w: 0.92, h: 0.64, reward: "Bedroom cleanup", cost: { coins: 0, gems: 0 }, optional: true, activity: true },
+  { id: "bedroomSecretHersheysPlush", scene: "bedroom", name: "HERSHEY'S secret plush", tex: "bedroomSecretHersheysPlush", x: 2.9, y: 0.58, z: 0.72, w: 0.72, h: 1.34, reward: "Bedroom secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true },
 ];
 
 const BEDROOM_DECOR_IDS = [
@@ -254,8 +256,9 @@ const BEDROOM_DECOR_IDS = [
 ];
 
 const BEDROOM_ACTIVITY_IDS = ["bedroomDirtyLaundry"];
+const BEDROOM_SECRET_PLUSH_ID = "bedroomSecretHersheysPlush";
 const ORIENTABLE_DECOR_IDS = new Set(["bedroomBed", "bedroomDesk", "bedroomToyDresser", "bedroomCubby"]);
-const NIGHTSTAND_LAMP_OFFSET = { x: 0, y: 0.63 };
+const NIGHTSTAND_LAMP_OFFSET = { x: 0, y: 0.98 };
 const LAUNDRY_HAMPER_DISTANCE = 0.92;
 
 const DECOR_POSITION_MIGRATIONS = {
@@ -318,6 +321,7 @@ const SECRET_AWARDS = {
   lanternTrail: { title: "Diving Gear", coins: 45, gems: 1, glow: 12 },
   summitSupper: { title: "Summit Supper", coins: 60, gems: 2, glow: 16 },
   reefTreasure: { title: "Reef Treasure", coins: 70, gems: 2, glow: 18 },
+  bedroomTidier: { title: "HERSHEY'S Secret Plush", coins: 35, gems: 1, glow: 12 },
 };
 const TV_CHANNELS = [
   { screenTex: "", label: "TV off" },
@@ -540,6 +544,7 @@ if (IS_DEMO) {
     equipped: { look: "none" },
   };
 }
+if (state.location === "bedroom") resetBedroomLaundryForSecretAttempt();
 const migratedBankSections = depositCompletedDecorSections();
 if (migratedBankSections.length) saveState();
 selectedEgg = state.egg || "sunny";
@@ -628,6 +633,11 @@ function loadState() {
     const secretAwards = Array.isArray(saved.secretAwards)
       ? Array.from(new Set(saved.secretAwards)).filter((id) => SECRET_AWARDS[id])
       : [];
+    if (secretAwards.includes("bedroomTidier")) {
+      if (!decorUnlocked.includes(BEDROOM_SECRET_PLUSH_ID)) decorUnlocked.push(BEDROOM_SECRET_PLUSH_ID);
+      if (!decorOwned.includes(BEDROOM_SECRET_PLUSH_ID)) decorOwned.push(BEDROOM_SECRET_PLUSH_ID);
+      if (!decorPlaced.includes(BEDROOM_SECRET_PLUSH_ID)) decorPlaced.push(BEDROOM_SECRET_PLUSH_ID);
+    }
     const bankedSections = Array.isArray(saved.bankedSections)
       ? Array.from(new Set(saved.bankedSections)).filter((scene) => DECOR_SCENES.includes(scene))
       : [];
@@ -902,7 +912,7 @@ function placedDecorForScene(scene) {
 }
 
 function countedDecorItemsForScene(scene) {
-  return decorItemsForScene(scene).filter((item) => !item.activity);
+  return decorItemsForScene(scene).filter((item) => !item.activity && !item.secretReward);
 }
 
 function defaultDecorPosition(item) {
@@ -1068,7 +1078,7 @@ function decorLayoutForItem(item) {
 }
 
 function nextDecorItem(scene) {
-  return decorItemsForScene(scene).find((item) => !isDecorUnlocked(item.id));
+  return decorItemsForScene(scene).find((item) => !item.activity && !item.secretReward && !isDecorUnlocked(item.id));
 }
 
 function livingRoomDecorComplete(ids = state.decorUnlocked) {
@@ -1081,7 +1091,7 @@ function livingRoomDecorComplete(ids = state.decorUnlocked) {
 function completedDecorSections(ownedIds = []) {
   const owned = new Set(Array.isArray(ownedIds) ? ownedIds : []);
   return DECOR_SCENES.filter((scene) => {
-    const items = decorItemsForScene(scene);
+    const items = decorItemsForScene(scene).filter((item) => !item.activity && !item.secretReward);
     return items.length > 0 && items.every((item) => owned.has(item.id));
   });
 }
@@ -1159,8 +1169,28 @@ function grantSecretAward(id) {
     const underwaterMessage = unlockNextDecorReward("underwater");
     extra = ` Dive Below opened.${underwaterMessage.includes("fully stocked") ? "" : ` ${underwaterMessage}`}`;
   }
+  if (id === "bedroomTidier") {
+    if (!state.decorUnlocked.includes(BEDROOM_SECRET_PLUSH_ID)) state.decorUnlocked.push(BEDROOM_SECRET_PLUSH_ID);
+    if (!state.decorOwned.includes(BEDROOM_SECRET_PLUSH_ID)) state.decorOwned.push(BEDROOM_SECRET_PLUSH_ID);
+    if (!state.decorPlaced.includes(BEDROOM_SECRET_PLUSH_ID)) state.decorPlaced.push(BEDROOM_SECRET_PLUSH_ID);
+    const plush = decorItemById(BEDROOM_SECRET_PLUSH_ID);
+    if (plush) state.decorPositions[BEDROOM_SECRET_PLUSH_ID] = defaultDecorPosition(plush);
+    extra = " The HERSHEY'S plush appeared where the laundry was.";
+  }
   triggerPetAction("celebrate", 1400);
-  showToast(`Secret award: ${award.title}. +${award.coins} coins +${award.gems} gem.${extra}`);
+  showToast(`Secret award: ${award.title}. +${award.coins} coins · +${award.gems} gem · +${award.glow} glow.${extra}`);
+  return true;
+}
+
+function resetBedroomLaundryForSecretAttempt() {
+  if (state.secretAwards?.includes("bedroomTidier")) return false;
+  const laundry = decorItemById("bedroomDirtyLaundry");
+  if (!laundry) return false;
+  state.bedroomLaundryCleaned = false;
+  if (!state.decorUnlocked.includes(laundry.id)) state.decorUnlocked.push(laundry.id);
+  if (!state.decorOwned.includes(laundry.id)) state.decorOwned.push(laundry.id);
+  if (!state.decorPlaced.includes(laundry.id)) state.decorPlaced.push(laundry.id);
+  state.decorPositions[laundry.id] = defaultDecorPosition(laundry);
   return true;
 }
 
@@ -1535,7 +1565,9 @@ function renderHud() {
     objectiveTitle = "Pink Bedroom";
     objectiveText = nextDecor
       ? `Clear bedroom math to make ${nextDecor.name} available. Coins buy it in Decor.`
-      : "Tap large furniture to switch angled/straight. Tap the nightstand lamp to glow, and drag dirty laundry into the hamper to clean up.";
+      : state.secretAwards.includes("bedroomTidier")
+        ? "Bedroom secret found! Arrange the HERSHEY'S plush, switch furniture angled/straight, or toggle the nightstand lamp."
+        : "Bedroom secret clue: turn on the nightstand lamp, then drag the dirty laundry into the hamper.";
   } else if (inKitchen) {
     objectiveTitle = "Kitchen";
     objectiveText = nextDecor
@@ -1654,7 +1686,9 @@ function renderDecor() {
     </button>
   `];
 
-  decorItemsForScene(activeDecorScene).filter((item) => !item.activity).forEach((item) => {
+  decorItemsForScene(activeDecorScene)
+    .filter((item) => !item.activity && (!item.secretReward || isDecorUnlocked(item.id)))
+    .forEach((item) => {
     const unlocked = sceneAvailable && isDecorUnlocked(item.id);
     const owned = isDecorOwned(item.id);
     const placed = isDecorPlaced(item.id);
@@ -1677,7 +1711,7 @@ function renderDecor() {
         ${orientationControl}
       </div>
     `);
-  });
+    });
 
   els.decorGrid.innerHTML = cards.join("");
 }
@@ -1869,7 +1903,13 @@ function snapDraggedTarget(target) {
     state.glow += 4;
     selectedMoveTarget = { type: "pet", scene: "bedroom" };
     triggerPetAction("celebrate", 1400);
-    showToast("Laundry cleaned! The clothes disappeared into the hamper. +5 coins · +4 glow.");
+    const lampReady = isDecorPlaced("bedroomLamp")
+      && state.bedroomLampOnNightstand
+      && decorStateValue("bedroomLamp");
+    const secretAwarded = lampReady && grantSecretAward("bedroomTidier");
+    if (!secretAwarded) {
+      showToast("Laundry cleaned! +5 coins · +4 glow. The lamp was off—leave and return to retry the bedroom secret.");
+    }
     return;
   }
   if (target.type !== "pet" || target.scene !== "home" || !isDecorPlaced("couch")) return;
@@ -3344,6 +3384,7 @@ els.bedroomHotspot.addEventListener("click", () => {
   state.location = "bedroom";
   activeDecorScene = "bedroom";
   selectedMoveTarget = { type: "pet", scene: "bedroom" };
+  resetBedroomLaundryForSecretAttempt();
   saveState();
   renderHud();
   triggerPetAction("wag", 1000);

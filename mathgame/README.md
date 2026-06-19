@@ -35,6 +35,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Repaired home/kitchen sprites replace cut-off and semi-transparent decor, with extra counter-scale kitchen items for player decoration.
 - Bedroom furniture can switch between angled and straight-against-the-wall variants; a matching nightstand supports a toggleable crystal lamp.
 - A draggable dirty-laundry activity rewards cleaning clothes into the hamper, and a collectible magical Book Five prop joins the bedroom decor.
+- Cleaning the laundry while the nightstand lamp is glowing reveals a secret HERSHEY'S stuffed-animal reward; laundry respawns on the next bedroom visit until the secret is solved.
 
 ## Files
 
