@@ -1,17 +1,26 @@
 {
-  "name": "Sunrise Valley",
-  "short_name": "Sunrise Valley",
-  "description": "A kid-friendly idle farm and city game where math and Chinese practice replace ad boosts.",
+  "name": "Idle Town — Coleytown",
+  "short_name": "Idle Town",
+  "description": "Build Coleytown with math-earned seeds, Chinese-earned materials, farming, and animal care.",
+  "id": "./",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#f1ead5",
-  "theme_color": "#f29f58",
+  "orientation": "any",
+  "background_color": "#fff8e8",
+  "theme_color": "#315b44",
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "pwa-assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

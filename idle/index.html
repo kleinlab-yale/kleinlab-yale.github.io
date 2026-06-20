@@ -2,118 +2,243 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f29f58">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#315b44">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Sunrise Valley</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Idle Town">
+    <meta name="description" content="Grow a cozy Connecticut town with crops, clever choices, and daily learning.">
+    <title>Idle Town — Coleytown</title>
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="pwa-assets/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700;800&family=Fraunces:opsz,wght@9..144,700;9..144,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <div class="app-shell">
-      <header class="hero panel">
-        <div class="hero-copy">
-          <p class="eyebrow">No ads. Practice powers the town.</p>
-          <h1>Sunrise Valley</h1>
-          <p class="lead">
-            Grow a bright farm-town, unlock upgrades, and earn faster progress by solving
-            math and Chinese prompts instead of watching commercials.
-          </p>
-          <div class="hero-actions">
-            <button class="primary-button" id="collect-button" type="button">Collect Basket</button>
-            <div class="status-chip" id="focus-chip">Focus boost inactive</div>
-          </div>
+    <div id="app" class="app" data-view="town">
+      <header class="topbar">
+        <button class="brand" id="brand-button" type="button" aria-label="Open town overview">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 44 44" role="img"><path d="M8 25.5C10.5 17.5 15.2 12.8 22 9c6.8 3.8 11.5 8.5 14 16.5-2.4 7-7 10.5-14 10.5S10.4 32.5 8 25.5Z" fill="#f3b85f"/><path d="M22 7.5c-2.2-3.7-5.7-4.2-8.2-3.8.6 3.7 3.3 6.5 8.2 6.7m0-2.9c2-3.7 5.4-4.4 8-4.1-.4 3.8-3 6.8-8 7" fill="#6d9a57"/><path d="M15 24h14v9H15z" fill="#fff5dc"/><path d="m13 24 9-7 9 7" fill="none" stroke="#7a3f2f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 33v-5h4v5" fill="#c86444"/></svg>
+          </span>
+          <span><strong>Idle Town</strong><small>Coleytown, Connecticut</small></span>
+        </button>
+
+        <div class="season-wrap" aria-label="Town level progress">
+          <div class="season-copy"><span id="level-name">Sprout Village</span><b id="level-label">Level 1</b></div>
+          <div class="level-track"><span id="level-progress"></span></div>
         </div>
 
-        <div class="hero-world" aria-hidden="true">
-          <div class="sky-glow"></div>
-          <div class="sun"></div>
-          <div class="cloud cloud-a"></div>
-          <div class="cloud cloud-b"></div>
-          <div class="hill hill-back"></div>
-          <div class="hill hill-front"></div>
-          <div class="ground"></div>
-          <div class="scene-row row-back" id="scene-back"></div>
-          <div class="scene-row row-mid" id="scene-mid"></div>
-          <div class="scene-row row-front" id="scene-front"></div>
+        <div class="resources" aria-label="Town resources">
+          <button class="resource" data-open-view="market" type="button" aria-label="Open market">
+            <span class="resource-icon coin-icon">¢</span>
+            <span><small>Coins</small><strong id="coin-count">0</strong></span>
+          </button>
+          <button class="resource" data-open-view="farm" type="button" aria-label="Open farm">
+            <span class="resource-icon seed-icon" aria-hidden="true">✿</span>
+            <span><small>Seeds</small><strong id="seed-count">0</strong></span>
+          </button>
+          <button class="resource" data-open-view="learn" type="button" aria-label="Open learning challenges">
+            <span class="resource-icon wood-icon" aria-hidden="true">▥</span>
+            <span><small>Wood</small><strong id="wood-count">0</strong></span>
+          </button>
+          <button class="resource" data-open-view="learn" type="button" aria-label="Open Chinese challenges for building materials">
+            <span class="resource-icon ore-icon" aria-hidden="true">◆</span>
+            <span><small>Ore</small><strong id="ore-count">0</strong></span>
+          </button>
         </div>
+
+        <button class="icon-button" id="settings-button" type="button" aria-label="Open settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm8 3.8-2.1-.8a7 7 0 0 0-.6-1.4l.9-2-2-2-2 .9a7 7 0 0 0-1.4-.6L12 4H9.2l-.8 2.1a7 7 0 0 0-1.4.6l-2-.9-2 2 .9 2a7 7 0 0 0-.6 1.4l-2.1.8v2.8l2.1.8c.2.5.4 1 .6 1.4l-.9 2 2 2 2-.9c.4.3.9.5 1.4.6l.8 2.1H12l.8-2.1c.5-.2 1-.4 1.4-.6l2 .9 2-2-.9-2c.3-.4.5-.9.6-1.4l2.1-.8V12Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        </button>
       </header>
 
-      <main class="dashboard">
-        <section class="panel section-card">
-          <div class="section-heading">
-            <div>
-              <p class="section-label">Village Resources</p>
-              <h2>Current Progress</h2>
+      <nav class="nav-rail" aria-label="Main game areas">
+        <button class="nav-button active" data-view-target="town" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 11 9-7 9 7v9H3v-9Z"/><path d="M9 20v-6h6v6"/></svg></span><b>Town</b></button>
+        <button class="nav-button" data-view-target="farm" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21V9m0 4c-4.5 0-7-2.3-7-6 4.5 0 7 2.3 7 6Zm0 3c4.5 0 7-2.3 7-6-4.5 0-7 2.3-7 6Z"/></svg></span><b>Farm</b></button>
+        <button class="nav-button learning-nav" data-view-target="learn" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 7 9-4 9 4-9 4-9-4Zm3 3v6c3.4 2.8 8.6 2.8 12 0v-6"/></svg></span><b>Learn</b><i id="learn-ready-dot"></i></button>
+        <button class="nav-button" data-view-target="market" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10v10h16V10M3 10l2-6h14l2 6c-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0Z"/></svg></span><b>Market</b></button>
+        <button class="nav-button" data-view-target="goals" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21V4m0 2h12l-2 4 2 4H5"/></svg></span><b>Goals</b></button>
+      </nav>
+
+      <main class="game-stage">
+        <section class="world-view view-panel active" id="view-town" aria-label="Coleytown map">
+          <div class="world-art" id="world-art">
+            <div class="world-vignette"></div>
+            <div class="cloud cloud-a"></div>
+            <div class="cloud cloud-b"></div>
+            <div class="town-life" aria-hidden="true">
+              <span class="walker walker-farmer"><img src="assets/art/people/farmer.png" alt=""></span>
+              <span class="walker walker-vendor"><img src="assets/art/people/vendor.png" alt=""></span>
+              <span class="walker walker-librarian"><img src="assets/art/people/librarian.png" alt=""></span>
             </div>
-            <p class="section-note" id="save-status">Local save active</p>
+            <div class="world-name"><small>Welcome to</small><strong>Coleytown</strong></div>
+
+            <div class="world-progress-chip" id="world-progress-chip"><span>✦</span><div><small>Growing toward Westport</small><strong id="world-progress-copy">3 town pieces built</strong></div></div>
+            <div class="region-switcher" role="group" aria-label="Town areas">
+              <button class="active" data-region="coleytown" type="button">River Town</button>
+              <button data-region="compo" type="button" disabled>🔒 Compo Coast</button>
+            </div>
+            <button class="layout-button" id="layout-button" type="button"><span>✥</span><b>Arrange town</b></button>
+            <div class="world-crops" id="world-crops" aria-label="Living crop fields"></div>
+
+            <button class="town-building school-building" data-building="school" type="button" aria-label="Coleytown Schoolhouse">
+              <img class="world-asset building-image" alt="">
+              <em class="construction-badge" aria-hidden="true">Building…</em>
+              <span>Schoolhouse <b id="school-level-map">Lv. 1</b></span>
+            </button>
+            <button class="town-building market-building" data-building="market" type="button" aria-label="Village Market">
+              <img class="world-asset building-image" alt="">
+              <em class="construction-badge" aria-hidden="true">Building…</em>
+              <span>Village Market <b id="market-level-map">Lv. 1</b></span>
+            </button>
+            <button class="town-building bakery-building locked-building" data-building="bakery" type="button" aria-label="Cedar Bakery">
+              <img class="world-asset building-image" alt="">
+              <em class="construction-badge" aria-hidden="true">Building…</em>
+              <span>Cedar Bakery <b id="bakery-level-map">Locked</b></span>
+            </button>
+            <button class="town-building library-building locked-building" data-building="library" type="button" aria-label="Town Library">
+              <img class="world-asset building-image" alt="">
+              <em class="construction-badge" aria-hidden="true">Building…</em>
+              <span>Town Library <b id="library-level-map">Locked</b></span>
+            </button>
+
+            <button class="animal-habitat chicken-habitat" data-animal="chickens" type="button" aria-label="Chicken coop">
+              <img class="world-asset animal-image" alt=""><span>Chicken coop <b id="chicken-level-map">2 chicks</b></span>
+            </button>
+            <button class="animal-habitat cow-habitat" data-animal="cows" type="button" aria-label="Cow paddock">
+              <img class="world-asset animal-image" alt=""><span>Cow paddock <b id="cow-level-map">Empty</b></span>
+            </button>
+
+            <div class="layout-hint" id="layout-hint">Drag buildings and habitats to arrange your town. Tap Done when it feels right.</div>
+
+            <button class="map-action harvest-action" id="quick-harvest-button" type="button">
+              <span aria-hidden="true">✦</span><b>Harvest ready</b><small id="ready-count-label">0 plots</small>
+            </button>
+            <button class="map-action build-action" id="quick-build-button" type="button">
+              <span aria-hidden="true">⌂</span><b>Improve town</b><small>See projects</small>
+            </button>
           </div>
-          <div class="resource-grid" id="resource-grid"></div>
-          <div class="rate-grid" id="rate-grid"></div>
+
+          <aside class="town-card" id="town-card">
+            <div class="guide-row">
+              <div class="fox-avatar" aria-hidden="true"><span class="fox-ear left"></span><span class="fox-ear right"></span><span class="fox-face">•ᴥ•</span></div>
+              <div><small>Maple says</small><strong id="guide-title">The fields are waking up!</strong></div>
+              <button class="card-close" id="town-card-close" type="button" aria-label="Close tip">×</button>
+            </div>
+            <p id="guide-copy">Plant a few crops, then visit the market to turn your harvest into your first town improvements.</p>
+            <button class="primary-button" id="guide-action" type="button">Visit the farm <span>→</span></button>
+          </aside>
         </section>
 
-        <section class="panel section-card">
-          <div class="section-heading">
-            <div>
-              <p class="section-label">Build Loop</p>
-              <h2>Farm and City Upgrades</h2>
-            </div>
-            <p class="section-note">Costs scale as the town grows.</p>
-          </div>
-          <div class="card-grid" id="building-grid"></div>
-        </section>
-
-        <section class="panel section-card">
-          <div class="section-heading">
-            <div>
-              <p class="section-label">Major Boosts</p>
-              <h2>Town Improvements</h2>
-            </div>
-            <p class="section-note">Permanent bonuses once purchased.</p>
-          </div>
-          <div class="card-grid" id="upgrade-grid"></div>
-        </section>
-
-        <section class="panel section-card practice-panel">
-          <div class="section-heading">
-            <div>
-              <p class="section-label">Practice Instead Of Ads</p>
-              <h2>Focus Challenges</h2>
-            </div>
-            <p class="section-note" id="practice-stats">Streak 0</p>
-          </div>
-
-          <div class="mode-switch" role="tablist" aria-label="Practice modes">
-            <button class="mode-button" data-mode="math" type="button">Math Sprint</button>
-            <button class="mode-button" data-mode="chinese" type="button">Chinese Sprint</button>
-          </div>
-
-          <div class="practice-card">
-            <p class="practice-tag" id="practice-tag">Math Sprint</p>
-            <h3 id="practice-prompt">Loading challenge...</h3>
-            <p class="practice-subtitle" id="practice-subtitle"></p>
-            <div class="choice-grid" id="practice-choices"></div>
-            <div class="practice-footer">
-              <p id="practice-feedback">Solve a prompt to activate a timed boost.</p>
-              <button class="secondary-button" id="new-problem-button" type="button">New Prompt</button>
-            </div>
+        <section class="view-panel content-view" id="view-farm" aria-labelledby="farm-title">
+          <header class="view-heading">
+            <div><small>Old Hill Farm</small><h1 id="farm-title">Grow something wonderful.</h1><p>Spend seeds earned from math, then use crops for market income or animal feed.</p></div>
+            <div class="focus-boost" id="focus-boost"><span>✦</span><div><small>Learning boost</small><strong id="boost-label">Not active</strong></div></div>
+          </header>
+          <div class="farm-layout">
+            <div class="farm-field" id="farm-field" aria-label="Crop plots"></div>
+            <aside class="seed-drawer" id="seed-drawer" aria-labelledby="seed-title">
+              <div class="drawer-handle"></div>
+              <div class="seed-heading"><div><small>Seed basket</small><h2 id="seed-title">Choose a crop</h2></div><button class="card-close" id="seed-close" type="button" aria-label="Close seed basket">×</button></div>
+              <div class="seed-list" id="seed-list"></div>
+            </aside>
           </div>
         </section>
 
-        <section class="panel section-card activity-panel">
-          <div class="section-heading">
-            <div>
-              <p class="section-label">Idle Feedback</p>
-              <h2>Recent Activity</h2>
+        <section class="view-panel content-view" id="view-learn" aria-labelledby="learn-title">
+          <header class="view-heading learning-heading">
+            <div><small>Coleytown Learning Tent</small><h1 id="learn-title">A little practice supplies the town.</h1><p>Math earns seeds for crops. Intro Chinese earns wood and ore for construction.</p></div>
+            <div class="streak-card"><span>🔥</span><div><small>Current streak</small><strong id="streak-count">0 correct</strong></div></div>
+          </header>
+          <div class="learning-layout">
+            <div class="lesson-card">
+              <div class="lesson-tabs" role="tablist" aria-label="Choose a subject">
+                <button class="lesson-tab active" data-subject="math" role="tab" aria-selected="true" type="button">Math 5–6</button>
+                <button class="lesson-tab" data-subject="chinese" role="tab" aria-selected="false" type="button">中文 Intro</button>
+              </div>
+              <div class="question-meta"><span id="question-skill">Fractions</span><b id="question-reward">+18 coins</b></div>
+              <h2 id="question-prompt">What is 3/4 of 20?</h2>
+              <p class="question-hint" id="question-hint">Choose the best answer.</p>
+              <div class="whiteboard-tools">
+                <button id="whiteboard-toggle" type="button" aria-expanded="false">Open whiteboard</button>
+                <div class="whiteboard-mode" role="group" aria-label="Whiteboard drawing tool">
+                  <button id="whiteboard-pen" class="active" type="button" aria-pressed="true">Pen</button>
+                  <button id="whiteboard-eraser" type="button" aria-pressed="false">Eraser</button>
+                </div>
+                <button id="whiteboard-clear" type="button">Clear</button>
+              </div>
+              <div class="work-board" id="work-board" aria-label="Scratch whiteboard">
+                <canvas id="whiteboard-canvas" width="720" height="360" aria-label="Draw math work here"></canvas>
+              </div>
+              <div class="answer-grid" id="answer-grid"></div>
+              <div class="lesson-feedback" id="lesson-feedback" role="status" aria-live="polite"></div>
             </div>
-            <p class="section-note" id="offline-summary">Offline summary will appear here.</p>
+            <aside class="learning-reward">
+              <div class="reward-art"><span class="sun-ray"></span><b>2×</b></div>
+              <small>Connected economy</small><h2>Answers become supplies</h2><p>Math → seeds. Chinese → wood and ore. Every correct answer also adds five minutes of double market value.</p>
+              <div class="reward-resource-list"><span>∑ Math <b>Seeds</b></span><span>中文 Chinese <b>Wood · Ore</b></span><span>🌾 Farm <b>Coins · Feed</b></span></div>
+              <div class="reward-progress"><span id="lesson-progress-bar"></span></div>
+              <strong id="lesson-progress-label">0 / 3 for bonus crate</strong>
+            </aside>
           </div>
-          <ul class="activity-list" id="activity-list"></ul>
+        </section>
+
+        <section class="view-panel content-view" id="view-market" aria-labelledby="market-title">
+          <header class="view-heading">
+            <div><small>Main Street Market</small><h1 id="market-title">Fresh from your fields.</h1><p>Sell crops for coins, then put the earnings back into Coleytown.</p></div>
+            <button class="primary-button sell-everything" id="sell-all-button" type="button">Sell everything <span>→</span></button>
+          </header>
+          <div class="market-layout">
+            <div class="market-stall"><div class="awning"></div><div class="market-list" id="market-list"></div></div>
+            <aside class="market-summary">
+              <small>Today’s basket</small><h2 id="basket-value">0 coins</h2><p id="basket-copy">Harvest crops to stock the market stall.</p>
+              <div class="price-note"><span>✦</span><p><b>Practice bonus</b><br>Correct answers temporarily double each crop’s selling price.</p></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view-panel content-view" id="view-goals" aria-labelledby="goals-title">
+          <header class="view-heading">
+            <div><small>Town project board</small><h1 id="goals-title">What should Coleytown become?</h1><p>Buildings need harvest coins plus Chinese-earned wood and ore. Animals also need food from your fields.</p></div>
+          </header>
+          <div class="goals-layout">
+            <div class="project-list" id="project-list"></div>
+            <aside class="milestone-card"><span class="milestone-tree" aria-hidden="true">♣</span><small>Next town milestone</small><h2 id="milestone-name">Maple Village</h2><p id="milestone-copy">Earn town XP by planting, harvesting, learning, and building.</p><div class="milestone-track"><span id="milestone-progress"></span></div><strong id="milestone-label">0 / 250 XP</strong></aside>
+          </div>
         </section>
       </main>
-    </div>
 
-    <script src="app.js"></script>
+      <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+      <dialog class="modal" id="building-modal">
+        <button class="modal-close" data-close-modal type="button" aria-label="Close">×</button>
+        <div id="building-modal-content"></div>
+      </dialog>
+
+      <dialog class="modal settings-modal" id="settings-modal">
+        <button class="modal-close" data-close-modal type="button" aria-label="Close">×</button>
+        <small>Idle Town</small><h2>Settings</h2>
+        <label class="setting-row"><span><b>Music</b><small>Golden Fields soundtrack</small></span><input id="music-toggle" type="checkbox" role="switch"></label>
+        <label class="setting-row"><span><b>Sound effects</b><small>Harvest, building, and answer sounds</small></span><input id="sfx-toggle" type="checkbox" role="switch" checked></label>
+        <label class="setting-row"><span><b>Reduce motion</b><small>Calmer transitions and effects</small></span><input id="motion-toggle" type="checkbox" role="switch"></label>
+        <div class="settings-actions"><button class="secondary-button" id="reset-button" type="button">Reset town</button><button class="primary-button" data-close-modal type="button">Done</button></div>
+      </dialog>
+
+      <dialog class="welcome-modal" id="welcome-modal">
+        <div class="welcome-art">
+          <div class="welcome-sun"></div>
+          <div class="welcome-hills"></div>
+          <div class="welcome-house">⌂</div>
+        </div>
+        <div class="welcome-content"><small>A completely empty meadow</small><h1>Build Coleytown from nothing.</h1><p>You begin with a handful of seeds and no finished buildings. Math supplies new seeds, Chinese supplies wood and ore, and your harvest pays for every project.</p><button class="primary-button" id="start-button" type="button">Plant the first field <span>→</span></button><span>Your progress saves automatically on this device.</span></div>
+      </dialog>
+
+      <audio id="music-player" loop preload="none"><source src="music/Golden_Fields_Groove.mp3" type="audio/mpeg"></audio>
+    </div>
+    <noscript>Idle Town needs JavaScript enabled to grow your town.</noscript>
+    <script src="app.js" defer></script>
   </body>
 </html>
