@@ -258,7 +258,7 @@ const BEDROOM_DECOR_IDS = [
 const BEDROOM_ACTIVITY_IDS = ["bedroomDirtyLaundry"];
 const BEDROOM_SECRET_PLUSH_ID = "bedroomSecretHersheysPlush";
 const ORIENTABLE_DECOR_IDS = new Set(["bedroomBed", "bedroomDesk", "bedroomToyDresser", "bedroomCubby"]);
-const NIGHTSTAND_LAMP_OFFSET = { x: 0, y: 0.98 };
+const NIGHTSTAND_LAMP_OFFSET = { x: 0, y: 0.81 };
 const LAUNDRY_HAMPER_DISTANCE = 0.92;
 
 const DECOR_POSITION_MIGRATIONS = {
@@ -351,8 +351,9 @@ const TOGGLEABLE_DECOR = {
 const FETCH_DURATION = 5200;
 const PET_HIDE_DURATION = 1250;
 const PET_RECALL_DURATION = 1800;
-const PET_HIDE_MIN_DELAY = 35000;
-const PET_HIDE_MAX_DELAY = 75000;
+const PET_HIDE_MIN_DELAY = 180000;
+const PET_HIDE_MAX_DELAY = 300000;
+const PET_MAX_HIDES_PER_SESSION = 2;
 const CAMPFIRE_FLICKER_DURATION = 3000;
 const DEFAULT_FETCH_TOY = { id: "", name: "favorite ball", tex: "yardBall", w: 0.36, h: 0.36 };
 const FETCH_TOYS = {
@@ -468,6 +469,7 @@ let petActivity = null;
 let petIsAway = false;
 let petHiddenSide = 1;
 let petNextHideAt = 0;
+let petHideCount = 0;
 let petPresenceScene = "";
 let mountainCampfireFlickerStartedAt = 0;
 let activeRound = null;
@@ -1245,6 +1247,10 @@ function restartGame() {
   activeRound = null;
   activeProblem = null;
   dragState = null;
+  petActivity = null;
+  petIsAway = false;
+  petHideCount = 0;
+  petNextHideAt = 0;
   state = createInitialState();
   els.playerInput.value = "";
   els.petInput.value = "";
@@ -1385,7 +1391,9 @@ function triggerPetAction(action, duration = 1000) {
 }
 
 function scheduleNextPetHide(time = performance.now()) {
-  petNextHideAt = time + rand(PET_HIDE_MIN_DELAY, PET_HIDE_MAX_DELAY);
+  petNextHideAt = petHideCount >= PET_MAX_HIDES_PER_SESSION
+    ? Number.POSITIVE_INFINITY
+    : time + rand(PET_HIDE_MIN_DELAY, PET_HIDE_MAX_DELAY);
 }
 
 function petBehaviorPaused() {
@@ -1421,8 +1429,35 @@ function resetPetPresenceForScene(scene, time = performance.now()) {
   updatePetCareButtons();
 }
 
+function preparePetForMath(scene = currentScene()) {
+  petPresenceScene = scene;
+  petActivity = null;
+  petIsAway = false;
+  petNextHideAt = Number.POSITIVE_INFINITY;
+  if (state.stage !== "egg") setPetPosition(scene, visibleDefaultPetPosition(scene));
+  updateCallPetButton();
+  updatePetCareButtons();
+}
+
+function welcomePetBackFromMath(scene = currentScene(), time = performance.now()) {
+  petPresenceScene = scene;
+  petActivity = null;
+  petIsAway = false;
+  if (state.stage !== "egg") setPetPosition(scene, visibleDefaultPetPosition(scene));
+  scheduleNextPetHide(time);
+  updateCallPetButton();
+  updatePetCareButtons();
+}
+
 function startPetHide(time = performance.now()) {
-  if (state.stage === "egg" || petActivity || petIsAway || petBehaviorPaused()) return false;
+  if (
+    state.stage === "egg"
+    || petActivity
+    || petIsAway
+    || petBehaviorPaused()
+    || petHideCount >= PET_MAX_HIDES_PER_SESSION
+  ) return false;
+  petHideCount += 1;
   petHiddenSide = Math.random() < 0.5 ? -1 : 1;
   petActivity = {
     type: "hide",
@@ -2064,6 +2099,7 @@ function startQuest() {
   }
   const type = currentQuestType();
   const size = currentQuestSize();
+  preparePetForMath(currentScene());
   activeRound = {
     type,
     location: currentScene(),
@@ -2268,6 +2304,7 @@ function finishRound() {
   activeRound = null;
   activeProblem = null;
   setOverlay(els.questOverlay, false);
+  welcomePetBackFromMath(roundLocation);
 
   if (!passed) {
     showToast(`Retry needed: ${correct}/${pass} correct`);
@@ -3489,7 +3526,17 @@ els.feedButton.addEventListener("click", feedPet);
 els.rubButton.addEventListener("click", rubPet);
 els.fetchButton.addEventListener("click", playFetch);
 
-els.closeQuestButton.addEventListener("click", () => setOverlay(els.questOverlay, false));
+els.closeQuestButton.addEventListener("click", () => {
+  const roundLocation = activeRound?.location || currentScene();
+  activeRound = null;
+  activeProblem = null;
+  setOverlay(els.questOverlay, false);
+  welcomePetBackFromMath(roundLocation);
+  saveState();
+  renderHud();
+  triggerPetAction("wag", 900);
+  showToast(`${state.petName} is waiting for you. Math time did not count toward hide time.`);
+});
 els.questForm.addEventListener("submit", (event) => {
   event.preventDefault();
   submitAnswer();

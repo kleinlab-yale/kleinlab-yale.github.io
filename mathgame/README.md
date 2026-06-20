@@ -38,6 +38,7 @@ Static GitHub Pages prototype for a 3D-feeling math pet game. The app uses a ful
 - Cleaning the laundry while the nightstand lamp is glowing reveals a secret HERSHEY'S stuffed-animal reward; laundry respawns on the next bedroom visit until the secret is solved.
 - Touch tablets can drag empty room space left or right to reveal the full scene, with a small on-screen gesture hint.
 - The dollar bank reconciles directly from completed room sections so legacy saves cannot show fewer dollars than completed rooms.
+- The puppy hides no more than twice per browser session, waits three to five minutes between hides, and always returns visibly after math; lesson time never advances the hide timer.
 
 ## Files
 
