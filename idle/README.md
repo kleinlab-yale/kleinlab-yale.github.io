@@ -26,10 +26,12 @@ worker make the game installable as a PWA at the published `/idle/` URL.
 - Visible timed construction: foundations become scaffolding, then distinctly larger finished buildings
 - Chicken and cow habitats that visibly fill as the population grows
 - A player-controlled Arrange Town mode with saved drag-and-drop placement
-- A true empty-meadow start with no completed buildings or animal habitats
+- A sparse one-field start with three seeds, no buildings, and no animal habitats
 - A connected economy: math → seeds → crops/feed → coins, while Chinese → wood/ore → buildings
 - Chickens and cows consume harvested feed before they grow, then sell eggs and milk for passive income
-- Painted farmers, market vendors, and early-town teachers walking through the live town map
+- Painted farmers, market vendors, and early-town teachers with anchored three-frame walk cycles
+- Purchased projects appear on the map only when construction actually begins
+- Increasing field costs, restrained passive rates, 35% offline efficiency, and a 1,200-coin offline cap
 - A separate Compo Coast screen that unlocks after River Town is fully developed, followed by downtown, schools, and modern Westport
 - Four crops with planting costs, real-time growth, offline readiness, yields, and market prices
 - Passive town income and upgradable school, market, bakery, library, and animal projects

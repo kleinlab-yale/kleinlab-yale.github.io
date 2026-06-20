@@ -1,4 +1,4 @@
-const CACHE_NAME = "idle-town-pwa-cache-v6";
+const CACHE_NAME = "idle-town-pwa-cache-v7";
 const CROP_FILES = ["carrot", "wheat", "pumpkin", "apple"].flatMap((crop) =>
   ["soil", "sprout", "young", "mature"].map((stage) => `./assets/art/living-world/crops/${crop}-${stage}.png`)
 );
@@ -7,6 +7,9 @@ const ANIMAL_FILES = ["chickens", "cows"].flatMap((animal) =>
 );
 const BUILDING_FILES = ["school", "market", "bakery", "library"].flatMap((building) =>
   ["foundation", "construction", "level-1", "level-2"].map((stage) => `./assets/art/living-world/buildings/${building}-${stage}.png`)
+);
+const PEOPLE_FILES = ["farmer", "vendor", "teacher"].flatMap((person) =>
+  [1, 2, 3].map((frame) => `./assets/art/people/${person}-walk-${frame}.png`)
 );
 const APP_FILES = [
   "./",
@@ -20,13 +23,11 @@ const APP_FILES = [
   "./assets/art/river-town-open-map.png",
   "./assets/art/compo-coast-open-map.png",
   "./assets/art/idle-town-app-icon-master.png",
-  "./assets/art/people/farmer.png",
-  "./assets/art/people/vendor.png",
-  "./assets/art/people/teacher.png",
   "./music/Golden_Fields_Groove.mp3",
   ...CROP_FILES,
   ...ANIMAL_FILES,
   ...BUILDING_FILES,
+  ...PEOPLE_FILES,
 ];
 
 self.addEventListener("install", (event) => {

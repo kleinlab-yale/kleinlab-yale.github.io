@@ -1,8 +1,10 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "idle-town-westport-v5";
-  const MAX_OFFLINE_MS = 8 * 60 * 60 * 1000;
+  const SAVE_KEY = "idle-town-westport-v6";
+  const MAX_OFFLINE_MS = 2 * 60 * 60 * 1000;
+  const OFFLINE_EFFICIENCY = 0.35;
+  const MAX_OFFLINE_COINS = 1200;
   const TICK_MS = 500;
   const LEVELS = [
     { name: "Sprout Village", xp: 0 },
@@ -111,7 +113,7 @@
   };
 
   const ANIMALS = {
-    chickens: { name: "Chicken Coop", artKey: "chickens", atlasRow: 0, baseCost: 70, labels: ["Empty pen", "2 chicks", "3 hens", "6 hens + eggs"], feed: [{ carrot: 2 }, { wheat: 3 }, { wheat: 4, apple: 1 }], effect: (level) => `+${(level * 0.12).toFixed(2)} coins/sec from eggs` },
+    chickens: { name: "Chicken Coop", artKey: "chickens", atlasRow: 0, baseCost: 55, labels: ["Empty pen", "2 chicks", "3 hens", "6 hens + eggs"], feed: [{ carrot: 2 }, { wheat: 3 }, { wheat: 4, apple: 1 }], effect: (level) => `+${(level * 0.12).toFixed(2)} coins/sec from eggs` },
     cows: { name: "Cow Paddock", artKey: "cows", atlasRow: 1, baseCost: 130, labels: ["Empty paddock", "1 calf", "2 cows", "4 cows + milk"], feed: [{ wheat: 4 }, { wheat: 5, apple: 1 }, { wheat: 6, apple: 2 }], effect: (level) => `+${(level * 0.28).toFixed(2)} coins/sec from milk` },
   };
 
@@ -218,16 +220,16 @@
   function initialState() {
     const now = Date.now();
     return {
-      version: 5,
-      coins: 24,
-      seeds: 4,
+      version: 6,
+      coins: 35,
+      seeds: 3,
       wood: 0,
       ore: 0,
       xp: 0,
       inventory: { carrot: 0, wheat: 0, pumpkin: 0, apple: 0 },
       plots: [
-        null, null, null, null, null,
-        { locked: true },
+        null,
+        { locked: true }, { locked: true }, { locked: true }, { locked: true }, { locked: true },
       ],
       buildings: { school: 0, market: 0, bakery: 0, library: 0 },
       construction: {},
@@ -295,7 +297,7 @@
     const now = Date.now();
     const elapsed = Math.min(MAX_OFFLINE_MS, Math.max(0, now - (target.lastSeen || now)));
     if (elapsed < 5_000) return;
-    const earned = passiveRate(target) * elapsed / 1000;
+    const earned = Math.min(MAX_OFFLINE_COINS, passiveRate(target) * elapsed / 1000 * OFFLINE_EFFICIENCY);
     if (earned > 0) {
       target.coins += earned;
       target.stats.earned += earned;
@@ -377,6 +379,26 @@
 
   function consumeFeed(feed) {
     Object.entries(feed).forEach(([cropId, amount]) => { state.inventory[cropId] -= amount; });
+  }
+
+  function unlockedPlotCount() {
+    return state.plots.filter((plot) => !plot?.locked).length;
+  }
+
+  function farmExpansionCost() {
+    const costs = [
+      { coins: 55, wood: 2, ore: 0 },
+      { coins: 100, wood: 3, ore: 0 },
+      { coins: 170, wood: 5, ore: 1 },
+      { coins: 260, wood: 7, ore: 2 },
+      { coins: 380, wood: 10, ore: 3 },
+    ];
+    return costs[Math.max(0, unlockedPlotCount() - 1)] || null;
+  }
+
+  function canExpandFarm() {
+    const cost = farmExpansionCost();
+    return Boolean(cost && state.coins >= cost.coins && state.wood >= cost.wood && state.ore >= cost.ore);
   }
 
   const CROP_STATES = ["soil", "sprout", "young", "mature"];
@@ -478,6 +500,7 @@
     dom.worldCrops.querySelectorAll("[data-world-plot]").forEach((button, index) => {
       const plot = state.plots[index];
       const locked = plot?.locked;
+      button.hidden = Boolean(locked);
       const crop = plot?.crop ? getCrop(plot.crop) : CROPS[0];
       const stage = locked ? 0 : cropStage(plot, now);
       const ready = plot?.crop && plot.readyAt <= now;
@@ -499,6 +522,7 @@
       const button = document.querySelector(`[data-building="${id}"]`);
       const sprite = button?.querySelector(".building-image");
       if (!sprite) return;
+      button.hidden = state.buildings[id] <= 0 && !state.construction[id];
       const column = state.construction[id] ? 1 : state.buildings[id] <= 0 ? 0 : state.buildings[id] === 1 ? 2 : 3;
       const source = buildingAsset(config, column);
       if (sprite.getAttribute("src") !== source) sprite.src = source;
@@ -510,6 +534,7 @@
       const button = document.querySelector(`[data-animal="${id}"]`);
       const sprite = button?.querySelector(".animal-image");
       const level = clamp(state.animals[id], 0, 3);
+      if (button) button.hidden = level <= 0 && !state.animalGrowth[id];
       const source = animalAsset(config, level);
       if (sprite && sprite.getAttribute("src") !== source) sprite.src = source;
       const position = state.layout.animals[id];
@@ -518,6 +543,10 @@
     });
     dom.chickenLevelMap.textContent = state.animalGrowth.chickens ? `${formatTime((state.animalGrowth.chickens.completeAt - now) / 1000)} left` : ANIMALS.chickens.labels[state.animals.chickens];
     dom.cowLevelMap.textContent = state.animalGrowth.cows ? `${formatTime((state.animalGrowth.cows.completeAt - now) / 1000)} left` : ANIMALS.cows.labels[state.animals.cows];
+    const vendor = document.querySelector(".walker-vendor");
+    const teacher = document.querySelector(".walker-teacher");
+    if (vendor) vendor.hidden = state.buildings.market <= 0 && !state.construction.market;
+    if (teacher) teacher.hidden = state.buildings.school <= 0 && !state.construction.school;
     dom.worldProgressCopy.textContent = `${developmentCount()} town pieces built`;
   }
 
@@ -534,13 +563,12 @@
     dom.farmField.querySelectorAll("[data-plot]").forEach((button, index) => {
       const plot = state.plots[index];
       if (plot?.locked) {
-        const unlockCost = 140;
+        button.hidden = true;
         button.className = "plot locked";
-        button.setAttribute("aria-label", `Locked plot, unlock for ${unlockCost} coins`);
-        if (button.dataset.renderKey !== "locked") button.innerHTML = `<span class="plot-state">Unlock · ${unlockCost} coins</span>`;
         button.dataset.renderKey = "locked";
         return;
       }
+      button.hidden = false;
       if (!plot) {
         button.className = "plot empty";
         button.setAttribute("aria-label", `Empty plot ${index + 1}, plant something`);
@@ -590,19 +618,30 @@
     dom.boostLabel.textContent = active ? `${formatTime((state.boostUntil - Date.now()) / 1000)} remaining` : "Not active";
   }
 
+  function expandFarm() {
+    const cost = farmExpansionCost();
+    const index = state.plots.findIndex((plot) => plot?.locked);
+    if (!cost || index < 0) return;
+    if (!canExpandFarm()) {
+      toast(`Next field needs ${cost.coins} coins, ${cost.wood} wood${cost.ore ? `, and ${cost.ore} ore` : ""}.`);
+      return;
+    }
+    state.coins -= cost.coins;
+    state.wood -= cost.wood;
+    state.ore -= cost.ore;
+    state.plots[index] = null;
+    addXP(25 + index * 5);
+    maybeUnlockCompo();
+    playSfx("build");
+    toast(`Field ${index + 1} is cleared and ready to plant!`);
+    renderAll();
+    saveState();
+  }
+
   function selectPlot(index) {
     const plot = state.plots[index];
     if (plot?.locked) {
-      const cost = 140;
-      if (state.coins < cost) return toast(`You need ${cost - Math.floor(state.coins)} more coins to unlock this plot.`);
-      state.coins -= cost;
-      state.plots[index] = null;
-      addXP(25);
-      maybeUnlockCompo();
-      playSfx("build");
-      toast("A new garden plot is ready!");
-      renderAll();
-      saveState();
+      expandFarm();
       return;
     }
     if (!plot) {
@@ -667,12 +706,23 @@
   function renderMarket() {
     const multiplier = marketMultiplier();
     let totalValue = 0;
-    dom.marketList.innerHTML = CROPS.map((crop) => {
+    if (dom.marketList.children.length !== CROPS.length) {
+      dom.marketList.innerHTML = CROPS.map((crop) => `<article class="market-item" data-market-crop="${crop.id}"><img class="market-art" alt=""><div class="market-item-copy"><strong></strong><small></small><button data-sell="${crop.id}" type="button"></button></div></article>`).join("");
+    }
+    dom.marketList.querySelectorAll("[data-market-crop]").forEach((item) => {
+      const crop = getCrop(item.dataset.marketCrop);
       const count = state.inventory[crop.id] || 0;
       const unit = Math.round(crop.value * multiplier);
       totalValue += count * unit;
-      return `<article class="market-item"><img class="market-art" src="${cropAsset(crop,3)}" alt=""><div class="market-item-copy"><strong>${crop.name}</strong><small>${count} in basket · ${unit} coins each</small><button data-sell="${crop.id}" type="button" ${count ? "" : "disabled"}>Sell ${count ? `all for ${count * unit}` : "when ready"}</button></div></article>`;
-    }).join("");
+      const image = item.querySelector(".market-art");
+      const source = cropAsset(crop, 3);
+      if (image.getAttribute("src") !== source) image.src = source;
+      item.querySelector("strong").textContent = crop.name;
+      item.querySelector("small").textContent = `${count} in basket · ${unit} coins each`;
+      const button = item.querySelector("button");
+      button.disabled = !count;
+      button.textContent = `Sell ${count ? `all for ${count * unit}` : "when ready"}`;
+    });
     dom.basketValue.textContent = `${formatNumber(totalValue)} coins`;
     dom.basketCopy.textContent = totalValue ? `${getTotalProduce()} items ready for Main Street.` : "Harvest crops to stock the market stall.";
     dom.sellAll.disabled = totalValue <= 0;
@@ -864,6 +914,16 @@
   }
 
   function renderGoals() {
+    const plotCount = unlockedPlotCount();
+    const farmCost = farmExpansionCost();
+    const farmProgress = farmCost ? Math.min(
+      1,
+      state.coins / farmCost.coins,
+      farmCost.wood ? state.wood / farmCost.wood : 1,
+      farmCost.ore ? state.ore / farmCost.ore : 1,
+    ) * 100 : 100;
+    const farmCostLabel = farmCost ? `${farmCost.coins} coins · ${farmCost.wood} wood${farmCost.ore ? ` · ${farmCost.ore} ore` : ""}` : "All six fields open";
+    const farmProject = `<article class="project-card"><span class="project-icon" aria-hidden="true">🌱</span><div class="project-copy"><h3>Clear the next farm field</h3><p>${farmCost ? `Grow beyond your ${plotCount === 1 ? "single starter field" : `${plotCount} working fields`} when the town can afford it.` : "Old Hill Farm is fully cleared and ready."}</p><div class="project-progress"><span style="width:${farmProgress}%"></span></div></div><div class="project-action"><small>${farmCostLabel}</small><button data-expand-farm type="button" ${farmCost && canExpandFarm() ? "" : "disabled"}>${farmCost ? `Open field ${plotCount + 1}` : "Farm complete"}</button></div></article>`;
     const projects = Object.entries(BUILDINGS).map(([id, config]) => {
       const level = state.buildings[id];
       const unlocked = config.unlock(state);
@@ -890,7 +950,7 @@
     const coastProgress = completedPieces / 7 * 100;
     const coastProject = `<article class="project-card expansion-project"><span class="project-icon" aria-hidden="true">☀</span><div class="project-copy"><h3>Open Compo Coast</h3><p>${state.districts.compo ? "Unlocked — switch regions on the town map to visit the coast." : "Finish all River Town buildings, habitats, and garden plots to open a whole new seaside screen."}</p><div class="project-progress"><span style="width:${state.districts.compo ? 100 : coastProgress}%"></span></div></div><div class="project-action"><small>${state.districts.compo ? "Coast unlocked" : `${completedPieces} / 7 town goals`}</small><button data-open-region="compo" type="button" ${state.districts.compo ? "" : "disabled"}>${state.districts.compo ? "Visit coast" : "Keep building"}</button></div></article>`;
     const roadmap = `<article class="roadmap-card"><small>Long-term world map</small><h3>Farm town → modern Westport</h3><div class="roadmap-line">${WESTPORT_ROADMAP.map((stop,index)=>`<span class="roadmap-stop ${index === 0 ? "complete" : index === 1 && state.districts.compo ? "complete" : stop.status}"><i>${index+1}</i><b>${stop.name}</b><small>${stop.detail}</small></span>`).join("")}</div></article>`;
-    dom.projectList.innerHTML = [...projects, ...animalProjects, coastProject, roadmap].join("");
+    dom.projectList.innerHTML = [farmProject, ...projects, ...animalProjects, coastProject, roadmap].join("");
     const level = getLevelInfo();
     dom.milestoneName.textContent = level.capped ? "A thriving Coleytown" : level.next.name;
     dom.milestoneCopy.textContent = level.capped ? "You’ve reached the current town milestone. Keep growing!" : "Earn town XP by planting, harvesting, learning, and building.";
@@ -1293,6 +1353,7 @@
     });
     dom.sellAll.addEventListener("click", sellAll);
     dom.projectList.addEventListener("click", (event) => {
+      if (event.target.closest("[data-expand-farm]")) expandFarm();
       const project = event.target.closest("[data-project]");
       if (project) openBuilding(project.dataset.project);
       const animalProject = event.target.closest("[data-animal-project]");
@@ -1324,7 +1385,7 @@
       state.welcomed = true;
       dom.welcomeModal.close();
       saveState();
-      toast("The meadow is empty—use your four starter seeds to plant the first field!");
+      toast("The meadow is empty—use your three starter seeds to plant the first field!");
     });
     document.addEventListener("keydown", (event) => {
       if (event.target.closest("dialog, input, button") || event.metaKey || event.ctrlKey || event.altKey) return;

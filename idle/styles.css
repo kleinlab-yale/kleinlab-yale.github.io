@@ -217,15 +217,17 @@ svg { display: block; }
 @keyframes cloud-drift { to { transform: translateX(12vw); } }
 
 .town-life { position:absolute; z-index:3; inset:0; overflow:hidden; pointer-events:none; }
-.walker { position:absolute; width:clamp(54px,5vw,78px); aspect-ratio:1; filter:drop-shadow(0 5px 3px rgba(35,56,40,.28)); animation-timing-function:linear; animation-iteration-count:infinite; animation-direction:alternate; }
-.walker img { display:block; width:100%; height:100%; object-fit:contain; animation:walker-bob 620ms ease-in-out infinite alternate; }
+.walker { position:absolute; width:clamp(54px,5vw,78px); aspect-ratio:1; filter:drop-shadow(0 5px 3px rgba(35,56,40,.28)); animation-timing-function:linear; animation-iteration-count:infinite; }
+.walker-frame { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain; opacity:0; animation:walker-frame-cycle 720ms steps(1,end) infinite; }
+.walker-frame-2 { animation-delay:-480ms; }
+.walker-frame-3 { animation-delay:-240ms; }
 .walker-vendor { top:56%; left:66%; scale:.88; animation-name:walker-route-b; animation-duration:19s; animation-delay:-7s; }
 .walker-teacher { top:35%; left:22%; scale:.82; animation-name:walker-route-c; animation-duration:20s; animation-delay:-11s; }
 .walker-farmer { top:65%; left:7%; animation-name:walker-route-a; animation-duration:24s; }
-@keyframes walker-bob { to { transform:translateY(-2px) rotate(.5deg); } }
-@keyframes walker-route-a { 0% { transform:translate(0,0); } 45% { transform:translate(22vw,-7vh); } 100% { transform:translate(45vw,-1vh); } }
-@keyframes walker-route-b { 0% { transform:translate(0,0); } 50% { transform:translate(-12vw,-8vh); } 100% { transform:translate(-28vw,4vh); } }
-@keyframes walker-route-c { 0% { transform:translate(0,0); } 55% { transform:translate(16vw,5vh); } 100% { transform:translate(30vw,-3vh); } }
+@keyframes walker-frame-cycle { 0%,32% { opacity:1; } 33%,100% { opacity:0; } }
+@keyframes walker-route-a { 0% { transform:translate(0,0); opacity:0; } 5% { opacity:1; } 45% { transform:translate(22vw,-7vh); } 95% { opacity:1; } 100% { transform:translate(45vw,-1vh); opacity:0; } }
+@keyframes walker-route-b { 0% { transform:translate(0,0); opacity:0; } 5% { opacity:1; } 50% { transform:translate(-12vw,-8vh); } 95% { opacity:1; } 100% { transform:translate(-28vw,4vh); opacity:0; } }
+@keyframes walker-route-c { 0% { transform:translate(0,0); opacity:0; } 5% { opacity:1; } 55% { transform:translate(16vw,5vh); } 95% { opacity:1; } 100% { transform:translate(30vw,-3vh); opacity:0; } }
 
 .world-asset { display:block; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 10px 7px rgba(36,53,44,.23)); pointer-events:none; }
 
@@ -684,6 +686,12 @@ svg { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .walker { animation:none !important; }
+  .walker-frame { animation:none !important; opacity:0; }
+  .walker-frame-2 { opacity:1; }
 }
 
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+.reduce-motion .walker { animation:none !important; }
+.reduce-motion .walker-frame { animation:none !important; opacity:0; }
+.reduce-motion .walker-frame-2 { opacity:1; }
