@@ -1,11 +1,12 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "idle-town-westport-v6";
+  const SAVE_KEY = "idle-town-westport-v7";
   const MAX_OFFLINE_MS = 2 * 60 * 60 * 1000;
   const OFFLINE_EFFICIENCY = 0.35;
-  const MAX_OFFLINE_COINS = 1200;
   const TICK_MS = 500;
+  const BUILD_PHASE_SECONDS = [90, 150, 240];
+  const MAX_BUILDING_LEVEL = 3;
   const LEVELS = [
     { name: "Sprout Village", xp: 0 },
     { name: "Maple Village", xp: 250 },
@@ -19,7 +20,7 @@
       id: "carrot",
       name: "Carrots",
       seedCost: 1,
-      duration: 25,
+      duration: 120,
       yield: 5,
       value: 3,
       level: 1,
@@ -31,7 +32,7 @@
       id: "wheat",
       name: "Wheat",
       seedCost: 1,
-      duration: 55,
+      duration: 240,
       yield: 8,
       value: 4,
       level: 1,
@@ -43,7 +44,7 @@
       id: "pumpkin",
       name: "Pumpkins",
       seedCost: 2,
-      duration: 110,
+      duration: 480,
       yield: 7,
       value: 9,
       level: 2,
@@ -55,7 +56,7 @@
       id: "apple",
       name: "Apples",
       seedCost: 3,
-      duration: 180,
+      duration: 720,
       yield: 10,
       value: 12,
       level: 3,
@@ -72,8 +73,8 @@
       atlasRow: 0,
       artKey: "school",
       baseCost: 90,
-      materials: { wood: 4, ore: 1 },
-      description: "A bright school at the heart of town. Each level makes math practice produce more seeds.",
+      materials: { wood: 4, ore: 2 },
+      description: "A schoolhouse that grows from a historic one-room school into a larger civic school and, eventually, its modern form.",
       effect: (level) => `+${level} seed on every correct math answer`,
       unlock: () => true,
     },
@@ -84,8 +85,8 @@
       artKey: "market",
       baseCost: 120,
       materials: { wood: 5, ore: 2 },
-      description: "A friendly place to trade the farm’s best. Each level earns passive coin income.",
-      effect: (level) => `+${(level * 0.25).toFixed(2)} coins each second`,
+      description: "A friendly place to trade the farm’s best. Each era improves the price paid when you choose to sell.",
+      effect: (level) => `+${level * 8}% value on every market sale`,
       unlock: () => true,
     },
     bakery: {
@@ -96,7 +97,7 @@
       baseCost: 280,
       materials: { wood: 8, ore: 4 },
       description: "Turns local harvests into treats. Each level increases the value of everything you sell.",
-      effect: (level) => `+${level * 15}% market value`,
+      effect: (level) => `+${level * 12}% crop value`,
       unlock: (state) => getLevelInfo(state.xp).level >= 2,
     },
     library: {
@@ -106,16 +107,21 @@
       artKey: "library",
       baseCost: 360,
       materials: { wood: 10, ore: 6 },
-      description: "A welcoming library for curious minds. Each level increases materials earned from Chinese practice.",
+      description: "A modest historical reading room that expands through time before becoming Westport’s modern civic library.",
       effect: (level) => `+${level} wood from Chinese practice`,
       unlock: (state) => state.buildings.school >= 2,
     },
   };
 
   const ANIMALS = {
-    chickens: { name: "Chicken Coop", artKey: "chickens", atlasRow: 0, baseCost: 55, labels: ["Empty pen", "2 chicks", "3 hens", "6 hens + eggs"], feed: [{ carrot: 2 }, { wheat: 3 }, { wheat: 4, apple: 1 }], effect: (level) => `+${(level * 0.12).toFixed(2)} coins/sec from eggs` },
-    cows: { name: "Cow Paddock", artKey: "cows", atlasRow: 1, baseCost: 130, labels: ["Empty paddock", "1 calf", "2 cows", "4 cows + milk"], feed: [{ wheat: 4 }, { wheat: 5, apple: 1 }, { wheat: 6, apple: 2 }], effect: (level) => `+${(level * 0.28).toFixed(2)} coins/sec from milk` },
+    chickens: { name: "Chicken Coop", artKey: "chickens", atlasRow: 0, baseCost: 55, labels: ["Empty pen", "2 chicks", "3 hens", "6 hens + eggs"], feed: [{ carrot: 2 }, { wheat: 3 }, { wheat: 4, apple: 1 }], effect: (level) => `${level} egg batch${level === 1 ? "" : "es"} every 3 minutes` },
+    cows: { name: "Cow Paddock", artKey: "cows", atlasRow: 1, baseCost: 130, labels: ["Empty paddock", "1 calf", "2 cows", "4 cows + milk"], feed: [{ wheat: 4 }, { wheat: 5, apple: 1 }, { wheat: 6, apple: 2 }], effect: (level) => `${level} milk ${level === 1 ? "delivery" : "deliveries"} every 5 minutes` },
   };
+
+  const GOODS = [
+    { id: "eggs", name: "Egg Baskets", value: 8, animal: "chickens" },
+    { id: "milk", name: "Milk Jugs", value: 18, animal: "cows" },
+  ];
 
   const WESTPORT_ROADMAP = [
     { name: "River Town", detail: "Build the farm, habitats, school, market, bakery, and library", status: "active" },
@@ -136,6 +142,19 @@
     { hanzi: "家", pinyin: "jiā", answer: "home", distractors: ["town", "farm", "store"] },
     { hanzi: "一、二、三", pinyin: "yī, èr, sān", answer: "one, two, three", distractors: ["three, two, one", "four, five, six", "red, blue, green"] },
     { hanzi: "我喜欢苹果", pinyin: "wǒ xǐ huan píng guǒ", answer: "I like apples", distractors: ["I have apples", "I sell apples", "I see apples"] },
+  ];
+
+  const SOCIAL_STUDIES = [
+    { prompt: "Which Indigenous nation lived in much of coastal Connecticut before European settlement?", answer: "Pequot", distractors: ["Cherokee", "Navajo", "Seminole"], skill: "Connecticut History", tier: 1 },
+    { prompt: "What is the main purpose of a town meeting?", answer: "Residents discuss and vote on local issues", distractors: ["Congress chooses a president", "Judges write state laws", "Schools collect federal taxes"], skill: "Local Government", tier: 1 },
+    { prompt: "Which branch of government interprets laws?", answer: "Judicial", distractors: ["Legislative", "Executive", "Municipal"], skill: "Civics", tier: 1 },
+    { prompt: "A map legend helps a reader understand what?", answer: "The meaning of symbols", distractors: ["The age of the map", "The weather tomorrow", "The author’s opinion"], skill: "Geography", tier: 1 },
+    { prompt: "Why did many early Connecticut towns grow near rivers?", answer: "Rivers supplied water, travel, and power", distractors: ["Rivers stopped every storm", "Only rivers had farmland", "Roads were illegal"], skill: "Settlement", tier: 1 },
+    { prompt: "What is one responsibility of a citizen in a democracy?", answer: "Stay informed and participate", distractors: ["Ignore local decisions", "Write every law alone", "Choose every judge directly"], skill: "Citizenship", tier: 1 },
+    { prompt: "Which document begins with the words ‘We the People’?", answer: "The U.S. Constitution", distractors: ["The Mayflower Compact", "The Emancipation Proclamation", "The Gettysburg Address"], skill: "U.S. Government", tier: 2 },
+    { prompt: "What was a major effect of the Industrial Revolution on Connecticut towns?", answer: "Factories and transportation networks expanded", distractors: ["All trade stopped", "Cities became farms", "Rivers disappeared"], skill: "Economic History", tier: 2 },
+    { prompt: "Why are checks and balances important?", answer: "They keep one branch from gaining too much power", distractors: ["They replace elections", "They eliminate courts", "They let states print money"], skill: "Constitution", tier: 2 },
+    { prompt: "What does population density measure?", answer: "People living in a given area", distractors: ["Average yearly rainfall", "Number of state laws", "Distance between rivers"], skill: "Human Geography", tier: 2 },
   ];
 
   const dom = {
@@ -216,17 +235,38 @@
   let layoutDrag = null;
   let whiteboardDrawing = null;
   let whiteboardTool = "pen";
+  const walkerTimers = new Map();
+  const WALK_PATH = [
+    { x: 2, y: 33, links: [1] },
+    { x: 4, y: 39, links: [0, 2] },
+    { x: 3, y: 44, links: [1, 3] },
+    { x: 8, y: 49, links: [2, 4] },
+    { x: 18, y: 52, links: [3, 5] },
+    { x: 30, y: 55, links: [4, 6, 14] },
+    { x: 43, y: 55, links: [5, 7, 15] },
+    { x: 52, y: 53, links: [6, 8] },
+    { x: 59, y: 51, links: [7, 9] },
+    { x: 66, y: 50, links: [8, 10] },
+    { x: 74, y: 45, links: [9, 11] },
+    { x: 80, y: 39, links: [10, 12] },
+    { x: 82, y: 33, links: [11, 13] },
+    { x: 88, y: 28, links: [12] },
+    { x: 34, y: 47, links: [5, 15] },
+    { x: 43, y: 44, links: [14, 6] },
+  ];
 
   function initialState() {
     const now = Date.now();
     return {
-      version: 6,
+      version: 7,
       coins: 35,
       seeds: 3,
       wood: 0,
       ore: 0,
       xp: 0,
       inventory: { carrot: 0, wheat: 0, pumpkin: 0, apple: 0 },
+      goods: { eggs: 0, milk: 0 },
+      productionProgress: { chickens: 0, cows: 0 },
       plots: [
         null,
         { locked: true }, { locked: true }, { locked: true }, { locked: true }, { locked: true },
@@ -242,7 +282,7 @@
         animals: { chickens: { x: 8, y: 28 }, cows: { x: 23, y: 25 } },
         plots: [{ x: 7, y: 68 }, { x: 18, y: 69 }, { x: 29, y: 68 }, { x: 40, y: 69 }, { x: 13, y: 52 }, { x: 28, y: 51 }],
       },
-      stats: { planted: 0, harvested: 0, sold: 0, earned: 0, answered: 0, correct: 0, chineseCorrect: 0 },
+      stats: { planted: 0, harvested: 0, sold: 0, earned: 0, answered: 0, correct: 0, chineseCorrect: 0, socialCorrect: 0 },
       subject: "math",
       streak: 0,
       lessonStep: 0,
@@ -263,6 +303,8 @@
         ...fresh,
         ...saved,
         inventory: { ...fresh.inventory, ...(saved.inventory || {}) },
+        goods: { ...fresh.goods, ...(saved.goods || {}) },
+        productionProgress: { ...fresh.productionProgress, ...(saved.productionProgress || {}) },
         buildings: { ...fresh.buildings, ...(saved.buildings || {}) },
         construction: { ...fresh.construction, ...(saved.construction || {}) },
         animals: { ...fresh.animals, ...(saved.animals || {}) },
@@ -297,17 +339,30 @@
     const now = Date.now();
     const elapsed = Math.min(MAX_OFFLINE_MS, Math.max(0, now - (target.lastSeen || now)));
     if (elapsed < 5_000) return;
-    const earned = Math.min(MAX_OFFLINE_COINS, passiveRate(target) * elapsed / 1000 * OFFLINE_EFFICIENCY);
-    if (earned > 0) {
-      target.coins += earned;
-      target.stats.earned += earned;
-      target.offlineEarned = earned;
+    const produced = accrueAnimalGoods(target, elapsed / 1000 * OFFLINE_EFFICIENCY);
+    if (produced.eggs || produced.milk) {
+      target.offlineGoods = produced;
       target.offlineTime = elapsed;
     }
   }
 
-  function passiveRate(target = state) {
-    return target.buildings.market * 0.25 + target.buildings.bakery * 0.15 + target.animals.chickens * 0.12 + target.animals.cows * 0.28;
+  function accrueAnimalGoods(target = state, elapsedSeconds = 0) {
+    const rates = { chickens: 180, cows: 300 };
+    const produced = { eggs: 0, milk: 0 };
+    [["chickens", "eggs"], ["cows", "milk"]].forEach(([animal, good]) => {
+      const level = target.animals[animal] || 0;
+      if (!level || elapsedSeconds <= 0) return;
+      target.productionProgress[animal] = (target.productionProgress[animal] || 0) + level * elapsedSeconds / rates[animal];
+      const whole = Math.floor(target.productionProgress[animal]);
+      if (!whole) return;
+      const cap = good === "eggs" ? 30 : 18;
+      const room = Math.max(0, cap - Math.floor(target.goods[good] || 0));
+      const added = Math.min(whole, room);
+      target.goods[good] = (target.goods[good] || 0) + added;
+      target.productionProgress[animal] -= whole;
+      produced[good] = added;
+    });
+    return produced;
   }
 
   function getCrop(id) { return CROPS.find((crop) => crop.id === id); }
@@ -323,13 +378,13 @@
   }
 
   function getTotalProduce() {
-    return Object.values(state.inventory).reduce((sum, value) => sum + value, 0);
+    return Object.values(state.inventory).reduce((sum, value) => sum + value, 0) + Object.values(state.goods).reduce((sum, value) => sum + Math.floor(value), 0);
   }
 
   function isBoostActive() { return Date.now() < state.boostUntil; }
 
   function marketMultiplier() {
-    return (isBoostActive() ? 2 : 1) * (1 + state.buildings.bakery * 0.15);
+    return (isBoostActive() ? 2 : 1) * (1 + state.buildings.market * 0.08 + state.buildings.bakery * 0.12);
   }
 
   function learningReward() {
@@ -337,28 +392,66 @@
       const amount = 2 + state.buildings.school + (state.streak >= 4 ? 1 : 0);
       return { type: "seeds", amount, label: `${amount} ${amount === 1 ? "seed" : "seeds"}` };
     }
-    const oreTurn = state.stats.chineseCorrect % 3 === 2;
-    if (oreTurn) {
-      const amount = 1 + Math.floor(state.buildings.library / 2);
-      return { type: "ore", amount, label: `${amount} ore` };
+    if (state.subject === "chinese") {
+      const amount = 2 + state.buildings.library;
+      return { type: "wood", amount, label: `${amount} wood` };
     }
-    const amount = 2 + state.buildings.library;
-    return { type: "wood", amount, label: `${amount} wood` };
+    const amount = 1 + Math.floor(state.buildings.school / 2);
+    return { type: "ore", amount, label: `${amount} ore` };
   }
 
-  function buildingCost(id) {
+  function buildingCost(id, targetLevel = state.buildings[id] + 1) {
     const config = BUILDINGS[id];
-    const level = state.buildings[id];
-    return Math.round(config.baseCost * Math.pow(1.75, Math.max(0, level)));
+    return Math.round(config.baseCost * Math.pow(1.75, Math.max(0, targetLevel - 1)));
   }
 
-  function buildingMaterialCost(id) {
+  function buildingMaterialCost(id, targetLevel = state.buildings[id] + 1) {
     const config = BUILDINGS[id];
-    const multiplier = state.buildings[id] ? 1.6 : 1;
+    const multiplier = Math.pow(1.6, Math.max(0, targetLevel - 1));
     return {
       wood: Math.ceil(config.materials.wood * multiplier),
       ore: Math.ceil(config.materials.ore * multiplier),
     };
+  }
+
+  function buildingInstallments(id, targetLevel = state.buildings[id] + 1) {
+    const coins = buildingCost(id, targetLevel);
+    const materials = buildingMaterialCost(id, targetLevel);
+    const foundationCoins = Math.ceil(coins * 0.4);
+    const frameCoins = Math.ceil(coins * 0.3);
+    const foundationWood = Math.ceil(materials.wood * 0.55);
+    const frameOre = Math.ceil(materials.ore / 2);
+    return [
+      { coins: foundationCoins, wood: foundationWood, ore: 0 },
+      { coins: frameCoins, wood: materials.wood - foundationWood, ore: frameOre },
+      { coins: coins - foundationCoins - frameCoins, wood: 0, ore: materials.ore - frameOre },
+    ];
+  }
+
+  function canPay(cost) {
+    return state.coins >= cost.coins && state.wood >= cost.wood && state.ore >= cost.ore;
+  }
+
+  function payCost(cost) {
+    state.coins -= cost.coins;
+    state.wood -= cost.wood;
+    state.ore -= cost.ore;
+  }
+
+  function costLabel(cost) {
+    return `${cost.coins} coins${cost.wood ? ` · ${cost.wood} wood` : ""}${cost.ore ? ` · ${cost.ore} ore` : ""}`;
+  }
+
+  function constructionPhaseName(phase) {
+    return ["Laying foundation", "Raising timber frame", "Finishing the building"][phase] || "Building";
+  }
+
+  function constructionReady(building, now = Date.now()) {
+    return now >= building.phaseReadyAt;
+  }
+
+  function constructionAssetStage(building) {
+    return building.phase === 0 ? 0 : 1;
   }
 
   function animalCost(id) {
@@ -402,7 +495,7 @@
   }
 
   const CROP_STATES = ["soil", "sprout", "young", "mature"];
-  const BUILDING_STATES = ["foundation", "construction", "level-1", "level-2"];
+  const BUILDING_STATES = ["foundation", "construction", "level-1", "level-2", "level-3"];
   const ANIMAL_STATES = ["empty", "young", "adult", "full"];
   function cropAsset(crop, stage) { return `assets/art/living-world/crops/${crop.artKey}-${CROP_STATES[clamp(stage,0,3)]}.png`; }
   function buildingAsset(config, stage) { return `assets/art/living-world/buildings/${config.artKey}-${BUILDING_STATES[clamp(stage,0,3)]}.png`; }
@@ -412,8 +505,9 @@
     if (!plot?.crop) return 0;
     const progress = clamp((now - plot.plantedAt) / (plot.readyAt - plot.plantedAt), 0, 1);
     if (progress >= 1) return 3;
-    if (progress >= 0.55) return 2;
-    return 1;
+    if (progress >= 0.72) return 2;
+    if (progress >= 0.22) return 1;
+    return 0;
   }
 
   function developmentCount() {
@@ -421,7 +515,7 @@
   }
 
   function riverTownComplete() {
-    return Object.values(state.buildings).every((level) => level >= 2) && Object.values(state.animals).every((level) => level >= 3) && state.plots.every((plot) => !plot?.locked);
+    return Object.values(state.buildings).every((level) => level >= MAX_BUILDING_LEVEL) && Object.values(state.animals).every((level) => level >= 3) && state.plots.every((plot) => !plot?.locked);
   }
 
   function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
@@ -476,7 +570,9 @@
       if (!element) return;
       const unlocked = BUILDINGS[id].unlock(state);
       const building = state.construction[id];
-      element.textContent = building ? `${formatTime((building.completeAt - Date.now()) / 1000)} left` : unlocked ? (state.buildings[id] ? `Lv. ${state.buildings[id]}` : "Build") : "Locked";
+      element.textContent = building
+        ? (constructionReady(building) && building.phase < 2 ? "Materials needed" : `${formatTime((building.phaseReadyAt - Date.now()) / 1000)} left`)
+        : unlocked ? (state.buildings[id] ? `Era ${state.buildings[id]}` : "Build") : "Locked";
       const button = document.querySelector(`[data-building="${id}"]`);
       button?.classList.toggle("locked-building", !unlocked);
       button?.classList.toggle("under-construction", Boolean(building));
@@ -523,9 +619,12 @@
       const sprite = button?.querySelector(".building-image");
       if (!sprite) return;
       button.hidden = state.buildings[id] <= 0 && !state.construction[id];
-      const column = state.construction[id] ? 1 : state.buildings[id] <= 0 ? 0 : state.buildings[id] === 1 ? 2 : 3;
+      const building = state.construction[id];
+      const column = building ? constructionAssetStage(building) : state.buildings[id] <= 0 ? 0 : state.buildings[id] + 1;
       const source = buildingAsset(config, column);
       if (sprite.getAttribute("src") !== source) sprite.src = source;
+      const badge = button.querySelector(".construction-badge");
+      if (badge && building) badge.textContent = constructionReady(building) && building.phase < 2 ? "Needs supplies" : `${constructionPhaseName(building.phase)}…`;
       const position = state.layout.buildings[id];
       button.style.left = `${position.x}%`; button.style.top = `${position.y}%`; button.style.right = "auto"; button.style.bottom = "auto";
     });
@@ -547,6 +646,15 @@
     const teacher = document.querySelector(".walker-teacher");
     if (vendor) vendor.hidden = state.buildings.market <= 0 && !state.construction.market;
     if (teacher) teacher.hidden = state.buildings.school <= 0 && !state.construction.school;
+    const modernResidents = state.districts.compo || Object.values(state.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length >= 2;
+    dom.worldArt.dataset.residentEra = modernResidents ? "modern" : "historic";
+    document.querySelectorAll("[data-walker]").forEach((walker) => {
+      walker.querySelectorAll(".walker-frame").forEach((image, index) => {
+        const era = modernResidents ? "-modern" : "";
+        const source = `assets/art/people/${walker.dataset.walker}${era}-walk-${index + 1}.png`;
+        if (image.getAttribute("src") !== source) image.src = source;
+      });
+    });
     dom.worldProgressCopy.textContent = `${developmentCount()} town pieces built`;
   }
 
@@ -706,8 +814,11 @@
   function renderMarket() {
     const multiplier = marketMultiplier();
     let totalValue = 0;
-    if (dom.marketList.children.length !== CROPS.length) {
-      dom.marketList.innerHTML = CROPS.map((crop) => `<article class="market-item" data-market-crop="${crop.id}"><img class="market-art" alt=""><div class="market-item-copy"><strong></strong><small></small><button data-sell="${crop.id}" type="button"></button></div></article>`).join("");
+    const itemCount = CROPS.length + GOODS.length;
+    if (dom.marketList.children.length !== itemCount) {
+      const cropCards = CROPS.map((crop) => `<article class="market-item" data-market-crop="${crop.id}"><img class="market-art" alt=""><div class="market-item-copy"><strong></strong><small></small><button data-sell="${crop.id}" type="button"></button></div></article>`);
+      const goodsCards = GOODS.map((good) => `<article class="market-item" data-market-good="${good.id}"><img class="market-art" alt=""><div class="market-item-copy"><strong></strong><small></small><button data-sell-good="${good.id}" type="button"></button></div></article>`);
+      dom.marketList.innerHTML = [...cropCards, ...goodsCards].join("");
     }
     dom.marketList.querySelectorAll("[data-market-crop]").forEach((item) => {
       const crop = getCrop(item.dataset.marketCrop);
@@ -723,8 +834,22 @@
       button.disabled = !count;
       button.textContent = `Sell ${count ? `all for ${count * unit}` : "when ready"}`;
     });
+    dom.marketList.querySelectorAll("[data-market-good]").forEach((item) => {
+      const good = GOODS.find((candidate) => candidate.id === item.dataset.marketGood);
+      const count = Math.floor(state.goods[good.id] || 0);
+      const unit = Math.round(good.value * multiplier);
+      totalValue += count * unit;
+      const image = item.querySelector(".market-art");
+      const source = animalAsset(ANIMALS[good.animal], 3);
+      if (image.getAttribute("src") !== source) image.src = source;
+      item.querySelector("strong").textContent = good.name;
+      item.querySelector("small").textContent = `${count} ready · ${unit} coins each · sell manually`;
+      const button = item.querySelector("button");
+      button.disabled = !count;
+      button.textContent = `Sell ${count ? `all for ${count * unit}` : "when produced"}`;
+    });
     dom.basketValue.textContent = `${formatNumber(totalValue)} coins`;
-    dom.basketCopy.textContent = totalValue ? `${getTotalProduce()} items ready for Main Street.` : "Harvest crops to stock the market stall.";
+    dom.basketCopy.textContent = totalValue ? `${getTotalProduce()} items ready for Main Street.` : "Harvest crops or raise animals to stock the market stall.";
     dom.sellAll.disabled = totalValue <= 0;
   }
 
@@ -744,6 +869,22 @@
     saveState();
   }
 
+  function sellGood(goodId) {
+    const good = GOODS.find((candidate) => candidate.id === goodId);
+    const count = Math.floor(state.goods[goodId] || 0);
+    if (!good || !count) return;
+    const earned = Math.round(count * good.value * marketMultiplier());
+    state.coins += earned;
+    state.goods[goodId] -= count;
+    state.stats.sold += count;
+    state.stats.earned += earned;
+    addXP(Math.max(2, Math.floor(count / 2)));
+    playSfx("coins");
+    toast(`Main Street paid ${earned} coins for ${count} ${good.name.toLowerCase()}.`);
+    renderAll();
+    saveState();
+  }
+
   function sellAll() {
     const totalBefore = getTotalProduce();
     if (!totalBefore) return;
@@ -752,6 +893,11 @@
       const count = state.inventory[crop.id] || 0;
       earned += Math.round(count * crop.value * marketMultiplier());
       state.inventory[crop.id] = 0;
+    });
+    GOODS.forEach((good) => {
+      const count = Math.floor(state.goods[good.id] || 0);
+      earned += Math.round(count * good.value * marketMultiplier());
+      state.goods[good.id] -= count;
     });
     state.coins += earned;
     state.stats.sold += totalBefore;
@@ -764,7 +910,7 @@
   }
 
   function generateMathQuestion() {
-    const level = Math.min(4, Math.max(1, Math.ceil(state.stats.correct / 4) + 1));
+    const level = Math.min(6, Math.max(1, Math.ceil(state.stats.correct / 4) + learningTier()));
     const type = Math.floor(Math.random() * 5);
     let prompt, answer, skill, distractors;
     if (type === 0) {
@@ -810,7 +956,8 @@
   }
 
   function generateChineseQuestion() {
-    const word = CHINESE[Math.floor(Math.random() * CHINESE.length)];
+    const pool = learningTier() > 1 ? CHINESE : CHINESE.slice(0, 8);
+    const word = pool[Math.floor(Math.random() * pool.length)];
     return {
       subject: "chinese",
       prompt: `What does “${word.hanzi}” mean?`,
@@ -818,6 +965,23 @@
       skill: "Intro Chinese",
       answer: word.answer,
       choices: shuffle([word.answer, ...word.distractors]),
+    };
+  }
+
+  function learningTier() {
+    return state.activeRegion === "compo" || getLevelInfo().level >= 4 ? 2 : 1;
+  }
+
+  function generateSocialQuestion() {
+    const available = SOCIAL_STUDIES.filter((question) => question.tier <= learningTier());
+    const question = available[Math.floor(Math.random() * available.length)];
+    return {
+      subject: "social",
+      prompt: question.prompt,
+      hint: learningTier() > 1 ? "Use evidence from geography, history, and civics." : "Think about Connecticut communities and government.",
+      skill: `Grade 5 Social Studies · ${question.skill}`,
+      answer: question.answer,
+      choices: shuffle([question.answer, ...question.distractors]),
     };
   }
 
@@ -831,7 +995,7 @@
   }
 
   function nextQuestion() {
-    state.question = state.subject === "math" ? generateMathQuestion() : generateChineseQuestion();
+    state.question = state.subject === "math" ? generateMathQuestion() : state.subject === "chinese" ? generateChineseQuestion() : generateSocialQuestion();
     dom.lessonFeedback.textContent = "";
     dom.lessonFeedback.className = "lesson-feedback";
     renderLesson();
@@ -873,6 +1037,7 @@
       state.lessonStep += 1;
       state[reward.type] += reward.amount;
       if (state.subject === "chinese") state.stats.chineseCorrect += 1;
+      if (state.subject === "social") state.stats.socialCorrect += 1;
       state.boostUntil = Math.max(Date.now(), state.boostUntil) + 5 * 60 * 1000;
       addXP(15);
       let message = `Correct — +${reward.label} and five minutes added to 2× market value!`;
@@ -880,10 +1045,12 @@
         if (state.subject === "math") {
           state.seeds += 2;
           message = `Supply crate! +${reward.label} plus 2 bonus seeds.`;
-        } else {
+        } else if (state.subject === "chinese") {
           state.wood += 2;
+          message = `Carpenter crate! +${reward.label} plus 2 bonus wood.`;
+        } else {
           state.ore += 1;
-          message = `Builder crate! +${reward.label}, 2 bonus wood, and 1 ore.`;
+          message = `Civic works crate! +${reward.label} plus 1 bonus ore.`;
         }
       }
       dom.lessonFeedback.textContent = message;
@@ -927,15 +1094,25 @@
     const projects = Object.entries(BUILDINGS).map(([id, config]) => {
       const level = state.buildings[id];
       const unlocked = config.unlock(state);
-      const cost = buildingCost(id);
-      const materials = buildingMaterialCost(id);
       const building = state.construction[id];
-      const canAfford = state.coins >= cost && state.wood >= materials.wood && state.ore >= materials.ore && !building && level < 2;
+      const targetLevel = building?.targetLevel || Math.min(MAX_BUILDING_LEVEL, level + 1);
+      const installments = buildingInstallments(id, targetLevel);
+      const nextStep = building ? Math.min(2, building.phase + 1) : 0;
+      const due = installments[nextStep];
+      const ready = building ? constructionReady(building) : true;
+      const complete = level >= MAX_BUILDING_LEVEL;
+      const canAfford = unlocked && !complete && ready && (building?.phase === 2 || canPay(due));
       const icon = { school: "✎", market: "⚖", bakery: "♨", library: "▤" }[id];
-      const action = building ? `Building · ${formatTime((building.completeAt - Date.now()) / 1000)}` : !unlocked ? "Locked" : level >= 2 ? "Complete" : level ? `Upgrade to level ${level + 1}` : "Build it";
+      const action = building
+        ? building.phase === 2
+          ? `Finishing · ${formatTime((building.phaseReadyAt - Date.now()) / 1000)}`
+          : ready ? (building.phase === 0 ? "Supply timber frame" : "Supply final masonry") : `${constructionPhaseName(building.phase)} · ${formatTime((building.phaseReadyAt - Date.now()) / 1000)}`
+        : !unlocked ? "Locked" : complete ? "Modern form complete" : level ? `Begin era ${level + 1}` : "Lay foundation";
       const requirement = id === "bakery" ? "Reach town level 2" : id === "library" ? "Upgrade the schoolhouse" : "";
-      const progress = Math.min(state.coins / cost, state.wood / materials.wood, state.ore / materials.ore, 1) * 100;
-      return `<article class="project-card ${building ? "project-building" : ""}"><span class="project-icon" aria-hidden="true">${icon}</span><div class="project-copy"><h3>${config.name}</h3><p>${building ? "The construction crew is changing the map right now." : unlocked ? config.effect(Math.max(1, level)) : requirement}</p><div class="project-progress"><span style="width:${unlocked ? progress : 0}%"></span></div></div><div class="project-action"><small>${unlocked ? `${cost} coins · ${materials.wood} wood · ${materials.ore} ore` : requirement}</small><button data-project="${id}" type="button" ${unlocked && canAfford ? "" : "disabled"}>${action}</button></div></article>`;
+      const phaseProgress = building ? Math.min(1, Math.max(0, 1 - (building.phaseReadyAt - Date.now()) / (BUILD_PHASE_SECONDS[building.phase] * 1000))) : 0;
+      const progress = complete ? 100 : building ? (building.phase + phaseProgress) / 3 * 100 : level / MAX_BUILDING_LEVEL * 100;
+      const dueLabel = building?.phase === 2 ? "Final work underway" : complete ? "Three eras complete" : unlocked ? `Next installment: ${costLabel(due)}` : requirement;
+      return `<article class="project-card ${building ? "project-building" : ""}"><span class="project-icon" aria-hidden="true">${icon}</span><div class="project-copy"><h3>${config.name}</h3><p>${building ? `${constructionPhaseName(building.phase)} for era ${building.targetLevel}. Each stage needs time and a separate supply payment.` : unlocked ? config.effect(Math.max(1, level)) : requirement}</p><div class="project-progress"><span style="width:${progress}%"></span></div></div><div class="project-action"><small>${dueLabel}</small><button data-project="${id}" type="button" ${unlocked && (building || canAfford || complete) ? "" : "disabled"}>${action}</button></div></article>`;
     });
     const animalProjects = Object.entries(ANIMALS).map(([id, config]) => {
       const level = state.animals[id];
@@ -946,7 +1123,7 @@
       const feedProgress = Object.entries(feed).reduce((minimum, [cropId, amount]) => Math.min(minimum, (state.inventory[cropId] || 0) / amount), 1);
       return `<article class="project-card ${growth ? "project-building" : ""}"><span class="project-icon" aria-hidden="true">${id === "chickens" ? "🐣" : "🐄"}</span><div class="project-copy"><h3>${config.name}</h3><p>${growth ? "New animals are settling in. Watch the habitat on the town map." : level ? config.effect(level) : "Build the habitat, then feed the first animals from your harvest."}</p><div class="project-progress"><span style="width:${Math.min(1,state.coins/cost,feedProgress)*100}%"></span></div></div><div class="project-action"><small>${level >= 3 ? "Complete" : `${cost} coins · ${feedLabel(feed)}`}</small><button data-animal-project="${id}" type="button" ${state.coins >= cost && hasFeed(feed) && level < 3 && !growth ? "" : "disabled"}>${action}</button></div></article>`;
     });
-    const completedPieces = Object.values(state.buildings).filter((level) => level >= 2).length + Object.values(state.animals).filter((level) => level >= 3).length + (state.plots.every((plot) => !plot?.locked) ? 1 : 0);
+    const completedPieces = Object.values(state.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length + Object.values(state.animals).filter((level) => level >= 3).length + (state.plots.every((plot) => !plot?.locked) ? 1 : 0);
     const coastProgress = completedPieces / 7 * 100;
     const coastProject = `<article class="project-card expansion-project"><span class="project-icon" aria-hidden="true">☀</span><div class="project-copy"><h3>Open Compo Coast</h3><p>${state.districts.compo ? "Unlocked — switch regions on the town map to visit the coast." : "Finish all River Town buildings, habitats, and garden plots to open a whole new seaside screen."}</p><div class="project-progress"><span style="width:${state.districts.compo ? 100 : coastProgress}%"></span></div></div><div class="project-action"><small>${state.districts.compo ? "Coast unlocked" : `${completedPieces} / 7 town goals`}</small><button data-open-region="compo" type="button" ${state.districts.compo ? "" : "disabled"}>${state.districts.compo ? "Visit coast" : "Keep building"}</button></div></article>`;
     const roadmap = `<article class="roadmap-card"><small>Long-term world map</small><h3>Farm town → modern Westport</h3><div class="roadmap-line">${WESTPORT_ROADMAP.map((stop,index)=>`<span class="roadmap-stop ${index === 0 ? "complete" : index === 1 && state.districts.compo ? "complete" : stop.status}"><i>${index+1}</i><b>${stop.name}</b><small>${stop.detail}</small></span>`).join("")}</div></article>`;
@@ -963,28 +1140,54 @@
     if (!config) return;
     const level = state.buildings[id];
     const unlocked = config.unlock(state);
-    const cost = buildingCost(id);
-    const materials = buildingMaterialCost(id);
     const building = state.construction[id];
-    const column = building ? 1 : level <= 0 ? 0 : level === 1 ? 2 : 3;
-    const canAfford = state.coins >= cost && state.wood >= materials.wood && state.ore >= materials.ore;
-    dom.buildingModalContent.innerHTML = `<div class="building-hero"><img class="modal-asset" src="${buildingAsset(config,column)}" alt=""></div><small>${building ? "Construction in progress" : level ? `Town building · Level ${level}` : "New town project"}</small><h2>${config.name}</h2><p class="building-description">${building ? `Watch the structure rise on the town map. About ${formatTime((building.completeAt-Date.now())/1000)} remain.` : config.description}</p><div class="building-stats"><div class="building-stat"><small>Current benefit</small><strong>${level ? config.effect(level) : "Not built yet"}</strong></div><div class="building-stat"><small>${level >= 2 ? "Visual state" : "Next benefit"}</small><strong>${level >= 2 ? "Fully developed" : config.effect(level + 1)}</strong></div></div><div class="building-actions"><button class="secondary-button" data-close-modal type="button">Back to town</button><button class="primary-button" data-upgrade="${id}" type="button" ${unlocked && canAfford && !building && level < 2 ? "" : "disabled"}>${building ? "Under construction" : level >= 2 ? "Building complete" : unlocked ? `${level ? "Upgrade" : "Build"} · ${cost} coins + ${materials.wood} wood + ${materials.ore} ore` : "Project locked"}</button></div>`;
+    const targetLevel = building?.targetLevel || Math.min(MAX_BUILDING_LEVEL, level + 1);
+    const installments = buildingInstallments(id, targetLevel);
+    const nextStep = building ? Math.min(2, building.phase + 1) : 0;
+    const due = installments[nextStep];
+    const ready = building ? constructionReady(building) : true;
+    const complete = level >= MAX_BUILDING_LEVEL;
+    const column = building ? constructionAssetStage(building) : level <= 0 ? 0 : level + 1;
+    const eraNames = ["Unbuilt", "Historic form", "Expanded form", "Modern form"];
+    const phaseCopy = building
+      ? building.phase === 2
+        ? `Final work is underway. Completion in about ${formatTime((building.phaseReadyAt - Date.now()) / 1000)}.`
+        : ready
+          ? `${constructionPhaseName(building.phase)} is complete. The crew is waiting for the next installment before the town changes again.`
+          : `${constructionPhaseName(building.phase)} is visible on the map. This stage needs about ${formatTime((building.phaseReadyAt - Date.now()) / 1000)} more.`
+      : config.description;
+    const actionText = building
+      ? building.phase === 2 ? "Final work underway" : !ready ? `${constructionPhaseName(building.phase)}…` : building.phase === 0 ? `Raise timber frame · ${costLabel(due)}` : `Finish with masonry · ${costLabel(due)}`
+      : complete ? "Modern evolution complete" : `${level ? "Begin next era" : "Lay foundation"} · ${costLabel(due)}`;
+    const actionEnabled = unlocked && !complete && (building ? building.phase < 2 && ready && canPay(due) : canPay(due));
+    const budget = buildingInstallments(id, targetLevel).reduce((total, step) => ({ coins: total.coins + step.coins, wood: total.wood + step.wood, ore: total.ore + step.ore }), { coins: 0, wood: 0, ore: 0 });
+    dom.buildingModalContent.innerHTML = `<div class="building-hero"><img class="modal-asset" src="${buildingAsset(config,column)}" alt=""></div><small>${building ? `Construction stage ${building.phase + 1} of 3` : level ? `Town building · ${eraNames[level]}` : "New town project"}</small><h2>${config.name}</h2><p class="building-description">${phaseCopy}</p><div class="building-stats"><div class="building-stat"><small>Current era</small><strong>${eraNames[level]}</strong></div><div class="building-stat"><small>${complete ? "Evolution" : "Next era benefit"}</small><strong>${complete ? "Historic → expanded → modern" : config.effect(level + 1)}</strong></div><div class="building-stat"><small>Full era budget</small><strong>${costLabel(budget)}</strong></div></div><div class="building-actions"><button class="secondary-button" data-close-modal type="button">Back to town</button><button class="primary-button" data-upgrade="${id}" type="button" ${actionEnabled ? "" : "disabled"}>${unlocked ? actionText : "Project locked"}</button></div>`;
     dom.buildingModal.showModal();
   }
 
   function upgradeBuilding(id) {
     const config = BUILDINGS[id];
-    if (!config || !config.unlock(state) || state.buildings[id] >= 2) return;
-    const cost = buildingCost(id);
-    const materials = buildingMaterialCost(id);
-    if (state.coins < cost || state.wood < materials.wood || state.ore < materials.ore || state.construction[id]) return;
-    state.coins -= cost;
-    state.wood -= materials.wood;
-    state.ore -= materials.ore;
-    state.construction[id] = { targetLevel: state.buildings[id] + 1, completeAt: Date.now() + 12_000 };
+    if (!config || !config.unlock(state) || state.buildings[id] >= MAX_BUILDING_LEVEL) return;
+    const building = state.construction[id];
+    if (!building) {
+      const targetLevel = state.buildings[id] + 1;
+      const due = buildingInstallments(id, targetLevel)[0];
+      if (!canPay(due)) return;
+      payCost(due);
+      state.construction[id] = { targetLevel, phase: 0, phaseReadyAt: Date.now() + BUILD_PHASE_SECONDS[0] * 1000 };
+      toast(`${config.short} foundation started. The crew will need another installment for the timber frame.`);
+    } else {
+      if (!constructionReady(building) || building.phase >= 2) return;
+      const nextPhase = building.phase + 1;
+      const due = buildingInstallments(id, building.targetLevel)[nextPhase];
+      if (!canPay(due)) return;
+      payCost(due);
+      building.phase = nextPhase;
+      building.phaseReadyAt = Date.now() + BUILD_PHASE_SECONDS[nextPhase] * 1000;
+      toast(nextPhase === 1 ? `${config.short} timber frame is rising.` : `${config.short} final masonry and finish work has begun.`);
+    }
     playSfx("build");
     dom.buildingModal.close();
-    toast(`${config.short} construction has started — watch the map!`);
     renderAll();
     saveState();
   }
@@ -1007,7 +1210,7 @@
     if (level >= 3 || state.coins < cost || !hasFeed(feed) || state.animalGrowth[id]) return;
     state.coins -= cost;
     consumeFeed(feed);
-    state.animalGrowth[id] = { targetLevel: level + 1, completeAt: Date.now() + 9_000 };
+    state.animalGrowth[id] = { targetLevel: level + 1, completeAt: Date.now() + 150_000 };
     dom.buildingModal.close();
     playSfx("build");
     toast(`New ${id} are arriving — watch the habitat change!`);
@@ -1038,9 +1241,9 @@
 
   function finalizeProgress(now = Date.now()) {
     Object.entries(state.construction).forEach(([id, build]) => {
-      if (build.completeAt > now) return;
+      if (build.phase < 2 || build.phaseReadyAt > now) return;
       state.buildings[id] = build.targetLevel; delete state.construction[id];
-      addXP(40 + state.buildings[id] * 10); playSfx("build"); toast(`${BUILDINGS[id].short} is complete — the town has changed!`);
+      addXP(50 + state.buildings[id] * 15); playSfx("build"); toast(`${BUILDINGS[id].short} reached its ${["", "historic", "expanded", "modern"][state.buildings[id]]} form — the town has changed!`);
     });
     Object.entries(state.animalGrowth).forEach(([id, growth]) => {
       if (growth.completeAt > now) return;
@@ -1069,7 +1272,8 @@
     const activeBuild = Object.keys(state.construction)[0];
     if (activeBuild) {
       dom.guideTitle.textContent = `${BUILDINGS[activeBuild].short} is taking shape!`;
-      dom.guideCopy.textContent = "Stay on the town map and watch the foundation become a finished building.";
+      const build = state.construction[activeBuild];
+      dom.guideCopy.textContent = constructionReady(build) && build.phase < 2 ? "This stage is finished. Visit Goals to supply the next paid construction stage." : "Watch the foundation become a timber frame, then return with more coins and materials for the next stage.";
       dom.guideAction.firstChild.textContent = "View construction ";
       dom.guideAction.dataset.destination = "town";
     } else if (ready) {
@@ -1092,9 +1296,14 @@
       dom.guideCopy.textContent = "Answer a short grade 5–6 problem to refill the seed basket and keep the farm moving.";
       dom.guideAction.firstChild.textContent = "Try a challenge ";
       dom.guideAction.dataset.destination = "learn";
-    } else if (state.wood < 4 || state.ore < 1) {
-      dom.guideTitle.textContent = "Chinese supplies the builders.";
-      dom.guideCopy.textContent = "Intro Chinese answers earn wood and ore for the schoolhouse, market, and every future project.";
+    } else if (state.wood < 4) {
+      dom.guideTitle.textContent = "Chinese supplies the carpenters.";
+      dom.guideCopy.textContent = "Intro Chinese answers earn wood for timber frames and future building stages.";
+      dom.guideAction.firstChild.textContent = "Earn wood ";
+      dom.guideAction.dataset.destination = "learn";
+    } else if (state.ore < 2) {
+      dom.guideTitle.textContent = "Social Studies supplies civic works.";
+      dom.guideCopy.textContent = "Grade 5 history, geography, and civics answers earn ore for masonry and final construction.";
       dom.guideAction.firstChild.textContent = "Earn materials ";
       dom.guideAction.dataset.destination = "learn";
     } else {
@@ -1116,6 +1325,40 @@
       renderLessonProgressOnly();
     }
     if (dom.app.dataset.view === "town") updateGuide();
+  }
+
+  function scheduleWalker(element, currentIndex, previousIndex = -1, delay = 0) {
+    window.clearTimeout(walkerTimers.get(element));
+    const timer = window.setTimeout(() => {
+      if (state.settings.reduceMotion || state.activeRegion !== "coleytown") {
+        scheduleWalker(element, currentIndex, previousIndex, 1500);
+        return;
+      }
+      const current = WALK_PATH[currentIndex];
+      const choices = current.links.filter((index) => index !== previousIndex);
+      const pool = choices.length ? choices : current.links;
+      const nextIndex = pool[Math.floor(Math.random() * pool.length)];
+      const next = WALK_PATH[nextIndex];
+      const distance = Math.hypot(next.x - current.x, next.y - current.y);
+      const duration = clamp(distance * (0.72 + Math.random() * 0.12), 4.5, 10.5);
+      element.classList.toggle("walking-left", next.x < current.x);
+      element.style.transitionDuration = `${duration}s`;
+      element.style.zIndex = String(5 + Math.round(next.y / 12));
+      element.style.left = `${next.x}%`;
+      element.style.top = `${next.y}%`;
+      scheduleWalker(element, nextIndex, currentIndex, duration * 1000 + 350 + Math.random() * 1250);
+    }, delay);
+    walkerTimers.set(element, timer);
+  }
+
+  function startWalkerRoutes() {
+    const starts = { farmer: 3, vendor: 9, teacher: 14 };
+    document.querySelectorAll("[data-walker]").forEach((element) => {
+      const start = starts[element.dataset.walker] ?? 4;
+      element.style.left = `${WALK_PATH[start].x}%`;
+      element.style.top = `${WALK_PATH[start].y}%`;
+      scheduleWalker(element, start, -1, 450 + Math.random() * 1800);
+    });
   }
 
   function setLayoutMode(enabled) {
@@ -1277,8 +1520,7 @@
     const now = Date.now();
     const elapsed = Math.min(2, (now - lastTick) / 1000);
     lastTick = now;
-    const earned = passiveRate() * elapsed;
-    if (earned > 0) { state.coins += earned; state.stats.earned += earned; }
+    accrueAnimalGoods(state, elapsed);
     finalizeProgress(now);
     renderHUD();
     const view = dom.app.dataset.view;
@@ -1350,6 +1592,8 @@
     dom.marketList.addEventListener("click", (event) => {
       const sell = event.target.closest("[data-sell]");
       if (sell) sellCrop(sell.dataset.sell);
+      const sellGoodButton = event.target.closest("[data-sell-good]");
+      if (sellGoodButton) sellGood(sellGoodButton.dataset.sellGood);
     });
     dom.sellAll.addEventListener("click", sellAll);
     dom.projectList.addEventListener("click", (event) => {
@@ -1404,14 +1648,16 @@
     dom.sfxToggle.checked = state.settings.sfx;
     dom.motionToggle.checked = state.settings.reduceMotion;
     dom.app.classList.toggle("reduce-motion", state.settings.reduceMotion);
-    state.question ||= state.subject === "math" ? generateMathQuestion() : generateChineseQuestion();
+    state.question ||= state.subject === "math" ? generateMathQuestion() : state.subject === "chinese" ? generateChineseQuestion() : generateSocialQuestion();
     bindEvents();
     renderAll();
     renderLesson();
+    startWalkerRoutes();
     if (!state.welcomed) dom.welcomeModal.showModal();
-    if (state.offlineEarned) {
-      window.setTimeout(() => toast(`While away for ${formatAway(state.offlineTime)}, Coleytown earned ${formatNumber(state.offlineEarned)} coins.`), state.welcomed ? 300 : 1200);
-      delete state.offlineEarned; delete state.offlineTime;
+    if (state.offlineGoods) {
+      const parts = [state.offlineGoods.eggs ? `${state.offlineGoods.eggs} egg baskets` : "", state.offlineGoods.milk ? `${state.offlineGoods.milk} milk jugs` : ""].filter(Boolean).join(" and ");
+      window.setTimeout(() => toast(`While away for ${formatAway(state.offlineTime)}, the animals produced ${parts}. Sell them at the market when you choose.`), state.welcomed ? 300 : 1200);
+      delete state.offlineGoods; delete state.offlineTime;
     }
     if (state.settings.music) toggleMusic(true);
     window.setInterval(tick, TICK_MS);

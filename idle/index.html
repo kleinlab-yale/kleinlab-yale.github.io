@@ -70,9 +70,9 @@
             <div class="cloud cloud-a"></div>
             <div class="cloud cloud-b"></div>
             <div class="town-life" aria-hidden="true">
-              <span class="walker walker-farmer"><img class="walker-frame walker-frame-1" src="assets/art/people/farmer-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/farmer-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/farmer-walk-3.png" alt=""></span>
-              <span class="walker walker-vendor"><img class="walker-frame walker-frame-1" src="assets/art/people/vendor-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/vendor-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/vendor-walk-3.png" alt=""></span>
-              <span class="walker walker-teacher"><img class="walker-frame walker-frame-1" src="assets/art/people/teacher-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/teacher-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/teacher-walk-3.png" alt=""></span>
+              <span class="walker walker-farmer" data-walker="farmer"><img class="walker-frame walker-frame-1" src="assets/art/people/farmer-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/farmer-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/farmer-walk-3.png" alt=""><img class="walker-frame walker-frame-4" src="assets/art/people/farmer-walk-4.png" alt=""></span>
+              <span class="walker walker-vendor" data-walker="vendor"><img class="walker-frame walker-frame-1" src="assets/art/people/vendor-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/vendor-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/vendor-walk-3.png" alt=""><img class="walker-frame walker-frame-4" src="assets/art/people/vendor-walk-4.png" alt=""></span>
+              <span class="walker walker-teacher" data-walker="teacher"><img class="walker-frame walker-frame-1" src="assets/art/people/teacher-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/teacher-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/teacher-walk-3.png" alt=""><img class="walker-frame walker-frame-4" src="assets/art/people/teacher-walk-4.png" alt=""></span>
             </div>
             <div class="world-name"><small>Welcome to</small><strong>Coleytown</strong></div>
 
@@ -150,7 +150,7 @@
 
         <section class="view-panel content-view" id="view-learn" aria-labelledby="learn-title">
           <header class="view-heading learning-heading">
-            <div><small>Coleytown Learning Tent</small><h1 id="learn-title">A little practice supplies the town.</h1><p>Math earns seeds for crops. Intro Chinese earns wood and ore for construction.</p></div>
+            <div><small>Coleytown Learning Tent</small><h1 id="learn-title">A little practice supplies the town.</h1><p>Math earns seeds, Intro Chinese earns wood, and Grade 5 Social Studies earns ore.</p></div>
             <div class="streak-card"><span>🔥</span><div><small>Current streak</small><strong id="streak-count">0 correct</strong></div></div>
           </header>
           <div class="learning-layout">
@@ -158,6 +158,7 @@
               <div class="lesson-tabs" role="tablist" aria-label="Choose a subject">
                 <button class="lesson-tab active" data-subject="math" role="tab" aria-selected="true" type="button">Math 5–6</button>
                 <button class="lesson-tab" data-subject="chinese" role="tab" aria-selected="false" type="button">中文 Intro</button>
+                <button class="lesson-tab" data-subject="social" role="tab" aria-selected="false" type="button">Social Studies 5</button>
               </div>
               <div class="question-meta"><span id="question-skill">Fractions</span><b id="question-reward">+18 coins</b></div>
               <h2 id="question-prompt">What is 3/4 of 20?</h2>
@@ -178,7 +179,7 @@
             </div>
             <aside class="learning-reward">
               <div class="reward-art"><span class="sun-ray"></span><b>2×</b></div>
-              <small>Connected economy</small><h2>Answers become supplies</h2><p>Math → seeds. Chinese → wood and ore. Every correct answer also adds five minutes of double market value.</p>
+              <small>Connected economy</small><h2>Answers become supplies</h2><p>Math → seeds. Chinese → wood. Social Studies → ore. Every correct answer also adds five minutes of double market value.</p>
               <div class="reward-resource-list"><span>∑ Math <b>Seeds</b></span><span>中文 Chinese <b>Wood · Ore</b></span><span>🌾 Farm <b>Coins · Feed</b></span></div>
               <div class="reward-progress"><span id="lesson-progress-bar"></span></div>
               <strong id="lesson-progress-label">0 / 3 for bonus crate</strong>
@@ -202,7 +203,7 @@
 
         <section class="view-panel content-view" id="view-goals" aria-labelledby="goals-title">
           <header class="view-heading">
-            <div><small>Town project board</small><h1 id="goals-title">What should Coleytown become?</h1><p>Buildings need harvest coins plus Chinese-earned wood and ore. Animals also need food from your fields.</p></div>
+            <div><small>Town project board</small><h1 id="goals-title">What should Coleytown become?</h1><p>Buildings need sale coins, Chinese-earned wood, and Social Studies ore. Animals also need food from your fields.</p></div>
           </header>
           <div class="goals-layout">
             <div class="project-list" id="project-list"></div>
@@ -233,7 +234,7 @@
           <div class="welcome-hills"></div>
           <div class="welcome-house">⌂</div>
         </div>
-        <div class="welcome-content"><small>One field and three seeds</small><h1>Build Coleytown from almost nothing.</h1><p>You begin with one small field and no buildings or habitats. Math supplies new seeds, Chinese supplies wood and ore, and your harvest pays for every project.</p><button class="primary-button" id="start-button" type="button">Plant the first field <span>→</span></button><span>Your progress saves automatically on this device.</span></div>
+        <div class="welcome-content"><small>One field and three seeds</small><h1>Build Coleytown from almost nothing.</h1><p>You begin with one small field and no buildings or habitats. Math supplies seeds, Chinese supplies wood, Social Studies supplies ore, and only your market sales produce coins.</p><button class="primary-button" id="start-button" type="button">Plant the first field <span>→</span></button><span>Your progress saves automatically on this device.</span></div>
       </dialog>
 
       <audio id="music-player" loop preload="none"><source src="music/Golden_Fields_Groove.mp3" type="audio/mpeg"></audio>
