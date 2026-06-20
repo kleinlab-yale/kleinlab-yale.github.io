@@ -70,3 +70,12 @@ test("completed legacy saves receive missing section dollars once", () => {
   assert.deepEqual(Array.from(depositCompletedDecorSections()), []);
   assert.equal(context.state.dollars, DECOR_SCENES.length);
 });
+
+test("bank display repairs a stale dollar total from completed rooms", () => {
+  const context = makeContext({ decorOwned: [], bankedSections: ["home", "bedroom"], dollars: 1 });
+  const { depositCompletedDecorSections } = context.testApi;
+
+  assert.deepEqual(Array.from(depositCompletedDecorSections()), []);
+  assert.equal(context.state.dollars, 2);
+  assert.deepEqual(Array.from(context.state.bankedSections), ["home", "bedroom"]);
+});

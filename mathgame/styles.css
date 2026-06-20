@@ -74,6 +74,38 @@ button {
   touch-action: none;
 }
 
+#worldCanvas.pannable {
+  cursor: grab;
+}
+
+#worldCanvas.is-panning {
+  cursor: grabbing;
+}
+
+.pan-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 92px;
+  z-index: 5;
+  display: none;
+  transform: translateX(-50%);
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(255, 252, 244, 0.82);
+  box-shadow: 0 6px 18px rgba(39, 55, 76, 0.14);
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 900;
+  pointer-events: none;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+.pan-hint.show {
+  display: block;
+}
+
 .world-vignette {
   position: absolute;
   inset: 0;

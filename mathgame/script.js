@@ -426,6 +426,7 @@ const els = {
   gemLabel: document.querySelector("#gemLabel"),
   sparkleLabel: document.querySelector("#sparkleLabel"),
   dollarBankLabel: document.querySelector("#dollarBankLabel"),
+  panHint: document.querySelector("#panHint"),
   questButton: document.querySelector("#questButton"),
   questButtonLabel: document.querySelector("#questButtonLabel"),
   callPetButton: document.querySelector("#callPetButton"),
@@ -1103,9 +1104,9 @@ function newlyCompletedDecorSections(ownedIds = [], bankedSections = []) {
 
 function depositCompletedDecorSections() {
   const completed = newlyCompletedDecorSections(state.decorOwned, state.bankedSections);
-  if (!completed.length) return [];
-  state.bankedSections = Array.from(new Set([...(state.bankedSections || []), ...completed]));
-  state.dollars = Math.max(0, Math.floor(Number(state.dollars || 0))) + completed.length;
+  state.bankedSections = Array.from(new Set([...(state.bankedSections || []), ...completed]))
+    .filter((scene) => DECOR_SCENES.includes(scene));
+  state.dollars = state.bankedSections.length;
   return completed;
 }
 
@@ -1272,7 +1273,15 @@ function isPanoramaScene(scene) {
 }
 
 function isCompactViewport() {
-  return window.innerWidth <= 720 || window.innerHeight <= 520;
+  const touchTablet = isTouchViewport() && window.innerWidth <= 1366 && window.innerHeight <= 1100;
+  return window.innerWidth <= 720 || window.innerHeight <= 520 || touchTablet;
+}
+
+function isTouchViewport() {
+  return Boolean(
+    (typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches)
+    || Number(navigator.maxTouchPoints || 0) > 0
+  );
 }
 
 function maxViewPan(scene) {
@@ -1280,8 +1289,9 @@ function maxViewPan(scene) {
   const aspect = window.innerWidth / Math.max(1, window.innerHeight);
   const shortLandscape = window.innerHeight <= 520 && aspect > 1.65;
   const narrowPortrait = window.innerWidth <= 540 && aspect < 0.9;
+  const touchTablet = isTouchViewport() && window.innerWidth > 720;
   const base = VIEW_PAN_LIMITS[scene] || 1.1;
-  const boost = shortLandscape ? 1.15 : narrowPortrait ? 1.25 : 1;
+  const boost = shortLandscape ? 1.15 : narrowPortrait ? 1.25 : touchTablet ? 1.6 : 1;
   return base * boost;
 }
 
@@ -1608,6 +1618,10 @@ function renderHud() {
   const placedDecorCount = countedDecor.filter((item) => state.decorPlaced.includes(item.id)).length;
   els.sparkleLabel.textContent = `${state.glow} glow  ${placedDecorCount}/${countedDecor.length} decor${secretCount ? `  ${secretCount} secret` : ""}`;
   els.dollarBankLabel.textContent = `$ Bank · $${state.dollars}`;
+  const viewPannable = state.setup && canViewPan(scene);
+  els.canvas.classList.toggle("pannable", viewPannable);
+  els.panHint?.classList.toggle("show", viewPannable);
+  els.panHint?.setAttribute("aria-hidden", viewPannable ? "false" : "true");
   els.questButtonLabel.textContent = state.stage === "egg" ? "Hatch Quest" : inHome ? "Decor Quest" : inBedroom ? "Bedroom Quest" : inKitchen ? "Kitchen Quest" : inWaterfall ? "Waterfall Quest" : inMountain ? "Mountain Quest" : inUnderwater ? "Reef Quest" : questName;
   els.homeHotspot.classList.toggle("show", state.setup && state.stage !== "egg" && scene === "outdoor");
   els.exitHomeButton.classList.toggle("show", state.setup && indoors && !inBedroom);
@@ -1820,6 +1834,7 @@ function finishDrag(event) {
   }
   if (dragState.type === "pan") {
     dragState = null;
+    els.canvas.classList.remove("is-panning");
     setDecorRemoveTargetState(false);
     saveState();
     renderHud();
@@ -3548,6 +3563,7 @@ els.canvas.addEventListener("pointerdown", (event) => {
       startPan: isPanoramaScene(scene) ? getScenePan(scene) : getViewPan(scene),
     };
     setDecorRemoveTargetState(false);
+    els.canvas.classList.add("is-panning");
     els.canvas.setPointerCapture(event.pointerId);
     return;
   }
