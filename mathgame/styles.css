@@ -920,6 +920,67 @@ input:focus {
   color: rgba(23, 38, 50, 0.42);
 }
 
+.decor-tabs .secrets-tab {
+  background: linear-gradient(135deg, rgba(255, 216, 111, 0.28), rgba(255, 126, 182, 0.22));
+}
+
+.decor-tabs .secrets-tab.active {
+  background: linear-gradient(135deg, rgba(255, 225, 128, 0.95), rgba(255, 164, 205, 0.9));
+}
+
+.secret-stuffy-card {
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 251, 230, 0.94), rgba(255, 229, 244, 0.88));
+}
+
+.secret-stuffy-card img {
+  width: 92px;
+  height: 92px;
+}
+
+.secret-earned-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(113, 76, 190, 0.86);
+  color: #fff !important;
+  font-size: 0.63rem !important;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.secret-stuffies-empty {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  place-items: center;
+  min-height: 220px;
+  padding: 28px;
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255, 251, 230, 0.82), rgba(255, 229, 244, 0.72));
+  text-align: center;
+}
+
+.secret-stuffies-empty > span {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #ffd86f, #ff8fc8);
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 950;
+}
+
+.secret-stuffies-empty p {
+  max-width: 420px;
+  margin: 0;
+  color: rgba(23, 38, 50, 0.64);
+}
+
 .decor-item {
   position: relative;
 }

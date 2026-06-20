@@ -41,7 +41,9 @@ function makeContext(state) {
 test("a section earns exactly one dollar only after every asset is owned", () => {
   const context = makeContext({ decorOwned: [], bankedSections: [], dollars: 0 });
   const { DECOR_ITEMS, completedDecorSections, depositCompletedDecorSections } = context.testApi;
-  const homeIds = DECOR_ITEMS.filter((item) => item.scene === "home").map((item) => item.id);
+  const homeIds = DECOR_ITEMS
+    .filter((item) => item.scene === "home" && !item.activity && !item.secretReward)
+    .map((item) => item.id);
 
   context.state.decorOwned = homeIds.slice(0, -1);
   assert.deepEqual(Array.from(completedDecorSections(context.state.decorOwned)), []);

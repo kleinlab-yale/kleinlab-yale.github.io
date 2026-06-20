@@ -92,6 +92,11 @@ const ASSETS = {
   homeLampOn: "assets/gpt-home-lamp-on.png",
   homeTable: "assets/gpt-home-table.png",
   homeRockingDogToy: "assets/gpt-home-rocking-dog-toy.png?v=20260615-rocking-dog-v3",
+  secretKitchenCupcakeChef: "assets/gpt-secret-kitchen-cupcake-chef.png?v=20260620-secret-stuffies",
+  secretOutdoorBallPuppy: "assets/gpt-secret-outdoor-ball-puppy.png?v=20260620-secret-stuffies",
+  secretWaterfallLanternFrog: "assets/gpt-secret-waterfall-lantern-frog.png?v=20260620-secret-stuffies",
+  secretMountainMarshmallowBear: "assets/gpt-secret-mountain-marshmallow-bear.png?v=20260620-secret-stuffies",
+  secretUnderwaterPearlOctopus: "assets/gpt-secret-underwater-pearl-octopus.png?v=20260620-secret-stuffies",
   bedroomBed: "assets/gpt-bedroom-bed.png?v=20260618-bedroom",
   bedroomBedStraight: "assets/gpt-bedroom-bed-straight.png?v=20260619-bedroom-actions",
   bedroomDesk: "assets/gpt-bedroom-desk.png?v=20260618-bedroom",
@@ -190,7 +195,12 @@ const DECOR_ITEMS = [
   { id: "lamp", scene: "home", name: "Warm lamp", tex: "homeLamp", x: 2.82, y: 1.16, z: 0.42, w: 0.8, h: 1.42, reward: "Home math", cost: { coins: 45, gems: 0 } },
   { id: "table", scene: "home", name: "Reading table", tex: "homeTable", x: 0.74, y: 0.66, z: 0.55, w: 1.12, h: 1.06, reward: "Home math", cost: { coins: 50, gems: 0 } },
   { id: "remote", scene: "home", name: "TV remote", tex: "homeRemote", x: 0.05, y: 0.34, z: 0.62, w: 0.45, h: 0.32, reward: "TV decor", cost: { coins: 25, gems: 0 }, optional: true },
-  { id: "rockingDogToy", scene: "home", name: "Rocking puppy", tex: "homeRockingDogToy", x: -2.75, y: 0.48, z: 0.64, w: 1.12, h: 1.22, reward: "Home math", cost: { coins: 70, gems: 0 }, optional: true },
+  { id: "rockingDogToy", scene: "home", name: "Rocking Puppy Stuffy", tex: "homeRockingDogToy", x: -2.75, y: 0.48, z: 0.64, w: 1.12, h: 1.22, reward: "Living room secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true, portable: true, secretAward: "couchCritic" },
+  { id: "secretKitchenCupcakeChef", scene: "kitchen", name: "Cupcake Chef Stuffy", tex: "secretKitchenCupcakeChef", x: 1.05, y: 0.52, z: 0.72, w: 0.92, h: 1.12, reward: "Kitchen secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true, portable: true, secretAward: "snackChef" },
+  { id: "secretOutdoorBallPuppy", scene: "outdoor", name: "Ball Puppy Stuffy", tex: "secretOutdoorBallPuppy", x: 0.95, y: 0.34, z: 0.72, w: 0.64, h: 0.74, reward: "Park secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true, portable: true, secretAward: "parkMvp" },
+  { id: "secretWaterfallLanternFrog", scene: "waterfall", name: "Lantern Frog Stuffy", tex: "secretWaterfallLanternFrog", x: 0.92, y: 0.36, z: 0.72, w: 0.66, h: 0.74, reward: "Waterfall secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true, portable: true, secretAward: "lanternTrail" },
+  { id: "secretMountainMarshmallowBear", scene: "mountain", name: "Marshmallow Bear Stuffy", tex: "secretMountainMarshmallowBear", x: 1.08, y: 0.38, z: 0.72, w: 0.62, h: 0.82, reward: "Mountain secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true, portable: true, secretAward: "summitSupper" },
+  { id: "secretUnderwaterPearlOctopus", scene: "underwater", name: "Pearl Octopus Stuffy", tex: "secretUnderwaterPearlOctopus", x: 0.95, y: 0.38, z: 0.72, w: 0.72, h: 0.82, reward: "Reef secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true, portable: true, secretAward: "reefTreasure" },
   { id: "kitchenCounter", scene: "kitchen", name: "Kitchen counter", tex: "kitchenCounter", x: -1.88, y: 0.58, z: 0.43, w: 2.35, h: 0.95, reward: "Kitchen quests", cost: { coins: 115, gems: 1 } },
   { id: "kitchenSink", scene: "kitchen", name: "Paw sink", tex: "kitchenSink", x: -0.18, y: 0.76, z: 0.43, w: 1.25, h: 1.54, reward: "Kitchen quests", cost: { coins: 95, gems: 0 } },
   { id: "kitchenWallShelves", scene: "kitchen", name: "Wall shelves", tex: "kitchenWallShelves", x: -2.38, y: 1.86, z: 0.41, w: 1.74, h: 0.92, reward: "Kitchen quests", cost: { coins: 85, gems: 0 } },
@@ -239,7 +249,7 @@ const DECOR_ITEMS = [
   { id: "bedroomHamper", scene: "bedroom", name: "Striped hamper", tex: "bedroomHamper", x: 3.88, y: 0.48, z: 0.5, w: 0.78, h: 1.2, reward: "Bedroom quests", cost: { coins: 60, gems: 0 } },
   { id: "bedroomBookFive", scene: "bedroom", name: "Harry Potter Book 5", tex: "bedroomBookFive", x: -0.42, y: 0.26, z: 0.67, w: 0.72, h: 0.54, reward: "Bedroom quests", cost: { coins: 65, gems: 1 }, optional: true },
   { id: "bedroomDirtyLaundry", scene: "bedroom", name: "Dirty laundry", tex: "bedroomDirtyLaundry", x: 2.9, y: 0.12, z: 0.7, w: 0.92, h: 0.64, reward: "Bedroom cleanup", cost: { coins: 0, gems: 0 }, optional: true, activity: true },
-  { id: "bedroomSecretHersheysPlush", scene: "bedroom", name: "HERSHEY'S secret plush", tex: "bedroomSecretHersheysPlush", x: 2.9, y: 0.58, z: 0.72, w: 0.72, h: 1.34, reward: "Bedroom secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true },
+  { id: "bedroomSecretHersheysPlush", scene: "bedroom", name: "HERSHEY'S Bar Stuffy", tex: "bedroomSecretHersheysPlush", x: 2.9, y: 0.58, z: 0.72, w: 0.72, h: 1.34, reward: "Bedroom secret", cost: { coins: 0, gems: 0 }, optional: true, secretReward: true, portable: true, secretAward: "bedroomTidier" },
 ];
 
 const BEDROOM_DECOR_IDS = [
@@ -257,6 +267,15 @@ const BEDROOM_DECOR_IDS = [
 
 const BEDROOM_ACTIVITY_IDS = ["bedroomDirtyLaundry"];
 const BEDROOM_SECRET_PLUSH_ID = "bedroomSecretHersheysPlush";
+const SECRET_STUFFY_BY_AWARD = {
+  couchCritic: "rockingDogToy",
+  snackChef: "secretKitchenCupcakeChef",
+  parkMvp: "secretOutdoorBallPuppy",
+  lanternTrail: "secretWaterfallLanternFrog",
+  summitSupper: "secretMountainMarshmallowBear",
+  reefTreasure: "secretUnderwaterPearlOctopus",
+  bedroomTidier: BEDROOM_SECRET_PLUSH_ID,
+};
 const ORIENTABLE_DECOR_IDS = new Set(["bedroomBed", "bedroomDesk", "bedroomToyDresser", "bedroomCubby"]);
 const NIGHTSTAND_LAMP_OFFSET = { x: 0, y: 0.81 };
 const LAUNDRY_HAMPER_DISTANCE = 0.92;
@@ -276,6 +295,15 @@ const DEFAULT_PET_POSITIONS = {
   waterfall: { x: 0.05, y: 0.5 },
   mountain: { x: 0.1, y: 0.52 },
   underwater: { x: 0.0, y: 0.54 },
+};
+const DEFAULT_SECRET_STUFFY_POSITIONS = {
+  home: { x: 0.92, y: 0.5 },
+  bedroom: { x: 0.92, y: 0.5 },
+  kitchen: { x: 0.92, y: 0.5 },
+  outdoor: { x: 0.72, y: 0.38 },
+  waterfall: { x: 0.72, y: 0.38 },
+  mountain: { x: 0.72, y: 0.38 },
+  underwater: { x: 0.72, y: 0.38 },
 };
 const MOVE_BOUNDS = {
   home: { x: [-5.05, 5.05], y: [-0.24, 2.62] },
@@ -315,13 +343,13 @@ const VIEW_PAN_LIMITS = {
   mountain: 1.45,
 };
 const SECRET_AWARDS = {
-  couchCritic: { title: "Couch Critic", coins: 40, gems: 1, glow: 12 },
-  snackChef: { title: "Snack Chef", coins: 35, gems: 1, glow: 10 },
-  parkMvp: { title: "Park MVP", coins: 35, gems: 1, glow: 10 },
-  lanternTrail: { title: "Diving Gear", coins: 45, gems: 1, glow: 12 },
-  summitSupper: { title: "Summit Supper", coins: 60, gems: 2, glow: 16 },
-  reefTreasure: { title: "Reef Treasure", coins: 70, gems: 2, glow: 18 },
-  bedroomTidier: { title: "HERSHEY'S Secret Plush", coins: 35, gems: 1, glow: 12 },
+  couchCritic: { title: "Rocking Puppy Stuffy", coins: 40, gems: 1, glow: 12 },
+  snackChef: { title: "Cupcake Chef Stuffy", coins: 35, gems: 1, glow: 10 },
+  parkMvp: { title: "Ball Puppy Stuffy", coins: 35, gems: 1, glow: 10 },
+  lanternTrail: { title: "Lantern Frog Stuffy", coins: 45, gems: 1, glow: 12 },
+  summitSupper: { title: "Marshmallow Bear Stuffy", coins: 60, gems: 2, glow: 16 },
+  reefTreasure: { title: "Pearl Octopus Stuffy", coins: 70, gems: 2, glow: 18 },
+  bedroomTidier: { title: "HERSHEY'S Bar Stuffy", coins: 35, gems: 1, glow: 12 },
 };
 const TV_CHANNELS = [
   { screenTex: "", label: "TV off" },
@@ -412,6 +440,7 @@ const els = {
   decorWaterfallTab: document.querySelector("#decorWaterfallTab"),
   decorMountainTab: document.querySelector("#decorMountainTab"),
   decorUnderwaterTab: document.querySelector("#decorUnderwaterTab"),
+  decorSecretsTab: document.querySelector("#decorSecretsTab"),
   decorRemoveTarget: document.querySelector("#decorRemoveTarget"),
   objectiveTitle: document.querySelector("#objectiveTitle"),
   objectiveText: document.querySelector("#objectiveText"),
@@ -521,10 +550,11 @@ if (IS_DEMO) {
     mountainUnlocked: true,
     underwaterUnlocked: true,
     kitchenUnlocked: true,
-    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
-    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
-    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "rockingDogToy", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
+    decorUnlocked: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
+    decorOwned: ["couch", "plant", "tv", "chair", "lamp", "table", "remote", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
+    decorPlaced: ["couch", "plant", "tv", "lamp", "remote", "piggyCarToy", "kitchenCounter", "kitchenSink", "kitchenWallShelves", "snackCart", "kitchenFridge", "oven", "bowlStation", "breakfastTable", "cookieTray", "shelfInsert", "cookieJar", "cupcakeStand", "teaKettle", "recipeBook", "herbPlanter", "puppyMug", "bench", "ball", "toys", "basket", "waterfallLog", "waterfallLantern", "waterfallLilypads", "waterfallBasket", "lavenderPlush", "mountainTent", "mountainCampfire", "mountainFairyLights", "mountainSnacks", "mountainShelter", "mountainLantern", "underwaterShellSeat", "underwaterPearlLamp", "underwaterTreasureChest", "underwaterBubbleHoop", "underwaterKelpHideout", ...BEDROOM_DECOR_IDS, ...BEDROOM_ACTIVITY_IDS],
     decorPositions: {},
+    secretStuffyScenes: {},
     decorStates: { lamp: 1, tv: 1, kitchenFridge: 1, kitchenSink: 0, oven: 0, mountainCampfire: 1, underwaterPearlLamp: 1, bedroomLamp: 1 },
     decorOrientations: { bedroomBed: 1, bedroomDesk: 1, bedroomToyDresser: 1, bedroomCubby: 1 },
     bedroomLampOnNightstand: true,
@@ -579,6 +609,7 @@ function createInitialState() {
     decorOwned: [...BEDROOM_ACTIVITY_IDS],
     decorPlaced: [...BEDROOM_ACTIVITY_IDS],
     decorPositions: {},
+    secretStuffyScenes: {},
     decorStates: {},
     decorOrientations: {},
     bedroomLampOnNightstand: false,
@@ -636,11 +667,34 @@ function loadState() {
     const secretAwards = Array.isArray(saved.secretAwards)
       ? Array.from(new Set(saved.secretAwards)).filter((id) => SECRET_AWARDS[id])
       : [];
-    if (secretAwards.includes("bedroomTidier")) {
-      if (!decorUnlocked.includes(BEDROOM_SECRET_PLUSH_ID)) decorUnlocked.push(BEDROOM_SECRET_PLUSH_ID);
-      if (!decorOwned.includes(BEDROOM_SECRET_PLUSH_ID)) decorOwned.push(BEDROOM_SECRET_PLUSH_ID);
-      if (!decorPlaced.includes(BEDROOM_SECRET_PLUSH_ID)) decorPlaced.push(BEDROOM_SECRET_PLUSH_ID);
-    }
+    if (
+      (savedDecorUnlocked.includes("rockingDogToy") || savedDecorOwned.includes("rockingDogToy") || savedDecorPlaced.includes("rockingDogToy"))
+      && !secretAwards.includes("couchCritic")
+    ) secretAwards.push("couchCritic");
+    const savedSecretStuffyScenes = saved.secretStuffyScenes && typeof saved.secretStuffyScenes === "object"
+      ? saved.secretStuffyScenes
+      : {};
+    const secretStuffyScenes = {};
+    Object.entries(SECRET_STUFFY_BY_AWARD).forEach(([awardId, itemId]) => {
+      if (!secretAwards.includes(awardId)) {
+        const index = decorPlaced.indexOf(itemId);
+        if (index >= 0) decorPlaced.splice(index, 1);
+        return;
+      }
+      const item = decorItemById(itemId);
+      if (!item) return;
+      if (!decorUnlocked.includes(itemId)) decorUnlocked.push(itemId);
+      if (!decorOwned.includes(itemId)) decorOwned.push(itemId);
+      const hasSavedScene = Object.prototype.hasOwnProperty.call(savedSecretStuffyScenes, itemId);
+      const savedScene = savedSecretStuffyScenes[itemId];
+      const scene = hasSavedScene
+        ? (DECOR_SCENES.includes(savedScene) ? savedScene : null)
+        : item.scene;
+      secretStuffyScenes[itemId] = scene;
+      const placedIndex = decorPlaced.indexOf(itemId);
+      if (scene && placedIndex < 0) decorPlaced.push(itemId);
+      if (!scene && placedIndex >= 0) decorPlaced.splice(placedIndex, 1);
+    });
     const bankedSections = Array.isArray(saved.bankedSections)
       ? Array.from(new Set(saved.bankedSections)).filter((scene) => DECOR_SCENES.includes(scene))
       : [];
@@ -703,6 +757,7 @@ function loadState() {
       decorOwned,
       decorPlaced,
       decorPositions: normalizeDecorPositions(saved.decorPositions),
+      secretStuffyScenes,
       decorStates: normalizeDecorStates(saved.decorStates, saved.tvChannel),
       decorOrientations: normalizeDecorOrientations(saved.decorOrientations),
       bedroomLampOnNightstand: Boolean(saved.bedroomLampOnNightstand),
@@ -763,7 +818,12 @@ function normalizeDecorPositions(value) {
         && Math.abs(Number(savedPosition.y) - oldDefault.y) < 0.01
         ? { x: item.x, y: item.y }
         : savedPosition;
-      positions[item.id] = clampDecorPosition(item, position);
+      positions[item.id] = item.portable
+        ? {
+            x: Number.isFinite(Number(position.x)) ? Number(position.x) : item.x,
+            y: Number.isFinite(Number(position.y)) ? Number(position.y) : item.y,
+          }
+        : clampDecorPosition(item, position);
     }
     return positions;
   }, {});
@@ -907,18 +967,42 @@ function sceneBackdropTexture(scene = currentScene()) {
 }
 
 function decorItemsForScene(scene) {
-  return DECOR_ITEMS.filter((item) => item.scene === scene);
+  return DECOR_ITEMS.filter((item) => item.scene === scene && !item.secretReward);
+}
+
+function secretStuffyItems() {
+  return DECOR_ITEMS.filter((item) => item.secretReward && item.portable);
+}
+
+function isSecretStuffyEarned(item) {
+  return Boolean(item?.secretAward && state.secretAwards.includes(item.secretAward));
+}
+
+function decorSceneForItem(item) {
+  if (!item?.portable) return item?.scene || "outdoor";
+  return DECOR_SCENES.includes(state.secretStuffyScenes?.[item.id])
+    ? state.secretStuffyScenes[item.id]
+    : item.scene;
 }
 
 function placedDecorForScene(scene) {
-  return decorItemsForScene(scene).filter((item) => state.decorPlaced.includes(item.id));
+  const regularDecor = decorItemsForScene(scene).filter((item) => state.decorPlaced.includes(item.id));
+  const portableStuffies = secretStuffyItems()
+    .filter((item) => (
+      isSecretStuffyEarned(item)
+      && state.decorPlaced.includes(item.id)
+      && state.secretStuffyScenes?.[item.id] === scene
+    ))
+    .map((item) => ({ ...item, scene }));
+  return [...regularDecor, ...portableStuffies];
 }
 
 function countedDecorItemsForScene(scene) {
   return decorItemsForScene(scene).filter((item) => !item.activity && !item.secretReward);
 }
 
-function defaultDecorPosition(item) {
+function defaultDecorPosition(item, scene = decorSceneForItem(item)) {
+  if (item.portable) return { ...(DEFAULT_SECRET_STUFFY_POSITIONS[scene] || DEFAULT_SECRET_STUFFY_POSITIONS.outdoor) };
   return { x: item.x, y: item.y };
 }
 
@@ -957,9 +1041,10 @@ function clampScenePosition(scene, position) {
 }
 
 function clampDecorPosition(item, position) {
-  const bounds = BACKDROP_DECOR_MOVE_BOUNDS[item.scene] || MOVE_BOUNDS[item.scene] || MOVE_BOUNDS.outdoor;
+  const scene = decorSceneForItem(item);
+  const bounds = BACKDROP_DECOR_MOVE_BOUNDS[scene] || MOVE_BOUNDS[scene] || MOVE_BOUNDS.outdoor;
   return {
-    x: isPanoramaScene(item.scene)
+    x: isPanoramaScene(scene)
       ? wrapPanoramaX(position?.x ?? 0)
       : clamp(position?.x ?? 0, bounds.x[0], bounds.x[1]),
     y: clamp(position?.y ?? 0, bounds.y[0], bounds.y[1]),
@@ -967,9 +1052,10 @@ function clampDecorPosition(item, position) {
 }
 
 function centeredDecorPosition(item) {
-  const bounds = BACKDROP_DECOR_MOVE_BOUNDS[item.scene] || MOVE_BOUNDS[item.scene] || MOVE_BOUNDS.outdoor;
+  const scene = decorSceneForItem(item);
+  const bounds = BACKDROP_DECOR_MOVE_BOUNDS[scene] || MOVE_BOUNDS[scene] || MOVE_BOUNDS.outdoor;
   return clampDecorPosition(item, {
-    x: isPanoramaScene(item.scene) ? 0 : (bounds.x[0] + bounds.x[1]) / 2,
+    x: isPanoramaScene(scene) ? 0 : (bounds.x[0] + bounds.x[1]) / 2,
     y: (bounds.y[0] + bounds.y[1]) / 2,
   });
 }
@@ -1172,13 +1258,16 @@ function grantSecretAward(id) {
     const underwaterMessage = unlockNextDecorReward("underwater");
     extra = ` Dive Below opened.${underwaterMessage.includes("fully stocked") ? "" : ` ${underwaterMessage}`}`;
   }
-  if (id === "bedroomTidier") {
-    if (!state.decorUnlocked.includes(BEDROOM_SECRET_PLUSH_ID)) state.decorUnlocked.push(BEDROOM_SECRET_PLUSH_ID);
-    if (!state.decorOwned.includes(BEDROOM_SECRET_PLUSH_ID)) state.decorOwned.push(BEDROOM_SECRET_PLUSH_ID);
-    if (!state.decorPlaced.includes(BEDROOM_SECRET_PLUSH_ID)) state.decorPlaced.push(BEDROOM_SECRET_PLUSH_ID);
-    const plush = decorItemById(BEDROOM_SECRET_PLUSH_ID);
-    if (plush) state.decorPositions[BEDROOM_SECRET_PLUSH_ID] = defaultDecorPosition(plush);
-    extra = " The HERSHEY'S plush appeared where the laundry was.";
+  const stuffyId = SECRET_STUFFY_BY_AWARD[id];
+  const stuffy = decorItemById(stuffyId);
+  if (stuffy) {
+    if (!state.decorUnlocked.includes(stuffy.id)) state.decorUnlocked.push(stuffy.id);
+    if (!state.decorOwned.includes(stuffy.id)) state.decorOwned.push(stuffy.id);
+    if (!state.decorPlaced.includes(stuffy.id)) state.decorPlaced.push(stuffy.id);
+    if (!state.secretStuffyScenes || typeof state.secretStuffyScenes !== "object") state.secretStuffyScenes = {};
+    state.secretStuffyScenes[stuffy.id] = stuffy.scene;
+    state.decorPositions[stuffy.id] = defaultDecorPosition(stuffy, stuffy.scene);
+    extra += ` ${stuffy.name} appeared! It is now in your Secrets tab and can travel to any room.`;
   }
   triggerPetAction("celebrate", 1400);
   showToast(`Secret award: ${award.title}. +${award.coins} coins · +${award.gems} gem · +${award.glow} glow.${extra}`);
@@ -1710,6 +1799,40 @@ function renderCloset() {
   }).join("");
 }
 
+function renderSecretStuffies() {
+  const earnedStuffies = secretStuffyItems().filter(isSecretStuffyEarned);
+  if (!earnedStuffies.length) {
+    els.decorGrid.innerHTML = `
+      <div class="secret-stuffies-empty">
+        <span aria-hidden="true">?</span>
+        <strong>No secret stuffies found yet</strong>
+        <p>Each room and world has a hidden activity. Earned friends will appear here—never in the regular Decor shop.</p>
+      </div>
+    `;
+    return;
+  }
+  const scene = currentScene();
+  els.decorGrid.innerHTML = earnedStuffies.map((item) => {
+    const stuffyScene = state.secretStuffyScenes?.[item.id];
+    const placed = isDecorPlaced(item.id) && DECOR_SCENES.includes(stuffyScene);
+    const isHere = placed && stuffyScene === scene;
+    const active = isHere && selectedMoveTarget.type === "decor" && selectedMoveTarget.id === item.id;
+    const status = isHere
+      ? `Here in ${decorSceneLabel(scene)} · tap to put away`
+      : placed
+        ? `In ${decorSceneLabel(stuffyScene)} · tap to bring here`
+        : `Put away · tap to bring to ${decorSceneLabel(scene)}`;
+    return `
+      <button class="decor-item secret-stuffy-card ${active ? "active" : ""}" data-secret-stuffy="${item.id}" type="button">
+        <span class="secret-earned-badge">Secret found</span>
+        <img src="${ASSETS[item.tex]}" alt="" />
+        <strong>${item.name}</strong>
+        <span>${status}</span>
+      </button>
+    `;
+  }).join("");
+}
+
 function renderDecor() {
   if (!els.decorGrid) return;
   DECOR_SCENES.forEach((scene) => {
@@ -1717,6 +1840,11 @@ function renderDecor() {
     tab.classList.toggle("active", activeDecorScene === scene);
     tab.classList.toggle("locked", !isDecorSceneAvailable(scene));
   });
+  els.decorSecretsTab?.classList.toggle("active", activeDecorScene === "secrets");
+  if (activeDecorScene === "secrets") {
+    renderSecretStuffies();
+    return;
+  }
 
   const petImage = state.stage === "egg" ? ASSETS.egg : petFrameAsset(equippedPetFrame());
   const sceneAvailable = isDecorSceneAvailable(activeDecorScene);
@@ -1736,7 +1864,7 @@ function renderDecor() {
   `];
 
   decorItemsForScene(activeDecorScene)
-    .filter((item) => !item.activity && (!item.secretReward || isDecorUnlocked(item.id)))
+    .filter((item) => !item.activity)
     .forEach((item) => {
     const unlocked = sceneAvailable && isDecorUnlocked(item.id);
     const owned = isDecorOwned(item.id);
@@ -1772,8 +1900,33 @@ function selectedTarget() {
     return { type: "pet", scene: activeDecorScene, name: state.stage === "egg" ? "Egg spot" : "Pet spot" };
   }
   const item = decorItemById(selectedMoveTarget.id);
-  if (!item || item.scene !== activeDecorScene || !isDecorUnlocked(item.id) || !isDecorPlaced(item.id)) return null;
+  const selectedScene = item ? decorSceneForItem(item) : null;
+  const expectedScene = item?.portable ? currentScene() : activeDecorScene;
+  if (!item || selectedScene !== expectedScene || !isDecorUnlocked(item.id) || !isDecorPlaced(item.id)) return null;
   return { type: "decor", item, name: item.name };
+}
+
+function toggleSecretStuffy(itemId) {
+  const item = decorItemById(itemId);
+  if (!item?.portable || !isSecretStuffyEarned(item)) return;
+  const scene = currentScene();
+  const isHere = isDecorPlaced(item.id) && state.secretStuffyScenes?.[item.id] === scene;
+  if (!state.secretStuffyScenes || typeof state.secretStuffyScenes !== "object") state.secretStuffyScenes = {};
+  if (isHere) {
+    state.decorPlaced = state.decorPlaced.filter((id) => id !== item.id);
+    state.secretStuffyScenes[item.id] = null;
+    selectedMoveTarget = { type: "pet", scene };
+    showToast(`${item.name} put away safely in Secrets.`);
+  } else {
+    if (!state.decorPlaced.includes(item.id)) state.decorPlaced.push(item.id);
+    state.secretStuffyScenes[item.id] = scene;
+    state.decorPositions[item.id] = defaultDecorPosition(item, scene);
+    selectedMoveTarget = { type: "decor", id: item.id };
+    showToast(`${item.name} came with you to ${decorSceneLabel(scene)}. Drag it anywhere you like.`);
+  }
+  saveState();
+  renderHud();
+  renderDecor();
 }
 
 function toggleDecorItem(itemId) {
@@ -1852,10 +2005,11 @@ function putAwayDecorItem(id) {
   const item = decorItemById(id);
   if (!item || item.activity || !isDecorPlaced(item.id)) return false;
   state.decorPlaced = state.decorPlaced.filter((decorId) => decorId !== item.id);
+  if (item.portable && state.secretStuffyScenes) state.secretStuffyScenes[item.id] = null;
   if (selectedMoveTarget.type === "decor" && selectedMoveTarget.id === item.id) {
-    selectedMoveTarget = { type: "pet", scene: item.scene };
+    selectedMoveTarget = { type: "pet", scene: currentScene() };
   }
-  showToast(`${item.name} put away. Open Decor to place it again.`);
+  showToast(`${item.name} put away. ${item.portable ? "Open Secrets to bring it back." : "Open Decor to place it again."}`);
   checkSecretAwards("decor");
   return true;
 }
@@ -3571,14 +3725,19 @@ els.decorButton.addEventListener("click", () => {
   setOverlay(els.decorOverlay, true);
 });
 els.closeDecorButton.addEventListener("click", () => setOverlay(els.decorOverlay, false));
-[els.decorHomeTab, els.decorBedroomTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab, els.decorMountainTab, els.decorUnderwaterTab].forEach((tab) => {
+[els.decorHomeTab, els.decorBedroomTab, els.decorKitchenTab, els.decorOutdoorTab, els.decorWaterfallTab, els.decorMountainTab, els.decorUnderwaterTab, els.decorSecretsTab].forEach((tab) => {
   tab.addEventListener("click", () => {
     activeDecorScene = tab.dataset.decorScene;
-    selectedMoveTarget = { type: "pet", scene: activeDecorScene };
+    if (activeDecorScene !== "secrets") selectedMoveTarget = { type: "pet", scene: activeDecorScene };
     renderDecor();
   });
 });
 els.decorGrid.addEventListener("click", (event) => {
+  const secretStuffyButton = event.target.closest("[data-secret-stuffy]");
+  if (secretStuffyButton) {
+    toggleSecretStuffy(secretStuffyButton.dataset.secretStuffy);
+    return;
+  }
   const orientationButton = event.target.closest("[data-decor-orientation]");
   if (orientationButton) {
     toggleDecorOrientation(orientationButton.dataset.decorOrientation);
