@@ -1,4 +1,4 @@
-const CACHE_NAME = "idle-town-pwa-cache-v5";
+const CACHE_NAME = "idle-town-pwa-cache-v6";
 const CROP_FILES = ["carrot", "wheat", "pumpkin", "apple"].flatMap((crop) =>
   ["soil", "sprout", "young", "mature"].map((stage) => `./assets/art/living-world/crops/${crop}-${stage}.png`)
 );
@@ -22,7 +22,7 @@ const APP_FILES = [
   "./assets/art/idle-town-app-icon-master.png",
   "./assets/art/people/farmer.png",
   "./assets/art/people/vendor.png",
-  "./assets/art/people/librarian.png",
+  "./assets/art/people/teacher.png",
   "./music/Golden_Fields_Groove.mp3",
   ...CROP_FILES,
   ...ANIMAL_FILES,

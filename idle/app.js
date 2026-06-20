@@ -472,23 +472,36 @@
     });
     dom.layoutButton.innerHTML = layoutMode ? `<span>✓</span><b>Done arranging</b>` : `<span>✥</span><b>Arrange town</b>`;
     dom.worldArt.classList.toggle("layout-mode", layoutMode);
-    const cropMarkup = state.plots.map((plot, index) => {
+    if (dom.worldCrops.children.length !== state.plots.length) {
+      dom.worldCrops.innerHTML = state.plots.map((_, index) => `<button class="world-crop" data-world-plot="${index}" type="button"><img class="world-asset crop-image" alt=""><span class="world-crop-label"></span></button>`).join("");
+    }
+    dom.worldCrops.querySelectorAll("[data-world-plot]").forEach((button, index) => {
+      const plot = state.plots[index];
       const locked = plot?.locked;
       const crop = plot?.crop ? getCrop(plot.crop) : CROPS[0];
       const stage = locked ? 0 : cropStage(plot, now);
       const ready = plot?.crop && plot.readyAt <= now;
       const label = locked ? "Locked field" : !plot ? "Empty field" : ready ? `${crop.name} ready!` : `${crop.name} · ${formatTime((plot.readyAt - now) / 1000)}`;
       const position = state.layout.plots[index] || { x: 8 + index * 10, y: 68 };
-      return `<button class="world-crop ${ready ? "ready" : ""} ${locked ? "locked" : ""}" data-world-plot="${index}" type="button" aria-label="${escapeHtml(label)}" style="left:${position.x}%;top:${position.y}%;right:auto;bottom:auto"><img class="world-asset crop-image" src="${cropAsset(crop,stage)}" alt=""><span class="world-crop-label">${escapeHtml(label)}</span></button>`;
-    }).join("");
-    if (!layoutMode || !dom.worldCrops.children.length) dom.worldCrops.innerHTML = cropMarkup;
+      button.className = `world-crop ${ready ? "ready" : ""} ${locked ? "locked" : ""}`;
+      button.setAttribute("aria-label", label);
+      button.style.left = `${position.x}%`;
+      button.style.top = `${position.y}%`;
+      button.style.right = "auto";
+      button.style.bottom = "auto";
+      const image = button.querySelector(".crop-image");
+      const source = cropAsset(crop, stage);
+      if (image.getAttribute("src") !== source) image.src = source;
+      button.querySelector(".world-crop-label").textContent = label;
+    });
 
     Object.entries(BUILDINGS).forEach(([id, config]) => {
       const button = document.querySelector(`[data-building="${id}"]`);
       const sprite = button?.querySelector(".building-image");
       if (!sprite) return;
       const column = state.construction[id] ? 1 : state.buildings[id] <= 0 ? 0 : state.buildings[id] === 1 ? 2 : 3;
-      sprite.src = buildingAsset(config, column);
+      const source = buildingAsset(config, column);
+      if (sprite.getAttribute("src") !== source) sprite.src = source;
       const position = state.layout.buildings[id];
       button.style.left = `${position.x}%`; button.style.top = `${position.y}%`; button.style.right = "auto"; button.style.bottom = "auto";
     });
@@ -497,7 +510,8 @@
       const button = document.querySelector(`[data-animal="${id}"]`);
       const sprite = button?.querySelector(".animal-image");
       const level = clamp(state.animals[id], 0, 3);
-      if (sprite) sprite.src = animalAsset(config, level);
+      const source = animalAsset(config, level);
+      if (sprite && sprite.getAttribute("src") !== source) sprite.src = source;
       const position = state.layout.animals[id];
       button.style.left = `${position.x}%`; button.style.top = `${position.y}%`; button.style.right = "auto"; button.style.bottom = "auto";
       button?.classList.toggle("growing", Boolean(state.animalGrowth[id]));
@@ -514,13 +528,25 @@
     dom.quickHarvest.classList.toggle("ready", readyCount > 0);
     dom.quickHarvest.disabled = readyCount === 0;
 
-    dom.farmField.innerHTML = state.plots.map((plot, index) => {
+    if (dom.farmField.children.length !== state.plots.length) {
+      dom.farmField.innerHTML = state.plots.map((_, index) => `<button class="plot" data-plot="${index}" type="button"></button>`).join("");
+    }
+    dom.farmField.querySelectorAll("[data-plot]").forEach((button, index) => {
+      const plot = state.plots[index];
       if (plot?.locked) {
         const unlockCost = 140;
-        return `<button class="plot locked" data-plot="${index}" type="button" aria-label="Locked plot, unlock for ${unlockCost} coins"><span class="plot-state">Unlock · ${unlockCost} coins</span></button>`;
+        button.className = "plot locked";
+        button.setAttribute("aria-label", `Locked plot, unlock for ${unlockCost} coins`);
+        if (button.dataset.renderKey !== "locked") button.innerHTML = `<span class="plot-state">Unlock · ${unlockCost} coins</span>`;
+        button.dataset.renderKey = "locked";
+        return;
       }
       if (!plot) {
-        return `<button class="plot empty" data-plot="${index}" type="button"><span class="plot-content"><span class="plot-number">${index + 1}</span><span class="empty-plus">+</span><span class="plot-state">Plant something</span></span></button>`;
+        button.className = "plot empty";
+        button.setAttribute("aria-label", `Empty plot ${index + 1}, plant something`);
+        if (button.dataset.renderKey !== "empty") button.innerHTML = `<span class="plot-content"><span class="plot-number">${index + 1}</span><span class="empty-plus">+</span><span class="plot-state">Plant something</span></span>`;
+        button.dataset.renderKey = "empty";
+        return;
       }
       const crop = getCrop(plot.crop);
       const total = plot.readyAt - plot.plantedAt;
@@ -528,8 +554,17 @@
       const ready = progress >= 1;
       const stage = cropStage(plot, now);
       const label = ready ? `Harvest ${crop.name}` : `${formatTime((plot.readyAt - now) / 1000)} left`;
-      return `<button class="plot ${ready ? "ready" : "growing"}" data-plot="${index}" type="button" aria-label="${escapeHtml(label)}"><span class="plot-content"><span class="plot-number">${index + 1}</span><img class="plot-icon" src="${cropAsset(crop,stage)}" alt=""><span class="plot-state">${escapeHtml(label)}</span>${ready ? "" : `<span class="crop-progress"><span style="width:${progress * 100}%"></span></span>`}</span></button>`;
-    }).join("");
+      const renderKey = `${crop.id}-${stage}-${ready ? "ready" : "growing"}`;
+      button.className = `plot ${ready ? "ready" : "growing"}`;
+      button.setAttribute("aria-label", label);
+      if (button.dataset.renderKey !== renderKey) {
+        button.innerHTML = `<span class="plot-content"><span class="plot-number">${index + 1}</span><img class="plot-icon" src="${cropAsset(crop,stage)}" alt=""><span class="plot-state"></span>${ready ? "" : `<span class="crop-progress"><span></span></span>`}</span>`;
+        button.dataset.renderKey = renderKey;
+      }
+      button.querySelector(".plot-state").textContent = label;
+      const progressBar = button.querySelector(".crop-progress span");
+      if (progressBar) progressBar.style.width = `${progress * 100}%`;
+    });
 
     renderSeeds();
     renderBoost();
@@ -537,6 +572,9 @@
 
   function renderSeeds() {
     const townLevel = getLevelInfo().level;
+    const renderKey = `${townLevel}:${Math.floor(state.seeds)}`;
+    if (dom.seedList.dataset.renderKey === renderKey) return;
+    dom.seedList.dataset.renderKey = renderKey;
     dom.seedList.innerHTML = CROPS.map((crop) => {
       const levelLocked = townLevel < crop.level;
       const poor = state.seeds < crop.seedCost;
@@ -1183,11 +1221,11 @@
     if (earned > 0) { state.coins += earned; state.stats.earned += earned; }
     finalizeProgress(now);
     renderHUD();
-    renderWorld();
-    renderFarm();
-    renderMarket();
-    if (dom.app.dataset.view === "goals") renderGoals();
-    if (dom.app.dataset.view === "town") updateGuide();
+    const view = dom.app.dataset.view;
+    if (view === "town") { renderWorld(); updateGuide(); }
+    if (view === "farm") renderFarm();
+    if (view === "market") renderMarket();
+    if (view === "goals") renderGoals();
   }
 
   function bindEvents() {

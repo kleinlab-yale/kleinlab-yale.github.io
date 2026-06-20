@@ -29,7 +29,7 @@ worker make the game installable as a PWA at the published `/idle/` URL.
 - A true empty-meadow start with no completed buildings or animal habitats
 - A connected economy: math → seeds → crops/feed → coins, while Chinese → wood/ore → buildings
 - Chickens and cows consume harvested feed before they grow, then sell eggs and milk for passive income
-- Painted farmers, market vendors, and librarians walking through the live town map
+- Painted farmers, market vendors, and early-town teachers walking through the live town map
 - A separate Compo Coast screen that unlocks after River Town is fully developed, followed by downtown, schools, and modern Westport
 - Four crops with planting costs, real-time growth, offline readiness, yields, and market prices
 - Passive town income and upgradable school, market, bakery, library, and animal projects
