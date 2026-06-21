@@ -558,6 +558,10 @@ button {
   display: grid;
 }
 
+#decorOverlay {
+  overflow: hidden;
+}
+
 .glass-panel {
   position: relative;
   width: min(620px, calc(100vw - 32px));
@@ -567,6 +571,13 @@ button {
   border-radius: 32px;
   background: var(--glass-strong);
   box-shadow: var(--shadow);
+}
+
+.decor-panel {
+  display: flex;
+  flex-direction: column;
+  height: min(780px, calc(100dvh - 32px));
+  overflow: hidden;
 }
 
 .setup-panel h1,
@@ -859,6 +870,17 @@ input:focus {
   margin-top: 18px;
 }
 
+.decor-panel .decor-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 2px 4px 12px 2px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-gutter: stable;
+}
+
 .closet-item,
 .decor-item {
   display: grid;
@@ -892,21 +914,38 @@ input:focus {
 }
 
 .decor-tabs {
-  display: inline-flex;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
   gap: 8px;
+  width: 100%;
+  max-width: 100%;
   margin-top: 18px;
   padding: 5px;
   border-radius: 999px;
   background: rgba(23, 38, 50, 0.08);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.decor-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .decor-tabs button {
+  flex: 0 0 auto;
   min-height: 38px;
   padding: 8px 15px;
   border-radius: 999px;
   background: transparent;
   color: rgba(23, 38, 50, 0.68);
   font-weight: 950;
+  scroll-snap-align: start;
   transition: transform 160ms ease, background 160ms ease;
 }
 
@@ -1304,17 +1343,21 @@ input:focus {
 
   .decor-tabs {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 5px;
     width: 100%;
-    border-radius: 18px;
+    border-radius: 999px;
   }
 
   .decor-tabs button {
-    flex: 1 1 30%;
+    flex: 0 0 auto;
     min-height: 34px;
-    padding: 7px 8px;
+    padding: 7px 12px;
     font-size: 0.72rem;
+  }
+
+  .decor-panel {
+    height: calc(100dvh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
   }
 }
 

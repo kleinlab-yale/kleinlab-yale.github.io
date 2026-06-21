@@ -3305,10 +3305,16 @@ function sameNumberAnswer(value, expected) {
 }
 
 function parseNumberAnswer(value) {
-  const rationalValue = parseRational(String(value).replace(/,/g, ""));
+  const cleanedValue = String(value)
+    .replace(/,/g, "")
+    .replace(/^\s*\$\s*/, "")
+    .replace(/\s*(dollars?|bucks?)\s*$/i, "")
+    .replace(/\s*\$\s*$/, "")
+    .trim();
+  const rationalValue = parseRational(cleanedValue);
   if (rationalValue && rationalValue.d) return rationalValue.n / rationalValue.d;
 
-  let text = String(value).toLowerCase().replace(/[−–—]/g, "-").trim();
+  let text = cleanedValue.toLowerCase().replace(/[−–—]/g, "-").trim();
   if (!text) return null;
   if (text.includes("=")) text = text.split("=").pop().trim();
   text = text

@@ -237,6 +237,21 @@ test("the real game grader accepts a canonical correct response for every workbo
   }
 });
 
+test("the basketball price accepts natural currency answers", () => {
+  const rawQuestion = standard.find((item) =>
+    item.prompt.startsWith("Six boys want to buy a basketball"),
+  );
+  const question = gradingContext.workbookProblemFromRaw(rawQuestion);
+
+  for (const response of ["50", "$50", "50$", "50 dollars", "50 bucks"]) {
+    assert.equal(
+      gradingContext.isCorrect(response, question),
+      true,
+      `basketball price grader rejected ${response}`,
+    );
+  }
+});
+
 test("the sticker equalization problem preserves the story's quantities", () => {
   const question = standard.find((item) =>
     item.prompt.startsWith("Ethan and Dennis had 50 stickers together"),
