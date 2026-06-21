@@ -456,6 +456,7 @@ const els = {
   gemLabel: document.querySelector("#gemLabel"),
   sparkleLabel: document.querySelector("#sparkleLabel"),
   dollarBankLabel: document.querySelector("#dollarBankLabel"),
+  offlineStatus: document.querySelector("#offlineStatus"),
   panHint: document.querySelector("#panHint"),
   questButton: document.querySelector("#questButton"),
   questButtonLabel: document.querySelector("#questButtonLabel"),
@@ -4454,6 +4455,61 @@ function normalizeVec3(v) {
   return [v[0] / length, v[1] / length, v[2] / length];
 }
 
+let offlineCacheReady = false;
+
+function setOfflineStatus(label, status = "preparing") {
+  if (!els.offlineStatus) return;
+  els.offlineStatus.hidden = false;
+  els.offlineStatus.textContent = label;
+  els.offlineStatus.dataset.state = status;
+}
+
+function offlineGameAssets() {
+  return [
+    "./",
+    "./index.html",
+    "./styles.css?v=20260620-decor-scroll",
+    "./script.js?v=20260621-offline",
+    "./workbook-questions.js?v=20260618-answer-integrity",
+    ...Object.values(ASSETS),
+  ];
+}
+
+async function registerOfflinePlay() {
+  if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+  setOfflineStatus("Preparing offline play", "preparing");
+
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    const message = event.data || {};
+    if (message.type === "OFFLINE_PROGRESS" && message.total) {
+      const complete = Number(message.cached || 0) + Number(message.failed || 0);
+      const percent = Math.round((complete / message.total) * 100);
+      setOfflineStatus(`Offline setup ${percent}%`, "preparing");
+    } else if (message.type === "OFFLINE_READY") {
+      offlineCacheReady = true;
+      setOfflineStatus(navigator.onLine ? "Offline ready" : "Offline mode", "ready");
+    } else if (message.type === "OFFLINE_INCOMPLETE") {
+      setOfflineStatus("Offline setup needs internet", "warning");
+    }
+  });
+
+  window.addEventListener("offline", () => setOfflineStatus("Offline mode", "ready"));
+  window.addEventListener("online", () => {
+    setOfflineStatus(offlineCacheReady ? "Offline ready" : "Preparing offline play", offlineCacheReady ? "ready" : "preparing");
+  });
+
+  try {
+    const registration = await navigator.serviceWorker.register("./sw.js");
+    const readyRegistration = await navigator.serviceWorker.ready;
+    const worker = readyRegistration.active || registration.active || registration.waiting;
+    worker?.postMessage({ type: "CACHE_GAME", assets: offlineGameAssets() });
+    navigator.storage?.persist?.().catch(() => false);
+  } catch {
+    setOfflineStatus("Offline setup needs internet", "warning");
+  }
+}
+
 renderHud();
 setWhiteboardTool("pen");
 requestAnimationFrame(drawScene);
+registerOfflinePlay();

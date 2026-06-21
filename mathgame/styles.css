@@ -388,6 +388,18 @@ button {
   color: #9c6421;
 }
 
+.offline-status {
+  color: #34745f;
+}
+
+.offline-status[data-state="preparing"] {
+  color: #7a6498;
+}
+
+.offline-status[data-state="warning"] {
+  color: #a55343;
+}
+
 #gemLabel {
   color: #4f62c9;
 }
