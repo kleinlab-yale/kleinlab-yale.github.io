@@ -29,7 +29,7 @@ worker make the game installable as a PWA at the published `/idle/` URL.
 - A sparse one-field start with three seeds, no buildings, and no animal habitats
 - A connected economy: math → seeds, Chinese → wood, social studies → ore, and explicit crop/egg/milk sales → coins
 - Chickens and cows consume harvested feed before they grow, then produce eggs and milk that must be sold manually
-- Painted farmers, market vendors, and teachers with four-frame alternating-leg walk cycles, safe randomized routes, and modern-era wardrobe makeovers
+- Layer-rigged farmers, market vendors, and teachers whose independent legs swing in opposite phases, with safe randomized routes and modern-era wardrobe makeovers
 - Purchased projects appear on the map only when construction actually begins
 - Increasing field costs, no automatic coin income, capped animal goods, and 35% offline production efficiency
 - A separate Compo Coast screen that unlocks after River Town is fully developed, followed by downtown, schools, and modern Westport
@@ -38,9 +38,10 @@ worker make the game installable as a PWA at the published `/idle/` URL.
 - Grade 5–6 fractions, multiplication, division, percents, geometry, and word problems
 - A touch-friendly scratch whiteboard with pen, eraser, and clear controls
 - Intro Chinese vocabulary and phrase practice with pinyin
-- Grade 5 Connecticut history, geography, civics, government, and citizenship practice
+- Nineteen Grade 5 social-studies mini-lessons with three-sentence teaching passages and 57 Connecticut history, geography, civics, government, economics, and citizenship questions
 - Learning-powered market boosts and subject-specific three-answer supply crates
 - Town XP, milestones, autosave, offline animal production, music/SFX controls, and reduced-motion support
+- One permanent device save slot with automatic v5/v6/v7 migration plus iPad-friendly visibility and page-hide saving across site updates
 - Responsive desktop, tablet, and phone layouts with touch and keyboard-friendly controls
 
 Player progress is stored locally in the browser. No account, ads, analytics, or server are required.

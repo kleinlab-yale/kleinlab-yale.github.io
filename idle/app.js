@@ -1,7 +1,8 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "idle-town-westport-v7";
+  const SAVE_KEY = "idle-town-westport";
+  const LEGACY_SAVE_KEYS = ["idle-town-westport-v7", "idle-town-westport-v6", "idle-town-westport-v5"];
   const MAX_OFFLINE_MS = 2 * 60 * 60 * 1000;
   const OFFLINE_EFFICIENCY = 0.35;
   const TICK_MS = 500;
@@ -144,17 +145,178 @@
     { hanzi: "我喜欢苹果", pinyin: "wǒ xǐ huan píng guǒ", answer: "I like apples", distractors: ["I have apples", "I sell apples", "I see apples"] },
   ];
 
-  const SOCIAL_STUDIES = [
-    { prompt: "Which Indigenous nation lived in much of coastal Connecticut before European settlement?", answer: "Pequot", distractors: ["Cherokee", "Navajo", "Seminole"], skill: "Connecticut History", tier: 1 },
-    { prompt: "What is the main purpose of a town meeting?", answer: "Residents discuss and vote on local issues", distractors: ["Congress chooses a president", "Judges write state laws", "Schools collect federal taxes"], skill: "Local Government", tier: 1 },
-    { prompt: "Which branch of government interprets laws?", answer: "Judicial", distractors: ["Legislative", "Executive", "Municipal"], skill: "Civics", tier: 1 },
-    { prompt: "A map legend helps a reader understand what?", answer: "The meaning of symbols", distractors: ["The age of the map", "The weather tomorrow", "The author’s opinion"], skill: "Geography", tier: 1 },
-    { prompt: "Why did many early Connecticut towns grow near rivers?", answer: "Rivers supplied water, travel, and power", distractors: ["Rivers stopped every storm", "Only rivers had farmland", "Roads were illegal"], skill: "Settlement", tier: 1 },
-    { prompt: "What is one responsibility of a citizen in a democracy?", answer: "Stay informed and participate", distractors: ["Ignore local decisions", "Write every law alone", "Choose every judge directly"], skill: "Citizenship", tier: 1 },
-    { prompt: "Which document begins with the words ‘We the People’?", answer: "The U.S. Constitution", distractors: ["The Mayflower Compact", "The Emancipation Proclamation", "The Gettysburg Address"], skill: "U.S. Government", tier: 2 },
-    { prompt: "What was a major effect of the Industrial Revolution on Connecticut towns?", answer: "Factories and transportation networks expanded", distractors: ["All trade stopped", "Cities became farms", "Rivers disappeared"], skill: "Economic History", tier: 2 },
-    { prompt: "Why are checks and balances important?", answer: "They keep one branch from gaining too much power", distractors: ["They replace elections", "They eliminate courts", "They let states print money"], skill: "Constitution", tier: 2 },
-    { prompt: "What does population density measure?", answer: "People living in a given area", distractors: ["Average yearly rainfall", "Number of state laws", "Distance between rivers"], skill: "Human Geography", tier: 2 },
+  const SOCIAL_LESSONS = [
+    {
+      id: "map-tools", skill: "Geography", tier: 1,
+      passage: "Maps use tools to organize geographic information. A compass rose shows direction, a scale compares map distance with real distance, and a legend explains symbols. Latitude lines run east–west while longitude lines run north–south.",
+      questions: [
+        { prompt: "Which map tool explains what symbols mean?", answer: "The legend", distractors: ["The compass rose", "The scale", "The title"] },
+        { prompt: "What does a map scale help a reader estimate?", answer: "Real-world distance", distractors: ["Population age", "Election results", "Daily temperature"] },
+        { prompt: "Which lines run east–west around Earth?", answer: "Latitude lines", distractors: ["Longitude lines", "Town borders", "Time zones only"] },
+      ],
+    },
+    {
+      id: "connecticut-land", skill: "Connecticut Geography", tier: 1,
+      passage: "Connecticut has a shoreline on Long Island Sound, wooded hills, river valleys, and many smaller streams. The Connecticut River flows south through the center of the state. Landforms and waterways influence where people build homes, roads, farms, and businesses.",
+      questions: [
+        { prompt: "What body of water borders Connecticut’s southern shoreline?", answer: "Long Island Sound", distractors: ["Lake Erie", "Chesapeake Bay", "The Gulf of Mexico"] },
+        { prompt: "How can waterways influence communities?", answer: "They affect settlement, travel, and work", distractors: ["They erase all town borders", "They prevent farming everywhere", "They determine every state law"] },
+        { prompt: "Where does the Connecticut River flow through the state?", answer: "Through the central part of Connecticut", distractors: ["Only along the western border", "Only under Long Island Sound", "Across northern Maine"] },
+      ],
+    },
+    {
+      id: "indigenous-connecticut", skill: "Indigenous History", tier: 1,
+      passage: "Indigenous peoples lived in the region now called Connecticut for thousands of years before European colonization. Nations including the Pequot, Mohegan, and Paugussett built communities with distinct governments and traditions. They used forests, rivers, and coastal waters for food, travel, trade, and materials.",
+      questions: [
+        { prompt: "Which statement best describes Indigenous Connecticut?", answer: "Several distinct nations lived in the region", distractors: ["Only one family lived in the region", "No communities existed near rivers", "Every nation had identical traditions"] },
+        { prompt: "How did waterways support Indigenous communities?", answer: "They provided food, travel, and trade routes", distractors: ["They stopped all movement", "They replaced every forest resource", "They served only as town borders"] },
+        { prompt: "Which is one Indigenous nation named in the passage?", answer: "Paugussett", distractors: ["Roman", "Viking", "Spartan"] },
+      ],
+    },
+    {
+      id: "river-settlement", skill: "Settlement", tier: 1,
+      passage: "Many early towns developed near rivers and harbors. Waterways supplied drinking water, supported fishing, moved people and goods, and later powered mills. Communities also needed safe building land, nearby resources, and routes to other settlements.",
+      questions: [
+        { prompt: "Why did rivers attract early settlements?", answer: "They supplied water, travel, food, and power", distractors: ["They guaranteed perfect weather", "They removed the need for roads", "They made all land flat"] },
+        { prompt: "What later used moving river water for power?", answer: "Mills", distractors: ["Satellites", "Airports", "Subways"] },
+        { prompt: "Besides water, what did communities need?", answer: "Land, resources, and travel routes", distractors: ["A national capital", "A desert", "An ocean on every side"] },
+      ],
+    },
+    {
+      id: "town-government", skill: "Local Government", tier: 1,
+      passage: "Local government handles community needs such as roads, parks, schools, fire protection, and libraries. At a town meeting, residents can learn about proposals, express views, and sometimes vote on local decisions. Local officials must follow state and federal laws.",
+      questions: [
+        { prompt: "Which service is commonly managed by local government?", answer: "Parks and local roads", distractors: ["Printing national money", "Commanding the armed forces", "Negotiating treaties"] },
+        { prompt: "What can residents do at a town meeting?", answer: "Discuss and sometimes vote on local issues", distractors: ["Rewrite the U.S. Constitution alone", "Choose another country’s leader", "Cancel every state law"] },
+        { prompt: "Must local officials follow higher levels of law?", answer: "Yes, they follow state and federal law", distractors: ["No, towns are independent countries", "Only during elections", "Only when building parks"] },
+      ],
+    },
+    {
+      id: "three-branches", skill: "Civics", tier: 1,
+      passage: "The U.S. government has three branches. The legislative branch makes laws, the executive branch carries them out, and the judicial branch interprets them. Dividing responsibilities helps prevent one group from controlling every government power.",
+      questions: [
+        { prompt: "Which branch makes laws?", answer: "Legislative", distractors: ["Executive", "Judicial", "Municipal"] },
+        { prompt: "Which branch interprets laws?", answer: "Judicial", distractors: ["Legislative", "Executive", "Commercial"] },
+        { prompt: "Why are powers divided among branches?", answer: "To prevent one group from controlling everything", distractors: ["To eliminate elections", "To make laws secret", "To give towns their own currency"] },
+      ],
+    },
+    {
+      id: "citizenship", skill: "Citizenship", tier: 1,
+      passage: "Citizens strengthen a democracy by learning about issues, voting when eligible, following laws, serving on juries when called, and helping their communities. People can also contact officials, attend meetings, and speak respectfully about public decisions. Rights come with responsibilities toward other people.",
+      questions: [
+        { prompt: "Which action shows responsible citizenship?", answer: "Learning about issues and participating", distractors: ["Ignoring every local decision", "Preventing others from speaking", "Refusing to follow any law"] },
+        { prompt: "How can a person share a view with government?", answer: "Contact officials or attend a meeting", distractors: ["Change the law secretly", "Print a private ballot", "Close the courthouse"] },
+        { prompt: "What relationship does the passage describe?", answer: "Rights come with responsibilities", distractors: ["Rights remove every duty", "Only officials have rights", "Responsibilities replace rights"] },
+      ],
+    },
+    {
+      id: "constitution", skill: "U.S. Government", tier: 1,
+      passage: "The U.S. Constitution is the highest law of the nation. It describes the structure and powers of the federal government and begins with the words ‘We the People.’ Amendments can change or add to the Constitution.",
+      questions: [
+        { prompt: "Which document begins with ‘We the People’?", answer: "The U.S. Constitution", distractors: ["The Gettysburg Address", "A town budget", "The Declaration of Sentiments"] },
+        { prompt: "What does the Constitution describe?", answer: "The structure and powers of the federal government", distractors: ["Only local school schedules", "The weather in each state", "Prices for farm crops"] },
+        { prompt: "What can change or add to the Constitution?", answer: "Amendments", distractors: ["Map legends", "Town parks", "Weather reports"] },
+      ],
+    },
+    {
+      id: "bill-of-rights", skill: "Rights and Liberties", tier: 1,
+      passage: "The first ten amendments to the Constitution are called the Bill of Rights. They protect liberties such as freedom of speech and religion and include protections for people accused of crimes. These freedoms still have legal limits when actions harm others or violate laws.",
+      questions: [
+        { prompt: "What is the Bill of Rights?", answer: "The first ten constitutional amendments", distractors: ["All laws passed each year", "A list of state capitals", "The first ten presidents"] },
+        { prompt: "Which liberty is protected in the Bill of Rights?", answer: "Freedom of speech", distractors: ["Freedom to ignore every law", "Freedom to control elections", "Freedom to take property"] },
+        { prompt: "Are constitutional freedoms completely unlimited?", answer: "No, laws can set limits that protect others", distractors: ["Yes, every action is protected", "Only children have limits", "Only towns can set limits"] },
+      ],
+    },
+    {
+      id: "sources", skill: "Historical Thinking", tier: 1,
+      passage: "Historians use evidence to study the past. A primary source was created during the time being studied, such as a letter, tool, photograph, or diary. A secondary source is a later explanation that uses and interprets evidence from primary sources.",
+      questions: [
+        { prompt: "Which item is usually a primary source?", answer: "A diary written during the event", distractors: ["A modern textbook chapter", "A later documentary summary", "A current encyclopedia article"] },
+        { prompt: "What does a secondary source do?", answer: "It explains the past using evidence", distractors: ["It must be created during the event", "It cannot mention primary sources", "It predicts future weather"] },
+        { prompt: "Why do historians compare sources?", answer: "To evaluate evidence and viewpoints", distractors: ["To make every account identical", "To remove all dates", "To avoid asking questions"] },
+      ],
+    },
+    {
+      id: "needs-wants-trade", skill: "Economics", tier: 1,
+      passage: "People have needs, such as food and shelter, and wants, such as optional goods or entertainment. Because resources are limited, families and communities make choices about how to use money, time, land, and materials. Trade lets people exchange goods and services they have for things they value.",
+      questions: [
+        { prompt: "Why must people make economic choices?", answer: "Resources are limited", distractors: ["Every good is free", "Time never matters", "Trade is forbidden"] },
+        { prompt: "Which is generally a need?", answer: "Basic shelter", distractors: ["A second game console", "A collectible poster", "An optional concert ticket"] },
+        { prompt: "What does trade allow?", answer: "Exchange of goods and services", distractors: ["Unlimited resources", "The end of all work", "One person to make every product"] },
+      ],
+    },
+    {
+      id: "community-change", skill: "Change Over Time", tier: 1,
+      passage: "Communities change as population, transportation, technology, and local needs change. A farming area may later add shops, schools, roads, parks, and public services. Studying maps and photographs from different years helps reveal what changed and what remained.",
+      questions: [
+        { prompt: "What can cause a community to change?", answer: "Population, transportation, technology, and needs", distractors: ["Only the day of the week", "Only the town’s name", "Nothing; communities never change"] },
+        { prompt: "What evidence can show change over time?", answer: "Maps and photographs from different years", distractors: ["One unlabeled drawing", "A future weather guess", "A single math equation"] },
+        { prompt: "What might a farming area add as it grows?", answer: "Shops, schools, roads, and parks", distractors: ["A border around every field", "A new continent", "No public services"] },
+      ],
+    },
+    {
+      id: "checks-balances", skill: "Constitution", tier: 2,
+      passage: "Checks and balances allow each federal branch to limit certain actions of the others. For example, a president may veto a bill, Congress may override a veto with enough votes, and courts may review whether laws follow the Constitution. The system requires branches to share power.",
+      questions: [
+        { prompt: "What is the purpose of checks and balances?", answer: "To keep one branch from gaining too much power", distractors: ["To eliminate courts", "To end elections", "To let one branch control all laws"] },
+        { prompt: "What may a president do to a bill?", answer: "Veto it", distractors: ["Declare it a state", "Turn it into money", "Make it a court"] },
+        { prompt: "What may courts review?", answer: "Whether laws follow the Constitution", distractors: ["Every family budget", "Local weather forecasts", "Prices in every store"] },
+      ],
+    },
+    {
+      id: "federalism", skill: "Federalism", tier: 2,
+      passage: "Federalism divides power between the national government and state governments. The national government handles responsibilities such as national defense and relations with other countries. States manage many matters closer to residents, including much of education, transportation, and public safety.",
+      questions: [
+        { prompt: "What does federalism divide?", answer: "Power between national and state governments", distractors: ["Land between farms only", "Courts into political parties", "Money between private stores"] },
+        { prompt: "Which is mainly a national responsibility?", answer: "National defense", distractors: ["A town playground", "A local library schedule", "A neighborhood sidewalk"] },
+        { prompt: "Which area is often managed largely by states?", answer: "Education", distractors: ["Relations with foreign countries", "Declaring national war", "Printing national currency"] },
+      ],
+    },
+    {
+      id: "industrial-change", skill: "Economic History", tier: 2,
+      passage: "During industrialization, machines and factories changed how many goods were produced. Connecticut’s rivers, skilled workers, roads, canals, and railroads helped manufacturing grow. Factory growth created jobs and products but also brought crowded cities, pollution, and difficult working conditions.",
+      questions: [
+        { prompt: "What changed production during industrialization?", answer: "Machines and factories", distractors: ["Only hand copying", "The end of transportation", "A ban on tools"] },
+        { prompt: "What helped manufacturing grow?", answer: "Power, workers, and transportation networks", distractors: ["Fewer routes and no workers", "Only distant deserts", "The removal of every machine"] },
+        { prompt: "Which was a challenge of factory growth?", answer: "Pollution and difficult working conditions", distractors: ["No goods were produced", "Every city became empty", "Transportation disappeared"] },
+      ],
+    },
+    {
+      id: "population-density", skill: "Human Geography", tier: 2,
+      passage: "Population density describes how many people live within a certain area. A dense town center may support frequent buses, apartments, and nearby shops, while a less dense rural area may have farms and longer travel distances. Density affects planning but does not by itself describe people’s culture or quality of life.",
+      questions: [
+        { prompt: "What does population density measure?", answer: "People living in a given area", distractors: ["Average yearly rainfall", "Number of state laws", "Distance between rivers"] },
+        { prompt: "What might a dense town center support?", answer: "Frequent transit and nearby shops", distractors: ["Only large farms", "No roads or services", "Long distances between every home"] },
+        { prompt: "Does density alone describe a community’s culture?", answer: "No", distractors: ["Yes, completely", "Only in rural areas", "Only during elections"] },
+      ],
+    },
+    {
+      id: "supply-demand", skill: "Economics", tier: 2,
+      passage: "Supply is the amount of a good producers are willing to sell, while demand is the amount consumers are willing to buy. If demand rises while supply stays limited, prices often rise. Competition and changes in production can also affect prices and choices.",
+      questions: [
+        { prompt: "What is demand?", answer: "The amount consumers are willing to buy", distractors: ["The amount of yearly rainfall", "The number of laws", "The distance goods travel"] },
+        { prompt: "What often happens when demand rises but supply stays limited?", answer: "Prices rise", distractors: ["Prices always become zero", "Every producer closes", "Money stops being used"] },
+        { prompt: "What else can affect prices?", answer: "Competition and production changes", distractors: ["Map directions only", "The three branches only", "Latitude alone"] },
+      ],
+    },
+    {
+      id: "conservation", skill: "Environment and Civics", tier: 2,
+      passage: "Communities make choices about protecting water, open space, wildlife, and historic places. Conservation can include reducing pollution, preserving habitats, maintaining parks, and planning development carefully. Citizens, governments, businesses, and nonprofit groups may all take part.",
+      questions: [
+        { prompt: "Which action supports conservation?", answer: "Preserving habitats and reducing pollution", distractors: ["Removing every park", "Dumping waste into rivers", "Ignoring development plans"] },
+        { prompt: "Who may participate in conservation?", answer: "Citizens, governments, businesses, and groups", distractors: ["Only national leaders", "Only children", "No community members"] },
+        { prompt: "Why plan development carefully?", answer: "To balance growth with community resources", distractors: ["To prevent every new idea", "To eliminate local government", "To remove all historic places"] },
+      ],
+    },
+    {
+      id: "civic-evidence", skill: "Civic Reasoning", tier: 2,
+      passage: "Good civic decisions use evidence from more than one source. Residents might compare budgets, maps, expert reports, public comments, and possible effects on different groups. A strong claim explains its reasoning and recognizes that another viewpoint may exist.",
+      questions: [
+        { prompt: "What should support a strong civic decision?", answer: "Evidence from multiple sources", distractors: ["One rumor", "The loudest voice only", "No information"] },
+        { prompt: "Why compare effects on different groups?", answer: "A decision may affect people differently", distractors: ["Every group is identical", "Budgets never matter", "Maps contain opinions only"] },
+        { prompt: "What does a strong claim explain?", answer: "Its evidence and reasoning", distractors: ["Why evidence is unnecessary", "How to avoid all viewpoints", "Only the speaker’s name"] },
+      ],
+    },
   ];
 
   const dom = {
@@ -188,8 +350,11 @@
     townCardClose: document.getElementById("town-card-close"),
     guideTitle: document.getElementById("guide-title"),
     guideCopy: document.getElementById("guide-copy"),
+    lessonCard: document.querySelector(".lesson-card"),
     questionSkill: document.getElementById("question-skill"),
     questionReward: document.getElementById("question-reward"),
+    lessonPassage: document.getElementById("lesson-passage"),
+    lessonPassageText: document.getElementById("lesson-passage-text"),
     questionPrompt: document.getElementById("question-prompt"),
     questionHint: document.getElementById("question-hint"),
     answerGrid: document.getElementById("answer-grid"),
@@ -284,6 +449,7 @@
       },
       stats: { planted: 0, harvested: 0, sold: 0, earned: 0, answered: 0, correct: 0, chineseCorrect: 0, socialCorrect: 0 },
       subject: "math",
+      recentSocial: [],
       streak: 0,
       lessonStep: 0,
       boostUntil: 0,
@@ -294,19 +460,51 @@
     };
   }
 
+  let loadedSaveKey = SAVE_KEY;
+
+  function readSavedState() {
+    for (const key of [SAVE_KEY, ...LEGACY_SAVE_KEYS]) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const saved = JSON.parse(raw);
+        if (saved && typeof saved === "object") {
+          loadedSaveKey = key;
+          return saved;
+        }
+      } catch (error) {
+        console.warn(`Idle Town could not read save slot ${key}`, error);
+      }
+    }
+    return null;
+  }
+
+  function migrateConstruction(savedConstruction = {}) {
+    const now = Date.now();
+    return Object.fromEntries(Object.entries(savedConstruction).map(([id, build]) => {
+      if (Number.isInteger(build?.phase)) {
+        return [id, { ...build, phaseReadyAt: Number(build.phaseReadyAt) || now }];
+      }
+      // v5–v7 used one fully-paid timer. Preserve that purchase and let it
+      // finish rather than asking the player to pay for migrated work again.
+      return [id, { targetLevel: Number(build?.targetLevel) || 1, phase: 2, phaseReadyAt: Number(build?.completeAt) || now }];
+    }));
+  }
+
   function loadState() {
     const fresh = initialState();
+    const saved = readSavedState();
+    if (!saved) return fresh;
     try {
-      const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-      if (!saved) return fresh;
       const merged = {
         ...fresh,
         ...saved,
+        version: fresh.version,
         inventory: { ...fresh.inventory, ...(saved.inventory || {}) },
         goods: { ...fresh.goods, ...(saved.goods || {}) },
         productionProgress: { ...fresh.productionProgress, ...(saved.productionProgress || {}) },
         buildings: { ...fresh.buildings, ...(saved.buildings || {}) },
-        construction: { ...fresh.construction, ...(saved.construction || {}) },
+        construction: migrateConstruction(saved.construction),
         animals: { ...fresh.animals, ...(saved.animals || {}) },
         animalGrowth: { ...fresh.animalGrowth, ...(saved.animalGrowth || {}) },
         districts: { ...fresh.districts, ...(saved.districts || {}) },
@@ -318,12 +516,14 @@
         stats: { ...fresh.stats, ...(saved.stats || {}) },
         settings: { ...fresh.settings, ...(saved.settings || {}) },
         plots: Array.isArray(saved.plots) ? saved.plots.slice(0, 6) : fresh.plots,
+        recentSocial: Array.isArray(saved.recentSocial) ? saved.recentSocial.slice(-8) : fresh.recentSocial,
       };
       while (merged.plots.length < 6) merged.plots.push(null);
       applyOfflineProgress(merged);
       return merged;
     } catch (error) {
       console.warn("Idle Town save could not be loaded", error);
+      loadedSaveKey = SAVE_KEY;
       return fresh;
     }
   }
@@ -334,6 +534,8 @@
     state.lastSeen = Date.now();
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (error) { console.warn("Save failed", error); }
   }
+
+  if (loadedSaveKey !== SAVE_KEY) saveState();
 
   function applyOfflineProgress(target) {
     const now = Date.now();
@@ -565,6 +767,7 @@
     dom.levelLabel.textContent = `Level ${level.level}`;
     dom.levelProgress.style.width = `${level.progress * 100}%`;
     dom.learnReadyDot.classList.toggle("visible", !isBoostActive());
+    renderHarvestStatus();
     Object.keys(BUILDINGS).forEach((id) => {
       const element = document.getElementById(`${id}-level-map`);
       if (!element) return;
@@ -577,6 +780,15 @@
       button?.classList.toggle("locked-building", !unlocked);
       button?.classList.toggle("under-construction", Boolean(building));
     });
+  }
+
+  function renderHarvestStatus(now = Date.now()) {
+    const readyCount = state.plots.filter((plot) => plot?.crop && plot.readyAt <= now).length;
+    dom.readyCountLabel.textContent = `${readyCount} ${readyCount === 1 ? "plot" : "plots"}`;
+    dom.quickHarvest.classList.toggle("ready", readyCount > 0);
+    dom.quickHarvest.disabled = readyCount === 0;
+    dom.quickHarvest.setAttribute("aria-label", readyCount ? `Harvest ${readyCount} ready ${readyCount === 1 ? "plot" : "plots"}` : "No crops are ready to harvest");
+    return readyCount;
   }
 
   function renderWorld() {
@@ -649,21 +861,21 @@
     const modernResidents = state.districts.compo || Object.values(state.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length >= 2;
     dom.worldArt.dataset.residentEra = modernResidents ? "modern" : "historic";
     document.querySelectorAll("[data-walker]").forEach((walker) => {
-      walker.querySelectorAll(".walker-frame").forEach((image, index) => {
-        const era = modernResidents ? "-modern" : "";
-        const source = `assets/art/people/${walker.dataset.walker}${era}-walk-${index + 1}.png`;
-        if (image.getAttribute("src") !== source) image.src = source;
-      });
+      const era = modernResidents ? "-modern" : "";
+      const prefix = `assets/art/people/${walker.dataset.walker}${era}-rig`;
+      const sources = [
+        [walker.querySelector(".walker-torso"), `${prefix}-torso.png`],
+        [walker.querySelector(".walker-leg-front"), `${prefix}-leg-1.png`],
+        [walker.querySelector(".walker-leg-back"), `${prefix}-leg-2.png`],
+      ];
+      sources.forEach(([image, source]) => { if (image && image.getAttribute("src") !== source) image.src = source; });
     });
     dom.worldProgressCopy.textContent = `${developmentCount()} town pieces built`;
   }
 
   function renderFarm() {
     const now = Date.now();
-    const readyCount = state.plots.filter((plot) => plot?.crop && plot.readyAt <= now).length;
-    dom.readyCountLabel.textContent = `${readyCount} ${readyCount === 1 ? "plot" : "plots"}`;
-    dom.quickHarvest.classList.toggle("ready", readyCount > 0);
-    dom.quickHarvest.disabled = readyCount === 0;
+    renderHarvestStatus(now);
 
     if (dom.farmField.children.length !== state.plots.length) {
       dom.farmField.innerHTML = state.plots.map((_, index) => `<button class="plot" data-plot="${index}" type="button"></button>`).join("");
@@ -973,12 +1185,19 @@
   }
 
   function generateSocialQuestion() {
-    const available = SOCIAL_STUDIES.filter((question) => question.tier <= learningTier());
-    const question = available[Math.floor(Math.random() * available.length)];
+    const available = SOCIAL_LESSONS.filter((lesson) => lesson.tier <= learningTier()).flatMap((lesson) =>
+      lesson.questions.map((question, index) => ({ ...question, id: `${lesson.id}-${index}`, passage: lesson.passage, skill: lesson.skill }))
+    );
+    const unseen = available.filter((question) => !state.recentSocial.includes(question.id));
+    const pool = unseen.length ? unseen : available;
+    const question = pool[Math.floor(Math.random() * pool.length)];
+    state.recentSocial = [...state.recentSocial, question.id].slice(-8);
     return {
       subject: "social",
+      id: question.id,
+      passage: question.passage,
       prompt: question.prompt,
-      hint: learningTier() > 1 ? "Use evidence from geography, history, and civics." : "Think about Connecticut communities and government.",
+      hint: "Use the short reading above. The answer is stated or supported there.",
       skill: `Grade 5 Social Studies · ${question.skill}`,
       answer: question.answer,
       choices: shuffle([question.answer, ...question.distractors]),
@@ -1005,6 +1224,10 @@
   function renderLesson() {
     if (!state.question) return;
     const question = state.question;
+    const hasPassage = question.subject === "social" && Boolean(question.passage);
+    dom.lessonCard.classList.toggle("social-lesson", hasPassage);
+    dom.lessonPassage.hidden = !hasPassage;
+    dom.lessonPassageText.textContent = hasPassage ? question.passage : "";
     dom.questionSkill.textContent = question.skill;
     dom.questionReward.textContent = `+${learningReward().label} · 2× market`;
     dom.questionPrompt.textContent = question.prompt;
@@ -1058,7 +1281,9 @@
     } else {
       state.streak = 0;
       button.classList.add("wrong");
-      dom.lessonFeedback.textContent = `Not quite. The answer is ${state.question.answer}. A new one is coming up.`;
+      dom.lessonFeedback.textContent = state.subject === "social"
+        ? `Not quite. The answer is ${state.question.answer}. Re-read the short passage and notice the sentence that supports it.`
+        : `Not quite. The answer is ${state.question.answer}. A new one is coming up.`;
       dom.lessonFeedback.classList.add("error");
       playSfx("wrong");
     }
@@ -1070,7 +1295,7 @@
     pendingTimers.push(window.setTimeout(() => {
       dom.answerGrid.dataset.locked = "false";
       nextQuestion();
-    }, correct ? 950 : 1350));
+    }, state.subject === "social" ? (correct ? 1500 : 3200) : (correct ? 950 : 1350)));
   }
 
   function renderLessonProgressOnly() {
@@ -1622,7 +1847,7 @@
     dom.motionToggle.addEventListener("change", () => { state.settings.reduceMotion = dom.motionToggle.checked; dom.app.classList.toggle("reduce-motion", state.settings.reduceMotion); saveState(); });
     dom.resetButton.addEventListener("click", () => {
       if (!window.confirm("Reset Coleytown and erase the local save?")) return;
-      localStorage.removeItem(SAVE_KEY);
+      [SAVE_KEY, ...LEGACY_SAVE_KEYS].forEach((key) => localStorage.removeItem(key));
       window.location.reload();
     });
     dom.startButton.addEventListener("click", () => {
@@ -1639,6 +1864,7 @@
       if (event.key === " " && dom.app.dataset.view === "farm") { event.preventDefault(); harvestAll(); }
     });
     window.addEventListener("beforeunload", saveState);
+    window.addEventListener("pagehide", saveState);
     document.addEventListener("visibilitychange", () => { if (document.hidden) saveState(); else { lastTick = Date.now(); renderAll(); } });
   }
 

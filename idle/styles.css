@@ -219,15 +219,18 @@ svg { display: block; }
 
 .town-life { position:absolute; z-index:3; inset:0; overflow:hidden; pointer-events:none; }
 .walker { position:absolute; z-index:5; width:clamp(54px,5vw,78px); aspect-ratio:1; opacity:1; filter:drop-shadow(0 5px 3px rgba(35,56,40,.28)); transition-property:left,top; transition-timing-function:linear; pointer-events:none; }
-.walker-frame { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain; opacity:0; animation:walker-frame-cycle 800ms steps(1,end) infinite; transform-origin:center bottom; }
-.walker-frame-2 { animation-delay:-600ms; }
-.walker-frame-3 { animation-delay:-400ms; }
-.walker-frame-4 { animation-delay:-200ms; }
-.walker.walking-left .walker-frame { transform:scaleX(-1); }
+.walker-rig { position:absolute; inset:0; animation:walker-body-bob 800ms ease-in-out infinite; transform-origin:center bottom; }
+.walker.walking-left .walker-rig { scale:-1 1; }
+.walker-part { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain; }
+.walker-torso { z-index:3; }
+.walker-leg { z-index:1; transform-origin:50% 60%; animation:walker-leg-front 800ms cubic-bezier(.45,.05,.55,.95) infinite; }
+.walker-leg-back { z-index:0; animation-name:walker-leg-back; }
 .walker-vendor { --walker-scale:.88; left:54%; top:58%; scale:var(--walker-scale); }
 .walker-teacher { --walker-scale:.82; left:22%; top:40%; scale:var(--walker-scale); }
 .walker-farmer { --walker-scale:1; left:7%; top:55%; scale:var(--walker-scale); }
-@keyframes walker-frame-cycle { 0%,24% { opacity:1; } 25%,100% { opacity:0; } }
+@keyframes walker-leg-front { 0%,100% { transform:rotate(-17deg); } 50% { transform:rotate(17deg); } }
+@keyframes walker-leg-back { 0%,100% { transform:rotate(17deg); } 50% { transform:rotate(-17deg); } }
+@keyframes walker-body-bob { 0%,100% { translate:0 0; } 25%,75% { translate:0 1px; } 50% { translate:0 -1px; } }
 
 .world-asset { display:block; width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 10px 7px rgba(36,53,44,.23)); pointer-events:none; }
 
@@ -427,7 +430,12 @@ svg { display: block; }
 .question-meta { display: flex; justify-content: space-between; gap: 10px; margin: 25px 0 10px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
 .question-meta span { color: var(--forest-700); }
 .question-meta b { color: var(--pumpkin-dark); }
+.lesson-passage { margin:0 0 18px; padding:16px 18px; border:1px solid #d9dfcc; border-left:5px solid var(--forest-500); border-radius:16px; background:#f5f7ec; color:var(--forest-900); }
+.lesson-passage[hidden] { display:none; }
+.lesson-passage small { display:block; margin-bottom:6px; color:var(--pumpkin-dark); font-size:9px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+.lesson-passage p { margin:0; font:600 14px/1.65 "Nunito", sans-serif; }
 .lesson-card h2 { max-width: 690px; min-height: 75px; margin: 0; font: 800 clamp(28px, 3.5vw, 43px)/1.12 "Fraunces", serif; letter-spacing: -.025em; }
+.lesson-card.social-lesson h2 { min-height:58px; font-size:clamp(23px,3vw,34px); }
 .question-hint { margin: 9px 0 24px; color: var(--muted); font-size: 12px; }
 .whiteboard-tools { display:flex; align-items:center; gap:8px; margin:-8px 0 18px; }
 .whiteboard-tools button { min-height:34px; padding:0 11px; border:1px solid var(--cream-300); border-radius:10px; background:var(--cream-100); color:var(--forest-800); font-size:9px; font-weight:800; cursor:pointer; }
@@ -687,11 +695,11 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .walker { animation:none !important; transition:none !important; }
-  .walker-frame { animation:none !important; opacity:0; }
-  .walker-frame-2 { opacity:1; }
+  .walker-rig, .walker-leg { animation:none !important; }
+  .walker-leg { transform:rotate(0); }
 }
 
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 .reduce-motion .walker { animation:none !important; transition:none !important; }
-.reduce-motion .walker-frame { animation:none !important; opacity:0; }
-.reduce-motion .walker-frame-2 { opacity:1; }
+.reduce-motion .walker-rig, .reduce-motion .walker-leg { animation:none !important; }
+.reduce-motion .walker-leg { transform:rotate(0); }

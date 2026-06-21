@@ -1,4 +1,4 @@
-const CACHE_NAME = "idle-town-pwa-cache-v8";
+const CACHE_NAME = "idle-town-pwa-cache-v9";
 const CROP_FILES = ["carrot", "wheat", "pumpkin", "apple"].flatMap((crop) =>
   ["soil", "sprout", "young", "mature"].map((stage) => `./assets/art/living-world/crops/${crop}-${stage}.png`)
 );
@@ -9,7 +9,7 @@ const BUILDING_FILES = ["school", "market", "bakery", "library"].flatMap((buildi
   ["foundation", "construction", "level-1", "level-2", "level-3"].map((stage) => `./assets/art/living-world/buildings/${building}-${stage}.png`)
 );
 const PEOPLE_FILES = ["farmer", "vendor", "teacher"].flatMap((person) =>
-  ["", "-modern"].flatMap((era) => [1, 2, 3, 4].map((frame) => `./assets/art/people/${person}${era}-walk-${frame}.png`))
+  ["", "-modern"].flatMap((era) => ["torso", "leg-1", "leg-2"].map((part) => `./assets/art/people/${person}${era}-rig-${part}.png`))
 );
 const APP_FILES = [
   "./",

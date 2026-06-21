@@ -70,9 +70,9 @@
             <div class="cloud cloud-a"></div>
             <div class="cloud cloud-b"></div>
             <div class="town-life" aria-hidden="true">
-              <span class="walker walker-farmer" data-walker="farmer"><img class="walker-frame walker-frame-1" src="assets/art/people/farmer-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/farmer-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/farmer-walk-3.png" alt=""><img class="walker-frame walker-frame-4" src="assets/art/people/farmer-walk-4.png" alt=""></span>
-              <span class="walker walker-vendor" data-walker="vendor"><img class="walker-frame walker-frame-1" src="assets/art/people/vendor-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/vendor-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/vendor-walk-3.png" alt=""><img class="walker-frame walker-frame-4" src="assets/art/people/vendor-walk-4.png" alt=""></span>
-              <span class="walker walker-teacher" data-walker="teacher"><img class="walker-frame walker-frame-1" src="assets/art/people/teacher-walk-1.png" alt=""><img class="walker-frame walker-frame-2" src="assets/art/people/teacher-walk-2.png" alt=""><img class="walker-frame walker-frame-3" src="assets/art/people/teacher-walk-3.png" alt=""><img class="walker-frame walker-frame-4" src="assets/art/people/teacher-walk-4.png" alt=""></span>
+              <span class="walker walker-farmer" data-walker="farmer"><span class="walker-rig"><img class="walker-part walker-leg walker-leg-back" src="assets/art/people/farmer-rig-leg-2.png" alt=""><img class="walker-part walker-leg walker-leg-front" src="assets/art/people/farmer-rig-leg-1.png" alt=""><img class="walker-part walker-torso" src="assets/art/people/farmer-rig-torso.png" alt=""></span></span>
+              <span class="walker walker-vendor" data-walker="vendor"><span class="walker-rig"><img class="walker-part walker-leg walker-leg-back" src="assets/art/people/vendor-rig-leg-2.png" alt=""><img class="walker-part walker-leg walker-leg-front" src="assets/art/people/vendor-rig-leg-1.png" alt=""><img class="walker-part walker-torso" src="assets/art/people/vendor-rig-torso.png" alt=""></span></span>
+              <span class="walker walker-teacher" data-walker="teacher"><span class="walker-rig"><img class="walker-part walker-leg walker-leg-back" src="assets/art/people/teacher-rig-leg-2.png" alt=""><img class="walker-part walker-leg walker-leg-front" src="assets/art/people/teacher-rig-leg-1.png" alt=""><img class="walker-part walker-torso" src="assets/art/people/teacher-rig-torso.png" alt=""></span></span>
             </div>
             <div class="world-name"><small>Welcome to</small><strong>Coleytown</strong></div>
 
@@ -161,6 +161,7 @@
                 <button class="lesson-tab" data-subject="social" role="tab" aria-selected="false" type="button">Social Studies 5</button>
               </div>
               <div class="question-meta"><span id="question-skill">Fractions</span><b id="question-reward">+18 coins</b></div>
+              <article class="lesson-passage" id="lesson-passage" hidden><small>Read first</small><p id="lesson-passage-text"></p></article>
               <h2 id="question-prompt">What is 3/4 of 20?</h2>
               <p class="question-hint" id="question-hint">Choose the best answer.</p>
               <div class="whiteboard-tools">
@@ -180,7 +181,7 @@
             <aside class="learning-reward">
               <div class="reward-art"><span class="sun-ray"></span><b>2×</b></div>
               <small>Connected economy</small><h2>Answers become supplies</h2><p>Math → seeds. Chinese → wood. Social Studies → ore. Every correct answer also adds five minutes of double market value.</p>
-              <div class="reward-resource-list"><span>∑ Math <b>Seeds</b></span><span>中文 Chinese <b>Wood · Ore</b></span><span>🌾 Farm <b>Coins · Feed</b></span></div>
+              <div class="reward-resource-list"><span>∑ Math <b>Seeds</b></span><span>中文 Chinese <b>Wood</b></span><span>⌂ Social Studies <b>Ore</b></span><span>🌾 Farm <b>Coins · Feed</b></span></div>
               <div class="reward-progress"><span id="lesson-progress-bar"></span></div>
               <strong id="lesson-progress-label">0 / 3 for bonus crate</strong>
             </aside>
