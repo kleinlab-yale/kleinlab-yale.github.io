@@ -876,6 +876,7 @@
   function renderFarm() {
     const now = Date.now();
     renderHarvestStatus(now);
+    dom.farmField.dataset.plotCount = String(unlockedPlotCount());
 
     if (dom.farmField.children.length !== state.plots.length) {
       dom.farmField.innerHTML = state.plots.map((_, index) => `<button class="plot" data-plot="${index}" type="button"></button>`).join("");
@@ -885,6 +886,8 @@
       if (plot?.locked) {
         button.hidden = true;
         button.className = "plot locked";
+        button.removeAttribute("aria-label");
+        button.innerHTML = "";
         button.dataset.renderKey = "locked";
         return;
       }
