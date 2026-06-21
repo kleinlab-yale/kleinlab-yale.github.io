@@ -7,6 +7,7 @@
   const OFFLINE_EFFICIENCY = 0.35;
   const TICK_MS = 500;
   const BUILD_PHASE_SECONDS = [90, 150, 240];
+  const BUILD_RUSH = { coins: { seconds: 60 }, materials: { seconds: 90, wood: 1, ore: 1 } };
   const MAX_BUILDING_LEVEL = 3;
   const LEVELS = [
     { name: "Sprout Village", xp: 0 },
@@ -20,7 +21,7 @@
     {
       id: "carrot",
       name: "Carrots",
-      seedCost: 1,
+      seedCost: 2,
       duration: 120,
       yield: 5,
       value: 3,
@@ -32,7 +33,7 @@
     {
       id: "wheat",
       name: "Wheat",
-      seedCost: 1,
+      seedCost: 3,
       duration: 240,
       yield: 8,
       value: 4,
@@ -44,7 +45,7 @@
     {
       id: "pumpkin",
       name: "Pumpkins",
-      seedCost: 2,
+      seedCost: 5,
       duration: 480,
       yield: 7,
       value: 9,
@@ -56,7 +57,7 @@
     {
       id: "apple",
       name: "Apples",
-      seedCost: 3,
+      seedCost: 7,
       duration: 720,
       yield: 10,
       value: 12,
@@ -543,32 +544,102 @@
 
   function applyOfflineProgress(target) {
     const now = Date.now();
-    const elapsed = Math.min(MAX_OFFLINE_MS, Math.max(0, now - (target.lastSeen || now)));
-    if (elapsed < 5_000) return;
-    const produced = accrueAnimalGoods(target, elapsed / 1000 * OFFLINE_EFFICIENCY);
-    if (produced.eggs || produced.milk) {
-      target.offlineGoods = produced;
-      target.offlineTime = elapsed;
-    }
+    const awayStarted = target.lastSeen || now;
+    const actualElapsed = Math.max(0, now - awayStarted);
+    if (actualElapsed < 5_000) return;
+    const productionElapsed = Math.min(MAX_OFFLINE_MS, actualElapsed);
+    const report = {
+      elapsed: actualElapsed,
+      productionElapsed,
+      cropsReady: target.plots.filter((plot) => plot?.crop && plot.readyAt > awayStarted && plot.readyAt <= now).length,
+      buildingsCompleted: [],
+      stagesReady: [],
+      animalsGrown: [],
+      goods: { eggs: 0, milk: 0 },
+    };
+    const produced = accrueAnimalGoods(target, productionElapsed / 1000 * OFFLINE_EFFICIENCY);
+    report.goods.eggs += produced.eggs;
+    report.goods.milk += produced.milk;
+
+    Object.entries(target.animalGrowth || {}).forEach(([id, growth]) => {
+      if (growth.completeAt > now) return;
+      const priorLevel = target.animals[id] || 0;
+      const extraSeconds = Math.min(MAX_OFFLINE_MS, Math.max(0, now - growth.completeAt)) / 1000 * OFFLINE_EFFICIENCY;
+      const addedLevel = Math.max(0, growth.targetLevel - priorLevel);
+      const good = id === "chickens" ? "eggs" : "milk";
+      const bonus = accrueAnimalGood(target, id, good, extraSeconds, addedLevel);
+      report.goods[good] += bonus;
+      target.animals[id] = growth.targetLevel;
+      target.xp += 20 + target.animals[id] * 6;
+      report.animalsGrown.push(ANIMALS[id].labels[target.animals[id]]);
+      delete target.animalGrowth[id];
+    });
+
+    Object.entries(target.construction || {}).forEach(([id, building]) => {
+      if (building.phaseReadyAt > now) return;
+      if (building.phase < 2) {
+        report.stagesReady.push(BUILDINGS[id].short);
+        return;
+      }
+      target.buildings[id] = building.targetLevel;
+      target.xp += 50 + target.buildings[id] * 15;
+      report.buildingsCompleted.push(BUILDINGS[id].short);
+      delete target.construction[id];
+    });
+
+    const riverComplete = Object.values(target.buildings).every((level) => level >= MAX_BUILDING_LEVEL)
+      && Object.values(target.animals).every((level) => level >= 3)
+      && target.plots.every((plot) => !plot?.locked);
+    if (riverComplete) target.districts.compo = true;
+    target.offlineReport = report;
+  }
+
+  function accrueAnimalGood(target, animal, good, elapsedSeconds, level = target.animals[animal] || 0) {
+    const rates = { chickens: 180, cows: 300 };
+    if (!level || elapsedSeconds <= 0) return 0;
+    target.productionProgress[animal] = (target.productionProgress[animal] || 0) + level * elapsedSeconds / rates[animal];
+    const whole = Math.floor(target.productionProgress[animal]);
+    if (!whole) return 0;
+    const cap = good === "eggs" ? 30 : 18;
+    const room = Math.max(0, cap - Math.floor(target.goods[good] || 0));
+    const added = Math.min(whole, room);
+    target.goods[good] = (target.goods[good] || 0) + added;
+    target.productionProgress[animal] -= whole;
+    return added;
   }
 
   function accrueAnimalGoods(target = state, elapsedSeconds = 0) {
-    const rates = { chickens: 180, cows: 300 };
     const produced = { eggs: 0, milk: 0 };
     [["chickens", "eggs"], ["cows", "milk"]].forEach(([animal, good]) => {
-      const level = target.animals[animal] || 0;
-      if (!level || elapsedSeconds <= 0) return;
-      target.productionProgress[animal] = (target.productionProgress[animal] || 0) + level * elapsedSeconds / rates[animal];
-      const whole = Math.floor(target.productionProgress[animal]);
-      if (!whole) return;
-      const cap = good === "eggs" ? 30 : 18;
-      const room = Math.max(0, cap - Math.floor(target.goods[good] || 0));
-      const added = Math.min(whole, room);
-      target.goods[good] = (target.goods[good] || 0) + added;
-      target.productionProgress[animal] -= whole;
-      produced[good] = added;
+      produced[good] = accrueAnimalGood(target, animal, good, elapsedSeconds);
     });
     return produced;
+  }
+
+  function showOfflineReport(delay = 300) {
+    const report = state.offlineReport;
+    if (!report) return;
+    const updates = [];
+    if (report.cropsReady) updates.push(`${report.cropsReady} ${report.cropsReady === 1 ? "crop is" : "crops are"} ready`);
+    if (report.buildingsCompleted.length) updates.push(`${report.buildingsCompleted.join(" and ")} completed`);
+    if (report.stagesReady.length) updates.push(`${report.stagesReady.join(" and ")} need the next supplies`);
+    if (report.animalsGrown.length) updates.push(`${report.animalsGrown.join(" and ")} arrived`);
+    if (report.goods.eggs) updates.push(`${report.goods.eggs} egg basket${report.goods.eggs === 1 ? "" : "s"}`);
+    if (report.goods.milk) updates.push(`${report.goods.milk} milk jug${report.goods.milk === 1 ? "" : "s"}`);
+    const summary = updates.length ? updates.join(" · ") : "timers continued safely";
+    window.setTimeout(() => toast(`Welcome back after ${formatAway(report.elapsed)} — ${summary}.`), delay);
+    delete state.offlineReport;
+    delete state.offlineGoods;
+    delete state.offlineTime;
+    saveState();
+  }
+
+  function resumeOfflineProgress() {
+    applyOfflineProgress(state);
+    lastTick = Date.now();
+    finalizeProgress(lastTick);
+    renderAll();
+    showOfflineReport(100);
   }
 
   function getCrop(id) { return CROPS.find((crop) => crop.id === id); }
@@ -654,6 +725,36 @@
 
   function constructionReady(building, now = Date.now()) {
     return now >= building.phaseReadyAt;
+  }
+
+  function buildingRushCoinCost(building) {
+    return 12 + building.phase * 8 + Math.max(0, building.targetLevel - 1) * 6;
+  }
+
+  function rushBuilding(id, mode) {
+    const building = state.construction[id];
+    if (!building || constructionReady(building)) return;
+    if (mode === "coins") {
+      const cost = buildingRushCoinCost(building);
+      if (state.coins < cost) return;
+      state.coins -= cost;
+      building.phaseReadyAt -= BUILD_RUSH.coins.seconds * 1000;
+      toast(`Extra crew hired — ${BUILD_RUSH.coins.seconds} seconds removed.`);
+    } else if (mode === "materials") {
+      const cost = BUILD_RUSH.materials;
+      if (state.wood < cost.wood || state.ore < cost.ore) return;
+      state.wood -= cost.wood;
+      state.ore -= cost.ore;
+      building.phaseReadyAt -= cost.seconds * 1000;
+      toast(`Extra supplies delivered — ${cost.seconds} seconds removed.`);
+    } else {
+      return;
+    }
+    playSfx("build");
+    finalizeProgress(Date.now());
+    renderAll();
+    saveState();
+    openBuilding(id);
   }
 
   function constructionAssetStage(building) {
@@ -1403,8 +1504,12 @@
       : complete ? "Modern evolution complete" : `${level ? "Begin next era" : "Lay foundation"} · ${costLabel(due)}`;
     const actionEnabled = unlocked && !complete && (building ? building.phase < 2 && ready && canPay(due) : canPay(due));
     const budget = buildingInstallments(id, targetLevel).reduce((total, step) => ({ coins: total.coins + step.coins, wood: total.wood + step.wood, ore: total.ore + step.ore }), { coins: 0, wood: 0, ore: 0 });
-    dom.buildingModalContent.innerHTML = `<div class="building-hero"><img class="modal-asset" src="${buildingAsset(config,column)}" alt=""></div><small>${building ? `Construction stage ${building.phase + 1} of 3` : level ? `Town building · ${eraNames[level]}` : "New town project"}</small><h2>${config.name}</h2><p class="building-description">${phaseCopy}</p><div class="building-stats"><div class="building-stat"><small>Current era</small><strong>${eraNames[level]}</strong></div><div class="building-stat"><small>${complete ? "Evolution" : "Next era benefit"}</small><strong>${complete ? "Historic → expanded → modern" : config.effect(level + 1)}</strong></div><div class="building-stat"><small>Full era budget</small><strong>${costLabel(budget)}</strong></div></div><div class="building-actions"><button class="secondary-button" data-close-modal type="button">Back to town</button><button class="primary-button" data-upgrade="${id}" type="button" ${actionEnabled ? "" : "disabled"}>${unlocked ? actionText : "Project locked"}</button></div>`;
-    dom.buildingModal.showModal();
+    const rushCoinCost = building ? buildingRushCoinCost(building) : 0;
+    const rushPanel = building && !ready
+      ? `<div class="building-rush"><div><small>Speed up this stage</small><strong>Optional — later supply payments still apply</strong></div><button data-rush-building="${id}" data-rush-mode="coins" type="button" ${state.coins >= rushCoinCost ? "" : "disabled"}>Hire crew · ${rushCoinCost} coins <b>−${BUILD_RUSH.coins.seconds}s</b></button><button data-rush-building="${id}" data-rush-mode="materials" type="button" ${state.wood >= BUILD_RUSH.materials.wood && state.ore >= BUILD_RUSH.materials.ore ? "" : "disabled"}>Extra materials · ${BUILD_RUSH.materials.wood} wood + ${BUILD_RUSH.materials.ore} ore <b>−${BUILD_RUSH.materials.seconds}s</b></button></div>`
+      : "";
+    dom.buildingModalContent.innerHTML = `<div class="building-hero"><img class="modal-asset" src="${buildingAsset(config,column)}" alt=""></div><small>${building ? `Construction stage ${building.phase + 1} of 3` : level ? `Town building · ${eraNames[level]}` : "New town project"}</small><h2>${config.name}</h2><p class="building-description">${phaseCopy}</p><div class="building-stats"><div class="building-stat"><small>Current era</small><strong>${eraNames[level]}</strong></div><div class="building-stat"><small>${complete ? "Evolution" : "Next era benefit"}</small><strong>${complete ? "Historic → expanded → modern" : config.effect(level + 1)}</strong></div><div class="building-stat"><small>Full era budget</small><strong>${costLabel(budget)}</strong></div></div>${rushPanel}<div class="building-actions"><button class="secondary-button" data-close-modal type="button">Back to town</button><button class="primary-button" data-upgrade="${id}" type="button" ${actionEnabled ? "" : "disabled"}>${unlocked ? actionText : "Project locked"}</button></div>`;
+    if (!dom.buildingModal.open) dom.buildingModal.showModal();
   }
 
   function upgradeBuilding(id) {
@@ -1851,6 +1956,8 @@
     dom.buildingModal.addEventListener("click", (event) => {
       const upgrade = event.target.closest("[data-upgrade]");
       if (upgrade) upgradeBuilding(upgrade.dataset.upgrade);
+      const rush = event.target.closest("[data-rush-building]");
+      if (rush) rushBuilding(rush.dataset.rushBuilding, rush.dataset.rushMode);
       const grow = event.target.closest("[data-grow-animal]");
       if (grow) growAnimal(grow.dataset.growAnimal);
     });
@@ -1882,7 +1989,8 @@
     });
     window.addEventListener("beforeunload", saveState);
     window.addEventListener("pagehide", saveState);
-    document.addEventListener("visibilitychange", () => { if (document.hidden) saveState(); else { lastTick = Date.now(); renderAll(); } });
+    window.addEventListener("pageshow", (event) => { if (event.persisted) resumeOfflineProgress(); });
+    document.addEventListener("visibilitychange", () => { if (document.hidden) saveState(); else resumeOfflineProgress(); });
   }
 
   function initialize() {
@@ -1897,11 +2005,7 @@
     renderLesson();
     startWalkerRoutes();
     if (!state.welcomed) dom.welcomeModal.showModal();
-    if (state.offlineGoods) {
-      const parts = [state.offlineGoods.eggs ? `${state.offlineGoods.eggs} egg baskets` : "", state.offlineGoods.milk ? `${state.offlineGoods.milk} milk jugs` : ""].filter(Boolean).join(" and ");
-      window.setTimeout(() => toast(`While away for ${formatAway(state.offlineTime)}, the animals produced ${parts}. Sell them at the market when you choose.`), state.welcomed ? 300 : 1200);
-      delete state.offlineGoods; delete state.offlineTime;
-    }
+    showOfflineReport(state.welcomed ? 300 : 1200);
     if (state.settings.music) toggleMusic(true);
     window.setInterval(tick, TICK_MS);
     window.setInterval(saveState, 5_000);
