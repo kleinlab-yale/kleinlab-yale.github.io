@@ -81,7 +81,7 @@
     },
     market: {
       name: "Main Street Market",
-      short: "Village Market",
+      short: "Main Street Market",
       atlasRow: 1,
       artKey: "market",
       baseCost: 120,
@@ -443,7 +443,7 @@
       districts: { compo: false },
       activeRegion: "coleytown",
       layout: {
-        buildings: { school: { x: 42, y: 16 }, market: { x: 54, y: 53 }, bakery: { x: 68, y: 53 }, library: { x: 60, y: 18 } },
+        buildings: { school: { x: 42, y: 16 }, market: { x: 49, y: 48 }, bakery: { x: 68, y: 53 }, library: { x: 60, y: 18 } },
         animals: { chickens: { x: 8, y: 28 }, cows: { x: 23, y: 25 } },
         plots: [{ x: 7, y: 68 }, { x: 18, y: 69 }, { x: 29, y: 68 }, { x: 40, y: 69 }, { x: 13, y: 52 }, { x: 28, y: 51 }],
       },
@@ -518,6 +518,10 @@
         plots: Array.isArray(saved.plots) ? saved.plots.slice(0, 6) : fresh.plots,
         recentSocial: Array.isArray(saved.recentSocial) ? saved.recentSocial.slice(-8) : fresh.recentSocial,
       };
+      const savedMarketPosition = saved.layout?.buildings?.market;
+      if (savedMarketPosition?.x === 54 && savedMarketPosition?.y === 53) {
+        merged.layout.buildings.market = { x: 49, y: 48 };
+      }
       while (merged.plots.length < 6) merged.plots.push(null);
       applyOfflineProgress(merged);
       return merged;
@@ -814,8 +818,10 @@
       const ready = plot?.crop && plot.readyAt <= now;
       const label = locked ? "Locked field" : !plot ? "Empty field" : ready ? `${crop.name} ready!` : `${crop.name} · ${formatTime((plot.readyAt - now) / 1000)}`;
       const position = state.layout.plots[index] || { x: 8 + index * 10, y: 68 };
-      button.className = `world-crop ${ready ? "ready" : ""} ${locked ? "locked" : ""}`;
+      button.className = `world-crop ${ready ? "ready" : plot?.crop ? "growing" : ""} ${locked ? "locked" : ""}`;
       button.setAttribute("aria-label", label);
+      const cropProgress = plot?.crop ? clamp((now - plot.plantedAt) / (plot.readyAt - plot.plantedAt), 0, 1) : 0;
+      button.style.setProperty("--crop-progress", `${cropProgress * 100}%`);
       button.style.left = `${position.x}%`;
       button.style.top = `${position.y}%`;
       button.style.right = "auto";
@@ -836,7 +842,15 @@
       const source = buildingAsset(config, column);
       if (sprite.getAttribute("src") !== source) sprite.src = source;
       const badge = button.querySelector(".construction-badge");
-      if (badge && building) badge.textContent = constructionReady(building) && building.phase < 2 ? "Needs supplies" : `${constructionPhaseName(building.phase)}…`;
+      if (badge && building) {
+        const awaitingMaterials = constructionReady(building) && building.phase < 2;
+        badge.textContent = awaitingMaterials ? "!" : formatTime((building.phaseReadyAt - now) / 1000);
+        button.classList.toggle("awaiting-materials", awaitingMaterials);
+        button.setAttribute("aria-label", `${config.name}. ${awaitingMaterials ? "Ready for the next supply payment" : `${constructionPhaseName(building.phase)}, ${badge.textContent} remaining`}`);
+      } else {
+        button.classList.remove("awaiting-materials");
+        button.setAttribute("aria-label", config.name);
+      }
       const position = state.layout.buildings[id];
       button.style.left = `${position.x}%`; button.style.top = `${position.y}%`; button.style.right = "auto"; button.style.bottom = "auto";
     });
