@@ -34,19 +34,19 @@
         <div class="resources" aria-label="Town resources">
           <button class="resource" data-open-view="market" type="button" aria-label="Open market">
             <span class="resource-icon coin-icon">¢</span>
-            <span><small>Coins</small><strong id="coin-count">0</strong></span>
+            <span><small id="coin-label">Coins</small><strong id="coin-count">0</strong></span>
           </button>
           <button class="resource" data-open-view="farm" type="button" aria-label="Open farm">
             <span class="resource-icon seed-icon" aria-hidden="true">✿</span>
-            <span><small>Seeds</small><strong id="seed-count">0</strong></span>
+            <span><small id="seed-label">Seeds</small><strong id="seed-count">0</strong></span>
           </button>
           <button class="resource" data-open-view="learn" type="button" aria-label="Open learning challenges">
             <span class="resource-icon wood-icon" aria-hidden="true">▥</span>
-            <span><small>Wood</small><strong id="wood-count">0</strong></span>
+            <span><small id="wood-label">Wood</small><strong id="wood-count">0</strong></span>
           </button>
           <button class="resource" data-open-view="learn" type="button" aria-label="Open Chinese challenges for building materials">
             <span class="resource-icon ore-icon" aria-hidden="true">◆</span>
-            <span><small>Ore</small><strong id="ore-count">0</strong></span>
+            <span><small id="ore-label">Ore</small><strong id="ore-count">0</strong></span>
           </button>
         </div>
 
@@ -57,10 +57,10 @@
 
       <nav class="nav-rail" aria-label="Main game areas">
         <button class="nav-button active" data-view-target="town" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 11 9-7 9 7v9H3v-9Z"/><path d="M9 20v-6h6v6"/></svg></span><b>Town</b></button>
-        <button class="nav-button" data-view-target="farm" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21V9m0 4c-4.5 0-7-2.3-7-6 4.5 0 7 2.3 7 6Zm0 3c4.5 0 7-2.3 7-6-4.5 0-7 2.3-7 6Z"/></svg></span><b>Farm</b></button>
+        <button class="nav-button" data-view-target="farm" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21V9m0 4c-4.5 0-7-2.3-7-6 4.5 0 7 2.3 7 6Zm0 3c4.5 0 7-2.3 7-6-4.5 0-7 2.3-7 6Z"/></svg></span><b id="farm-nav-label">Farm</b></button>
         <button class="nav-button learning-nav" data-view-target="learn" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 7 9-4 9 4-9 4-9-4Zm3 3v6c3.4 2.8 8.6 2.8 12 0v-6"/></svg></span><b>Learn</b><i id="learn-ready-dot"></i></button>
-        <button class="nav-button" data-view-target="market" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10v10h16V10M3 10l2-6h14l2 6c-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0Z"/></svg></span><b>Market</b></button>
-        <button class="nav-button" data-view-target="goals" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21V4m0 2h12l-2 4 2 4H5"/></svg></span><b>Goals</b></button>
+        <button class="nav-button" data-view-target="market" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10v10h16V10M3 10l2-6h14l2 6c-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0-1.3 2-3.7 2-5 0Z"/></svg></span><b id="market-nav-label">Market</b></button>
+        <button class="nav-button" data-view-target="goals" type="button"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21V4m0 2h12l-2 4 2 4H5"/></svg></span><b id="goals-nav-label">Goals</b></button>
       </nav>
 
       <main class="game-stage">
@@ -76,13 +76,13 @@
             </div>
             <div class="world-name"><small>Welcome to</small><strong>Coleytown</strong></div>
 
-            <div class="world-progress-chip" id="world-progress-chip"><span>✦</span><div><small>Growing toward Westport</small><strong id="world-progress-copy">3 town pieces built</strong></div></div>
             <div class="region-switcher" role="group" aria-label="Town areas">
               <button class="active" data-region="coleytown" type="button">River Town</button>
               <button data-region="compo" type="button" disabled>🔒 Compo Coast</button>
             </div>
             <button class="layout-button" id="layout-button" type="button"><span>✥</span><b>Arrange town</b></button>
             <div class="world-crops" id="world-crops" aria-label="Living crop fields"></div>
+            <div class="beach-world" id="beach-world" aria-label="Compo Beach shoreline"></div>
 
             <button class="town-building school-building" data-building="school" type="button" aria-label="Coleytown Schoolhouse">
               <img class="world-asset building-image" alt="">
@@ -113,29 +113,12 @@
             </button>
 
             <div class="layout-hint" id="layout-hint">Drag buildings and habitats to arrange your town. Tap Done when it feels right.</div>
-
-            <button class="map-action harvest-action" id="quick-harvest-button" type="button">
-              <span aria-hidden="true">✦</span><b>Harvest ready</b><small id="ready-count-label">0 plots</small>
-            </button>
-            <button class="map-action build-action" id="quick-build-button" type="button">
-              <span aria-hidden="true">⌂</span><b>Improve town</b><small>See projects</small>
-            </button>
           </div>
-
-          <aside class="town-card" id="town-card">
-            <div class="guide-row">
-              <div class="fox-avatar" aria-hidden="true"><span class="fox-ear left"></span><span class="fox-ear right"></span><span class="fox-face">•ᴥ•</span></div>
-              <div><small>Maple says</small><strong id="guide-title">The fields are waking up!</strong></div>
-              <button class="card-close" id="town-card-close" type="button" aria-label="Close tip">×</button>
-            </div>
-            <p id="guide-copy">Plant a few crops, then visit the market to turn your harvest into your first town improvements.</p>
-            <button class="primary-button" id="guide-action" type="button">Visit the farm <span>→</span></button>
-          </aside>
         </section>
 
         <section class="view-panel content-view" id="view-farm" aria-labelledby="farm-title">
           <header class="view-heading">
-            <div><small>Old Hill Farm</small><h1 id="farm-title">Grow something wonderful.</h1><p>Spend seeds earned from math, then use crops for market income or animal feed.</p></div>
+            <div><small id="farm-region-label">Old Hill Farm</small><h1 id="farm-title">Grow something wonderful.</h1><p id="farm-copy">Spend seeds earned from math, then use crops for market income or animal feed.</p></div>
             <div class="focus-boost" id="focus-boost"><span>✦</span><div><small>Learning boost</small><strong id="boost-label">Not active</strong></div></div>
           </header>
           <div class="farm-layout">
@@ -150,7 +133,7 @@
 
         <section class="view-panel content-view" id="view-learn" aria-labelledby="learn-title">
           <header class="view-heading learning-heading">
-            <div><small>Coleytown Learning Tent</small><h1 id="learn-title">A little practice supplies the town.</h1><p>Math earns seeds, Intro Chinese earns wood, and Grade 5 Social Studies earns ore.</p></div>
+            <div><small id="learn-region-label">Coleytown Learning Tent</small><h1 id="learn-title">A little practice supplies the town.</h1><p id="learn-copy">Math earns seeds, Intro Chinese earns wood, and Grade 5 Social Studies earns ore.</p></div>
             <div class="streak-card"><span>🔥</span><div><small>Current streak</small><strong id="streak-count">0 correct</strong></div></div>
           </header>
           <div class="learning-layout">
@@ -180,8 +163,8 @@
             </div>
             <aside class="learning-reward">
               <div class="reward-art"><span class="sun-ray"></span><b>2×</b></div>
-              <small>Connected economy</small><h2>Answers become supplies</h2><p>Math → seeds. Chinese → wood. Social Studies → ore. Every correct answer also adds five minutes of double market value.</p>
-              <div class="reward-resource-list"><span>∑ Math <b>Seeds</b></span><span>中文 Chinese <b>Wood</b></span><span>⌂ Social Studies <b>Ore</b></span><span>🌾 Farm <b>Coins · Feed</b></span></div>
+              <small>Connected economy</small><h2>Answers become supplies</h2><p id="reward-copy">Math → seeds. Chinese → wood. Social Studies → ore. Every correct answer also adds five minutes of double market value.</p>
+              <div class="reward-resource-list" id="reward-resource-list"><span>∑ Math <b>Seeds</b></span><span>中文 Chinese <b>Wood</b></span><span>⌂ Social Studies <b>Ore</b></span><span>🌾 Farm <b>Coins · Feed</b></span></div>
               <div class="reward-progress"><span id="lesson-progress-bar"></span></div>
               <strong id="lesson-progress-label">0 / 3 for bonus crate</strong>
             </aside>
@@ -190,7 +173,7 @@
 
         <section class="view-panel content-view" id="view-market" aria-labelledby="market-title">
           <header class="view-heading">
-            <div><small>Main Street Market</small><h1 id="market-title">Fresh from your fields.</h1><p>Sell crops for coins, then put the earnings back into Coleytown.</p></div>
+            <div><small id="market-region-label">Main Street Market</small><h1 id="market-title">Fresh from your fields.</h1><p id="market-copy">Sell crops for coins, then put the earnings back into Coleytown.</p></div>
             <button class="primary-button sell-everything" id="sell-all-button" type="button">Sell everything <span>→</span></button>
           </header>
           <div class="market-layout">
@@ -204,7 +187,7 @@
 
         <section class="view-panel content-view" id="view-goals" aria-labelledby="goals-title">
           <header class="view-heading">
-            <div><small>Town project board</small><h1 id="goals-title">What should Coleytown become?</h1><p>Buildings need sale coins, Chinese-earned wood, and Social Studies ore. Animals also need food from your fields.</p></div>
+            <div><small id="goals-region-label">Town project board</small><h1 id="goals-title">What should Coleytown become?</h1><p id="goals-copy">Buildings need sale coins, Chinese-earned wood, and Social Studies ore. Animals also need food from your fields.</p></div>
           </header>
           <div class="goals-layout">
             <div class="project-list" id="project-list"></div>

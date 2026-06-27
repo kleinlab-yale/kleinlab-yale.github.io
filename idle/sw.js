@@ -1,5 +1,5 @@
-const CACHE_NAME = "idle-town-pwa-cache-v12";
-const CROP_FILES = ["carrot", "wheat", "pumpkin", "apple"].flatMap((crop) =>
+const CACHE_NAME = "idle-town-pwa-cache-v15";
+const CROP_FILES = ["carrot", "wheat", "strawberry", "pumpkin", "blueberry", "apple"].flatMap((crop) =>
   ["soil", "sprout", "young", "mature"].map((stage) => `./assets/art/living-world/crops/${crop}-${stage}.png`)
 );
 const ANIMAL_FILES = ["chickens", "cows"].flatMap((animal) =>
@@ -11,6 +11,23 @@ const BUILDING_FILES = ["school", "market", "bakery", "library"].flatMap((buildi
 const PEOPLE_FILES = ["farmer", "vendor", "teacher"].flatMap((person) =>
   ["", "-modern"].flatMap((era) => ["torso", "leg-1", "leg-2"].map((part) => `./assets/art/people/${person}${era}-rig-${part}.png`))
 );
+const COMPO_CATCH_FILES = ["fish", "crab", "kelp", "seashell", "deepfish"].flatMap((catchId) =>
+  ["water", "ripple", "young", "mature"].map((stage) => `./assets/art/compo-world/catches/${catchId}-${stage}.png`)
+);
+const COMPO_BUILDING_FILES = ["towncenter", "beachmarket", "icecream", "boat"].flatMap((building) =>
+  ["foundation", "construction", "level-1", "level-2", "level-3"].map((stage) => `./assets/art/compo-world/buildings/${building}-${stage}.png`)
+).concat(["./assets/art/compo-world/buildings/towncenter-level-3-winter.png"]);
+const COMPO_HABITAT_FILES = ["beachhouse", "apartment"].flatMap((habitat) =>
+  ["empty", "young", "adult", "full"].map((stage) => `./assets/art/compo-world/habitats/${habitat}-${stage}.png`)
+);
+const COMPO_PEOPLE_FILES = [
+  "beach-shell-collector",
+  "beach-crabber",
+  "beach-red-hat-vendor",
+  "beach-lifeguard-modern",
+  "beach-icecream-vendor-modern",
+  "beach-tennis-modern",
+].map((person) => `./assets/art/compo-world/people/${person}.png`);
 const APP_FILES = [
   "./",
   "./index.html",
@@ -21,6 +38,9 @@ const APP_FILES = [
   "./pwa-assets/icon-192.png",
   "./pwa-assets/icon-512.png",
   "./assets/art/river-town-open-map.png",
+  "./assets/art/river-town-spring-map.png",
+  "./assets/art/river-town-summer-map.png",
+  "./assets/art/river-town-winter-map.png",
   "./assets/art/compo-coast-open-map.png",
   "./assets/art/idle-town-app-icon-master.png",
   "./music/Golden_Fields_Groove.mp3",
@@ -28,6 +48,10 @@ const APP_FILES = [
   ...ANIMAL_FILES,
   ...BUILDING_FILES,
   ...PEOPLE_FILES,
+  ...COMPO_CATCH_FILES,
+  ...COMPO_BUILDING_FILES,
+  ...COMPO_HABITAT_FILES,
+  ...COMPO_PEOPLE_FILES,
 ];
 
 self.addEventListener("install", (event) => {

@@ -196,13 +196,54 @@ svg { display: block; }
   background-size: cover;
   isolation: isolate;
 }
+.world-art[data-region="coleytown"][data-season="spring"] { background-image: url("assets/art/river-town-spring-map.png"); }
+.world-art[data-region="coleytown"][data-season="summer"] { background-image: url("assets/art/river-town-summer-map.png"); }
+.world-art[data-region="coleytown"][data-season="fall"] { background-image: url("assets/art/river-town-open-map.png"); }
+.world-art[data-region="coleytown"][data-season="winter"] { background-image: url("assets/art/river-town-winter-map.png"); }
 .world-art[data-region="compo"] { background-image: url("assets/art/compo-coast-open-map.png"); }
 .world-art[data-region="compo"] .world-crops,
 .world-art[data-region="compo"] .town-building,
 .world-art[data-region="compo"] .animal-habitat,
 .world-art[data-region="compo"] .walker,
-.world-art[data-region="compo"] .map-action,
 .world-art[data-region="compo"] .layout-button { display: none; }
+.beach-world { display:none; position:absolute; z-index:4; inset:0; pointer-events:none; }
+.world-art[data-region="compo"] .beach-world { display:block; }
+.beach-spot,
+.beach-building,
+.beach-habitat {
+  position:absolute;
+  z-index:5;
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  pointer-events:auto;
+  filter:drop-shadow(0 10px 8px rgba(20,55,70,.22));
+  transition:transform 170ms ease, filter 170ms ease;
+}
+.beach-spot { width:clamp(92px,10vw,150px); aspect-ratio:1; }
+.beach-building { width:clamp(108px,13vw,190px); aspect-ratio:1; }
+.beach-habitat { width:clamp(112px,14vw,205px); aspect-ratio:1; }
+.beach-building:hover,
+.beach-habitat:hover,
+.beach-spot:hover { transform:translateY(-5px) scale(1.035); filter:drop-shadow(0 16px 12px rgba(20,55,70,.25)); }
+.beach-spot.ready { animation:world-ready 1.7s ease-in-out infinite; }
+.beach-spot.growing::after { content:""; position:absolute; left:50%; bottom:5px; width:32px; height:4px; translate:-50% 0; overflow:hidden; border-radius:999px; background:linear-gradient(90deg,#bff3ff var(--catch-progress),rgba(30,74,95,.32) var(--catch-progress)); box-shadow:0 1px 4px rgba(22,54,72,.22); }
+.beach-building.under-construction .construction-badge { display:block; animation:construction-pop 900ms ease-in-out infinite alternate; }
+.beach-building.awaiting-materials .construction-badge { min-width:26px; background:#f4be50; color:#624215; }
+.beach-building.under-construction .beach-building-image { animation:build-wobble 1.1s ease-in-out infinite; }
+.beach-habitat.growing .beach-habitat-image { animation:habitat-breathe 1.2s ease-in-out infinite; }
+.beach-label { position:absolute; left:50%; bottom:-7px; translate:-50% 4px; width:max-content; max-width:170px; padding:5px 8px; border:2px solid rgba(255,255,255,.7); border-radius:999px; background:rgba(21,70,89,.9); color:#fff; box-shadow:var(--shadow-sm); font-size:8px; font-weight:900; white-space:nowrap; opacity:0; pointer-events:none; backdrop-filter:blur(8px); transition:opacity 140ms ease,translate 140ms ease; }
+.beach-spot:hover .beach-label,
+.beach-building:hover .beach-label,
+.beach-habitat:hover .beach-label,
+.beach-spot:focus-visible .beach-label,
+.beach-building:focus-visible .beach-label,
+.beach-habitat:focus-visible .beach-label { opacity:1; translate:-50% 0; }
+.beach-life { position:absolute; z-index:8; inset:0; overflow:hidden; pointer-events:none; }
+.shore-walker { position:absolute; z-index:8; width:clamp(54px,5vw,78px); aspect-ratio:1; overflow:visible; opacity:1; filter:drop-shadow(0 5px 3px rgba(21,52,62,.26)); transition-property:left,top; transition-timing-function:linear; pointer-events:none; }
+.shore-walker-sprite { position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain; transform-origin:center bottom; animation:walker-body-bob 800ms ease-in-out infinite; }
+.shore-walker.walking-left .shore-walker-sprite { scale:-1 1; }
 .world-vignette { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(90deg, rgba(25, 56, 39, .13), transparent 20%, transparent 74%, rgba(31, 63, 44, .1)), linear-gradient(0deg, rgba(20, 48, 34, .16), transparent 23%); }
 .world-art::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(circle at 50% 40%, transparent 45%, rgba(30, 62, 40, .13)); mix-blend-mode: multiply; }
 .world-name { position: absolute; z-index: 2; top: 24px; left: 28px; display: none; color: #fff; text-shadow: 0 2px 8px rgba(30, 55, 39, .4); }
@@ -251,12 +292,6 @@ svg { display: block; }
 .world-art.layout-mode .animal-habitat:active,
 .world-art.layout-mode .world-crop:active { cursor:grabbing; transform:scale(1.04); z-index:14; }
 .world-art.layout-mode { touch-action:none; }
-
-.world-progress-chip { position: absolute; z-index: 8; top: 15px; left: 50%; translate: -50% 0; display: flex; align-items: center; gap: 9px; padding: 8px 13px 8px 8px; border: 1px solid rgba(255,255,255,.55); border-radius: 16px; background: rgba(255,253,247,.9); box-shadow: var(--shadow-sm); backdrop-filter: blur(12px); }
-.world-progress-chip > span { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: var(--gold); color: #744c21; }
-.world-progress-chip > div { display: grid; }
-.world-progress-chip small { color: var(--muted); font-size: 8px; text-transform: uppercase; letter-spacing: .08em; }
-.world-progress-chip strong { margin-top: 2px; font-size: 10px; }
 
 .world-crop { position: absolute; z-index: 4; width: clamp(86px, 10vw, 145px); aspect-ratio: 1; padding: 0; border: 0; background: transparent; cursor: pointer; transition: transform 170ms ease, filter 170ms ease; }
 .world-crop:hover { transform: translateY(-5px) scale(1.04); }
@@ -314,33 +349,9 @@ svg { display: block; }
 .chicken-habitat { left: 7%; top: 28%; }
 .cow-habitat { left: 22%; top: 22%; }
 
-.map-action { position: absolute; z-index: 7; top: 15px; display: grid; grid-template: auto auto / 44px auto; column-gap: 9px; min-width: 154px; padding: 9px 13px 9px 9px; border: 1px solid rgba(255,255,255,.5); border-radius: 18px; background: rgba(255,253,247,.92); box-shadow: var(--shadow-md); text-align: left; cursor: pointer; backdrop-filter: blur(12px); transition: transform 160ms ease; }
-.map-action:hover { transform: translateY(-3px); }
-.map-action > span { grid-row: 1 / 3; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; color: #fff; background: var(--pumpkin); font-size: 20px; }
-.map-action b { align-self: end; font-size: 12px; }
-.map-action small { color: var(--muted); font-size: 9px; }
-.harvest-action { left: 24px; }
-.build-action { left: 194px; }
-.build-action > span { background: var(--forest-700); }
-.harvest-action.ready { animation: harvest-pulse 1.7s ease-in-out infinite; }
-@keyframes harvest-pulse { 50% { box-shadow: 0 14px 40px rgba(240, 189, 85, .55); } }
-
-.town-card { position: absolute; z-index: 8; right: 22px; bottom: 22px; width: min(340px, calc(100% - 44px)); padding: 18px; border: 1px solid rgba(255,255,255,.6); border-radius: var(--radius-lg); background: rgba(255, 253, 247, .94); box-shadow: var(--shadow-lg); backdrop-filter: blur(16px); transition: transform 220ms ease, opacity 220ms ease; }
-.town-card.hidden { transform: translateY(20px); opacity: 0; pointer-events: none; }
-.guide-row { display: grid; grid-template-columns: 52px 1fr 28px; gap: 11px; align-items: center; }
-.guide-row > div:nth-child(2) { display: grid; }
-.guide-row small, .view-heading small, .seed-heading small, .learning-reward > small, .market-summary > small, .milestone-card > small, .modal > small { color: var(--pumpkin-dark); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .11em; }
-.guide-row strong { margin-top: 2px; font: 800 17px/1.18 "Fraunces", serif; }
+.view-heading small, .seed-heading small, .learning-reward > small, .market-summary > small, .milestone-card > small, .modal > small { color: var(--pumpkin-dark); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .11em; }
 .card-close { width: 28px; height: 28px; color: var(--muted); font-size: 23px; }
 .card-close:hover { background: var(--cream-200); }
-.town-card p { margin: 14px 0 16px; color: #5f6d64; font-size: 12px; line-height: 1.5; }
-
-.fox-avatar { position: relative; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 18px; background: #f9d9a5; overflow: hidden; }
-.fox-face { position: relative; z-index: 2; width: 38px; height: 34px; display: grid; place-items: center; margin-top: 9px; border-radius: 50% 50% 45% 45%; background: var(--pumpkin); color: #3a3228; font-size: 11px; letter-spacing: 2px; }
-.fox-face::after { content: ""; position: absolute; bottom: 2px; width: 18px; height: 12px; border-radius: 50%; background: #fff0d7; }
-.fox-ear { position: absolute; z-index: 1; top: 5px; width: 22px; height: 25px; background: var(--pumpkin); transform: rotate(45deg); border-radius: 4px 10px 4px 10px; }
-.fox-ear.left { left: 8px; }
-.fox-ear.right { right: 8px; transform: rotate(45deg) scale(-1); }
 
 .primary-button, .secondary-button {
   min-height: 44px;
@@ -361,8 +372,6 @@ svg { display: block; }
 .primary-button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 .secondary-button { border: 1px solid var(--cream-300); background: #fff; }
 .secondary-button:hover { background: var(--cream-100); }
-.town-card .primary-button { width: 100%; justify-content: space-between; }
-
 .content-view { overflow: auto; padding: clamp(25px, 4vw, 52px); background: var(--cream-100); }
 .content-view::before { content: ""; position: fixed; top: var(--topbar-height); right: 0; width: 320px; height: 320px; pointer-events: none; background: radial-gradient(circle, rgba(240,189,85,.14), transparent 68%); }
 .view-heading { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: end; gap: 28px; max-width: 1160px; margin: 0 auto 28px; }
@@ -379,6 +388,7 @@ svg { display: block; }
 
 .farm-layout { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; max-width: 1160px; margin: 0 auto; }
 .farm-field { min-height: 500px; display: grid; grid-template-columns: repeat(3, minmax(140px, 1fr)); grid-auto-rows: minmax(195px, 1fr); gap: 15px; padding: 24px; border-radius: 34px; background: radial-gradient(circle at 20% 15%, rgba(255,255,255,.18), transparent 24%), radial-gradient(circle at 74% 80%, rgba(55,104,59,.18), transparent 32%), linear-gradient(145deg, #9cc878, #75a35e); box-shadow: inset 0 0 0 7px rgba(255,255,255,.28), inset 0 0 45px rgba(35,75,44,.18), var(--shadow-md); overflow: hidden; }
+.farm-field.beach-field, .farm-field:has(.beach-plot) { background: radial-gradient(circle at 18% 18%, rgba(255,255,255,.3), transparent 24%), radial-gradient(circle at 74% 78%, rgba(82,183,207,.24), transparent 33%), linear-gradient(145deg, #78c5d5, #3b91b3 58%, #e9d49b 59%); box-shadow: inset 0 0 0 7px rgba(255,255,255,.3), inset 0 0 48px rgba(24,88,115,.18), var(--shadow-md); }
 .farm-field[data-plot-count="1"] { grid-template-columns: minmax(180px, 380px); justify-content: center; align-content: center; }
 .farm-field[data-plot-count="2"] { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
 .plot {
@@ -406,6 +416,10 @@ svg { display: block; }
 .plot:hover .plot-icon { transform: scale(1.04); }
 .plot-state { margin-top: -4px; padding: 6px 10px; border-radius: 999px; background: rgba(38,31,25,.56); font-size: 10px; font-weight: 800; backdrop-filter: blur(6px); }
 .plot.empty .empty-plus { width: 120px; height: 100px; display: grid; place-items: center; margin-bottom: 2px; border: 0; border-radius: 18px; font-size: 0; background: url("assets/art/living-world/crops/carrot-soil.png") center / contain no-repeat; filter: drop-shadow(0 8px 6px rgba(39,30,22,.18)); }
+.beach-plot { background: rgba(255,253,247,.19); box-shadow: inset 0 0 0 2px rgba(255,255,255,.28), 0 8px 13px rgba(22,79,104,.16); }
+.beach-plot .beach-icon { width:min(145px,100%); height:132px; }
+.beach-plot.empty .plot-state { background:rgba(18,74,96,.44); }
+.beach-plot.ready { box-shadow: inset 0 0 0 5px rgba(190,242,255,.45), 0 0 0 4px #aeeeff, 0 13px 24px rgba(22,79,104,.24); }
 .plot.empty .plot-state { background: rgba(38,31,25,.25); }
 .plot.locked { background: #78916a; cursor: default; filter: saturate(.55); }
 .plot.locked::after { content: "🔒"; font-size: 25px; }
@@ -652,13 +666,7 @@ svg { display: block; }
   .milestone-tree { display: none; }
   .roadmap-line { grid-template-columns: repeat(5, 110px); overflow-x: auto; justify-content: start; padding-bottom: 8px; }
   .roadmap-line::before { right:auto; width:480px; }
-  .town-card { right: 11px; bottom: 11px; width: min(320px, calc(100% - 22px)); padding: 14px; }
-  .map-action { top: auto; bottom: 11px; }
-  .harvest-action { left: 11px; }
-  .build-action { display: none; }
   .world-art { background-position: 42% center; }
-  .world-progress-chip { top: 8px; left: auto; right: 8px; translate: 0; }
-  .world-progress-chip small { display: none; }
   .town-building { --size: 92px; }
   .town-building > span:last-child, .animal-habitat > span:last-child { bottom: -4px; padding: 4px 6px; font-size: 7px; }
   .school-building { left: 39%; top: 18%; }
@@ -696,10 +704,6 @@ svg { display: block; }
   .resource > span:last-child { display: none; }
   .world-name { display: grid; top: 15px; left: 16px; }
   .world-name strong { font-size: 32px; }
-  .town-card { bottom: 11px; }
-  .town-card p { display: none; }
-  .town-card .primary-button { margin-top: 12px; }
-  .map-action { display: none; }
   .farm-field { grid-template-columns: repeat(2, minmax(105px, 1fr)); grid-auto-rows: 150px; padding: 10px; }
   .seed-list { grid-template-columns: 1fr; }
   .lesson-tabs { width: 100%; }
@@ -711,11 +715,11 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .walker { animation:none !important; transition:none !important; }
-  .walker-rig, .walker-leg { animation:none !important; }
+  .walker-rig, .walker-leg, .shore-walker-sprite { animation:none !important; }
   .walker-leg { transform:rotate(0); }
 }
 
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 .reduce-motion .walker { animation:none !important; transition:none !important; }
-.reduce-motion .walker-rig, .reduce-motion .walker-leg { animation:none !important; }
+.reduce-motion .walker-rig, .reduce-motion .walker-leg, .reduce-motion .shore-walker-sprite { animation:none !important; }
 .reduce-motion .walker-leg { transform:rotate(0); }

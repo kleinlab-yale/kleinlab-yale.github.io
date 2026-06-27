@@ -9,6 +9,14 @@
   const BUILD_PHASE_SECONDS = [90, 150, 240];
   const BUILD_RUSH = { coins: { seconds: 60 }, materials: { seconds: 90, wood: 1, ore: 1 } };
   const MAX_BUILDING_LEVEL = 3;
+  const SEASON_LENGTH_MS = 20 * 60 * 1000;
+  const START_SEASON = "fall";
+  const SEASONS = [
+    { id: "spring", name: "Spring", detail: "Soft fields, berries, carrots, and wheat" },
+    { id: "summer", name: "Summer", detail: "Fast harvests, berries, apples, and pumpkins" },
+    { id: "fall", name: "Fall", detail: "Golden fields, pumpkins, apples, and wheat" },
+    { id: "winter", name: "Winter", detail: "Animals keep producing; only winter wheat can be planted" },
+  ];
   const LEVELS = [
     { name: "Sprout Village", xp: 0 },
     { name: "Maple Village", xp: 250 },
@@ -29,6 +37,7 @@
       atlasRow: 0,
       artKey: "carrot",
       color: "#e68a45",
+      seasons: ["spring", "summer", "fall"],
     },
     {
       id: "wheat",
@@ -41,6 +50,20 @@
       atlasRow: 1,
       artKey: "wheat",
       color: "#e7bd57",
+      seasons: ["spring", "summer", "fall", "winter"],
+    },
+    {
+      id: "strawberry",
+      name: "Strawberries",
+      seedCost: 4,
+      duration: 300,
+      yield: 6,
+      value: 6,
+      level: 2,
+      atlasRow: 4,
+      artKey: "strawberry",
+      color: "#d43e47",
+      seasons: ["spring", "summer"],
     },
     {
       id: "pumpkin",
@@ -53,6 +76,20 @@
       atlasRow: 2,
       artKey: "pumpkin",
       color: "#d9793f",
+      seasons: ["summer", "fall"],
+    },
+    {
+      id: "blueberry",
+      name: "Blueberries",
+      seedCost: 6,
+      duration: 540,
+      yield: 9,
+      value: 10,
+      level: 3,
+      atlasRow: 5,
+      artKey: "blueberry",
+      color: "#576cb8",
+      seasons: ["summer"],
     },
     {
       id: "apple",
@@ -65,6 +102,7 @@
       atlasRow: 3,
       artKey: "apple",
       color: "#b94d4b",
+      seasons: ["summer", "fall"],
     },
   ];
 
@@ -125,6 +163,89 @@
     { id: "milk", name: "Milk Jugs", value: 18, animal: "cows" },
   ];
 
+  const COMPO_LEVELS = [
+    { name: "Compo Sandbar", xp: 0 },
+    { name: "Boardwalk Cove", xp: 220 },
+    { name: "Sailboat Harbor", xp: 620 },
+    { name: "Compo Club Coast", xp: 1180 },
+  ];
+
+  const BEACH_CATCHES = [
+    { id: "seashell", name: "Beach Shells", baitCost: 2, duration: 240, yield: 5, value: 3, level: 1, artKey: "seashell", seasons: ["spring", "summer", "fall", "winter"] },
+    { id: "kelp", name: "Kelp Bundles", baitCost: 3, duration: 360, yield: 6, value: 4, level: 1, artKey: "kelp", seasons: ["spring", "summer", "fall", "winter"] },
+    { id: "crab", name: "Shore Crabs", baitCost: 4, duration: 480, yield: 4, value: 8, level: 1, artKey: "crab", seasons: ["spring", "summer", "fall"] },
+    { id: "fish", name: "Bluefish", baitCost: 5, duration: 540, yield: 4, value: 11, level: 2, artKey: "fish", seasons: ["summer", "fall"], requiresBoat: 1 },
+    { id: "deepfish", name: "Deep-water Fish", baitCost: 7, duration: 720, yield: 3, value: 18, level: 3, artKey: "deepfish", seasons: ["summer", "fall"], requiresBoat: 2 },
+  ];
+
+  const BEACH_BUILDINGS = {
+    towncenter: {
+      name: "Compo Town Center",
+      short: "Town Center",
+      artKey: "towncenter",
+      baseCost: 90,
+      materials: { wood: 3, ore: 2 },
+      description: "The beach hub starts as a simple pavilion, then adds golf and tennis, and finally becomes a modern pool-and-club center.",
+      effect: (level) => level >= 3 ? "Pool club, tennis, golf, and winter ice rink unlocked" : level >= 2 ? "Adds golf and tennis activity" : "Organizes beach projects and improves math-to-bait rewards",
+      unlock: () => true,
+    },
+    beachmarket: {
+      name: "Beach Market & Restaurant",
+      short: "Beach Market",
+      artKey: "beachmarket",
+      baseCost: 120,
+      materials: { wood: 5, ore: 2 },
+      description: "A beach stand that grows into a restaurant where fish, crab, kelp, shells, and crafted necklaces can be sold for shell coins.",
+      effect: (level) => `+${level * 8}% shell value on every beach sale`,
+      unlock: () => true,
+    },
+    icecream: {
+      name: "Compo Ice Cream Shop",
+      short: "Ice Cream Shop",
+      artKey: "icecream",
+      baseCost: 230,
+      materials: { wood: 7, ore: 3 },
+      description: "A cheerful seaside ice cream shop replacing the River Town bakery. It improves beach sale value as crowds arrive.",
+      effect: (level) => `+${level * 10}% beach sale value`,
+      unlock: (compo) => getCompoLevelInfo(compo.xp).level >= 2,
+    },
+    boat: {
+      name: "Compo Fishing Boat",
+      short: "Fishing Boat",
+      artKey: "boat",
+      baseCost: 280,
+      materials: { wood: 9, ore: 4 },
+      description: "A small launch that evolves into a stronger boat. Higher levels improve fishing yield and open deep-water catches.",
+      effect: (level) => level >= 2 ? "Deep water unlocks; every catch gains extra yield" : "Fishing yield improves",
+      unlock: (compo) => compo.buildings.beachmarket >= 1,
+    },
+  };
+
+  const BEACH_HABITATS = {
+    beachhouse: {
+      name: "Beach House Rentals",
+      artKey: "beachhouse",
+      baseCost: 65,
+      labels: ["Empty sand lot", "Tiny cottage", "Beach house", "Rental row"],
+      feed: [{ seashell: 4 }, { kelp: 4, seashell: 5 }, { crab: 2, kelp: 3 }],
+      effect: (level) => `${level} rental card${level === 1 ? "" : "s"} every 4 minutes`,
+    },
+    apartment: {
+      name: "Beach Apartments",
+      artKey: "apartment",
+      baseCost: 160,
+      labels: ["Empty duneside lot", "Small beach flat", "Apartment house", "Modern beach apartments"],
+      feed: [{ crab: 3, kelp: 3 }, { fish: 3, seashell: 6 }, { deepfish: 1, crab: 3 }],
+      effect: (level) => `${level} guest pass${level === 1 ? "" : "es"} every 6 minutes`,
+    },
+  };
+
+  const BEACH_GOODS = [
+    { id: "necklaces", name: "Shell Necklaces", value: 36, cost: { seashell: 8 } },
+    { id: "rentals", name: "Beach Rental Cards", value: 10, habitat: "beachhouse" },
+    { id: "passes", name: "Guest Passes", value: 22, habitat: "apartment" },
+  ];
+
   const WESTPORT_ROADMAP = [
     { name: "River Town", detail: "Build the farm, habitats, school, market, bakery, and library", status: "active" },
     { name: "Compo Coast", detail: "A separate seaside map with Compo Beach, dog park, tennis club, and YMCA", status: "future" },
@@ -144,6 +265,19 @@
     { hanzi: "家", pinyin: "jiā", answer: "home", distractors: ["town", "farm", "store"] },
     { hanzi: "一、二、三", pinyin: "yī, èr, sān", answer: "one, two, three", distractors: ["three, two, one", "four, five, six", "red, blue, green"] },
     { hanzi: "我喜欢苹果", pinyin: "wǒ xǐ huan píng guǒ", answer: "I like apples", distractors: ["I have apples", "I sell apples", "I see apples"] },
+  ];
+
+  const COMPO_CHINESE = [
+    { hanzi: "海", pinyin: "hǎi", answer: "sea", distractors: ["mountain", "library", "cow"] },
+    { hanzi: "鱼", pinyin: "yú", answer: "fish", distractors: ["apple", "school", "book"] },
+    { hanzi: "船", pinyin: "chuán", answer: "boat", distractors: ["market", "pencil", "field"] },
+    { hanzi: "贝壳", pinyin: "bèi ké", answer: "shell", distractors: ["milk", "road", "teacher"] },
+    { hanzi: "螃蟹", pinyin: "páng xiè", answer: "crab", distractors: ["chicken", "flower", "map"] },
+    { hanzi: "水草", pinyin: "shuǐ cǎo", answer: "water plants", distractors: ["ice cream", "tennis", "bridge"] },
+    { hanzi: "海滩", pinyin: "hǎi tān", answer: "beach", distractors: ["farm", "desk", "train"] },
+    { hanzi: "游泳", pinyin: "yóu yǒng", answer: "swim", distractors: ["read", "plant", "write"] },
+    { hanzi: "我看见船", pinyin: "wǒ kàn jiàn chuán", answer: "I see a boat", distractors: ["I eat an apple", "I build a school", "I milk a cow"] },
+    { hanzi: "海边有鱼", pinyin: "hǎi biān yǒu yú", answer: "There are fish by the sea", distractors: ["The farm has pumpkins", "The book is red", "The market is closed"] },
   ];
 
   const SOCIAL_LESSONS = [
@@ -320,37 +454,97 @@
     },
   ];
 
+  const COMPO_SOCIAL_LESSONS = [
+    {
+      id: "compo-sound-geography", skill: "Coastal Geography", tier: 1,
+      passage: "Compo Beach sits on Long Island Sound, a sheltered body of salt water between Connecticut and Long Island. The Sound connects to the Atlantic Ocean, but its protected shape makes the water calmer than an open ocean beach. Coastal communities use maps, tide charts, and landmarks to plan swimming, boating, fishing, and shoreline protection.",
+      questions: [
+        { prompt: "What body of water is connected to Compo Beach?", answer: "Long Island Sound", distractors: ["Lake Erie", "The Pacific Ocean", "The Mississippi River"] },
+        { prompt: "Why is Long Island Sound often calmer than the open ocean?", answer: "It is sheltered by Long Island", distractors: ["It is a freshwater lake", "It has no tides", "It is underground"] },
+        { prompt: "Which tool can help a coastal community plan safe water activities?", answer: "A tide chart", distractors: ["A grocery receipt", "A spelling list", "A desert map"] },
+      ],
+    },
+    {
+      id: "compo-tides-habitats", skill: "Human-Environment Interaction", tier: 1,
+      passage: "Tides are the regular rise and fall of ocean water caused mainly by the moon's gravity. The intertidal zone is the shore area covered by water at high tide and exposed at low tide. Shells, seaweed, crabs, small fish, and birds can all be part of this changing habitat, so visitors should observe carefully and avoid damaging living things.",
+      questions: [
+        { prompt: "What causes much of the regular rise and fall of tides?", answer: "The moon's gravity", distractors: ["Streetlights", "School bells", "Library books"] },
+        { prompt: "What is the intertidal zone?", answer: "Shore covered at high tide and exposed at low tide", distractors: ["A mountain forest", "A town hall room", "A highway tunnel"] },
+        { prompt: "Why should visitors be careful in tide pools?", answer: "Living things may be part of the habitat", distractors: ["All shells are made of plastic", "No animals live near shore", "Tides stop at noon"] },
+      ],
+    },
+    {
+      id: "compo-local-economy", skill: "Local Economics", tier: 1,
+      passage: "A beach economy can include fishing, shell crafts, restaurants, rentals, lessons, and recreation. Businesses earn money when visitors buy goods or services, but they also depend on clean water, safe paths, and community rules. A strong local economy balances earning income with protecting the shared place people came to enjoy.",
+      questions: [
+        { prompt: "Which activity could be part of a beach economy?", answer: "Renting beach equipment", distractors: ["Mining coal in a desert", "Growing apples in a library", "Launching rockets from a classroom"] },
+        { prompt: "What do beach businesses depend on besides customers?", answer: "Clean water, safety, and community rules", distractors: ["No public paths", "Unlimited pollution", "Closed beaches every day"] },
+        { prompt: "What does a balanced local economy protect?", answer: "The shared place people enjoy", distractors: ["Only one private basket", "Every tide from changing", "All maps from being used"] },
+      ],
+    },
+    {
+      id: "compo-boating-safety", skill: "Civics and Safety", tier: 2,
+      passage: "Boating adds new opportunities, but it also adds responsibility. Safe boaters watch weather, understand markers, keep life jackets available, and respect swimming areas. Towns may set rules for docks, speed, and protected zones so that fishing, swimming, wildlife, and recreation can share the same water.",
+      questions: [
+        { prompt: "Which item should safe boaters keep available?", answer: "Life jackets", distractors: ["Farm seeds", "Library cards", "Snow shovels only"] },
+        { prompt: "Why might a town set boating rules?", answer: "So different water uses can share space safely", distractors: ["To stop all recreation forever", "To make weather disappear", "To remove every marker"] },
+        { prompt: "What should boaters watch before going out?", answer: "Weather", distractors: ["Only shoe size", "Only a spelling score", "Only crop prices"] },
+      ],
+    },
+    {
+      id: "compo-conservation", skill: "Environmental Civics", tier: 2,
+      passage: "Coastal conservation protects water quality, dunes, plants, wildlife, and public access. People can help by carrying out trash, staying on paths, respecting posted habitat areas, and supporting projects that reduce runoff. Conservation is a civic choice because many people share the same beach and future visitors depend on today's decisions.",
+      questions: [
+        { prompt: "Which action supports coastal conservation?", answer: "Carry out trash and stay on paths", distractors: ["Leave litter in dunes", "Ignore habitat signs", "Pour waste into storm drains"] },
+        { prompt: "Why is beach conservation a civic choice?", answer: "Many people share the same beach", distractors: ["Only one person owns every wave", "No future visitors exist", "Water quality never changes"] },
+        { prompt: "What can runoff affect?", answer: "Water quality", distractors: ["The alphabet", "The moon's shape", "A pencil's color"] },
+      ],
+    },
+    {
+      id: "compo-community-planning", skill: "Change Over Time", tier: 2,
+      passage: "Community places change as needs change. A simple beach pavilion might later add a restaurant, boats, sports courts, a pool, winter skating, and nearby homes. Planners compare costs, environmental effects, access, and public benefits before deciding how a shared place should grow.",
+      questions: [
+        { prompt: "What can cause a community beach area to change?", answer: "Changing community needs", distractors: ["Only the color of sand", "A ban on planning", "No public choices"] },
+        { prompt: "What should planners compare before building?", answer: "Costs, effects, access, and public benefits", distractors: ["Only one person's favorite snack", "Only the tallest tree", "Only yesterday's tide"] },
+        { prompt: "Which feature could show a beach area becoming more modern?", answer: "Sports courts or a pool", distractors: ["A hidden desert", "No safe paths", "A closed map"] },
+      ],
+    },
+  ];
+
   const dom = {
     app: document.getElementById("app"),
+    coinLabel: document.getElementById("coin-label"),
     coinCount: document.getElementById("coin-count"),
+    seedLabel: document.getElementById("seed-label"),
     seedCount: document.getElementById("seed-count"),
+    woodLabel: document.getElementById("wood-label"),
     woodCount: document.getElementById("wood-count"),
+    oreLabel: document.getElementById("ore-label"),
     oreCount: document.getElementById("ore-count"),
+    farmNavLabel: document.getElementById("farm-nav-label"),
+    marketNavLabel: document.getElementById("market-nav-label"),
+    goalsNavLabel: document.getElementById("goals-nav-label"),
     levelName: document.getElementById("level-name"),
     levelLabel: document.getElementById("level-label"),
     levelProgress: document.getElementById("level-progress"),
     worldArt: document.getElementById("world-art"),
     worldCrops: document.getElementById("world-crops"),
-    worldProgressCopy: document.getElementById("world-progress-copy"),
+    beachWorld: document.getElementById("beach-world"),
     layoutButton: document.getElementById("layout-button"),
     layoutHint: document.getElementById("layout-hint"),
     regionButtons: Array.from(document.querySelectorAll("[data-region]")),
     chickenLevelMap: document.getElementById("chicken-level-map"),
     cowLevelMap: document.getElementById("cow-level-map"),
     farmField: document.getElementById("farm-field"),
+    farmRegionLabel: document.getElementById("farm-region-label"),
+    farmTitle: document.getElementById("farm-title"),
+    farmCopy: document.getElementById("farm-copy"),
     seedDrawer: document.getElementById("seed-drawer"),
+    seedTitle: document.getElementById("seed-title"),
     seedList: document.getElementById("seed-list"),
     seedClose: document.getElementById("seed-close"),
     focusBoost: document.getElementById("focus-boost"),
     boostLabel: document.getElementById("boost-label"),
-    readyCountLabel: document.getElementById("ready-count-label"),
-    quickHarvest: document.getElementById("quick-harvest-button"),
-    quickBuild: document.getElementById("quick-build-button"),
-    guideAction: document.getElementById("guide-action"),
-    townCard: document.getElementById("town-card"),
-    townCardClose: document.getElementById("town-card-close"),
-    guideTitle: document.getElementById("guide-title"),
-    guideCopy: document.getElementById("guide-copy"),
     lessonCard: document.querySelector(".lesson-card"),
     questionSkill: document.getElementById("question-skill"),
     questionReward: document.getElementById("question-reward"),
@@ -369,12 +563,22 @@
     streakCount: document.getElementById("streak-count"),
     lessonProgressBar: document.getElementById("lesson-progress-bar"),
     lessonProgressLabel: document.getElementById("lesson-progress-label"),
+    learnRegionLabel: document.getElementById("learn-region-label"),
+    learnCopy: document.getElementById("learn-copy"),
+    rewardCopy: document.getElementById("reward-copy"),
+    rewardResourceList: document.getElementById("reward-resource-list"),
     learnReadyDot: document.getElementById("learn-ready-dot"),
     marketList: document.getElementById("market-list"),
+    marketRegionLabel: document.getElementById("market-region-label"),
+    marketTitle: document.getElementById("market-title"),
+    marketCopy: document.getElementById("market-copy"),
     basketValue: document.getElementById("basket-value"),
     basketCopy: document.getElementById("basket-copy"),
     sellAll: document.getElementById("sell-all-button"),
     projectList: document.getElementById("project-list"),
+    goalsRegionLabel: document.getElementById("goals-region-label"),
+    goalsTitle: document.getElementById("goals-title"),
+    goalsCopy: document.getElementById("goals-copy"),
     milestoneName: document.getElementById("milestone-name"),
     milestoneCopy: document.getElementById("milestone-copy"),
     milestoneProgress: document.getElementById("milestone-progress"),
@@ -402,6 +606,7 @@
   let whiteboardDrawing = null;
   let whiteboardTool = "pen";
   const walkerTimers = new Map();
+  const beachWalkerTimers = new Map();
   const WALK_PATH = [
     { x: 2, y: 33, links: [1] },
     { x: 4, y: 39, links: [0, 2] },
@@ -421,16 +626,60 @@
     { x: 43, y: 44, links: [14, 6] },
   ];
 
+  const BEACH_PATH = [
+    { x: 7, y: 60, links: [1] },
+    { x: 15, y: 58, links: [0, 2, 11] },
+    { x: 24, y: 57, links: [1, 3, 12] },
+    { x: 34, y: 56, links: [2, 4, 13] },
+    { x: 44, y: 55, links: [3, 5, 14] },
+    { x: 54, y: 53, links: [4, 6, 15] },
+    { x: 64, y: 51, links: [5, 7, 16] },
+    { x: 74, y: 49, links: [6, 8] },
+    { x: 84, y: 47, links: [7] },
+    { x: 20, y: 39, links: [10, 11] },
+    { x: 33, y: 36, links: [9, 12] },
+    { x: 15, y: 47, links: [1, 9] },
+    { x: 28, y: 46, links: [2, 10, 13] },
+    { x: 42, y: 44, links: [3, 12, 14] },
+    { x: 54, y: 42, links: [4, 13, 15] },
+    { x: 64, y: 40, links: [5, 14, 16] },
+    { x: 75, y: 39, links: [6, 15] },
+  ];
+
+  function createCompoState() {
+    return {
+      shells: 25,
+      bait: 3,
+      wood: 0,
+      ore: 0,
+      xp: 0,
+      inventory: { fish: 0, crab: 0, kelp: 0, seashell: 0, deepfish: 0 },
+      goods: { necklaces: 0, rentals: 0, passes: 0 },
+      productionProgress: { beachhouse: 0, apartment: 0 },
+      spots: [null, { locked: true }, { locked: true }, { locked: true }],
+      buildings: { towncenter: 0, beachmarket: 0, icecream: 0, boat: 0 },
+      construction: {},
+      habitats: { beachhouse: 0, apartment: 0 },
+      habitatGrowth: {},
+      layout: {
+        spots: [{ x: 11, y: 66 }, { x: 27, y: 64 }, { x: 43, y: 62 }, { x: 59, y: 59 }],
+        buildings: { towncenter: { x: 46, y: 27 }, beachmarket: { x: 62, y: 40 }, icecream: { x: 75, y: 50 }, boat: { x: 28, y: 47 } },
+        habitats: { beachhouse: { x: 12, y: 36 }, apartment: { x: 32, y: 31 } },
+      },
+    };
+  }
+
   function initialState() {
     const now = Date.now();
+    dom.farmField.classList.remove("beach-field");
     return {
-      version: 7,
+      version: 8,
       coins: 35,
       seeds: 3,
       wood: 0,
       ore: 0,
       xp: 0,
-      inventory: { carrot: 0, wheat: 0, pumpkin: 0, apple: 0 },
+      inventory: { carrot: 0, wheat: 0, strawberry: 0, pumpkin: 0, blueberry: 0, apple: 0 },
       goods: { eggs: 0, milk: 0 },
       productionProgress: { chickens: 0, cows: 0 },
       plots: [
@@ -441,8 +690,9 @@
       construction: {},
       animals: { chickens: 0, cows: 0 },
       animalGrowth: {},
-      districts: { compo: false },
+      districts: { compo: true },
       activeRegion: "coleytown",
+      compo: createCompoState(),
       layout: {
         buildings: { school: { x: 42, y: 16 }, market: { x: 49, y: 48 }, bakery: { x: 68, y: 53 }, library: { x: 60, y: 18 } },
         animals: { chickens: { x: 8, y: 28 }, cows: { x: 23, y: 25 } },
@@ -451,9 +701,11 @@
       stats: { planted: 0, harvested: 0, sold: 0, earned: 0, answered: 0, correct: 0, chineseCorrect: 0, socialCorrect: 0 },
       subject: "math",
       recentSocial: [],
+      recentCompoSocial: [],
       streak: 0,
       lessonStep: 0,
       boostUntil: 0,
+      seasonAnchor: initialSeasonAnchor(now),
       lastSeen: now,
       welcomed: false,
       settings: { music: false, sfx: true, reduceMotion: false },
@@ -492,6 +744,36 @@
     }));
   }
 
+  function normalizeCompo(savedCompo = {}) {
+    const fresh = createCompoState();
+    const saved = savedCompo && typeof savedCompo === "object" ? savedCompo : {};
+    const merged = {
+      ...fresh,
+      ...saved,
+      shells: Number.isFinite(saved.shells) ? saved.shells : fresh.shells,
+      bait: Number.isFinite(saved.bait) ? saved.bait : fresh.bait,
+      wood: Number.isFinite(saved.wood) ? saved.wood : fresh.wood,
+      ore: Number.isFinite(saved.ore) ? saved.ore : fresh.ore,
+      xp: Number.isFinite(saved.xp) ? saved.xp : fresh.xp,
+      inventory: { ...fresh.inventory, ...(saved.inventory || {}) },
+      goods: { ...fresh.goods, ...(saved.goods || {}) },
+      productionProgress: { ...fresh.productionProgress, ...(saved.productionProgress || {}) },
+      spots: Array.isArray(saved.spots) ? saved.spots.slice(0, fresh.spots.length) : fresh.spots,
+      buildings: { ...fresh.buildings, ...(saved.buildings || {}) },
+      construction: migrateConstruction(saved.construction),
+      habitats: { ...fresh.habitats, ...(saved.habitats || {}) },
+      habitatGrowth: { ...fresh.habitatGrowth, ...(saved.habitatGrowth || {}) },
+      layout: {
+        spots: Array.isArray(saved.layout?.spots) ? saved.layout.spots : fresh.layout.spots,
+        buildings: { ...fresh.layout.buildings, ...(saved.layout?.buildings || {}) },
+        habitats: { ...fresh.layout.habitats, ...(saved.layout?.habitats || {}) },
+      },
+    };
+    while (merged.spots.length < fresh.spots.length) merged.spots.push({ locked: true });
+    merged.spots[0] = merged.spots[0]?.locked ? null : merged.spots[0];
+    return merged;
+  }
+
   function loadState() {
     const fresh = initialState();
     const saved = readSavedState();
@@ -508,7 +790,8 @@
         construction: migrateConstruction(saved.construction),
         animals: { ...fresh.animals, ...(saved.animals || {}) },
         animalGrowth: { ...fresh.animalGrowth, ...(saved.animalGrowth || {}) },
-        districts: { ...fresh.districts, ...(saved.districts || {}) },
+        districts: { ...fresh.districts, ...(saved.districts || {}), compo: true },
+        compo: normalizeCompo(saved.compo),
         layout: {
           buildings: { ...fresh.layout.buildings, ...(saved.layout?.buildings || {}) },
           animals: { ...fresh.layout.animals, ...(saved.layout?.animals || {}) },
@@ -518,6 +801,7 @@
         settings: { ...fresh.settings, ...(saved.settings || {}) },
         plots: Array.isArray(saved.plots) ? saved.plots.slice(0, 6) : fresh.plots,
         recentSocial: Array.isArray(saved.recentSocial) ? saved.recentSocial.slice(-8) : fresh.recentSocial,
+        recentCompoSocial: Array.isArray(saved.recentCompoSocial) ? saved.recentCompoSocial.slice(-8) : fresh.recentCompoSocial,
       };
       const savedMarketPosition = saved.layout?.buildings?.market;
       if (savedMarketPosition?.x === 54 && savedMarketPosition?.y === 53) {
@@ -556,10 +840,20 @@
       stagesReady: [],
       animalsGrown: [],
       goods: { eggs: 0, milk: 0 },
+      beachReady: 0,
+      beachBuildingsCompleted: [],
+      beachStagesReady: [],
+      beachHabitatsGrown: [],
+      beachGoods: { rentals: 0, passes: 0 },
     };
     const produced = accrueAnimalGoods(target, productionElapsed / 1000 * OFFLINE_EFFICIENCY);
     report.goods.eggs += produced.eggs;
     report.goods.milk += produced.milk;
+    const compo = target.compo || (target.compo = createCompoState());
+    report.beachReady = compo.spots.filter((spot) => spot?.catchId && spot.readyAt > awayStarted && spot.readyAt <= now).length;
+    const beachProduced = accrueBeachGoods(compo, productionElapsed / 1000 * OFFLINE_EFFICIENCY);
+    report.beachGoods.rentals += beachProduced.rentals;
+    report.beachGoods.passes += beachProduced.passes;
 
     Object.entries(target.animalGrowth || {}).forEach(([id, growth]) => {
       if (growth.completeAt > now) return;
@@ -585,6 +879,32 @@
       target.xp += 50 + target.buildings[id] * 15;
       report.buildingsCompleted.push(BUILDINGS[id].short);
       delete target.construction[id];
+    });
+
+    Object.entries(compo.habitatGrowth || {}).forEach(([id, growth]) => {
+      if (growth.completeAt > now) return;
+      const priorLevel = compo.habitats[id] || 0;
+      const extraSeconds = Math.min(MAX_OFFLINE_MS, Math.max(0, now - growth.completeAt)) / 1000 * OFFLINE_EFFICIENCY;
+      const addedLevel = Math.max(0, growth.targetLevel - priorLevel);
+      const good = id === "beachhouse" ? "rentals" : "passes";
+      const bonus = accrueBeachGood(compo, id, good, extraSeconds, addedLevel);
+      report.beachGoods[good] += bonus;
+      compo.habitats[id] = growth.targetLevel;
+      compo.xp += 20 + compo.habitats[id] * 6;
+      report.beachHabitatsGrown.push(BEACH_HABITATS[id].labels[compo.habitats[id]]);
+      delete compo.habitatGrowth[id];
+    });
+
+    Object.entries(compo.construction || {}).forEach(([id, building]) => {
+      if (building.phaseReadyAt > now) return;
+      if (building.phase < 2) {
+        report.beachStagesReady.push(BEACH_BUILDINGS[id].short);
+        return;
+      }
+      compo.buildings[id] = building.targetLevel;
+      compo.xp += 50 + compo.buildings[id] * 15;
+      report.beachBuildingsCompleted.push(BEACH_BUILDINGS[id].short);
+      delete compo.construction[id];
     });
 
     const riverComplete = Object.values(target.buildings).every((level) => level >= MAX_BUILDING_LEVEL)
@@ -616,6 +936,28 @@
     return produced;
   }
 
+  function accrueBeachGood(compo, habitat, good, elapsedSeconds, level = compo.habitats[habitat] || 0) {
+    const rates = { beachhouse: 240, apartment: 360 };
+    if (!level || elapsedSeconds <= 0) return 0;
+    compo.productionProgress[habitat] = (compo.productionProgress[habitat] || 0) + level * elapsedSeconds / rates[habitat];
+    const whole = Math.floor(compo.productionProgress[habitat]);
+    if (!whole) return 0;
+    const cap = good === "rentals" ? 24 : 16;
+    const room = Math.max(0, cap - Math.floor(compo.goods[good] || 0));
+    const added = Math.min(whole, room);
+    compo.goods[good] = (compo.goods[good] || 0) + added;
+    compo.productionProgress[habitat] -= whole;
+    return added;
+  }
+
+  function accrueBeachGoods(compo = getCompo(), elapsedSeconds = 0) {
+    const produced = { rentals: 0, passes: 0 };
+    [["beachhouse", "rentals"], ["apartment", "passes"]].forEach(([habitat, good]) => {
+      produced[good] = accrueBeachGood(compo, habitat, good, elapsedSeconds);
+    });
+    return produced;
+  }
+
   function showOfflineReport(delay = 300) {
     const report = state.offlineReport;
     if (!report) return;
@@ -626,6 +968,12 @@
     if (report.animalsGrown.length) updates.push(`${report.animalsGrown.join(" and ")} arrived`);
     if (report.goods.eggs) updates.push(`${report.goods.eggs} egg basket${report.goods.eggs === 1 ? "" : "s"}`);
     if (report.goods.milk) updates.push(`${report.goods.milk} milk jug${report.goods.milk === 1 ? "" : "s"}`);
+    if (report.beachReady) updates.push(`${report.beachReady} beach catch${report.beachReady === 1 ? " is" : "es are"} ready`);
+    if (report.beachBuildingsCompleted.length) updates.push(`${report.beachBuildingsCompleted.join(" and ")} completed at Compo`);
+    if (report.beachStagesReady.length) updates.push(`${report.beachStagesReady.join(" and ")} need beach supplies`);
+    if (report.beachHabitatsGrown.length) updates.push(`${report.beachHabitatsGrown.join(" and ")} opened at Compo`);
+    if (report.beachGoods.rentals) updates.push(`${report.beachGoods.rentals} rental card${report.beachGoods.rentals === 1 ? "" : "s"}`);
+    if (report.beachGoods.passes) updates.push(`${report.beachGoods.passes} guest pass${report.beachGoods.passes === 1 ? "" : "es"}`);
     const summary = updates.length ? updates.join(" · ") : "timers continued safely";
     window.setTimeout(() => toast(`Welcome back after ${formatAway(report.elapsed)} — ${summary}.`), delay);
     delete state.offlineReport;
@@ -642,7 +990,54 @@
     showOfflineReport(100);
   }
 
+  function initialSeasonAnchor(now = Date.now()) {
+    const startIndex = SEASONS.findIndex((season) => season.id === START_SEASON);
+    return now - Math.max(0, startIndex) * SEASON_LENGTH_MS;
+  }
+
+  function currentSeason(now = Date.now(), target = state) {
+    const anchor = Number(target.seasonAnchor) || initialSeasonAnchor(now);
+    const elapsed = Math.max(0, now - anchor);
+    return SEASONS[Math.floor(elapsed / SEASON_LENGTH_MS) % SEASONS.length];
+  }
+
+  function nextSeason(now = Date.now(), target = state) {
+    const anchor = Number(target.seasonAnchor) || initialSeasonAnchor(now);
+    const elapsed = Math.max(0, now - anchor);
+    const nextIndex = (Math.floor(elapsed / SEASON_LENGTH_MS) + 1) % SEASONS.length;
+    const nextAt = anchor + (Math.floor(elapsed / SEASON_LENGTH_MS) + 1) * SEASON_LENGTH_MS;
+    return { ...SEASONS[nextIndex], nextAt };
+  }
+
+  function cropAvailableInSeason(crop, season = currentSeason()) {
+    return crop.seasons.includes(season.id);
+  }
+
+  function cropSeasonLabel(crop) {
+    return crop.seasons.map((id) => SEASONS.find((season) => season.id === id)?.name || id).join(" / ");
+  }
+
+  function cropDuration(crop, season = currentSeason()) {
+    return Math.round(crop.duration * (season.id === "winter" ? 1.5 : 1));
+  }
+
   function getCrop(id) { return CROPS.find((crop) => crop.id === id); }
+
+  function getBeachCatch(id) { return BEACH_CATCHES.find((item) => item.id === id); }
+
+  function beachCatchAvailableInSeason(catchConfig, season = currentSeason()) {
+    return catchConfig.seasons.includes(season.id);
+  }
+
+  function beachCatchSeasonLabel(catchConfig) {
+    return catchConfig.seasons.map((id) => SEASONS.find((season) => season.id === id)?.name || id).join(" / ");
+  }
+
+  function beachCatchDuration(catchConfig, season = currentSeason()) {
+    const boatLevel = getCompo().buildings.boat || 0;
+    const boatBonus = boatLevel ? 0.94 - Math.min(0.12, boatLevel * 0.04) : 1;
+    return Math.round(catchConfig.duration * (season.id === "winter" ? 1.35 : 1) * boatBonus);
+  }
 
   function getLevelInfo(xp = state.xp) {
     let index = 0;
@@ -654,8 +1049,26 @@
     return { level: index + 1, current, next, progress: clamp(progress, 0, 1), capped };
   }
 
+  function getCompoLevelInfo(xp = state?.compo?.xp || 0) {
+    let index = 0;
+    for (let i = 0; i < COMPO_LEVELS.length; i += 1) if (xp >= COMPO_LEVELS[i].xp) index = i;
+    const current = COMPO_LEVELS[index];
+    const next = COMPO_LEVELS[Math.min(index + 1, COMPO_LEVELS.length - 1)];
+    const capped = index === COMPO_LEVELS.length - 1;
+    const progress = capped ? 1 : (xp - current.xp) / (next.xp - current.xp);
+    return { level: index + 1, current, next, progress: clamp(progress, 0, 1), capped };
+  }
+
+  function getCompo() { return state.compo || (state.compo = createCompoState()); }
+
+  function isCompoActive() { return state.activeRegion === "compo"; }
+
   function getTotalProduce() {
     return Object.values(state.inventory).reduce((sum, value) => sum + value, 0) + Object.values(state.goods).reduce((sum, value) => sum + Math.floor(value), 0);
+  }
+
+  function getTotalBeachProduce(compo = getCompo()) {
+    return Object.values(compo.inventory).reduce((sum, value) => sum + value, 0) + Object.values(compo.goods).reduce((sum, value) => sum + Math.floor(value), 0);
   }
 
   function isBoostActive() { return Date.now() < state.boostUntil; }
@@ -664,7 +1077,24 @@
     return (isBoostActive() ? 2 : 1) * (1 + state.buildings.market * 0.08 + state.buildings.bakery * 0.12);
   }
 
+  function beachMarketMultiplier(compo = getCompo()) {
+    return (isBoostActive() ? 2 : 1) * (1 + compo.buildings.beachmarket * 0.08 + compo.buildings.icecream * 0.1);
+  }
+
   function learningReward() {
+    if (isCompoActive()) {
+      const compo = getCompo();
+      if (state.subject === "math") {
+        const amount = 2 + compo.buildings.towncenter + (state.streak >= 4 ? 1 : 0);
+        return { scope: "compo", type: "bait", amount, label: `${amount} bait` };
+      }
+      if (state.subject === "chinese") {
+        const amount = 2 + Math.floor(compo.buildings.boat / 2);
+        return { scope: "compo", type: "wood", amount, label: `${amount} beach wood` };
+      }
+      const amount = 1 + Math.floor(compo.buildings.towncenter / 2);
+      return { scope: "compo", type: "ore", amount, label: `${amount} beach ore` };
+    }
     if (state.subject === "math") {
       const amount = 2 + state.buildings.school + (state.streak >= 4 ? 1 : 0);
       return { type: "seeds", amount, label: `${amount} ${amount === 1 ? "seed" : "seeds"}` };
@@ -675,6 +1105,19 @@
     }
     const amount = 1 + Math.floor(state.buildings.school / 2);
     return { type: "ore", amount, label: `${amount} ore` };
+  }
+
+  function grantLearningReward(reward, amount = reward.amount) {
+    if (reward.scope === "compo") {
+      const compo = getCompo();
+      compo[reward.type] += amount;
+    } else {
+      state[reward.type] += amount;
+    }
+  }
+
+  function learningBoostLabel() {
+    return isCompoActive() ? "2× beach market" : "2× market";
   }
 
   function buildingCost(id, targetLevel = state.buildings[id] + 1) {
@@ -801,12 +1244,121 @@
     return Boolean(cost && state.coins >= cost.coins && state.wood >= cost.wood && state.ore >= cost.ore);
   }
 
+  function beachBuildingCost(id, targetLevel = getCompo().buildings[id] + 1) {
+    const config = BEACH_BUILDINGS[id];
+    return Math.round(config.baseCost * Math.pow(1.75, Math.max(0, targetLevel - 1)));
+  }
+
+  function beachBuildingMaterialCost(id, targetLevel = getCompo().buildings[id] + 1) {
+    const config = BEACH_BUILDINGS[id];
+    const multiplier = Math.pow(1.58, Math.max(0, targetLevel - 1));
+    return {
+      wood: Math.ceil(config.materials.wood * multiplier),
+      ore: Math.ceil(config.materials.ore * multiplier),
+    };
+  }
+
+  function beachBuildingInstallments(id, targetLevel = getCompo().buildings[id] + 1) {
+    const shells = beachBuildingCost(id, targetLevel);
+    const materials = beachBuildingMaterialCost(id, targetLevel);
+    const foundationShells = Math.ceil(shells * 0.4);
+    const frameShells = Math.ceil(shells * 0.3);
+    const foundationWood = Math.ceil(materials.wood * 0.55);
+    const frameOre = Math.ceil(materials.ore / 2);
+    return [
+      { shells: foundationShells, wood: foundationWood, ore: 0 },
+      { shells: frameShells, wood: materials.wood - foundationWood, ore: frameOre },
+      { shells: shells - foundationShells - frameShells, wood: 0, ore: materials.ore - frameOre },
+    ];
+  }
+
+  function canPayBeach(cost, compo = getCompo()) {
+    return compo.shells >= cost.shells && compo.wood >= cost.wood && compo.ore >= cost.ore;
+  }
+
+  function payBeachCost(cost, compo = getCompo()) {
+    compo.shells -= cost.shells;
+    compo.wood -= cost.wood;
+    compo.ore -= cost.ore;
+  }
+
+  function beachCostLabel(cost) {
+    return `${cost.shells} shells${cost.wood ? ` · ${cost.wood} beach wood` : ""}${cost.ore ? ` · ${cost.ore} beach ore` : ""}`;
+  }
+
+  function beachSpotCount(compo = getCompo()) {
+    return compo.spots.filter((spot) => !spot?.locked).length;
+  }
+
+  function beachSpotExpansionCost(compo = getCompo()) {
+    const costs = [
+      { shells: 70, wood: 2, ore: 0 },
+      { shells: 140, wood: 4, ore: 1 },
+      { shells: 260, wood: 7, ore: 2 },
+    ];
+    return costs[Math.max(0, beachSpotCount(compo) - 1)] || null;
+  }
+
+  function canExpandBeachSpots(compo = getCompo()) {
+    const cost = beachSpotExpansionCost(compo);
+    return Boolean(cost && canPayBeach(cost, compo));
+  }
+
+  function beachHabitatCost(id, compo = getCompo()) {
+    return Math.round(BEACH_HABITATS[id].baseCost * Math.pow(1.72, compo.habitats[id]));
+  }
+
+  function beachHabitatFeed(id, compo = getCompo()) {
+    return BEACH_HABITATS[id].feed[Math.min(compo.habitats[id], 2)] || {};
+  }
+
+  function beachFeedLabel(feed) {
+    const parts = Object.entries(feed).map(([catchId, amount]) => `${amount} ${getBeachCatch(catchId).name.toLowerCase()}`);
+    return parts.length ? parts.join(" + ") : "no feed";
+  }
+
+  function hasBeachFeed(feed, compo = getCompo()) {
+    return Object.entries(feed).every(([catchId, amount]) => (compo.inventory[catchId] || 0) >= amount);
+  }
+
+  function consumeBeachFeed(feed, compo = getCompo()) {
+    Object.entries(feed).forEach(([catchId, amount]) => { compo.inventory[catchId] -= amount; });
+  }
+
   const CROP_STATES = ["soil", "sprout", "young", "mature"];
   const BUILDING_STATES = ["foundation", "construction", "level-1", "level-2", "level-3"];
   const ANIMAL_STATES = ["empty", "young", "adult", "full"];
+  const BEACH_CATCH_STATES = ["water", "ripple", "young", "mature"];
+  const BEACH_HABITAT_STATES = ["empty", "young", "adult", "full"];
   function cropAsset(crop, stage) { return `assets/art/living-world/crops/${crop.artKey}-${CROP_STATES[clamp(stage,0,3)]}.png`; }
   function buildingAsset(config, stage) { return `assets/art/living-world/buildings/${config.artKey}-${BUILDING_STATES[clamp(stage,0,3)]}.png`; }
   function animalAsset(config, stage) { return `assets/art/living-world/animals/${config.artKey}-${ANIMAL_STATES[clamp(stage,0,3)]}.png`; }
+  function beachCatchAsset(config, stage) { return `assets/art/compo-world/catches/${config.artKey}-${BEACH_CATCH_STATES[clamp(stage,0,3)]}.png`; }
+  function beachBuildingAsset(config, stage, season = currentSeason()) {
+    const stateName = BUILDING_STATES[clamp(stage,0,4)];
+    const winterTownCenter = config.artKey === "towncenter" && stateName === "level-3" && season.id === "winter";
+    return `assets/art/compo-world/buildings/${config.artKey}-${stateName}${winterTownCenter ? "-winter" : ""}.png`;
+  }
+  function beachHabitatAsset(config, stage) { return `assets/art/compo-world/habitats/${config.artKey}-${BEACH_HABITAT_STATES[clamp(stage,0,3)]}.png`; }
+
+  function isModernCompoEra(compo = getCompo()) {
+    return compo.buildings.towncenter >= 2 || compo.buildings.beachmarket >= 2 || compo.buildings.icecream >= 2 || compo.buildings.boat >= 2 || getCompoLevelInfo(compo.xp).level >= 3;
+  }
+
+  function beachWalkerSprite(person, compo = getCompo()) {
+    const early = {
+      "beach-angler": "beach-shell-collector",
+      "beach-vendor": "beach-red-hat-vendor",
+      "beach-counselor": "beach-crabber",
+    };
+    const modern = {
+      "beach-angler": "beach-lifeguard-modern",
+      "beach-vendor": "beach-icecream-vendor-modern",
+      "beach-counselor": "beach-tennis-modern",
+    };
+    const filename = (isModernCompoEra(compo) ? modern : early)[person] || early["beach-angler"];
+    return `assets/art/compo-world/people/${filename}.png`;
+  }
 
   function cropStage(plot, now = Date.now()) {
     if (!plot?.crop) return 0;
@@ -815,6 +1367,19 @@
     if (progress >= 0.72) return 2;
     if (progress >= 0.22) return 1;
     return 0;
+  }
+
+  function beachCatchStage(spot, now = Date.now()) {
+    if (!spot?.catchId) return 0;
+    const progress = clamp((now - spot.startedAt) / (spot.readyAt - spot.startedAt), 0, 1);
+    if (progress >= 1) return 3;
+    if (progress >= 0.7) return 2;
+    if (progress >= 0.22) return 1;
+    return 0;
+  }
+
+  function compoDevelopmentCount(compo = getCompo()) {
+    return Object.values(compo.buildings).reduce((sum, level) => sum + level, 0) + Object.values(compo.habitats).reduce((sum, level) => sum + level, 0);
   }
 
   function developmentCount() {
@@ -856,6 +1421,7 @@
     });
     if (view !== "farm") dom.seedDrawer.classList.remove("open");
     if (view === "learn" && !state.question) nextQuestion();
+    else if (view === "learn") renderLesson();
     if (view === "town") updateGuide();
     if (view === "farm") renderFarm();
     if (view === "market") renderMarket();
@@ -863,14 +1429,26 @@
   }
 
   function renderHUD() {
-    dom.coinCount.textContent = formatNumber(state.coins);
-    dom.seedCount.textContent = formatNumber(state.seeds);
-    dom.woodCount.textContent = formatNumber(state.wood);
-    dom.oreCount.textContent = formatNumber(state.ore);
-    const level = getLevelInfo();
+    const compoActive = isCompoActive();
+    const compo = getCompo();
+    dom.coinLabel.textContent = compoActive ? "Shells" : "Coins";
+    dom.seedLabel.textContent = compoActive ? "Bait" : "Seeds";
+    dom.woodLabel.textContent = compoActive ? "Beach wood" : "Wood";
+    dom.oreLabel.textContent = compoActive ? "Beach ore" : "Ore";
+    dom.coinCount.textContent = formatNumber(compoActive ? compo.shells : state.coins);
+    dom.seedCount.textContent = formatNumber(compoActive ? compo.bait : state.seeds);
+    dom.woodCount.textContent = formatNumber(compoActive ? compo.wood : state.wood);
+    dom.oreCount.textContent = formatNumber(compoActive ? compo.ore : state.ore);
+    dom.farmNavLabel.textContent = compoActive ? "Fish" : "Farm";
+    dom.marketNavLabel.textContent = compoActive ? "Beach Market" : "Market";
+    dom.goalsNavLabel.textContent = compoActive ? "Compo" : "Goals";
+    const level = compoActive ? getCompoLevelInfo(compo.xp) : getLevelInfo();
+    const season = currentSeason();
+    const next = nextSeason();
     dom.levelName.textContent = level.current.name;
-    dom.levelLabel.textContent = `Level ${level.level}`;
+    dom.levelLabel.textContent = `${compoActive ? "Coast" : "Level"} ${level.level} · ${season.name} ${formatTime((next.nextAt - Date.now()) / 1000)}`;
     dom.levelProgress.style.width = `${level.progress * 100}%`;
+    dom.app.dataset.season = season.id;
     dom.learnReadyDot.classList.toggle("visible", !isBoostActive());
     renderHarvestStatus();
     Object.keys(BUILDINGS).forEach((id) => {
@@ -889,16 +1467,100 @@
 
   function renderHarvestStatus(now = Date.now()) {
     const readyCount = state.plots.filter((plot) => plot?.crop && plot.readyAt <= now).length;
-    dom.readyCountLabel.textContent = `${readyCount} ${readyCount === 1 ? "plot" : "plots"}`;
-    dom.quickHarvest.classList.toggle("ready", readyCount > 0);
-    dom.quickHarvest.disabled = readyCount === 0;
-    dom.quickHarvest.setAttribute("aria-label", readyCount ? `Harvest ${readyCount} ready ${readyCount === 1 ? "plot" : "plots"}` : "No crops are ready to harvest");
     return readyCount;
+  }
+
+  function renderBeachWorld(now = Date.now(), season = currentSeason(now)) {
+    const compo = getCompo();
+    if (dom.beachWorld.dataset.ready !== "true") {
+      const spotButtons = compo.spots.map((_, index) => `<button class="beach-spot" data-beach-spot="${index}" type="button"><img class="world-asset beach-catch-image" alt=""><span class="beach-label"></span></button>`);
+      const buildingButtons = Object.entries(BEACH_BUILDINGS).map(([id, config]) => `<button class="beach-building ${id}-beach-building" data-beach-building="${id}" type="button" aria-label="${config.name}"><img class="world-asset beach-building-image" alt=""><em class="construction-badge" aria-hidden="true">Building…</em><span class="beach-label">${config.short}</span></button>`);
+      const habitatButtons = Object.entries(BEACH_HABITATS).map(([id, config]) => `<button class="beach-habitat ${id}-beach-habitat" data-beach-habitat="${id}" type="button" aria-label="${config.name}"><img class="world-asset beach-habitat-image" alt=""><span class="beach-label">${config.name}</span></button>`);
+      const walkers = ["beach-angler", "beach-vendor", "beach-counselor"].map((person) => `<span class="shore-walker" data-beach-walker="${person}"><img class="shore-walker-sprite" alt=""></span>`);
+      dom.beachWorld.innerHTML = [...spotButtons, ...buildingButtons, ...habitatButtons, `<div class="beach-life" aria-hidden="true">${walkers.join("")}</div>`].join("");
+      dom.beachWorld.dataset.ready = "true";
+      startBeachWalkerRoutes();
+    }
+
+    dom.beachWorld.querySelectorAll("[data-beach-walker]").forEach((walker) => {
+      const sprite = walker.querySelector(".shore-walker-sprite");
+      if (!sprite) return;
+      const source = beachWalkerSprite(walker.dataset.beachWalker, compo);
+      if (sprite.getAttribute("src") !== source) sprite.src = source;
+    });
+
+    dom.beachWorld.querySelectorAll("[data-beach-spot]").forEach((button, index) => {
+      const spot = compo.spots[index];
+      const locked = spot?.locked;
+      button.hidden = Boolean(locked);
+      const catchConfig = spot?.catchId ? getBeachCatch(spot.catchId) : BEACH_CATCHES[0];
+      const ready = spot?.catchId && spot.readyAt <= now;
+      const stage = locked ? 0 : beachCatchStage(spot, now);
+      const label = locked ? "Locked water" : !spot ? "Open fishing spot" : ready ? `${catchConfig.name} ready!` : `${catchConfig.name} · ${formatTime((spot.readyAt - now) / 1000)}`;
+      const position = compo.layout.spots[index] || { x: 12 + index * 15, y: 64 };
+      button.className = `beach-spot ${ready ? "ready" : spot?.catchId ? "growing" : ""} ${locked ? "locked" : ""}`;
+      button.setAttribute("aria-label", label);
+      const progress = spot?.catchId ? clamp((now - spot.startedAt) / (spot.readyAt - spot.startedAt), 0, 1) : 0;
+      button.style.setProperty("--catch-progress", `${progress * 100}%`);
+      button.style.left = `${position.x}%`;
+      button.style.top = `${position.y}%`;
+      const image = button.querySelector(".beach-catch-image");
+      const source = beachCatchAsset(catchConfig, stage);
+      if (image.getAttribute("src") !== source) image.src = source;
+      button.querySelector(".beach-label").textContent = label;
+    });
+
+    Object.entries(BEACH_BUILDINGS).forEach(([id, config]) => {
+      const button = dom.beachWorld.querySelector(`[data-beach-building="${id}"]`);
+      const sprite = button?.querySelector(".beach-building-image");
+      if (!button || !sprite) return;
+      const building = compo.construction[id];
+      const level = compo.buildings[id] || 0;
+      const unlocked = config.unlock(compo);
+      button.hidden = level <= 0 && !building;
+      const column = building ? constructionAssetStage(building) : level <= 0 ? 0 : level + 1;
+      const source = beachBuildingAsset(config, column, season);
+      if (sprite.getAttribute("src") !== source) sprite.src = source;
+      const position = compo.layout.buildings[id];
+      button.style.left = `${position.x}%`;
+      button.style.top = `${position.y}%`;
+      button.classList.toggle("locked-building", !unlocked);
+      button.classList.toggle("under-construction", Boolean(building));
+      const badge = button.querySelector(".construction-badge");
+      if (badge && building) {
+        const awaitingMaterials = constructionReady(building) && building.phase < 2;
+        badge.textContent = awaitingMaterials ? "!" : formatTime((building.phaseReadyAt - now) / 1000);
+        button.classList.toggle("awaiting-materials", awaitingMaterials);
+        button.setAttribute("aria-label", `${config.name}. ${awaitingMaterials ? "Ready for the next beach supply payment" : `${constructionPhaseName(building.phase)}, ${badge.textContent} remaining`}`);
+      } else {
+        button.classList.remove("awaiting-materials");
+        button.setAttribute("aria-label", config.name);
+      }
+      button.querySelector(".beach-label").textContent = building ? `${config.short} · ${constructionPhaseName(building.phase)}` : level ? `${config.short} · Era ${level}` : config.short;
+    });
+
+    Object.entries(BEACH_HABITATS).forEach(([id, config]) => {
+      const button = dom.beachWorld.querySelector(`[data-beach-habitat="${id}"]`);
+      const sprite = button?.querySelector(".beach-habitat-image");
+      if (!button || !sprite) return;
+      const level = clamp(compo.habitats[id] || 0, 0, 3);
+      const growth = compo.habitatGrowth[id];
+      button.hidden = level <= 0 && !growth;
+      const source = beachHabitatAsset(config, level);
+      if (sprite.getAttribute("src") !== source) sprite.src = source;
+      const position = compo.layout.habitats[id];
+      button.style.left = `${position.x}%`;
+      button.style.top = `${position.y}%`;
+      button.classList.toggle("growing", Boolean(growth));
+      button.querySelector(".beach-label").textContent = growth ? `${formatTime((growth.completeAt - now) / 1000)} left` : config.labels[level];
+    });
   }
 
   function renderWorld() {
     const now = Date.now();
+    const season = currentSeason(now);
     dom.worldArt.dataset.region = state.activeRegion;
+    dom.worldArt.dataset.season = season.id;
     dom.regionButtons.forEach((button) => {
       const region = button.dataset.region;
       button.classList.toggle("active", region === state.activeRegion);
@@ -907,6 +1569,7 @@
     });
     dom.layoutButton.innerHTML = layoutMode ? `<span>✓</span><b>Done arranging</b>` : `<span>✥</span><b>Arrange town</b>`;
     dom.worldArt.classList.toggle("layout-mode", layoutMode);
+    if (state.activeRegion === "compo") renderBeachWorld(now, season);
     if (dom.worldCrops.children.length !== state.plots.length) {
       dom.worldCrops.innerHTML = state.plots.map((_, index) => `<button class="world-crop" data-world-plot="${index}" type="button"><img class="world-asset crop-image" alt=""><span class="world-crop-label"></span></button>`).join("");
     }
@@ -973,7 +1636,7 @@
     const teacher = document.querySelector(".walker-teacher");
     if (vendor) vendor.hidden = state.buildings.market <= 0 && !state.construction.market;
     if (teacher) teacher.hidden = state.buildings.school <= 0 && !state.construction.school;
-    const modernResidents = state.districts.compo || Object.values(state.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length >= 2;
+    const modernResidents = riverTownComplete() || Object.values(state.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length >= 2;
     dom.worldArt.dataset.residentEra = modernResidents ? "modern" : "historic";
     document.querySelectorAll("[data-walker]").forEach((walker) => {
       const era = modernResidents ? "-modern" : "";
@@ -985,11 +1648,17 @@
       ];
       sources.forEach(([image, source]) => { if (image && image.getAttribute("src") !== source) image.src = source; });
     });
-    dom.worldProgressCopy.textContent = `${developmentCount()} town pieces built`;
   }
 
   function renderFarm() {
+    if (isCompoActive()) {
+      renderFishing();
+      return;
+    }
     const now = Date.now();
+    dom.farmRegionLabel.textContent = "Old Hill Farm";
+    dom.farmTitle.textContent = "Grow something wonderful.";
+    dom.farmCopy.textContent = "Spend seeds earned from math, then use crops for market income or animal feed.";
     renderHarvestStatus(now);
     dom.farmField.dataset.plotCount = String(unlockedPlotCount());
 
@@ -1037,16 +1706,99 @@
   }
 
   function renderSeeds() {
+    dom.seedTitle.textContent = "Choose a crop";
     const townLevel = getLevelInfo().level;
-    const renderKey = `${townLevel}:${Math.floor(state.seeds)}`;
+    const season = currentSeason();
+    const renderKey = `${townLevel}:${Math.floor(state.seeds)}:${season.id}`;
     if (dom.seedList.dataset.renderKey === renderKey) return;
     dom.seedList.dataset.renderKey = renderKey;
     dom.seedList.innerHTML = CROPS.map((crop) => {
       const levelLocked = townLevel < crop.level;
+      const seasonLocked = !cropAvailableInSeason(crop, season);
       const poor = state.seeds < crop.seedCost;
-      const locked = levelLocked || poor;
-      const note = levelLocked ? `Unlocks at town level ${crop.level}` : `${formatTime(crop.duration)} · yields ${crop.yield}`;
+      const locked = levelLocked || seasonLocked || poor;
+      const duration = cropDuration(crop, season);
+      const note = levelLocked
+        ? `Unlocks at town level ${crop.level}`
+        : seasonLocked ? `Sleeps until ${cropSeasonLabel(crop)}`
+          : `${formatTime(duration)} · ${season.name} crop · yields ${crop.yield}`;
       return `<button class="seed-option" data-seed="${crop.id}" type="button" ${locked ? "disabled" : ""}><img class="seed-art" src="${cropAsset(crop,3)}" alt=""><span class="seed-copy"><strong>${crop.name}</strong><small>${note}</small></span><span class="seed-price">${crop.seedCost} ${crop.seedCost === 1 ? "seed" : "seeds"}<small>${crop.value} coins each</small></span></button>`;
+    }).join("");
+  }
+
+  function renderFishing() {
+    const compo = getCompo();
+    const now = Date.now();
+    dom.farmRegionLabel.textContent = "Compo Fishing Cove";
+    dom.farmTitle.textContent = "Cast lines, collect catches, build the shore.";
+    dom.farmCopy.textContent = "Math earns bait. Start with shoreline shells, kelp, and crabs; then build a boat to reach bluefish and deep-water catches.";
+    dom.farmField.classList.add("beach-field");
+    dom.farmField.dataset.plotCount = String(beachSpotCount(compo));
+
+    if (dom.farmField.children.length !== compo.spots.length) {
+      dom.farmField.innerHTML = compo.spots.map((_, index) => `<button class="plot beach-plot" data-plot="${index}" type="button"></button>`).join("");
+    }
+    dom.farmField.querySelectorAll("[data-plot]").forEach((button, index) => {
+      const spot = compo.spots[index];
+      if (spot?.locked) {
+        button.hidden = true;
+        button.className = "plot beach-plot locked";
+        button.innerHTML = "";
+        button.dataset.renderKey = "locked";
+        return;
+      }
+      button.hidden = false;
+      if (!spot) {
+        const source = beachCatchAsset(BEACH_CATCHES[0], 0);
+        button.className = "plot beach-plot empty";
+        button.setAttribute("aria-label", `Open fishing spot ${index + 1}, choose bait`);
+        if (button.dataset.renderKey !== "beach-empty") button.innerHTML = `<span class="plot-content"><span class="plot-number">${index + 1}</span><img class="plot-icon beach-icon" src="${source}" alt=""><span class="plot-state">Choose bait</span></span>`;
+        button.dataset.renderKey = "beach-empty";
+        return;
+      }
+      const catchConfig = getBeachCatch(spot.catchId);
+      const total = spot.readyAt - spot.startedAt;
+      const progress = clamp((now - spot.startedAt) / total, 0, 1);
+      const ready = progress >= 1;
+      const stage = beachCatchStage(spot, now);
+      const label = ready ? `Collect ${catchConfig.name}` : `${formatTime((spot.readyAt - now) / 1000)} left`;
+      const renderKey = `beach-${catchConfig.id}-${stage}-${ready ? "ready" : "growing"}`;
+      button.className = `plot beach-plot ${ready ? "ready" : "growing"}`;
+      button.setAttribute("aria-label", label);
+      if (button.dataset.renderKey !== renderKey) {
+        button.innerHTML = `<span class="plot-content"><span class="plot-number">${index + 1}</span><img class="plot-icon beach-icon" src="${beachCatchAsset(catchConfig,stage)}" alt=""><span class="plot-state"></span>${ready ? "" : `<span class="crop-progress"><span></span></span>`}</span>`;
+        button.dataset.renderKey = renderKey;
+      }
+      button.querySelector(".plot-state").textContent = label;
+      const progressBar = button.querySelector(".crop-progress span");
+      if (progressBar) progressBar.style.width = `${progress * 100}%`;
+    });
+
+    renderBeachBait();
+    renderBoost();
+  }
+
+  function renderBeachBait() {
+    const compo = getCompo();
+    const coastLevel = getCompoLevelInfo(compo.xp).level;
+    const season = currentSeason();
+    dom.seedTitle.textContent = "Choose bait";
+    const renderKey = `beach:${coastLevel}:${Math.floor(compo.bait)}:${season.id}:${compo.buildings.boat}`;
+    if (dom.seedList.dataset.renderKey === renderKey) return;
+    dom.seedList.dataset.renderKey = renderKey;
+    dom.seedList.innerHTML = BEACH_CATCHES.map((catchConfig) => {
+      const levelLocked = coastLevel < catchConfig.level;
+      const seasonLocked = !beachCatchAvailableInSeason(catchConfig, season);
+      const boatLocked = catchConfig.requiresBoat && compo.buildings.boat < catchConfig.requiresBoat;
+      const poor = compo.bait < catchConfig.baitCost;
+      const locked = levelLocked || seasonLocked || boatLocked || poor;
+      const duration = beachCatchDuration(catchConfig, season);
+      const note = levelLocked
+        ? `Unlocks at coast level ${catchConfig.level}`
+        : boatLocked ? `Needs Fishing Boat era ${catchConfig.requiresBoat}`
+          : seasonLocked ? `Best in ${beachCatchSeasonLabel(catchConfig)}`
+            : `${formatTime(duration)} · ${season.name} catch · yields ${catchConfig.yield}`;
+      return `<button class="seed-option beach-bait-option" data-beach-catch="${catchConfig.id}" type="button" ${locked ? "disabled" : ""}><img class="seed-art" src="${beachCatchAsset(catchConfig,3)}" alt=""><span class="seed-copy"><strong>${catchConfig.name}</strong><small>${note}</small></span><span class="seed-price">${catchConfig.baitCost} bait<small>${catchConfig.value} shells each</small></span></button>`;
     }).join("");
   }
 
@@ -1077,6 +1829,10 @@
   }
 
   function selectPlot(index) {
+    if (isCompoActive()) {
+      selectBeachSpot(index);
+      return;
+    }
     const plot = state.plots[index];
     if (plot?.locked) {
       expandFarm();
@@ -1095,16 +1851,119 @@
   function plantCrop(cropId) {
     if (selectedPlot === null || state.plots[selectedPlot]) return;
     const crop = getCrop(cropId);
+    const season = currentSeason();
     if (!crop || state.seeds < crop.seedCost || getLevelInfo().level < crop.level) return;
+    if (!cropAvailableInSeason(crop, season)) {
+      toast(`${crop.name} do best in ${cropSeasonLabel(crop)}. ${season.name} planting is limited.`);
+      return;
+    }
     const now = Date.now();
+    const duration = cropDuration(crop, season);
     state.seeds -= crop.seedCost;
-    state.plots[selectedPlot] = { crop: crop.id, plantedAt: now, readyAt: now + crop.duration * 1000 };
+    state.plots[selectedPlot] = { crop: crop.id, plantedAt: now, readyAt: now + duration * 1000 };
     state.stats.planted += 1;
     addXP(3);
     playSfx("plant");
-    toast(`${crop.name} planted — ready in ${formatTime(crop.duration)}.`);
+    toast(`${crop.name} planted for ${season.name.toLowerCase()} — ready in ${formatTime(duration)}.`);
     selectedPlot = null;
     dom.seedDrawer.classList.remove("open");
+    renderAll();
+    saveState();
+  }
+
+  function expandBeachSpots() {
+    const compo = getCompo();
+    const cost = beachSpotExpansionCost(compo);
+    const index = compo.spots.findIndex((spot) => spot?.locked);
+    if (!cost || index < 0) return;
+    if (!canExpandBeachSpots(compo)) {
+      toast(`Next fishing spot needs ${beachCostLabel(cost)}.`);
+      return;
+    }
+    payBeachCost(cost, compo);
+    compo.spots[index] = null;
+    addCompoXP(24 + index * 7);
+    playSfx("build");
+    toast(`Fishing spot ${index + 1} is open at Compo Beach!`);
+    renderAll();
+    saveState();
+  }
+
+  function selectBeachSpot(index) {
+    const compo = getCompo();
+    const spot = compo.spots[index];
+    if (spot?.locked) {
+      expandBeachSpots();
+      return;
+    }
+    if (!spot) {
+      selectedPlot = index;
+      dom.seedDrawer.classList.add("open");
+      if (window.innerWidth > 760) dom.seedDrawer.querySelector("button:not(:disabled)")?.focus();
+      return;
+    }
+    if (spot.readyAt <= Date.now()) harvestBeachSpot(index);
+    else toast(`${getBeachCatch(spot.catchId).name} need ${formatTime((spot.readyAt - Date.now()) / 1000)} more.`);
+  }
+
+  function castLine(catchId) {
+    const compo = getCompo();
+    if (selectedPlot === null || compo.spots[selectedPlot]) return;
+    const catchConfig = getBeachCatch(catchId);
+    const season = currentSeason();
+    if (!catchConfig || compo.bait < catchConfig.baitCost || getCompoLevelInfo(compo.xp).level < catchConfig.level) return;
+    if (catchConfig.requiresBoat && compo.buildings.boat < catchConfig.requiresBoat) {
+      toast(`${catchConfig.name} need the Fishing Boat at era ${catchConfig.requiresBoat}.`);
+      return;
+    }
+    if (!beachCatchAvailableInSeason(catchConfig, season)) {
+      toast(`${catchConfig.name} are best in ${beachCatchSeasonLabel(catchConfig)}. ${season.name} fishing is limited.`);
+      return;
+    }
+    const now = Date.now();
+    const duration = beachCatchDuration(catchConfig, season);
+    compo.bait -= catchConfig.baitCost;
+    compo.spots[selectedPlot] = { catchId: catchConfig.id, startedAt: now, readyAt: now + duration * 1000 };
+    addCompoXP(3);
+    playSfx("plant");
+    toast(`Line cast for ${catchConfig.name.toLowerCase()} — ready in ${formatTime(duration)}.`);
+    selectedPlot = null;
+    dom.seedDrawer.classList.remove("open");
+    renderAll();
+    saveState();
+  }
+
+  function harvestBeachSpot(index) {
+    const compo = getCompo();
+    const spot = compo.spots[index];
+    if (!spot?.catchId || spot.readyAt > Date.now()) return;
+    const catchConfig = getBeachCatch(spot.catchId);
+    const boatBonus = Math.max(0, compo.buildings.boat || 0);
+    const yieldAmount = catchConfig.yield + boatBonus;
+    compo.inventory[catchConfig.id] += yieldAmount;
+    compo.spots[index] = null;
+    addCompoXP(6 + catchConfig.level * 2);
+    playSfx("harvest");
+    toast(`Collected ${yieldAmount} ${catchConfig.name.toLowerCase()}!`);
+    renderAll();
+    saveState();
+  }
+
+  function harvestAllBeach() {
+    const compo = getCompo();
+    const ready = compo.spots.map((spot, index) => ({ spot, index })).filter(({ spot }) => spot?.catchId && spot.readyAt <= Date.now());
+    if (!ready.length) return;
+    let total = 0;
+    ready.forEach(({ spot, index }) => {
+      const catchConfig = getBeachCatch(spot.catchId);
+      const yieldAmount = catchConfig.yield + Math.max(0, compo.buildings.boat || 0);
+      compo.inventory[catchConfig.id] += yieldAmount;
+      total += yieldAmount;
+      compo.spots[index] = null;
+      compo.xp += 6 + catchConfig.level * 2;
+    });
+    playSfx("harvest");
+    toast(`Beach basket filled with ${total} catches!`);
     renderAll();
     saveState();
   }
@@ -1142,13 +2001,22 @@
   }
 
   function renderMarket() {
+    if (isCompoActive()) {
+      renderBeachMarket();
+      return;
+    }
+    dom.marketRegionLabel.textContent = "Main Street Market";
+    dom.marketTitle.textContent = "Fresh from your fields.";
+    dom.marketCopy.textContent = "Sell crops for coins, then put the earnings back into Coleytown.";
+    dom.sellAll.innerHTML = "Sell everything <span>→</span>";
     const multiplier = marketMultiplier();
     let totalValue = 0;
     const itemCount = CROPS.length + GOODS.length;
-    if (dom.marketList.children.length !== itemCount) {
+    if (dom.marketList.dataset.marketMode !== "river" || dom.marketList.children.length !== itemCount) {
       const cropCards = CROPS.map((crop) => `<article class="market-item" data-market-crop="${crop.id}"><img class="market-art" alt=""><div class="market-item-copy"><strong></strong><small></small><button data-sell="${crop.id}" type="button"></button></div></article>`);
       const goodsCards = GOODS.map((good) => `<article class="market-item" data-market-good="${good.id}"><img class="market-art" alt=""><div class="market-item-copy"><strong></strong><small></small><button data-sell-good="${good.id}" type="button"></button></div></article>`);
       dom.marketList.innerHTML = [...cropCards, ...goodsCards].join("");
+      dom.marketList.dataset.marketMode = "river";
     }
     dom.marketList.querySelectorAll("[data-market-crop]").forEach((item) => {
       const crop = getCrop(item.dataset.marketCrop);
@@ -1180,6 +2048,71 @@
     });
     dom.basketValue.textContent = `${formatNumber(totalValue)} coins`;
     dom.basketCopy.textContent = totalValue ? `${getTotalProduce()} items ready for Main Street.` : "Harvest crops or raise animals to stock the market stall.";
+    dom.sellAll.disabled = totalValue <= 0;
+  }
+
+  function beachGoodIcon(good) {
+    if (good.id === "necklaces") return beachCatchAsset(getBeachCatch("seashell"), 3);
+    const habitat = BEACH_HABITATS[good.habitat];
+    return beachHabitatAsset(habitat, 3);
+  }
+
+  function renderBeachMarket() {
+    const compo = getCompo();
+    const multiplier = beachMarketMultiplier(compo);
+    let totalValue = 0;
+    dom.marketRegionLabel.textContent = "Beach Market & Restaurant";
+    dom.marketTitle.textContent = "Turn beach finds into shell coins.";
+    dom.marketCopy.textContent = "Sell shoreline shells, kelp, shore crabs, boat-caught fish, rental cards, guest passes, and shell necklaces. River Town coins do not apply here.";
+    dom.sellAll.innerHTML = "Sell beach basket <span>→</span>";
+    const itemCount = BEACH_CATCHES.length + BEACH_GOODS.length;
+    if (dom.marketList.dataset.marketMode !== "beach" || dom.marketList.children.length !== itemCount) {
+      const catchCards = BEACH_CATCHES.map((catchConfig) => `<article class="market-item beach-market-item" data-market-beach-catch="${catchConfig.id}"><img class="market-art" alt=""><div class="market-item-copy"><strong></strong><small></small><button data-sell-beach="${catchConfig.id}" type="button"></button></div></article>`);
+      const goodCards = BEACH_GOODS.map((good) => `<article class="market-item beach-market-item" data-market-beach-good="${good.id}"><img class="market-art" alt=""><div class="market-item-copy"><strong></strong><small></small><button data-sell-beach-good="${good.id}" type="button"></button></div></article>`);
+      dom.marketList.innerHTML = [...catchCards, ...goodCards].join("");
+      dom.marketList.dataset.marketMode = "beach";
+    }
+    dom.marketList.querySelectorAll("[data-market-beach-catch]").forEach((item) => {
+      const catchConfig = getBeachCatch(item.dataset.marketBeachCatch);
+      const count = compo.inventory[catchConfig.id] || 0;
+      const unit = Math.round(catchConfig.value * multiplier);
+      totalValue += count * unit;
+      const image = item.querySelector(".market-art");
+      const source = beachCatchAsset(catchConfig, 3);
+      if (image.getAttribute("src") !== source) image.src = source;
+      item.querySelector("strong").textContent = catchConfig.name;
+      item.querySelector("small").textContent = `${count} in beach basket · ${unit} shells each`;
+      const button = item.querySelector("button");
+      button.disabled = !count;
+      button.textContent = `Sell ${count ? `all for ${count * unit}` : "when ready"}`;
+    });
+    dom.marketList.querySelectorAll("[data-market-beach-good]").forEach((item) => {
+      const good = BEACH_GOODS.find((candidate) => candidate.id === item.dataset.marketBeachGood);
+      const count = Math.floor(compo.goods[good.id] || 0);
+      const unit = Math.round(good.value * multiplier);
+      totalValue += count * unit;
+      const image = item.querySelector(".market-art");
+      const source = beachGoodIcon(good);
+      if (image.getAttribute("src") !== source) image.src = source;
+      item.querySelector("strong").textContent = good.name;
+      if (good.cost) {
+        const craftLabel = Object.entries(good.cost).map(([id, amount]) => `${amount} ${getBeachCatch(id).name.toLowerCase()}`).join(" + ");
+        item.querySelector("small").textContent = `${count} crafted · ${unit} shells each · craft from ${craftLabel}`;
+        const canCraft = Object.entries(good.cost).every(([id, amount]) => (compo.inventory[id] || 0) >= amount);
+        const button = item.querySelector("button");
+        button.dataset.craftBeachGood = good.id;
+        button.disabled = !count && !canCraft;
+        button.textContent = count ? `Sell all for ${count * unit}` : canCraft ? "Craft necklace" : "Need shells";
+      } else {
+        item.querySelector("small").textContent = `${count} produced · ${unit} shells each · sell manually`;
+        const button = item.querySelector("button");
+        delete button.dataset.craftBeachGood;
+        button.disabled = !count;
+        button.textContent = `Sell ${count ? `all for ${count * unit}` : "when produced"}`;
+      }
+    });
+    dom.basketValue.textContent = `${formatNumber(totalValue)} shells`;
+    dom.basketCopy.textContent = totalValue ? `${getTotalBeachProduce(compo)} beach items ready.` : "Fish, gather shells, craft necklaces, or grow beach lodging to stock this market.";
     dom.sellAll.disabled = totalValue <= 0;
   }
 
@@ -1216,6 +2149,10 @@
   }
 
   function sellAll() {
+    if (isCompoActive()) {
+      sellAllBeach();
+      return;
+    }
     const totalBefore = getTotalProduce();
     if (!totalBefore) return;
     let earned = 0;
@@ -1239,7 +2176,127 @@
     saveState();
   }
 
+  function sellBeachCatch(catchId) {
+    const compo = getCompo();
+    const catchConfig = getBeachCatch(catchId);
+    const count = compo.inventory[catchId] || 0;
+    if (!catchConfig || !count) return;
+    const earned = Math.round(count * catchConfig.value * beachMarketMultiplier(compo));
+    compo.shells += earned;
+    compo.inventory[catchId] = 0;
+    addCompoXP(Math.max(2, Math.floor(count / 2)));
+    playSfx("coins");
+    toast(`Beach Market paid ${earned} shells for ${catchConfig.name.toLowerCase()}.`);
+    renderAll();
+    saveState();
+  }
+
+  function craftBeachGood(goodId) {
+    const compo = getCompo();
+    const good = BEACH_GOODS.find((candidate) => candidate.id === goodId);
+    if (!good?.cost) return false;
+    const canCraft = Object.entries(good.cost).every(([id, amount]) => (compo.inventory[id] || 0) >= amount);
+    if (!canCraft) return false;
+    Object.entries(good.cost).forEach(([id, amount]) => { compo.inventory[id] -= amount; });
+    compo.goods[good.id] = (compo.goods[good.id] || 0) + 1;
+    addCompoXP(6);
+    playSfx("build");
+    toast(`Crafted 1 ${good.name.toLowerCase()} for the beach market.`);
+    renderAll();
+    saveState();
+    return true;
+  }
+
+  function sellBeachGood(goodId) {
+    const compo = getCompo();
+    const good = BEACH_GOODS.find((candidate) => candidate.id === goodId);
+    const count = Math.floor(compo.goods[goodId] || 0);
+    if (!good || !count) {
+      craftBeachGood(goodId);
+      return;
+    }
+    const earned = Math.round(count * good.value * beachMarketMultiplier(compo));
+    compo.shells += earned;
+    compo.goods[goodId] -= count;
+    addCompoXP(Math.max(2, Math.floor(count / 2)));
+    playSfx("coins");
+    toast(`Beach Market paid ${earned} shells for ${count} ${good.name.toLowerCase()}.`);
+    renderAll();
+    saveState();
+  }
+
+  function sellAllBeach() {
+    const compo = getCompo();
+    const totalBefore = getTotalBeachProduce(compo);
+    if (!totalBefore) return;
+    let earned = 0;
+    BEACH_CATCHES.forEach((catchConfig) => {
+      const count = compo.inventory[catchConfig.id] || 0;
+      earned += Math.round(count * catchConfig.value * beachMarketMultiplier(compo));
+      compo.inventory[catchConfig.id] = 0;
+    });
+    BEACH_GOODS.forEach((good) => {
+      const count = Math.floor(compo.goods[good.id] || 0);
+      earned += Math.round(count * good.value * beachMarketMultiplier(compo));
+      compo.goods[good.id] -= count;
+    });
+    compo.shells += earned;
+    addCompoXP(Math.max(4, Math.floor(totalBefore / 2)));
+    playSfx("coins");
+    toast(`Sold the beach basket for ${earned} shells!`);
+    renderAll();
+    saveState();
+  }
+
+  function generateCompoMathQuestion() {
+    const level = Math.min(6, Math.max(1, Math.ceil(state.stats.correct / 5) + learningTier()));
+    const type = Math.floor(Math.random() * 5);
+    let prompt, answer, skill, distractors;
+    if (type === 0) {
+      const lines = 2 + Math.floor(Math.random() * (2 + level));
+      const bait = 3 + Math.floor(Math.random() * 6);
+      answer = lines * bait;
+      prompt = `Each fishing line needs ${bait} pieces of bait. How many pieces are needed for ${lines} lines?`;
+      skill = "Multiplication";
+      distractors = [answer + bait, answer - lines, bait + lines];
+    } else if (type === 1) {
+      const necklaces = 2 + Math.floor(Math.random() * 5);
+      const shellsEach = 6 + Math.floor(Math.random() * 5);
+      answer = necklaces * shellsEach;
+      prompt = `A shell necklace uses ${shellsEach} shells. How many shells are needed for ${necklaces} necklaces?`;
+      skill = "Multiplication";
+      distractors = [answer + shellsEach, answer - necklaces, shellsEach + necklaces];
+    } else if (type === 2) {
+      const groups = 3 + Math.floor(Math.random() * 5);
+      const perGroup = 4 + Math.floor(Math.random() * 7);
+      const total = groups * perGroup;
+      answer = perGroup;
+      prompt = `${total} crabs are divided equally into ${groups} tide-pool groups. How many crabs are in each group?`;
+      skill = "Division";
+      distractors = [answer + 1, answer - 1, groups];
+    } else if (type === 3) {
+      const total = 40 * (2 + Math.floor(Math.random() * 5));
+      const percent = [25, 50, 75][Math.floor(Math.random() * 3)];
+      answer = total * percent / 100;
+      prompt = `${percent}% of ${total} beach visitors rent gear. How many visitors rent gear?`;
+      skill = "Percents";
+      distractors = [total - answer, answer + 10, total / 4];
+    } else {
+      const base = 3 + Math.floor(Math.random() * 5);
+      const boatBonus = 1 + Math.floor(Math.random() * Math.max(2, level));
+      const trips = 2 + Math.floor(Math.random() * 4);
+      answer = (base + boatBonus) * trips;
+      prompt = `A boat trip catches ${base} fish plus ${boatBonus} bonus fish. How many fish come from ${trips} trips?`;
+      skill = "Multi-step";
+      distractors = [base * trips, answer - boatBonus, answer + trips];
+    }
+    const unique = [...new Set([answer, ...distractors].filter((value) => value >= 0))];
+    while (unique.length < 4) unique.push(answer + unique.length + 2);
+    return { subject: "math", prompt, hint: "Use the beach story to choose the best answer.", skill: `Compo Math · ${skill}`, answer: String(answer), choices: shuffle(unique.slice(0, 4).map(String)) };
+  }
+
   function generateMathQuestion() {
+    if (isCompoActive()) return generateCompoMathQuestion();
     const level = Math.min(6, Math.max(1, Math.ceil(state.stats.correct / 4) + learningTier()));
     const type = Math.floor(Math.random() * 5);
     let prompt, answer, skill, distractors;
@@ -1286,7 +2343,8 @@
   }
 
   function generateChineseQuestion() {
-    const pool = learningTier() > 1 ? CHINESE : CHINESE.slice(0, 8);
+    const words = isCompoActive() ? COMPO_CHINESE : CHINESE;
+    const pool = learningTier() > 1 ? words : words.slice(0, 8);
     const word = pool[Math.floor(Math.random() * pool.length)];
     return {
       subject: "chinese",
@@ -1303,13 +2361,16 @@
   }
 
   function generateSocialQuestion() {
-    const available = SOCIAL_LESSONS.filter((lesson) => lesson.tier <= learningTier()).flatMap((lesson) =>
+    const lessons = isCompoActive() ? COMPO_SOCIAL_LESSONS : SOCIAL_LESSONS;
+    const recentKey = isCompoActive() ? "recentCompoSocial" : "recentSocial";
+    const recent = Array.isArray(state[recentKey]) ? state[recentKey] : [];
+    const available = lessons.filter((lesson) => lesson.tier <= learningTier()).flatMap((lesson) =>
       lesson.questions.map((question, index) => ({ ...question, id: `${lesson.id}-${index}`, passage: lesson.passage, skill: lesson.skill }))
     );
-    const unseen = available.filter((question) => !state.recentSocial.includes(question.id));
+    const unseen = available.filter((question) => !recent.includes(question.id));
     const pool = unseen.length ? unseen : available;
     const question = pool[Math.floor(Math.random() * pool.length)];
-    state.recentSocial = [...state.recentSocial, question.id].slice(-8);
+    state[recentKey] = [...recent, question.id].slice(-8);
     return {
       subject: "social",
       id: question.id,
@@ -1343,11 +2404,22 @@
     if (!state.question) return;
     const question = state.question;
     const hasPassage = question.subject === "social" && Boolean(question.passage);
+    if (isCompoActive()) {
+      dom.learnRegionLabel.textContent = "Compo Learning Tent";
+      dom.learnCopy.textContent = "Math earns bait, Intro Chinese earns beach wood, and Grade 5 Social Studies earns beach ore.";
+      dom.rewardCopy.textContent = "Math → bait. Chinese → beach wood. Social Studies → beach ore. Correct answers also boost Beach Market sale value.";
+      dom.rewardResourceList.innerHTML = `<span>∑ Math <b>Bait</b></span><span>中文 Chinese <b>Beach wood</b></span><span>⌂ Social Studies <b>Beach ore</b></span><span>🎣 Fishing <b>Shells · Supplies</b></span>`;
+    } else {
+      dom.learnRegionLabel.textContent = "Coleytown Learning Tent";
+      dom.learnCopy.textContent = "Math earns seeds, Intro Chinese earns wood, and Grade 5 Social Studies earns ore.";
+      dom.rewardCopy.textContent = "Math → seeds. Chinese → wood. Social Studies → ore. Every correct answer also adds five minutes of double market value.";
+      dom.rewardResourceList.innerHTML = `<span>∑ Math <b>Seeds</b></span><span>中文 Chinese <b>Wood</b></span><span>⌂ Social Studies <b>Ore</b></span><span>🌾 Farm <b>Coins · Feed</b></span>`;
+    }
     dom.lessonCard.classList.toggle("social-lesson", hasPassage);
     dom.lessonPassage.hidden = !hasPassage;
     dom.lessonPassageText.textContent = hasPassage ? question.passage : "";
     dom.questionSkill.textContent = question.skill;
-    dom.questionReward.textContent = `+${learningReward().label} · 2× market`;
+    dom.questionReward.textContent = `+${learningReward().label} · ${learningBoostLabel()}`;
     dom.questionPrompt.textContent = question.prompt;
     dom.questionHint.textContent = question.hint;
     dom.answerGrid.innerHTML = question.choices.map((choice, index) => `<button class="answer-button" data-answer="${escapeHtml(choice)}" type="button"><span>${String.fromCharCode(65 + index)}</span>${escapeHtml(choice)}</button>`).join("");
@@ -1376,14 +2448,24 @@
       state.streak += 1;
       state.stats.correct += 1;
       state.lessonStep += 1;
-      state[reward.type] += reward.amount;
+      grantLearningReward(reward);
       if (state.subject === "chinese") state.stats.chineseCorrect += 1;
       if (state.subject === "social") state.stats.socialCorrect += 1;
       state.boostUntil = Math.max(Date.now(), state.boostUntil) + 5 * 60 * 1000;
-      addXP(15);
-      let message = `Correct — +${reward.label} and five minutes added to 2× market value!`;
+      if (isCompoActive()) addCompoXP(15);
+      else addXP(15);
+      let message = `Correct — +${reward.label} and five minutes added to ${learningBoostLabel()} value!`;
       if (state.lessonStep % 3 === 0) {
-        if (state.subject === "math") {
+        if (isCompoActive() && state.subject === "math") {
+          getCompo().bait += 2;
+          message = `Tackle crate! +${reward.label} plus 2 bonus bait.`;
+        } else if (isCompoActive() && state.subject === "chinese") {
+          getCompo().wood += 2;
+          message = `Driftwood crate! +${reward.label} plus 2 bonus beach wood.`;
+        } else if (isCompoActive()) {
+          getCompo().ore += 1;
+          message = `Beach works crate! +${reward.label} plus 1 bonus beach ore.`;
+        } else if (state.subject === "math") {
           state.seeds += 2;
           message = `Supply crate! +${reward.label} plus 2 bonus seeds.`;
         } else if (state.subject === "chinese") {
@@ -1424,6 +2506,13 @@
   }
 
   function renderGoals() {
+    if (isCompoActive()) {
+      renderBeachGoals();
+      return;
+    }
+    dom.goalsRegionLabel.textContent = "Town project board";
+    dom.goalsTitle.textContent = "What should Coleytown become?";
+    dom.goalsCopy.textContent = "Buildings need sale coins, Chinese-earned wood, and Social Studies ore. Animals also need food from your fields.";
     const plotCount = unlockedPlotCount();
     const farmCost = farmExpansionCost();
     const farmProgress = farmCost ? Math.min(
@@ -1476,6 +2565,68 @@
     dom.milestoneCopy.textContent = level.capped ? "You’ve reached the current town milestone. Keep growing!" : "Earn town XP by planting, harvesting, learning, and building.";
     dom.milestoneProgress.style.width = `${level.progress * 100}%`;
     dom.milestoneLabel.textContent = level.capped ? `${formatNumber(state.xp)} XP` : `${formatNumber(state.xp - level.current.xp)} / ${formatNumber(level.next.xp - level.current.xp)} XP`;
+  }
+
+  function renderBeachGoals() {
+    const compo = getCompo();
+    const spotCount = beachSpotCount(compo);
+    const spotCost = beachSpotExpansionCost(compo);
+    const spotProgress = spotCost ? Math.min(
+      1,
+      compo.shells / spotCost.shells,
+      spotCost.wood ? compo.wood / spotCost.wood : 1,
+      spotCost.ore ? compo.ore / spotCost.ore : 1,
+    ) * 100 : 100;
+    dom.goalsRegionLabel.textContent = "Compo project board";
+    dom.goalsTitle.textContent = "Build Compo Beach into a seaside town.";
+    dom.goalsCopy.textContent = "Beach projects use shell coins from fishing sales plus beach wood from Chinese and beach ore from Social Studies.";
+    const spotProject = `<article class="project-card"><span class="project-icon" aria-hidden="true">🎣</span><div class="project-copy"><h3>Open the next fishing spot</h3><p>${spotCost ? `Add more water to work after your ${spotCount === 1 ? "starter fishing spot" : `${spotCount} fishing spots`}.` : "All Compo fishing spots are open."}</p><div class="project-progress"><span style="width:${spotProgress}%"></span></div></div><div class="project-action"><small>${spotCost ? beachCostLabel(spotCost) : "All four spots open"}</small><button data-expand-beach type="button" ${spotCost && canExpandBeachSpots(compo) ? "" : "disabled"}>${spotCost ? `Open spot ${spotCount + 1}` : "Fishing complete"}</button></div></article>`;
+    const buildingProjects = Object.entries(BEACH_BUILDINGS).map(([id, config]) => {
+      const level = compo.buildings[id];
+      const unlocked = config.unlock(compo);
+      const building = compo.construction[id];
+      const targetLevel = building?.targetLevel || Math.min(MAX_BUILDING_LEVEL, level + 1);
+      const installments = beachBuildingInstallments(id, targetLevel);
+      const nextStep = building ? Math.min(2, building.phase + 1) : 0;
+      const due = installments[nextStep];
+      const ready = building ? constructionReady(building) : true;
+      const complete = level >= MAX_BUILDING_LEVEL;
+      const canAfford = unlocked && !complete && ready && (building?.phase === 2 || canPayBeach(due, compo));
+      const icon = { towncenter: "⛳", beachmarket: "🍽", icecream: "🍦", boat: "⛵" }[id];
+      const action = building
+        ? building.phase === 2
+          ? `Finishing · ${formatTime((building.phaseReadyAt - Date.now()) / 1000)}`
+          : ready ? (building.phase === 0 ? "Supply boardwalk frame" : "Supply final beach stone") : `${constructionPhaseName(building.phase)} · ${formatTime((building.phaseReadyAt - Date.now()) / 1000)}`
+        : !unlocked ? "Locked" : complete ? "Modern coast form complete" : level ? `Begin era ${level + 1}` : "Lay foundation";
+      const requirement = id === "icecream" ? "Reach coast level 2" : id === "boat" ? "Requires Beach Market first; this project builds the boat." : "";
+      const phaseProgress = building ? Math.min(1, Math.max(0, 1 - (building.phaseReadyAt - Date.now()) / (BUILD_PHASE_SECONDS[building.phase] * 1000))) : 0;
+      const progress = complete ? 100 : building ? (building.phase + phaseProgress) / 3 * 100 : level / MAX_BUILDING_LEVEL * 100;
+      const dueLabel = building?.phase === 2 ? "Final work underway" : complete ? "Three eras complete" : unlocked ? `Next installment: ${beachCostLabel(due)}` : requirement;
+      return `<article class="project-card ${building ? "project-building" : ""}"><span class="project-icon" aria-hidden="true">${icon}</span><div class="project-copy"><h3>${config.name}</h3><p>${building ? `${constructionPhaseName(building.phase)} for era ${building.targetLevel}. Each stage changes the beach map and needs a later payment.` : unlocked ? config.effect(Math.max(1, level)) : requirement}</p><div class="project-progress"><span style="width:${progress}%"></span></div></div><div class="project-action"><small>${dueLabel}</small><button data-beach-project="${id}" type="button" ${unlocked && (building || canAfford || complete) ? "" : "disabled"}>${action}</button></div></article>`;
+    });
+    const habitatProjects = Object.entries(BEACH_HABITATS).map(([id, config]) => {
+      const level = compo.habitats[id];
+      const cost = beachHabitatCost(id, compo);
+      const feed = beachHabitatFeed(id, compo);
+      const growth = compo.habitatGrowth[id];
+      const action = growth ? `Growing · ${formatTime((growth.completeAt - Date.now()) / 1000)}` : level >= 3 ? "Fully developed" : level ? "Expand lodging" : "Open lodging";
+      const feedProgress = Object.entries(feed).reduce((minimum, [catchId, amount]) => Math.min(minimum, (compo.inventory[catchId] || 0) / amount), 1);
+      return `<article class="project-card ${growth ? "project-building" : ""}"><span class="project-icon" aria-hidden="true">${id === "beachhouse" ? "🏖" : "🏘"}</span><div class="project-copy"><h3>${config.name}</h3><p>${growth ? "The lodging is visibly developing on the beach map." : level ? config.effect(level) : "Build lodging, then supply it with beach catches to make rental goods."}</p><div class="project-progress"><span style="width:${Math.min(1,compo.shells/cost,feedProgress)*100}%"></span></div></div><div class="project-action"><small>${level >= 3 ? "Complete" : `${cost} shells · ${beachFeedLabel(feed)}`}</small><button data-beach-habitat-project="${id}" type="button" ${compo.shells >= cost && hasBeachFeed(feed, compo) && level < 3 && !growth ? "" : "disabled"}>${action}</button></div></article>`;
+    });
+    const coastStops = [
+      { name: "Starter shore", detail: "One fishing spot, bait, and shell sales", complete: true },
+      { name: "Compo market", detail: "Restaurant, ice cream, and shell necklaces", complete: compo.buildings.beachmarket > 0 },
+      { name: "Boat water", detail: "Deep-water fish and stronger yields", complete: compo.buildings.boat >= 2 },
+      { name: "Beach club", detail: "Golf, tennis, pool, and winter rink", complete: compo.buildings.towncenter >= 3 },
+      { name: "Modern coast", detail: "Homes, apartments, and full Compo identity", complete: compoDevelopmentCount(compo) >= 18 },
+    ];
+    const roadmap = `<article class="roadmap-card"><small>Compo Beach evolution</small><h3>Fishing shore → modern coast</h3><div class="roadmap-line">${coastStops.map((stop,index)=>`<span class="roadmap-stop ${stop.complete ? "complete" : index === 1 ? "active" : "future"}"><i>${index+1}</i><b>${stop.name}</b><small>${stop.detail}</small></span>`).join("")}</div></article>`;
+    dom.projectList.innerHTML = [spotProject, ...buildingProjects, ...habitatProjects, roadmap].join("");
+    const level = getCompoLevelInfo(compo.xp);
+    dom.milestoneName.textContent = level.capped ? "A thriving Compo Coast" : level.next.name;
+    dom.milestoneCopy.textContent = level.capped ? "You’ve reached the current Compo milestone. Keep building the shoreline!" : "Earn coast XP by fishing, learning, selling, crafting, and building Compo Beach.";
+    dom.milestoneProgress.style.width = `${level.progress * 100}%`;
+    dom.milestoneLabel.textContent = level.capped ? `${formatNumber(compo.xp)} coast XP` : `${formatNumber(compo.xp - level.current.xp)} / ${formatNumber(level.next.xp - level.current.xp)} coast XP`;
   }
 
   function openBuilding(id) {
@@ -1539,6 +2690,96 @@
     saveState();
   }
 
+  function openBeachBuilding(id) {
+    const compo = getCompo();
+    const config = BEACH_BUILDINGS[id];
+    if (!config) return;
+    const level = compo.buildings[id];
+    const unlocked = config.unlock(compo);
+    const building = compo.construction[id];
+    const targetLevel = building?.targetLevel || Math.min(MAX_BUILDING_LEVEL, level + 1);
+    const installments = beachBuildingInstallments(id, targetLevel);
+    const nextStep = building ? Math.min(2, building.phase + 1) : 0;
+    const due = installments[nextStep];
+    const ready = building ? constructionReady(building) : true;
+    const complete = level >= MAX_BUILDING_LEVEL;
+    const column = building ? constructionAssetStage(building) : level <= 0 ? 0 : level + 1;
+    const eraNames = ["Unbuilt", "Starter shore form", "Expanded beach form", "Modern Compo form"];
+    const phaseCopy = building
+      ? building.phase === 2
+        ? `Final beach work is underway. Completion in about ${formatTime((building.phaseReadyAt - Date.now()) / 1000)}.`
+        : ready
+          ? `${constructionPhaseName(building.phase)} is complete. The beach crew is waiting for the next installment before the map changes again.`
+          : `${constructionPhaseName(building.phase)} is visible on the Compo map. This stage needs about ${formatTime((building.phaseReadyAt - Date.now()) / 1000)} more.`
+      : config.description;
+    const actionText = building
+      ? building.phase === 2 ? "Final work underway" : !ready ? `${constructionPhaseName(building.phase)}…` : building.phase === 0 ? `Raise boardwalk frame · ${beachCostLabel(due)}` : `Finish beach work · ${beachCostLabel(due)}`
+      : complete ? "Modern evolution complete" : `${level ? "Begin next era" : "Lay foundation"} · ${beachCostLabel(due)}`;
+    const actionEnabled = unlocked && !complete && (building ? building.phase < 2 && ready && canPayBeach(due, compo) : canPayBeach(due, compo));
+    const budget = beachBuildingInstallments(id, targetLevel).reduce((total, step) => ({ shells: total.shells + step.shells, wood: total.wood + step.wood, ore: total.ore + step.ore }), { shells: 0, wood: 0, ore: 0 });
+    const rushShellCost = building ? buildingRushCoinCost(building) : 0;
+    const rushPanel = building && !ready
+      ? `<div class="building-rush"><div><small>Speed up this stage</small><strong>Optional — later supply payments still apply</strong></div><button data-rush-beach-building="${id}" data-rush-mode="shells" type="button" ${compo.shells >= rushShellCost ? "" : "disabled"}>Hire beach crew · ${rushShellCost} shells <b>−${BUILD_RUSH.coins.seconds}s</b></button><button data-rush-beach-building="${id}" data-rush-mode="materials" type="button" ${compo.wood >= BUILD_RUSH.materials.wood && compo.ore >= BUILD_RUSH.materials.ore ? "" : "disabled"}>Extra beach materials · ${BUILD_RUSH.materials.wood} wood + ${BUILD_RUSH.materials.ore} ore <b>−${BUILD_RUSH.materials.seconds}s</b></button></div>`
+      : "";
+    dom.buildingModalContent.innerHTML = `<div class="building-hero"><img class="modal-asset" src="${beachBuildingAsset(config,column)}" alt=""></div><small>${building ? `Beach construction stage ${building.phase + 1} of 3` : level ? `Compo building · ${eraNames[level]}` : "New Compo project"}</small><h2>${config.name}</h2><p class="building-description">${phaseCopy}</p><div class="building-stats"><div class="building-stat"><small>Current era</small><strong>${eraNames[level]}</strong></div><div class="building-stat"><small>${complete ? "Evolution" : "Next era benefit"}</small><strong>${complete ? "Starter → expanded → modern" : config.effect(level + 1)}</strong></div><div class="building-stat"><small>Full era budget</small><strong>${beachCostLabel(budget)}</strong></div></div>${rushPanel}<div class="building-actions"><button class="secondary-button" data-close-modal type="button">Back to beach</button><button class="primary-button" data-upgrade-beach="${id}" type="button" ${actionEnabled ? "" : "disabled"}>${unlocked ? actionText : "Project locked"}</button></div>`;
+    if (!dom.buildingModal.open) dom.buildingModal.showModal();
+  }
+
+  function upgradeBeachBuilding(id) {
+    const compo = getCompo();
+    const config = BEACH_BUILDINGS[id];
+    if (!config || !config.unlock(compo) || compo.buildings[id] >= MAX_BUILDING_LEVEL) return;
+    const building = compo.construction[id];
+    if (!building) {
+      const targetLevel = compo.buildings[id] + 1;
+      const due = beachBuildingInstallments(id, targetLevel)[0];
+      if (!canPayBeach(due, compo)) return;
+      payBeachCost(due, compo);
+      compo.construction[id] = { targetLevel, phase: 0, phaseReadyAt: Date.now() + BUILD_PHASE_SECONDS[0] * 1000 };
+      toast(`${config.short} foundation started. The beach crew will need another installment for the frame.`);
+    } else {
+      if (!constructionReady(building) || building.phase >= 2) return;
+      const nextPhase = building.phase + 1;
+      const due = beachBuildingInstallments(id, building.targetLevel)[nextPhase];
+      if (!canPayBeach(due, compo)) return;
+      payBeachCost(due, compo);
+      building.phase = nextPhase;
+      building.phaseReadyAt = Date.now() + BUILD_PHASE_SECONDS[nextPhase] * 1000;
+      toast(nextPhase === 1 ? `${config.short} boardwalk frame is rising.` : `${config.short} final beach work has begun.`);
+    }
+    playSfx("build");
+    dom.buildingModal.close();
+    renderAll();
+    saveState();
+  }
+
+  function rushBeachBuilding(id, mode) {
+    const compo = getCompo();
+    const building = compo.construction[id];
+    if (!building || constructionReady(building)) return;
+    if (mode === "shells") {
+      const cost = buildingRushCoinCost(building);
+      if (compo.shells < cost) return;
+      compo.shells -= cost;
+      building.phaseReadyAt -= BUILD_RUSH.coins.seconds * 1000;
+      toast(`Beach crew hired — ${BUILD_RUSH.coins.seconds} seconds removed.`);
+    } else if (mode === "materials") {
+      const cost = BUILD_RUSH.materials;
+      if (compo.wood < cost.wood || compo.ore < cost.ore) return;
+      compo.wood -= cost.wood;
+      compo.ore -= cost.ore;
+      building.phaseReadyAt -= cost.seconds * 1000;
+      toast(`Extra beach supplies delivered — ${cost.seconds} seconds removed.`);
+    } else {
+      return;
+    }
+    playSfx("build");
+    finalizeProgress(Date.now());
+    renderAll();
+    saveState();
+    openBeachBuilding(id);
+  }
+
   function openAnimal(id) {
     const config = ANIMALS[id];
     if (!config) return;
@@ -1564,6 +2805,34 @@
     renderAll(); saveState();
   }
 
+  function openBeachHabitat(id) {
+    const compo = getCompo();
+    const config = BEACH_HABITATS[id];
+    if (!config) return;
+    const level = compo.habitats[id];
+    const cost = beachHabitatCost(id, compo);
+    const feed = beachHabitatFeed(id, compo);
+    const growth = compo.habitatGrowth[id];
+    dom.buildingModalContent.innerHTML = `<div class="building-hero"><img class="modal-asset" src="${beachHabitatAsset(config,level)}" alt=""></div><small>${growth ? "Beach lodging in progress" : "Living beach lodging"}</small><h2>${config.name}</h2><p class="building-description">${growth ? `The lodging will visibly expand in ${formatTime((growth.completeAt-Date.now())/1000)}.` : "Beach houses and apartments replace farm animal habitats here. Grow them with shell coins and beach catches, then sell rental goods."}</p><div class="building-stats"><div class="building-stat"><small>Now</small><strong>${config.labels[level]}</strong></div><div class="building-stat"><small>Supplies needed</small><strong>${level >= 3 ? "Lodging complete" : beachFeedLabel(feed)}</strong></div></div><div class="building-actions"><button class="secondary-button" data-close-modal type="button">Back to beach</button><button class="primary-button" data-grow-beach-habitat="${id}" type="button" ${compo.shells >= cost && hasBeachFeed(feed, compo) && level < 3 && !growth ? "" : "disabled"}>${growth ? "Lodging growing" : level >= 3 ? "Lodging complete" : `Develop lodging · ${cost} shells + supplies`}</button></div>`;
+    dom.buildingModal.showModal();
+  }
+
+  function growBeachHabitat(id) {
+    const compo = getCompo();
+    const level = compo.habitats[id];
+    const cost = beachHabitatCost(id, compo);
+    const feed = beachHabitatFeed(id, compo);
+    if (level >= 3 || compo.shells < cost || !hasBeachFeed(feed, compo) || compo.habitatGrowth[id]) return;
+    compo.shells -= cost;
+    consumeBeachFeed(feed, compo);
+    compo.habitatGrowth[id] = { targetLevel: level + 1, completeAt: Date.now() + 180_000 };
+    dom.buildingModal.close();
+    playSfx("build");
+    toast(`${BEACH_HABITATS[id].name} is developing — watch it change on the beach!`);
+    renderAll();
+    saveState();
+  }
+
   function maybeUnlockCompo() {
     if (state.districts.compo || !riverTownComplete()) return;
     state.districts.compo = true;
@@ -1581,7 +2850,7 @@
     if (!['coleytown', 'compo'].includes(region)) return;
     setLayoutMode(false);
     state.activeRegion = region;
-    renderWorld();
+    renderAll();
     updateGuide();
     saveState();
   }
@@ -1597,6 +2866,23 @@
       state.animals[id] = growth.targetLevel; delete state.animalGrowth[id];
       addXP(20 + state.animals[id] * 6); playSfx("harvest"); toast(`${ANIMALS[id].labels[state.animals[id]]} now live in Coleytown!`);
     });
+    const compo = getCompo();
+    Object.entries(compo.construction).forEach(([id, build]) => {
+      if (build.phase < 2 || build.phaseReadyAt > now) return;
+      compo.buildings[id] = build.targetLevel;
+      delete compo.construction[id];
+      addCompoXP(50 + compo.buildings[id] * 15);
+      playSfx("build");
+      toast(`${BEACH_BUILDINGS[id].short} reached its ${["", "starter", "expanded", "modern"][compo.buildings[id]]} Compo form — the beach has changed!`);
+    });
+    Object.entries(compo.habitatGrowth).forEach(([id, growth]) => {
+      if (growth.completeAt > now) return;
+      compo.habitats[id] = growth.targetLevel;
+      delete compo.habitatGrowth[id];
+      addCompoXP(20 + compo.habitats[id] * 6);
+      playSfx("harvest");
+      toast(`${BEACH_HABITATS[id].labels[compo.habitats[id]]} now anchors Compo Beach!`);
+    });
     maybeUnlockCompo();
   }
 
@@ -1607,58 +2893,17 @@
     if (after > before) pendingTimers.push(window.setTimeout(() => toast(`Town level up — welcome to ${getLevelInfo().current.name}!`), 150));
   }
 
+  function addCompoXP(amount) {
+    const compo = getCompo();
+    const before = getCompoLevelInfo(compo.xp).level;
+    compo.xp += amount;
+    const after = getCompoLevelInfo(compo.xp).level;
+    if (after > before) pendingTimers.push(window.setTimeout(() => toast(`Compo Coast level up — welcome to ${getCompoLevelInfo(compo.xp).current.name}!`), 150));
+  }
+
   function updateGuide() {
-    if (state.activeRegion === "compo") {
-      dom.guideTitle.textContent = "Compo Coast is the next chapter.";
-      dom.guideCopy.textContent = "This separate shoreline is ready for future beach, recreation, and neighborhood buildings—without crowding River Town.";
-      dom.guideAction.firstChild.textContent = "Return to River Town ";
-      dom.guideAction.dataset.destination = "town";
-      return;
-    }
-    const ready = state.plots.filter((plot) => plot?.crop && plot.readyAt <= Date.now()).length;
-    const activeBuild = Object.keys(state.construction)[0];
-    if (activeBuild) {
-      dom.guideTitle.textContent = `${BUILDINGS[activeBuild].short} is taking shape!`;
-      const build = state.construction[activeBuild];
-      dom.guideCopy.textContent = constructionReady(build) && build.phase < 2 ? "This stage is finished. Visit Goals to supply the next paid construction stage." : "Watch the foundation become a timber frame, then return with more coins and materials for the next stage.";
-      dom.guideAction.firstChild.textContent = "View construction ";
-      dom.guideAction.dataset.destination = "town";
-    } else if (ready) {
-      dom.guideTitle.textContent = `${ready} crop ${ready === 1 ? "is" : "are"} ready!`;
-      dom.guideCopy.textContent = "The harvest is waiting at Old Hill Farm. Gather it, then trade it on Main Street.";
-      dom.guideAction.firstChild.textContent = "Harvest now ";
-      dom.guideAction.dataset.destination = "farm";
-    } else if (getTotalProduce()) {
-      dom.guideTitle.textContent = "The market is bustling.";
-      dom.guideCopy.textContent = "Sell your harvest for the coins used by every building and animal project.";
-      dom.guideAction.firstChild.textContent = "Visit the market ";
-      dom.guideAction.dataset.destination = "market";
-    } else if (!state.plots.some((plot) => plot?.crop) && state.seeds > 0) {
-      dom.guideTitle.textContent = "Plant the first field.";
-      dom.guideCopy.textContent = `You have ${state.seeds} starter seeds—enough to begin before doing a lesson.`;
-      dom.guideAction.firstChild.textContent = "Choose a crop ";
-      dom.guideAction.dataset.destination = "farm";
-    } else if (state.seeds < 2) {
-      dom.guideTitle.textContent = "Math grows new seeds.";
-      dom.guideCopy.textContent = "Answer a short grade 5–6 problem to refill the seed basket and keep the farm moving.";
-      dom.guideAction.firstChild.textContent = "Try a challenge ";
-      dom.guideAction.dataset.destination = "learn";
-    } else if (state.wood < 4) {
-      dom.guideTitle.textContent = "Chinese supplies the carpenters.";
-      dom.guideCopy.textContent = "Intro Chinese answers earn wood for timber frames and future building stages.";
-      dom.guideAction.firstChild.textContent = "Earn wood ";
-      dom.guideAction.dataset.destination = "learn";
-    } else if (state.ore < 2) {
-      dom.guideTitle.textContent = "Social Studies supplies civic works.";
-      dom.guideCopy.textContent = "Grade 5 history, geography, and civics answers earn ore for masonry and final construction.";
-      dom.guideAction.firstChild.textContent = "Earn materials ";
-      dom.guideAction.dataset.destination = "learn";
-    } else {
-      dom.guideTitle.textContent = "The fields are waking up!";
-      dom.guideCopy.textContent = "Plant a few crops, then visit the market to turn your harvest into your first town improvements.";
-      dom.guideAction.firstChild.textContent = "Visit the farm ";
-      dom.guideAction.dataset.destination = "farm";
-    }
+    // The old Maple tip card was intentionally removed; guidance now lives in
+    // the visible crop/building/habitat states and the Farm/Goals/Learn tabs.
   }
 
   function renderAll() {
@@ -1668,10 +2913,99 @@
     renderMarket();
     renderGoals();
     if (state.question) {
-      dom.questionReward.textContent = `+${learningReward().label} · 2× market`;
+      dom.questionReward.textContent = `+${learningReward().label} · ${learningBoostLabel()}`;
       renderLessonProgressOnly();
     }
     if (dom.app.dataset.view === "town") updateGuide();
+  }
+
+  function nearestPathIndex(position) {
+    return WALK_PATH.reduce((best, node, index) => {
+      const distance = Math.hypot(node.x - position.x, node.y - position.y);
+      return distance < best.distance ? { index, distance } : best;
+    }, { index: 0, distance: Infinity }).index;
+  }
+
+  function shortestPathStep(currentIndex, targetIndex, previousIndex = -1) {
+    if (currentIndex === targetIndex) return currentIndex;
+    const queue = [currentIndex];
+    const cameFrom = new Map([[currentIndex, null]]);
+    while (queue.length) {
+      const nodeIndex = queue.shift();
+      if (nodeIndex === targetIndex) break;
+      WALK_PATH[nodeIndex].links.forEach((link) => {
+        if (cameFrom.has(link)) return;
+        cameFrom.set(link, nodeIndex);
+        queue.push(link);
+      });
+    }
+    if (!cameFrom.has(targetIndex)) return null;
+    let step = targetIndex;
+    while (cameFrom.get(step) !== currentIndex && cameFrom.get(step) !== null) step = cameFrom.get(step);
+    if (step === previousIndex) {
+      const alternate = WALK_PATH[currentIndex].links.find((link) => link !== previousIndex);
+      return alternate ?? step;
+    }
+    return step;
+  }
+
+  function buildingTarget(id) {
+    const position = state.layout.buildings[id];
+    return position ? nearestPathIndex({ x: position.x + 7, y: position.y + 8 }) : null;
+  }
+
+  function animalTarget(id) {
+    const position = state.layout.animals[id];
+    return position ? nearestPathIndex({ x: position.x + 7, y: position.y + 8 }) : null;
+  }
+
+  function readyCropTarget() {
+    const now = Date.now();
+    const index = state.plots.findIndex((plot) => plot?.crop && plot.readyAt <= now);
+    if (index < 0) return null;
+    const position = state.layout.plots[index];
+    return position ? nearestPathIndex({ x: position.x + 5, y: position.y + 6 }) : null;
+  }
+
+  function activeConstructionTarget() {
+    const id = Object.keys(state.construction)[0];
+    return id ? buildingTarget(id) : null;
+  }
+
+  function residentDestination(person) {
+    const constructionTarget = activeConstructionTarget();
+    if (constructionTarget !== null && Math.random() < 0.45) return constructionTarget;
+    const cropTarget = readyCropTarget();
+    if (person === "farmer" && cropTarget !== null) return cropTarget;
+    if (person === "vendor" && state.buildings.market > 0 && (getTotalProduce() > 0 || Math.random() < 0.35)) return buildingTarget("market");
+    if (person === "teacher" && state.buildings.school > 0 && Math.random() < 0.55) return buildingTarget("school");
+    if (person === "farmer" && state.animals.chickens > 0 && Math.random() < 0.35) return animalTarget("chickens");
+    if (person === "farmer" && state.animals.cows > 0 && Math.random() < 0.35) return animalTarget("cows");
+    const built = Object.entries(state.buildings).filter(([, level]) => level > 0).map(([id]) => id);
+    if (built.length && Math.random() < 0.2) return buildingTarget(built[Math.floor(Math.random() * built.length)]);
+    return null;
+  }
+
+  function walkerNextStep(element, currentIndex, previousIndex) {
+    const existing = Number(element.dataset.walkTarget);
+    let target = Number.isFinite(existing) ? existing : null;
+    if (target === currentIndex) {
+      delete element.dataset.walkTarget;
+      target = null;
+    }
+    if (target === null && Math.random() < 0.42) {
+      target = residentDestination(element.dataset.walker);
+      if (target !== null) element.dataset.walkTarget = String(target);
+    }
+    if (target !== null) {
+      const step = shortestPathStep(currentIndex, target, previousIndex);
+      if (step !== null) return step;
+      delete element.dataset.walkTarget;
+    }
+    const current = WALK_PATH[currentIndex];
+    const choices = current.links.filter((index) => index !== previousIndex);
+    const pool = choices.length ? choices : current.links;
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   function scheduleWalker(element, currentIndex, previousIndex = -1, delay = 0) {
@@ -1682,9 +3016,7 @@
         return;
       }
       const current = WALK_PATH[currentIndex];
-      const choices = current.links.filter((index) => index !== previousIndex);
-      const pool = choices.length ? choices : current.links;
-      const nextIndex = pool[Math.floor(Math.random() * pool.length)];
+      const nextIndex = walkerNextStep(element, currentIndex, previousIndex);
       const next = WALK_PATH[nextIndex];
       const distance = Math.hypot(next.x - current.x, next.y - current.y);
       const duration = clamp(distance * (0.72 + Math.random() * 0.12), 4.5, 10.5);
@@ -1705,6 +3037,130 @@
       element.style.left = `${WALK_PATH[start].x}%`;
       element.style.top = `${WALK_PATH[start].y}%`;
       scheduleWalker(element, start, -1, 450 + Math.random() * 1800);
+    });
+  }
+
+  function beachNearestPathIndex(position) {
+    return BEACH_PATH.reduce((best, node, index) => {
+      const distance = Math.hypot(node.x - position.x, node.y - position.y);
+      return distance < best.distance ? { index, distance } : best;
+    }, { index: 0, distance: Infinity }).index;
+  }
+
+  function beachShortestPathStep(currentIndex, targetIndex, previousIndex = -1) {
+    if (currentIndex === targetIndex) return currentIndex;
+    const queue = [currentIndex];
+    const cameFrom = new Map([[currentIndex, null]]);
+    while (queue.length) {
+      const nodeIndex = queue.shift();
+      if (nodeIndex === targetIndex) break;
+      BEACH_PATH[nodeIndex].links.forEach((link) => {
+        if (cameFrom.has(link)) return;
+        cameFrom.set(link, nodeIndex);
+        queue.push(link);
+      });
+    }
+    if (!cameFrom.has(targetIndex)) return null;
+    let step = targetIndex;
+    while (cameFrom.get(step) !== currentIndex && cameFrom.get(step) !== null) step = cameFrom.get(step);
+    if (step === previousIndex) {
+      const alternate = BEACH_PATH[currentIndex].links.find((link) => link !== previousIndex);
+      return alternate ?? step;
+    }
+    return step;
+  }
+
+  function beachBuildingTarget(id) {
+    const position = getCompo().layout.buildings[id];
+    return position ? beachNearestPathIndex({ x: position.x + 6, y: position.y + 8 }) : null;
+  }
+
+  function beachHabitatTarget(id) {
+    const position = getCompo().layout.habitats[id];
+    return position ? beachNearestPathIndex({ x: position.x + 7, y: position.y + 8 }) : null;
+  }
+
+  function beachReadyCatchTarget() {
+    const compo = getCompo();
+    const now = Date.now();
+    const index = compo.spots.findIndex((spot) => spot?.catchId && spot.readyAt <= now);
+    if (index < 0) return null;
+    const position = compo.layout.spots[index];
+    return position ? beachNearestPathIndex({ x: position.x + 5, y: position.y + 5 }) : null;
+  }
+
+  function beachConstructionTarget() {
+    const id = Object.keys(getCompo().construction)[0];
+    return id ? beachBuildingTarget(id) : null;
+  }
+
+  function beachResidentDestination(person) {
+    const constructionTarget = beachConstructionTarget();
+    if (constructionTarget !== null && Math.random() < 0.42) return constructionTarget;
+    const catchTarget = beachReadyCatchTarget();
+    if (person === "beach-angler" && catchTarget !== null) return catchTarget;
+    const compo = getCompo();
+    if (person === "beach-vendor" && compo.buildings.beachmarket > 0 && (getTotalBeachProduce(compo) > 0 || Math.random() < 0.35)) return beachBuildingTarget("beachmarket");
+    if (person === "beach-counselor" && compo.buildings.towncenter > 0 && Math.random() < 0.55) return beachBuildingTarget("towncenter");
+    if (person === "beach-counselor" && compo.habitats.apartment > 0 && Math.random() < 0.25) return beachHabitatTarget("apartment");
+    if (person === "beach-angler" && compo.buildings.boat > 0 && Math.random() < 0.45) return beachBuildingTarget("boat");
+    const built = Object.entries(compo.buildings).filter(([, level]) => level > 0).map(([id]) => id);
+    if (built.length && Math.random() < 0.22) return beachBuildingTarget(built[Math.floor(Math.random() * built.length)]);
+    return null;
+  }
+
+  function beachWalkerNextStep(element, currentIndex, previousIndex) {
+    const existing = Number(element.dataset.walkTarget);
+    let target = Number.isFinite(existing) ? existing : null;
+    if (target === currentIndex) {
+      delete element.dataset.walkTarget;
+      target = null;
+    }
+    if (target === null && Math.random() < 0.44) {
+      target = beachResidentDestination(element.dataset.beachWalker);
+      if (target !== null) element.dataset.walkTarget = String(target);
+    }
+    if (target !== null) {
+      const step = beachShortestPathStep(currentIndex, target, previousIndex);
+      if (step !== null) return step;
+      delete element.dataset.walkTarget;
+    }
+    const current = BEACH_PATH[currentIndex];
+    const choices = current.links.filter((index) => index !== previousIndex);
+    const pool = choices.length ? choices : current.links;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function scheduleBeachWalker(element, currentIndex, previousIndex = -1, delay = 0) {
+    window.clearTimeout(beachWalkerTimers.get(element));
+    const timer = window.setTimeout(() => {
+      if (state.settings.reduceMotion || state.activeRegion !== "compo") {
+        scheduleBeachWalker(element, currentIndex, previousIndex, 1500);
+        return;
+      }
+      const current = BEACH_PATH[currentIndex];
+      const nextIndex = beachWalkerNextStep(element, currentIndex, previousIndex);
+      const next = BEACH_PATH[nextIndex];
+      const distance = Math.hypot(next.x - current.x, next.y - current.y);
+      const duration = clamp(distance * (0.7 + Math.random() * 0.13), 4.2, 10.5);
+      element.classList.toggle("walking-left", next.x < current.x);
+      element.style.transitionDuration = `${duration}s`;
+      element.style.zIndex = String(6 + Math.round(next.y / 12));
+      element.style.left = `${next.x}%`;
+      element.style.top = `${next.y}%`;
+      scheduleBeachWalker(element, nextIndex, currentIndex, duration * 1000 + 350 + Math.random() * 1250);
+    }, delay);
+    beachWalkerTimers.set(element, timer);
+  }
+
+  function startBeachWalkerRoutes() {
+    const starts = { "beach-angler": 2, "beach-vendor": 6, "beach-counselor": 10 };
+    dom.beachWorld?.querySelectorAll("[data-beach-walker]").forEach((element) => {
+      if (beachWalkerTimers.has(element)) return;
+      const start = starts[element.dataset.beachWalker] ?? 3;
+      element.style.left = `${BEACH_PATH[start].x}%`;
+      element.style.top = `${BEACH_PATH[start].y}%`;
+      scheduleBeachWalker(element, start, -1, 450 + Math.random() * 1800);
     });
   }
 
@@ -1868,6 +3324,7 @@
     const elapsed = Math.min(2, (now - lastTick) / 1000);
     lastTick = now;
     accrueAnimalGoods(state, elapsed);
+    accrueBeachGoods(getCompo(), elapsed);
     finalizeProgress(now);
     renderHUD();
     const view = dom.app.dataset.view;
@@ -1880,13 +3337,6 @@
   function bindEvents() {
     document.querySelectorAll("[data-view-target], [data-open-view]").forEach((button) => button.addEventListener("click", () => setView(button.dataset.viewTarget || button.dataset.openView)));
     document.getElementById("brand-button").addEventListener("click", () => setView("town"));
-    dom.guideAction.addEventListener("click", () => {
-      if (state.activeRegion === "compo") setRegion("coleytown");
-      else setView(dom.guideAction.dataset.destination || "farm");
-    });
-    dom.townCardClose.addEventListener("click", () => dom.townCard.classList.add("hidden"));
-    dom.quickHarvest.addEventListener("click", () => { harvestAll(); setView("farm"); });
-    dom.quickBuild.addEventListener("click", () => setView("goals"));
     dom.worldCrops.addEventListener("click", (event) => {
       if (layoutMode) return;
       const plotButton = event.target.closest("[data-world-plot]");
@@ -1895,6 +3345,23 @@
       const plot = state.plots[index];
       if (plot?.crop && plot.readyAt <= Date.now()) harvestPlot(index);
       else { setView("farm"); selectPlot(index); }
+    });
+    dom.beachWorld.addEventListener("click", (event) => {
+      const spotButton = event.target.closest("[data-beach-spot]");
+      if (spotButton) {
+        const index = Number(spotButton.dataset.beachSpot);
+        const spot = getCompo().spots[index];
+        if (spot?.catchId && spot.readyAt <= Date.now()) harvestBeachSpot(index);
+        else { setView("farm"); selectBeachSpot(index); }
+        return;
+      }
+      const buildingButton = event.target.closest("[data-beach-building]");
+      if (buildingButton) {
+        openBeachBuilding(buildingButton.dataset.beachBuilding);
+        return;
+      }
+      const habitatButton = event.target.closest("[data-beach-habitat]");
+      if (habitatButton) openBeachHabitat(habitatButton.dataset.beachHabitat);
     });
     document.querySelectorAll("[data-animal]").forEach((habitat) => habitat.addEventListener("click", () => { if (!layoutMode) openAnimal(habitat.dataset.animal); }));
     dom.regionButtons.forEach((button) => button.addEventListener("click", () => setRegion(button.dataset.region)));
@@ -1910,6 +3377,8 @@
     dom.seedList.addEventListener("click", (event) => {
       const seed = event.target.closest("[data-seed]");
       if (seed) plantCrop(seed.dataset.seed);
+      const beachCatch = event.target.closest("[data-beach-catch]");
+      if (beachCatch) castLine(beachCatch.dataset.beachCatch);
     });
     dom.seedClose.addEventListener("click", () => { selectedPlot = null; dom.seedDrawer.classList.remove("open"); });
     document.querySelectorAll(".lesson-tab").forEach((tab) => tab.addEventListener("click", () => {
@@ -1941,14 +3410,23 @@
       if (sell) sellCrop(sell.dataset.sell);
       const sellGoodButton = event.target.closest("[data-sell-good]");
       if (sellGoodButton) sellGood(sellGoodButton.dataset.sellGood);
+      const sellBeach = event.target.closest("[data-sell-beach]");
+      if (sellBeach) sellBeachCatch(sellBeach.dataset.sellBeach);
+      const sellBeachGoodButton = event.target.closest("[data-sell-beach-good]");
+      if (sellBeachGoodButton) sellBeachGood(sellBeachGoodButton.dataset.sellBeachGood);
     });
     dom.sellAll.addEventListener("click", sellAll);
     dom.projectList.addEventListener("click", (event) => {
       if (event.target.closest("[data-expand-farm]")) expandFarm();
+      if (event.target.closest("[data-expand-beach]")) expandBeachSpots();
       const project = event.target.closest("[data-project]");
       if (project) openBuilding(project.dataset.project);
+      const beachProject = event.target.closest("[data-beach-project]");
+      if (beachProject) openBeachBuilding(beachProject.dataset.beachProject);
       const animalProject = event.target.closest("[data-animal-project]");
       if (animalProject) openAnimal(animalProject.dataset.animalProject);
+      const beachHabitatProject = event.target.closest("[data-beach-habitat-project]");
+      if (beachHabitatProject) openBeachHabitat(beachHabitatProject.dataset.beachHabitatProject);
       const region = event.target.closest("[data-open-region]");
       if (region) { setView("town"); setRegion(region.dataset.openRegion); }
     });
@@ -1956,10 +3434,16 @@
     dom.buildingModal.addEventListener("click", (event) => {
       const upgrade = event.target.closest("[data-upgrade]");
       if (upgrade) upgradeBuilding(upgrade.dataset.upgrade);
+      const beachUpgrade = event.target.closest("[data-upgrade-beach]");
+      if (beachUpgrade) upgradeBeachBuilding(beachUpgrade.dataset.upgradeBeach);
       const rush = event.target.closest("[data-rush-building]");
       if (rush) rushBuilding(rush.dataset.rushBuilding, rush.dataset.rushMode);
+      const beachRush = event.target.closest("[data-rush-beach-building]");
+      if (beachRush) rushBeachBuilding(beachRush.dataset.rushBeachBuilding, beachRush.dataset.rushMode);
       const grow = event.target.closest("[data-grow-animal]");
       if (grow) growAnimal(grow.dataset.growAnimal);
+      const beachGrow = event.target.closest("[data-grow-beach-habitat]");
+      if (beachGrow) growBeachHabitat(beachGrow.dataset.growBeachHabitat);
     });
     dom.settingsButton.addEventListener("click", () => dom.settingsModal.showModal());
     document.addEventListener("click", (event) => {
@@ -1985,7 +3469,7 @@
       const views = ["town", "farm", "learn", "market", "goals"];
       const index = Number(event.key) - 1;
       if (views[index]) setView(views[index]);
-      if (event.key === " " && dom.app.dataset.view === "farm") { event.preventDefault(); harvestAll(); }
+      if (event.key === " " && dom.app.dataset.view === "farm") { event.preventDefault(); isCompoActive() ? harvestAllBeach() : harvestAll(); }
     });
     window.addEventListener("beforeunload", saveState);
     window.addEventListener("pagehide", saveState);
