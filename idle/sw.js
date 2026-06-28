@@ -1,4 +1,4 @@
-const CACHE_NAME = "idle-town-pwa-cache-v15";
+const CACHE_NAME = "idle-town-pwa-cache-v17";
 const CROP_FILES = ["carrot", "wheat", "strawberry", "pumpkin", "blueberry", "apple"].flatMap((crop) =>
   ["soil", "sprout", "young", "mature"].map((stage) => `./assets/art/living-world/crops/${crop}-${stage}.png`)
 );
@@ -21,12 +21,12 @@ const COMPO_HABITAT_FILES = ["beachhouse", "apartment"].flatMap((habitat) =>
   ["empty", "young", "adult", "full"].map((stage) => `./assets/art/compo-world/habitats/${habitat}-${stage}.png`)
 );
 const COMPO_PEOPLE_FILES = [
-  "beach-shell-collector",
-  "beach-crabber",
-  "beach-red-hat-vendor",
-  "beach-lifeguard-modern",
-  "beach-icecream-vendor-modern",
-  "beach-tennis-modern",
+  "beach-shell-girl-walk",
+  "beach-crab-boy-walk",
+  "beach-kelp-girl-walk",
+  "beach-lifeguard-girl-modern-walk",
+  "beach-sailor-boy-modern-walk",
+  "beach-tennis-girl-modern-walk",
 ].map((person) => `./assets/art/compo-world/people/${person}.png`);
 const APP_FILES = [
   "./",

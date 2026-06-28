@@ -1345,18 +1345,18 @@
     return compo.buildings.towncenter >= 2 || compo.buildings.beachmarket >= 2 || compo.buildings.icecream >= 2 || compo.buildings.boat >= 2 || getCompoLevelInfo(compo.xp).level >= 3;
   }
 
-  function beachWalkerSprite(person, compo = getCompo()) {
+  function beachWalkerStrip(person, compo = getCompo()) {
     const early = {
-      "beach-angler": "beach-shell-collector",
-      "beach-vendor": "beach-red-hat-vendor",
-      "beach-counselor": "beach-crabber",
+      "beach-collector": "beach-shell-girl-walk",
+      "beach-crabber": "beach-crab-boy-walk",
+      "beach-helper": "beach-kelp-girl-walk",
     };
     const modern = {
-      "beach-angler": "beach-lifeguard-modern",
-      "beach-vendor": "beach-icecream-vendor-modern",
-      "beach-counselor": "beach-tennis-modern",
+      "beach-collector": "beach-lifeguard-girl-modern-walk",
+      "beach-crabber": "beach-sailor-boy-modern-walk",
+      "beach-helper": "beach-tennis-girl-modern-walk",
     };
-    const filename = (isModernCompoEra(compo) ? modern : early)[person] || early["beach-angler"];
+    const filename = (isModernCompoEra(compo) ? modern : early)[person] || early["beach-collector"];
     return `assets/art/compo-world/people/${filename}.png`;
   }
 
@@ -1476,17 +1476,17 @@
       const spotButtons = compo.spots.map((_, index) => `<button class="beach-spot" data-beach-spot="${index}" type="button"><img class="world-asset beach-catch-image" alt=""><span class="beach-label"></span></button>`);
       const buildingButtons = Object.entries(BEACH_BUILDINGS).map(([id, config]) => `<button class="beach-building ${id}-beach-building" data-beach-building="${id}" type="button" aria-label="${config.name}"><img class="world-asset beach-building-image" alt=""><em class="construction-badge" aria-hidden="true">Building…</em><span class="beach-label">${config.short}</span></button>`);
       const habitatButtons = Object.entries(BEACH_HABITATS).map(([id, config]) => `<button class="beach-habitat ${id}-beach-habitat" data-beach-habitat="${id}" type="button" aria-label="${config.name}"><img class="world-asset beach-habitat-image" alt=""><span class="beach-label">${config.name}</span></button>`);
-      const walkers = ["beach-angler", "beach-vendor", "beach-counselor"].map((person) => `<span class="shore-walker" data-beach-walker="${person}"><img class="shore-walker-sprite" alt=""></span>`);
+      const walkers = ["beach-collector", "beach-crabber", "beach-helper"].map((person) => `<span class="shore-walker shore-walker-${person}" data-beach-walker="${person}"><span class="shore-walker-frame"><img class="shore-walker-strip" alt=""></span></span>`);
       dom.beachWorld.innerHTML = [...spotButtons, ...buildingButtons, ...habitatButtons, `<div class="beach-life" aria-hidden="true">${walkers.join("")}</div>`].join("");
       dom.beachWorld.dataset.ready = "true";
       startBeachWalkerRoutes();
     }
 
     dom.beachWorld.querySelectorAll("[data-beach-walker]").forEach((walker) => {
-      const sprite = walker.querySelector(".shore-walker-sprite");
-      if (!sprite) return;
-      const source = beachWalkerSprite(walker.dataset.beachWalker, compo);
-      if (sprite.getAttribute("src") !== source) sprite.src = source;
+      const strip = walker.querySelector(".shore-walker-strip");
+      if (!strip) return;
+      const source = beachWalkerStrip(walker.dataset.beachWalker, compo);
+      if (strip.getAttribute("src") !== source) strip.src = source;
     });
 
     dom.beachWorld.querySelectorAll("[data-beach-spot]").forEach((button, index) => {
@@ -1567,7 +1567,11 @@
       button.disabled = region === "compo" && !state.districts.compo;
       if (region === "compo") button.textContent = state.districts.compo ? "Compo Coast" : "🔒 Compo Coast";
     });
-    dom.layoutButton.innerHTML = layoutMode ? `<span>✓</span><b>Done arranging</b>` : `<span>✥</span><b>Arrange town</b>`;
+    const arrangingLabel = state.activeRegion === "compo" ? "Arrange coast" : "Arrange town";
+    dom.layoutButton.innerHTML = layoutMode ? `<span>✓</span><b>Done arranging</b>` : `<span>✥</span><b>${arrangingLabel}</b>`;
+    dom.layoutHint.textContent = state.activeRegion === "compo"
+      ? "Drag fishing spots, beach buildings, and beach homes to arrange Compo. Tap Done when it feels right."
+      : "Drag buildings and habitats to arrange your town. Tap Done when it feels right.";
     dom.worldArt.classList.toggle("layout-mode", layoutMode);
     if (state.activeRegion === "compo") renderBeachWorld(now, season);
     if (dom.worldCrops.children.length !== state.plots.length) {
@@ -3098,12 +3102,12 @@
     const constructionTarget = beachConstructionTarget();
     if (constructionTarget !== null && Math.random() < 0.42) return constructionTarget;
     const catchTarget = beachReadyCatchTarget();
-    if (person === "beach-angler" && catchTarget !== null) return catchTarget;
+    if ((person === "beach-collector" || person === "beach-crabber") && catchTarget !== null) return catchTarget;
     const compo = getCompo();
-    if (person === "beach-vendor" && compo.buildings.beachmarket > 0 && (getTotalBeachProduce(compo) > 0 || Math.random() < 0.35)) return beachBuildingTarget("beachmarket");
-    if (person === "beach-counselor" && compo.buildings.towncenter > 0 && Math.random() < 0.55) return beachBuildingTarget("towncenter");
-    if (person === "beach-counselor" && compo.habitats.apartment > 0 && Math.random() < 0.25) return beachHabitatTarget("apartment");
-    if (person === "beach-angler" && compo.buildings.boat > 0 && Math.random() < 0.45) return beachBuildingTarget("boat");
+    if ((person === "beach-collector" || person === "beach-helper") && compo.buildings.beachmarket > 0 && (getTotalBeachProduce(compo) > 0 || Math.random() < 0.35)) return beachBuildingTarget("beachmarket");
+    if (person === "beach-helper" && compo.buildings.towncenter > 0 && Math.random() < 0.55) return beachBuildingTarget("towncenter");
+    if (person === "beach-helper" && compo.habitats.apartment > 0 && Math.random() < 0.25) return beachHabitatTarget("apartment");
+    if (person === "beach-crabber" && compo.buildings.boat > 0 && Math.random() < 0.45) return beachBuildingTarget("boat");
     const built = Object.entries(compo.buildings).filter(([, level]) => level > 0).map(([id]) => id);
     if (built.length && Math.random() < 0.22) return beachBuildingTarget(built[Math.floor(Math.random() * built.length)]);
     return null;
@@ -3154,7 +3158,7 @@
   }
 
   function startBeachWalkerRoutes() {
-    const starts = { "beach-angler": 2, "beach-vendor": 6, "beach-counselor": 10 };
+    const starts = { "beach-collector": 2, "beach-crabber": 6, "beach-helper": 10 };
     dom.beachWorld?.querySelectorAll("[data-beach-walker]").forEach((element) => {
       if (beachWalkerTimers.has(element)) return;
       const start = starts[element.dataset.beachWalker] ?? 3;
@@ -3165,7 +3169,7 @@
   }
 
   function setLayoutMode(enabled) {
-    layoutMode = Boolean(enabled) && state.activeRegion === "coleytown";
+    layoutMode = Boolean(enabled) && (state.activeRegion === "coleytown" || state.activeRegion === "compo");
     layoutDrag = null;
     dom.worldArt.classList.toggle("layout-mode", layoutMode);
     dom.layoutButton.setAttribute("aria-pressed", String(layoutMode));
@@ -3173,8 +3177,16 @@
   }
 
   function layoutTarget(element) {
-    const draggable = element.closest("[data-building], [data-animal], [data-world-plot]");
+    const selector = state.activeRegion === "compo"
+      ? "[data-beach-building], [data-beach-habitat], [data-beach-spot]"
+      : "[data-building], [data-animal], [data-world-plot]";
+    const draggable = element.closest(selector);
     if (!draggable || !dom.worldArt.contains(draggable)) return null;
+    if (state.activeRegion === "compo") {
+      if (draggable.dataset.beachBuilding) return { region: "compo", kind: "buildings", key: draggable.dataset.beachBuilding, element: draggable };
+      if (draggable.dataset.beachHabitat) return { region: "compo", kind: "habitats", key: draggable.dataset.beachHabitat, element: draggable };
+      return { region: "compo", kind: "spots", key: Number(draggable.dataset.beachSpot), element: draggable };
+    }
     if (draggable.dataset.building) return { kind: "buildings", key: draggable.dataset.building, element: draggable };
     if (draggable.dataset.animal) return { kind: "animals", key: draggable.dataset.animal, element: draggable };
     return { kind: "plots", key: Number(draggable.dataset.worldPlot), element: draggable };
@@ -3204,8 +3216,9 @@
     const x = clamp((event.clientX - worldRect.left - layoutDrag.offsetX) / worldRect.width * 100, 0, maxX);
     const y = clamp((event.clientY - worldRect.top - layoutDrag.offsetY) / worldRect.height * 100, 4, maxY);
     const position = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
-    if (layoutDrag.kind === "plots") state.layout.plots[layoutDrag.key] = position;
-    else state.layout[layoutDrag.kind][layoutDrag.key] = position;
+    const targetLayout = layoutDrag.region === "compo" ? getCompo().layout : state.layout;
+    if (layoutDrag.kind === "plots" || layoutDrag.kind === "spots") targetLayout[layoutDrag.kind][layoutDrag.key] = position;
+    else targetLayout[layoutDrag.kind][layoutDrag.key] = position;
     layoutDrag.element.style.left = `${position.x}%`;
     layoutDrag.element.style.top = `${position.y}%`;
     layoutDrag.element.style.right = "auto";
@@ -3347,6 +3360,7 @@
       else { setView("farm"); selectPlot(index); }
     });
     dom.beachWorld.addEventListener("click", (event) => {
+      if (layoutMode) return;
       const spotButton = event.target.closest("[data-beach-spot]");
       if (spotButton) {
         const index = Number(spotButton.dataset.beachSpot);
