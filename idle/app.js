@@ -1360,6 +1360,15 @@
     return `assets/art/compo-world/people/${filename}.png`;
   }
 
+  function riverMarketHelperStrip(modernResidents) {
+    return `assets/art/people/${modernResidents ? "market-helper-modern-walk" : "market-helper-walk"}.png`;
+  }
+
+  function ensureVendorStripWalker(walker) {
+    if (!walker || walker.querySelector(".river-walker-strip")) return;
+    walker.innerHTML = `<span class="river-walker-frame"><img class="river-walker-strip" alt=""></span>`;
+  }
+
   function cropStage(plot, now = Date.now()) {
     if (!plot?.crop) return 0;
     const progress = clamp((now - plot.plantedAt) / (plot.readyAt - plot.plantedAt), 0, 1);
@@ -1643,6 +1652,13 @@
     const modernResidents = riverTownComplete() || Object.values(state.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length >= 2;
     dom.worldArt.dataset.residentEra = modernResidents ? "modern" : "historic";
     document.querySelectorAll("[data-walker]").forEach((walker) => {
+      if (walker.dataset.walker === "vendor") {
+        ensureVendorStripWalker(walker);
+        const strip = walker.querySelector(".river-walker-strip");
+        const source = riverMarketHelperStrip(modernResidents);
+        if (strip && strip.getAttribute("src") !== source) strip.src = source;
+        return;
+      }
       const era = modernResidents ? "-modern" : "";
       const prefix = `assets/art/people/${walker.dataset.walker}${era}-rig`;
       const sources = [
@@ -2855,6 +2871,8 @@
     setLayoutMode(false);
     state.activeRegion = region;
     renderAll();
+    if (region === "coleytown") resumeRiverWalkerMotion();
+    if (region === "compo") resumeBeachWalkerMotion();
     updateGuide();
     saveState();
   }
@@ -3044,6 +3062,23 @@
     });
   }
 
+  function restartCssAnimations(selector) {
+    const elements = [...document.querySelectorAll(selector)];
+    elements.forEach((element) => { element.style.animation = "none"; });
+    elements.forEach((element) => { void element.offsetWidth; });
+    elements.forEach((element) => { element.style.animation = ""; });
+  }
+
+  function resumeRiverWalkerMotion() {
+    startWalkerRoutes();
+    window.requestAnimationFrame(() => restartCssAnimations(".walker-rig, .walker-leg, .river-walker-frame, .river-walker-strip"));
+  }
+
+  function resumeBeachWalkerMotion() {
+    startBeachWalkerRoutes();
+    window.requestAnimationFrame(() => restartCssAnimations(".shore-walker-frame, .shore-walker-strip"));
+  }
+
   function beachNearestPathIndex(position) {
     return BEACH_PATH.reduce((best, node, index) => {
       const distance = Math.hypot(node.x - position.x, node.y - position.y);
@@ -3146,7 +3181,7 @@
       const nextIndex = beachWalkerNextStep(element, currentIndex, previousIndex);
       const next = BEACH_PATH[nextIndex];
       const distance = Math.hypot(next.x - current.x, next.y - current.y);
-      const duration = clamp(distance * (0.7 + Math.random() * 0.13), 4.2, 10.5);
+      const duration = clamp(distance * (0.95 + Math.random() * 0.18), 5.6, 13.5);
       element.classList.toggle("walking-left", next.x < current.x);
       element.style.transitionDuration = `${duration}s`;
       element.style.zIndex = String(6 + Math.round(next.y / 12));
