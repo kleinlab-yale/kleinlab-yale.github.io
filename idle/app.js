@@ -1360,15 +1360,6 @@
     return `assets/art/compo-world/people/${filename}.png`;
   }
 
-  function riverMarketHelperStrip(modernResidents) {
-    return `assets/art/people/${modernResidents ? "market-helper-modern-walk" : "market-helper-walk"}.png`;
-  }
-
-  function ensureVendorStripWalker(walker) {
-    if (!walker || walker.querySelector(".river-walker-strip")) return;
-    walker.innerHTML = `<span class="river-walker-frame"><img class="river-walker-strip" alt=""></span>`;
-  }
-
   function cropStage(plot, now = Date.now()) {
     if (!plot?.crop) return 0;
     const progress = clamp((now - plot.plantedAt) / (plot.readyAt - plot.plantedAt), 0, 1);
@@ -1652,15 +1643,9 @@
     const modernResidents = riverTownComplete() || Object.values(state.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length >= 2;
     dom.worldArt.dataset.residentEra = modernResidents ? "modern" : "historic";
     document.querySelectorAll("[data-walker]").forEach((walker) => {
-      if (walker.dataset.walker === "vendor") {
-        ensureVendorStripWalker(walker);
-        const strip = walker.querySelector(".river-walker-strip");
-        const source = riverMarketHelperStrip(modernResidents);
-        if (strip && strip.getAttribute("src") !== source) strip.src = source;
-        return;
-      }
       const era = modernResidents ? "-modern" : "";
-      const prefix = `assets/art/people/${walker.dataset.walker}${era}-rig`;
+      const artKey = walker.dataset.walker === "vendor" ? "market-helper" : walker.dataset.walker;
+      const prefix = `assets/art/people/${artKey}${era}-rig`;
       const sources = [
         [walker.querySelector(".walker-torso"), `${prefix}-torso.png`],
         [walker.querySelector(".walker-leg-front"), `${prefix}-leg-1.png`],
@@ -3071,7 +3056,7 @@
 
   function resumeRiverWalkerMotion() {
     startWalkerRoutes();
-    window.requestAnimationFrame(() => restartCssAnimations(".walker-rig, .walker-leg, .river-walker-frame, .river-walker-strip"));
+    window.requestAnimationFrame(() => restartCssAnimations(".walker-rig, .walker-leg"));
   }
 
   function resumeBeachWalkerMotion() {
