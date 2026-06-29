@@ -2523,7 +2523,18 @@
   function globalRoadmapStatus(index) {
     if (index === 0) return riverTownComplete() || state.districts.compo ? "complete" : state.activeRegion === "coleytown" ? "active" : "future";
     if (index === 1) return compoWorldComplete() ? "complete" : state.activeRegion === "compo" || state.districts.compo ? "active" : "future";
+    if (index === 2) return compoWorldComplete() ? "active" : "future";
     return "future";
+  }
+
+  function roadmapStopStatus(stops, index) {
+    if (stops[index]?.complete) return "complete";
+    const activeIndex = stops.findIndex((stop) => !stop.complete);
+    return index === activeIndex ? "active" : "future";
+  }
+
+  function worldEvolutionRoadmapCard(kicker, title, stops) {
+    return `<article class="roadmap-card world-evolution-card"><small>${escapeHtml(kicker)}</small><h3>${escapeHtml(title)}</h3><div class="roadmap-line">${stops.map((stop,index)=>`<span class="roadmap-stop ${roadmapStopStatus(stops,index)}"><i>${index+1}</i><b>${escapeHtml(stop.name)}</b><small>${escapeHtml(stop.detail)}</small></span>`).join("")}</div></article>`;
   }
 
   function globalRoadmapCard() {
@@ -2583,8 +2594,16 @@
     const completedPieces = Object.values(state.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length + Object.values(state.animals).filter((level) => level >= 3).length + (state.plots.every((plot) => !plot?.locked) ? 1 : 0);
     const coastProgress = completedPieces / 7 * 100;
     const coastProject = `<article class="project-card expansion-project"><span class="project-icon" aria-hidden="true">☀</span><div class="project-copy"><h3>Open Compo Coast</h3><p>${state.districts.compo ? "Unlocked — switch regions on the town map to visit the coast." : "Finish all River Town buildings, habitats, and garden plots to open a whole new seaside screen."}</p><div class="project-progress"><span style="width:${state.districts.compo ? 100 : coastProgress}%"></span></div></div><div class="project-action"><small>${state.districts.compo ? "Coast unlocked" : `${completedPieces} / 7 town goals`}</small><button data-open-region="compo" type="button" ${state.districts.compo ? "" : "disabled"}>${state.districts.compo ? "Visit coast" : "Keep building"}</button></div></article>`;
+    const riverStops = [
+      { name: "Starter meadow", detail: "One working field and first learning rewards", complete: plotCount >= 1 },
+      { name: "Working farm", detail: "More crop land and food for animals", complete: state.plots.every((plot) => !plot?.locked) },
+      { name: "Main Street", detail: "Schoolhouse and market anchor the village", complete: state.buildings.school > 0 && state.buildings.market > 0 },
+      { name: "Civic town", detail: "Bakery, library, chickens, and cows add life", complete: state.buildings.bakery > 0 && state.buildings.library > 0 && Object.values(state.animals).every((level) => level > 0) },
+      { name: "Ready for coast", detail: "Complete every River project to open Compo", complete: riverTownComplete() },
+    ];
+    const riverRoadmap = worldEvolutionRoadmapCard("River Town evolution", "Empty meadow → living town", riverStops);
     const worldHeader = goalSectionHeading("World progress", "River Town progress", "Finish the farm, buildings, and habitats that make the first screen feel alive.");
-    dom.projectList.innerHTML = [worldHeader, farmProject, ...projects, ...animalProjects, coastProject, globalRoadmapCard()].join("");
+    dom.projectList.innerHTML = [worldHeader, farmProject, ...projects, ...animalProjects, coastProject, riverRoadmap, globalRoadmapCard()].join("");
     const level = getLevelInfo();
     dom.milestoneName.textContent = level.capped ? "A thriving Coleytown" : level.next.name;
     dom.milestoneCopy.textContent = level.capped ? "You’ve reached the current town milestone. Keep growing!" : "Earn town XP by planting, harvesting, learning, and building.";
@@ -2645,9 +2664,15 @@
       { name: "Beach club", detail: "Golf, tennis, pool, and winter rink", complete: compo.buildings.towncenter >= 3 },
       { name: "Modern coast", detail: "Homes, apartments, and full Compo identity", complete: compoDevelopmentCount(compo) >= 18 },
     ];
-    const roadmap = `<article class="roadmap-card"><small>Compo Beach evolution</small><h3>Fishing shore → modern coast</h3><div class="roadmap-line">${coastStops.map((stop,index)=>`<span class="roadmap-stop ${stop.complete ? "complete" : index === 1 ? "active" : "future"}"><i>${index+1}</i><b>${stop.name}</b><small>${stop.detail}</small></span>`).join("")}</div></article>`;
+    const roadmap = worldEvolutionRoadmapCard("Compo Beach evolution", "Fishing shore → modern coast", coastStops);
+    const completedPieces = (beachSpotCount(compo) >= compo.spots.length ? 1 : 0)
+      + Object.values(compo.buildings).filter((level) => level >= MAX_BUILDING_LEVEL).length
+      + Object.values(compo.habitats).filter((level) => level >= 3).length;
+    const downtownProgress = completedPieces / 7 * 100;
+    const downtownReady = compoWorldComplete(compo);
+    const downtownProject = `<article class="project-card expansion-project"><span class="project-icon" aria-hidden="true">🌉</span><div class="project-copy"><h3>Open Downtown & Flag Bridge</h3><p>${downtownReady ? "Compo is complete. Downtown & Flag Bridge is the next world in the Westport roadmap." : "Finish every Compo fishing spot, beach building, and lodging project to prepare the next world."}</p><div class="project-progress"><span style="width:${downtownProgress}%"></span></div></div><div class="project-action"><small>${downtownReady ? "Next world ready" : `${completedPieces} / 7 coast goals`}</small><button data-open-next-world="downtown" type="button" ${downtownReady ? "" : "disabled"}>${downtownReady ? "Preview next" : "Keep building"}</button></div></article>`;
     const worldHeader = goalSectionHeading("World progress", "Compo Coast progress", "Build the beach economy, town center, boat, lodging, and modern coast identity.");
-    dom.projectList.innerHTML = [worldHeader, spotProject, ...buildingProjects, ...habitatProjects, roadmap, globalRoadmapCard()].join("");
+    dom.projectList.innerHTML = [worldHeader, spotProject, ...buildingProjects, ...habitatProjects, downtownProject, roadmap, globalRoadmapCard()].join("");
     const level = getCompoLevelInfo(compo.xp);
     dom.milestoneName.textContent = level.capped ? "A thriving Compo Coast" : level.next.name;
     dom.milestoneCopy.textContent = level.capped ? "You’ve reached the current Compo milestone. Keep building the shoreline!" : "Earn coast XP by fishing, learning, selling, crafting, and building Compo Beach.";
@@ -3484,6 +3509,8 @@
       if (beachHabitatProject) openBeachHabitat(beachHabitatProject.dataset.beachHabitatProject);
       const region = event.target.closest("[data-open-region]");
       if (region) { setView("town"); setRegion(region.dataset.openRegion); }
+      const nextWorld = event.target.closest("[data-open-next-world]");
+      if (nextWorld) toast("Downtown & Flag Bridge is the next world on the roadmap — coming in the next expansion.");
     });
     document.querySelectorAll("[data-building]").forEach((building) => building.addEventListener("click", () => { if (!layoutMode) openBuilding(building.dataset.building); }));
     dom.buildingModal.addEventListener("click", (event) => {
