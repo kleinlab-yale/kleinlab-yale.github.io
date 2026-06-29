@@ -1644,7 +1644,7 @@
     dom.worldArt.dataset.residentEra = modernResidents ? "modern" : "historic";
     document.querySelectorAll("[data-walker]").forEach((walker) => {
       const era = modernResidents ? "-modern" : "";
-      const artKey = walker.dataset.walker === "vendor" ? "market-helper-swing" : walker.dataset.walker;
+      const artKey = walker.dataset.walker === "vendor" ? "market-helper-stride" : walker.dataset.walker;
       const prefix = `assets/art/people/${artKey}${era}-rig`;
       const sources = [
         [walker.querySelector(".walker-torso"), `${prefix}-torso.png`],
