@@ -201,6 +201,10 @@ svg { display: block; }
 .world-art[data-region="coleytown"][data-season="fall"] { background-image: url("assets/art/river-town-open-map.png"); }
 .world-art[data-region="coleytown"][data-season="winter"] { background-image: url("assets/art/river-town-winter-map.png"); }
 .world-art[data-region="compo"] { background-image: url("assets/art/compo-coast-open-map.png"); }
+.world-art[data-region="compo"][data-season="spring"] { background-image: url("assets/art/compo-coast-spring-map.png"); }
+.world-art[data-region="compo"][data-season="summer"] { background-image: url("assets/art/compo-coast-summer-map.png"); }
+.world-art[data-region="compo"][data-season="fall"] { background-image: url("assets/art/compo-coast-open-map.png"); }
+.world-art[data-region="compo"][data-season="winter"] { background-image: url("assets/art/compo-coast-winter-map.png"); }
 .world-art[data-region="compo"] .world-crops,
 .world-art[data-region="compo"] .town-building,
 .world-art[data-region="compo"] .animal-habitat,
@@ -259,6 +263,26 @@ svg { display: block; }
 .cloud-a { top: 9%; left: -5%; opacity: .45; }
 .cloud-b { top: 19%; right: -5%; opacity: .3; animation-delay: -8s; animation-duration: 31s; }
 @keyframes cloud-drift { to { transform: translateX(12vw); } }
+
+.wildlife-layer { position:absolute; z-index:7; inset:0; overflow:hidden; pointer-events:none; }
+.wildlife-event { position:absolute; display:block; pointer-events:none; opacity:0; will-change:transform,opacity; }
+.wildlife-event img { display:block; width:100%; height:auto; filter:drop-shadow(0 7px 5px rgba(22,46,39,.24)); }
+.wildlife-dolphin { width:clamp(78px,9vw,142px); left:var(--wildlife-left,72%); top:var(--wildlife-top,46%); animation:wildlife-dolphin-leap 4.8s ease-in-out forwards; }
+.wildlife-deer { width:clamp(76px,8vw,128px); left:var(--wildlife-left,104%); top:var(--wildlife-top,38%); animation:wildlife-deer-cross 6.2s linear forwards; }
+@keyframes wildlife-dolphin-leap {
+  0% { opacity:0; transform:translate(0,34px) rotate(-11deg) scale(.82); }
+  15% { opacity:1; }
+  45% { opacity:1; transform:translate(18px,-42px) rotate(7deg) scale(1); }
+  78% { opacity:1; transform:translate(45px,-6px) rotate(14deg) scale(.92); }
+  100% { opacity:0; transform:translate(62px,34px) rotate(19deg) scale(.78); }
+}
+@keyframes wildlife-deer-cross {
+  0% { opacity:0; transform:translateX(0) translateY(4px) scale(.9); }
+  8% { opacity:1; }
+  45% { transform:translateX(-48vw) translateY(-2px) scale(.94); }
+  88% { opacity:1; }
+  100% { opacity:0; transform:translateX(-112vw) translateY(3px) scale(.9); }
+}
 
 .town-life { position:absolute; z-index:3; inset:0; overflow:hidden; pointer-events:none; }
 .walker { position:absolute; z-index:5; width:clamp(54px,5vw,78px); aspect-ratio:1; overflow:visible; opacity:1; filter:drop-shadow(0 5px 3px rgba(35,56,40,.28)); transition-property:left,top; transition-timing-function:linear; pointer-events:none; }
@@ -727,11 +751,11 @@ svg { display: block; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .walker { animation:none !important; transition:none !important; }
-.walker-rig, .walker-leg, .shore-walker-frame, .shore-walker-strip { animation:none !important; }
+.walker-rig, .walker-leg, .shore-walker-frame, .shore-walker-strip, .wildlife-event { animation:none !important; }
   .walker-leg { transform:rotate(0); }
 }
 
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 .reduce-motion .walker { animation:none !important; transition:none !important; }
-.reduce-motion .walker-rig, .reduce-motion .walker-leg, .reduce-motion .shore-walker-frame, .reduce-motion .shore-walker-strip { animation:none !important; }
+.reduce-motion .walker-rig, .reduce-motion .walker-leg, .reduce-motion .shore-walker-frame, .reduce-motion .shore-walker-strip, .reduce-motion .wildlife-event { animation:none !important; }
 .reduce-motion .walker-leg { transform:rotate(0); }

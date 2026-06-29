@@ -528,6 +528,7 @@
     levelLabel: document.getElementById("level-label"),
     levelProgress: document.getElementById("level-progress"),
     worldArt: document.getElementById("world-art"),
+    wildlifeLayer: document.getElementById("wildlife-layer"),
     worldCrops: document.getElementById("world-crops"),
     beachWorld: document.getElementById("beach-world"),
     layoutButton: document.getElementById("layout-button"),
@@ -605,6 +606,7 @@
   let layoutDrag = null;
   let whiteboardDrawing = null;
   let whiteboardTool = "pen";
+  let wildlifeTimer = null;
   const walkerTimers = new Map();
   const beachWalkerTimers = new Map();
   const WALK_PATH = [
@@ -1412,6 +1414,7 @@
 
   function setView(view) {
     if (view !== "town" && layoutMode) setLayoutMode(false);
+    if (view !== "town") clearWildlifeEvents();
     dom.app.dataset.view = view;
     document.querySelectorAll(".view-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `view-${view}`));
     document.querySelectorAll(".nav-button").forEach((button) => {
@@ -2900,6 +2903,7 @@
     }
     if (!['coleytown', 'compo'].includes(region)) return;
     setLayoutMode(false);
+    clearWildlifeEvents();
     state.activeRegion = region;
     renderAll();
     if (region === "coleytown") resumeRiverWalkerMotion();
@@ -2957,6 +2961,48 @@
   function updateGuide() {
     // The old Maple tip card was intentionally removed; guidance now lives in
     // the visible crop/building/habitat states and the Farm/Goals/Learn tabs.
+  }
+
+  function clearWildlifeEvents() {
+    dom.wildlifeLayer?.replaceChildren();
+  }
+
+  function scheduleWildlifeEvent(delay = 35_000 + Math.random() * 65_000) {
+    if (wildlifeTimer) window.clearTimeout(wildlifeTimer);
+    if (!dom.wildlifeLayer || state.settings.reduceMotion) return;
+    wildlifeTimer = window.setTimeout(triggerWildlifeEvent, delay);
+  }
+
+  function triggerWildlifeEvent() {
+    wildlifeTimer = null;
+    const canShow = dom.app.dataset.view === "town"
+      && document.visibilityState !== "hidden"
+      && !layoutMode
+      && !state.settings.reduceMotion;
+    if (canShow) spawnWildlifeEvent(state.activeRegion === "compo" ? "dolphin" : "deer");
+    scheduleWildlifeEvent(55_000 + Math.random() * 75_000);
+  }
+
+  function spawnWildlifeEvent(type) {
+    if (!dom.wildlifeLayer) return;
+    clearWildlifeEvents();
+    const event = document.createElement("span");
+    event.className = `wildlife-event wildlife-${type}`;
+    const image = document.createElement("img");
+    image.alt = "";
+    image.src = type === "dolphin" ? "assets/art/wildlife/dolphin-leap.png" : "assets/art/wildlife/deer-run.png";
+    event.append(image);
+    if (type === "dolphin") {
+      event.style.setProperty("--wildlife-left", `${68 + Math.random() * 13}%`);
+      event.style.setProperty("--wildlife-top", `${42 + Math.random() * 8}%`);
+    } else {
+      event.style.setProperty("--wildlife-left", `${102 + Math.random() * 6}%`);
+      event.style.setProperty("--wildlife-top", `${31 + Math.random() * 12}%`);
+    }
+    dom.wildlifeLayer.append(event);
+    const remove = () => event.remove();
+    event.addEventListener("animationend", remove, { once: true });
+    window.setTimeout(remove, type === "dolphin" ? 5_500 : 7_000);
   }
 
   function renderAll() {
@@ -3534,7 +3580,14 @@
     [dom.buildingModal, dom.settingsModal].forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
     dom.musicToggle.addEventListener("change", () => toggleMusic(dom.musicToggle.checked));
     dom.sfxToggle.addEventListener("change", () => { state.settings.sfx = dom.sfxToggle.checked; saveState(); playSfx("correct"); });
-    dom.motionToggle.addEventListener("change", () => { state.settings.reduceMotion = dom.motionToggle.checked; dom.app.classList.toggle("reduce-motion", state.settings.reduceMotion); saveState(); });
+    dom.motionToggle.addEventListener("change", () => {
+      state.settings.reduceMotion = dom.motionToggle.checked;
+      dom.app.classList.toggle("reduce-motion", state.settings.reduceMotion);
+      clearWildlifeEvents();
+      if (state.settings.reduceMotion && wildlifeTimer) { window.clearTimeout(wildlifeTimer); wildlifeTimer = null; }
+      if (!state.settings.reduceMotion) scheduleWildlifeEvent(20_000 + Math.random() * 40_000);
+      saveState();
+    });
     dom.resetButton.addEventListener("click", () => {
       if (!window.confirm("Reset Coleytown and erase the local save?")) return;
       [SAVE_KEY, ...LEGACY_SAVE_KEYS].forEach((key) => localStorage.removeItem(key));
@@ -3573,6 +3626,7 @@
     if (!state.welcomed) dom.welcomeModal.showModal();
     showOfflineReport(state.welcomed ? 300 : 1200);
     if (state.settings.music) toggleMusic(true);
+    scheduleWildlifeEvent();
     window.setInterval(tick, TICK_MS);
     window.setInterval(saveState, 5_000);
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("./sw.js").catch(() => {});

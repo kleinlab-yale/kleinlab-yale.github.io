@@ -1,4 +1,4 @@
-const CACHE_NAME = "idle-town-pwa-cache-v25";
+const CACHE_NAME = "idle-town-pwa-cache-v26";
 const CROP_FILES = ["carrot", "wheat", "strawberry", "pumpkin", "blueberry", "apple"].flatMap((crop) =>
   ["soil", "sprout", "young", "mature"].map((stage) => `./assets/art/living-world/crops/${crop}-${stage}.png`)
 );
@@ -28,6 +28,8 @@ const COMPO_PEOPLE_FILES = [
   "beach-sailor-boy-modern-walk",
   "beach-tennis-girl-modern-walk",
 ].map((person) => `./assets/art/compo-world/people/${person}.png`);
+const COMPO_SEASON_MAP_FILES = ["spring", "summer", "winter"].map((season) => `./assets/art/compo-coast-${season}-map.png`);
+const WILDLIFE_FILES = ["dolphin-leap", "deer-run"].map((animal) => `./assets/art/wildlife/${animal}.png`);
 const APP_FILES = [
   "./",
   "./index.html",
@@ -52,6 +54,8 @@ const APP_FILES = [
   ...COMPO_BUILDING_FILES,
   ...COMPO_HABITAT_FILES,
   ...COMPO_PEOPLE_FILES,
+  ...COMPO_SEASON_MAP_FILES,
+  ...WILDLIFE_FILES,
 ];
 
 self.addEventListener("install", (event) => {
