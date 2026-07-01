@@ -37,7 +37,7 @@ test("offline cache includes every runtime game asset and every file exists", as
 });
 
 test("service worker caches the shell, warms the full game, and has an offline navigation fallback", () => {
-  assert.match(index, /<script src="script\.js\?v=20260621-offline"><\/script>/);
+  assert.match(index, /<script src="script\.js\?v=20260701-dog-assets"><\/script>/);
   assert.match(serviceWorker, /self\.addEventListener\("install"/);
   assert.match(serviceWorker, /self\.addEventListener\("activate"/);
   assert.match(serviceWorker, /event\.data\?\.type !== "CACHE_GAME"/);

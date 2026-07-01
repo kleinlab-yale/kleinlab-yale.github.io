@@ -53,18 +53,20 @@ const SCUBA_FRAMES = [
   "roll-b",
   "roll-c",
 ];
+const PET_ASSET_VERSION = "v=20260701-dog-sprites";
+const puppyAssetPath = (name) => `assets/${name}.png?${PET_ASSET_VERSION}`;
 const PET_ASSETS = Object.fromEntries(
   [
     ...Object.keys(PET_VARIANTS).flatMap((variant) => (
-      PET_FRAMES.map((frame) => [`pet-${variant}-${frame}`, `assets/gpt-puppy-${variant}-${frame}.png`])
+      PET_FRAMES.map((frame) => [`pet-${variant}-${frame}`, puppyAssetPath(`gpt-puppy-${variant}-${frame}`)])
     )),
     ...Object.keys(PET_VARIANTS).flatMap((variant) => (
       OUTFIT_LOOKS.flatMap((look) => (
-        ACTION_LOOK_FRAMES.map((frame) => [`pet-${variant}-${look}-${frame}`, `assets/gpt-puppy-${variant}-${look}-${frame}.png`])
+        ACTION_LOOK_FRAMES.map((frame) => [`pet-${variant}-${look}-${frame}`, puppyAssetPath(`gpt-puppy-${variant}-${look}-${frame}`)])
       ))
     )),
     ...Object.keys(PET_VARIANTS).flatMap((variant) => (
-      SCUBA_FRAMES.map((frame) => [`pet-${variant}-scuba-${frame}`, `assets/gpt-puppy-${variant}-scuba-${frame}.png`])
+      SCUBA_FRAMES.map((frame) => [`pet-${variant}-scuba-${frame}`, puppyAssetPath(`gpt-puppy-${variant}-scuba-${frame}`)])
     )),
   ]
 );
@@ -4469,7 +4471,7 @@ function offlineGameAssets() {
     "./",
     "./index.html",
     "./styles.css?v=20260620-decor-scroll",
-    "./script.js?v=20260621-offline",
+    "./script.js?v=20260701-dog-assets",
     "./workbook-questions.js?v=20260618-answer-integrity",
     ...Object.values(ASSETS),
   ];

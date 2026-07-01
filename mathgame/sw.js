@@ -1,9 +1,9 @@
-const CACHE_NAME = "math-pet-offline-20260621-v1";
+const CACHE_NAME = "math-pet-offline-20260701-dog-assets";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css?v=20260620-decor-scroll",
-  "./script.js?v=20260621-offline",
+  "./script.js?v=20260701-dog-assets",
   "./workbook-questions.js?v=20260618-answer-integrity",
 ];
 
