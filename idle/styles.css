@@ -490,6 +490,21 @@ svg { display: block; }
 .lesson-card h2 { max-width: 690px; min-height: 75px; margin: 0; font: 800 clamp(28px, 3.5vw, 43px)/1.12 "Fraunces", serif; letter-spacing: -.025em; }
 .lesson-card.social-lesson h2 { min-height:58px; font-size:clamp(23px,3vw,34px); }
 .question-hint { margin: 9px 0 24px; color: var(--muted); font-size: 12px; }
+.audio-replay-button {
+  min-height: 40px;
+  margin: -10px 0 18px;
+  padding: 0 15px;
+  border: 1px solid rgba(78, 148, 165, .26);
+  border-radius: 13px;
+  background: #eef8fa;
+  color: var(--forest-900);
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.audio-replay-button:hover { transform: translateY(-1px); background: #f7fcfd; }
+.audio-replay-button[hidden] { display: none; }
 .whiteboard-tools { display:flex; align-items:center; gap:8px; margin:-8px 0 18px; }
 .whiteboard-tools button { min-height:34px; padding:0 11px; border:1px solid var(--cream-300); border-radius:10px; background:var(--cream-100); color:var(--forest-800); font-size:9px; font-weight:800; cursor:pointer; }
 .whiteboard-tools > button:first-child { margin-right:auto; background:var(--forest-800); color:#fff; border-color:var(--forest-800); }

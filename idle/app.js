@@ -267,6 +267,27 @@
     { hanzi: "我喜欢苹果", pinyin: "wǒ xǐ huan píng guǒ", answer: "I like apples", distractors: ["I have apples", "I sell apples", "I see apples"] },
   ];
 
+  const CHINESE_LISTENING = [
+    { hanzi: "我今年九岁。", pinyin: "Wǒ jīn nián jiǔ suì.", answer: "I am nine years old.", audio: "assets/audio/chinese/wo_jin_nian_jiu_sui.wav" },
+    { hanzi: "我今年十岁。", pinyin: "Wǒ jīn nián shí suì.", answer: "I am ten years old.", audio: "assets/audio/chinese/wo_jin_nian_shi_sui.wav" },
+    { hanzi: "我今年十一岁。", pinyin: "Wǒ jīn nián shí yī suì.", answer: "I am eleven years old.", audio: "assets/audio/chinese/wo_jin_nian_shi_yi_sui.wav" },
+    { hanzi: "你几岁？", pinyin: "Nǐ jǐ suì?", answer: "How old are you?", audio: "assets/audio/chinese/ni_ji_sui.wav" },
+    { hanzi: "我的生日是五月二十号。", pinyin: "Wǒ de shēng rì shì wǔ yuè èr shí hào.", answer: "My birthday is May 20.", audio: "assets/audio/chinese/wo_de_shengri_shi_wu_yue_er_shi_hao.wav" },
+    { hanzi: "我的生日是六月八号。", pinyin: "Wǒ de shēng rì shì liù yuè bā hào.", answer: "My birthday is June 8.", audio: "assets/audio/chinese/wo_de_shengri_shi_liu_yue_ba_hao.wav" },
+    { hanzi: "我的生日是十二月一号。", pinyin: "Wǒ de shēng rì shì shí èr yuè yī hào.", answer: "My birthday is December 1.", audio: "assets/audio/chinese/wo_de_shengri_shi_shi_er_yue_yi_hao.wav" },
+    { hanzi: "我喜欢喝水。", pinyin: "Wǒ xǐ huān hē shuǐ.", answer: "I like to drink water.", audio: "assets/audio/chinese/wo_xihuan_he_shui.wav" },
+    { hanzi: "我喜欢喝茶。", pinyin: "Wǒ xǐ huān hē chá.", answer: "I like to drink tea.", audio: "assets/audio/chinese/wo_xihuan_he_cha.wav" },
+    { hanzi: "我喜欢喝咖啡。", pinyin: "Wǒ xǐ huān hē kā fēi.", answer: "I like to drink coffee.", audio: "assets/audio/chinese/wo_xihuan_he_kafei.wav" },
+    { hanzi: "我喜欢喝牛奶。", pinyin: "Wǒ xǐ huān hē niú nǎi.", answer: "I like to drink milk.", audio: "assets/audio/chinese/wo_xihuan_he_niunai.wav" },
+    { hanzi: "你喜欢喝什么？", pinyin: "Nǐ xǐ huān hē shén me?", answer: "What do you like to drink?", audio: "assets/audio/chinese/ni_xihuan_he_shenme.wav" },
+    { hanzi: "我是美国人。", pinyin: "Wǒ shì měi guó rén.", answer: "I am American.", audio: "assets/audio/chinese/wo_shi_meiguoren.wav" },
+    { hanzi: "我是中国人。", pinyin: "Wǒ shì zhōng guó rén.", answer: "I am Chinese.", audio: "assets/audio/chinese/wo_shi_zhongguoren.wav" },
+    { hanzi: "我住在美国。", pinyin: "Wǒ zhù zài měi guó.", answer: "I live in America.", audio: "assets/audio/chinese/wo_zhu_zai_meiguo.wav" },
+    { hanzi: "今天是星期四。", pinyin: "Jīn tiān shì xīng qī sì.", answer: "Today is Thursday.", audio: "assets/audio/chinese/jintian_shi_xingqisi.wav" },
+    { hanzi: "我有一个朋友。", pinyin: "Wǒ yǒu yí ge péng you.", answer: "I have a friend.", audio: "assets/audio/chinese/wo_you_yige_pengyou.wav" },
+    { hanzi: "我喜欢学校。", pinyin: "Wǒ xǐ huān xué xiào.", answer: "I like school.", audio: "assets/audio/chinese/wo_xihuan_xuexiao.wav" },
+  ];
+
   const COMPO_CHINESE = [
     { hanzi: "海", pinyin: "hǎi", answer: "sea", distractors: ["mountain", "library", "cow"] },
     { hanzi: "鱼", pinyin: "yú", answer: "fish", distractors: ["apple", "school", "book"] },
@@ -553,6 +574,7 @@
     lessonPassageText: document.getElementById("lesson-passage-text"),
     questionPrompt: document.getElementById("question-prompt"),
     questionHint: document.getElementById("question-hint"),
+    replayAudioButton: document.getElementById("replay-audio-button"),
     answerGrid: document.getElementById("answer-grid"),
     lessonFeedback: document.getElementById("lesson-feedback"),
     whiteboardToggle: document.getElementById("whiteboard-toggle"),
@@ -601,6 +623,8 @@
   let selectedPlot = null;
   let lastTick = Date.now();
   let audioContext = null;
+  let speechPlayer = null;
+  let lastSpokenQuestionKey = "";
   let pendingTimers = [];
   let layoutMode = false;
   let layoutDrag = null;
@@ -1415,6 +1439,7 @@
   function setView(view) {
     if (view !== "town" && layoutMode) setLayoutMode(false);
     if (view !== "town") clearWildlifeEvents();
+    if (view !== "learn") stopLessonAudio();
     dom.app.dataset.view = view;
     document.querySelectorAll(".view-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `view-${view}`));
     document.querySelectorAll(".nav-button").forEach((button) => {
@@ -2353,6 +2378,16 @@
   function generateChineseQuestion() {
     const words = isCompoActive() ? COMPO_CHINESE : CHINESE;
     const pool = learningTier() > 1 ? words : words.slice(0, 8);
+    const promptTypes = ["vocabulary", "character", "pair"];
+    if (CHINESE_LISTENING.length) promptTypes.push("listening");
+    const promptType = promptTypes[Math.floor(Math.random() * promptTypes.length)];
+    if (promptType === "listening") return generateChineseListeningQuestion();
+    if (promptType === "character") return generateChineseCharacterQuestion(pool);
+    if (promptType === "pair") return generateChinesePairQuestion(pool);
+    return generateChineseVocabularyQuestion(pool);
+  }
+
+  function generateChineseVocabularyQuestion(pool) {
     const word = pool[Math.floor(Math.random() * pool.length)];
     return {
       subject: "chinese",
@@ -2360,7 +2395,83 @@
       hint: word.pinyin,
       skill: "Intro Chinese",
       answer: word.answer,
-      choices: shuffle([word.answer, ...word.distractors]),
+      choices: meaningChoices(word, pool),
+    };
+  }
+
+  function meaningChoices(word, pool) {
+    const samePoolDistractors = shuffle(pool.filter((item) => item.answer !== word.answer)).map((item) => item.answer);
+    const fallbackDistractors = shuffle([...CHINESE, ...COMPO_CHINESE].filter((item) => item.answer !== word.answer)).map((item) => item.answer);
+    const choices = [word.answer];
+    for (const answer of [...samePoolDistractors, ...fallbackDistractors, ...(word.distractors || [])]) {
+      if (!choices.includes(answer)) choices.push(answer);
+      if (choices.length >= 4) break;
+    }
+    return shuffle(choices.slice(0, 4));
+  }
+
+  function generateChineseCharacterQuestion(pool) {
+    const word = pool[Math.floor(Math.random() * pool.length)];
+    const distractors = shuffle(pool.filter((item) => item.hanzi !== word.hanzi)).slice(0, 3).map((item) => item.hanzi);
+    return {
+      subject: "chinese",
+      type: "character",
+      prompt: `Which Chinese characters match “${word.pinyin}” (${word.answer})?`,
+      hint: "Match tone-marked pinyin to hanzi and meaning.",
+      skill: "Intro Chinese Characters",
+      answer: word.hanzi,
+      choices: shuffle([word.hanzi, ...distractors]),
+      hanzi: word.hanzi,
+      pinyin: word.pinyin,
+    };
+  }
+
+  function generateChinesePairQuestion(pool) {
+    const word = pool[Math.floor(Math.random() * pool.length)];
+    const distractors = shuffle(pool.filter((item) => item.hanzi !== word.hanzi));
+    const wrongPinyin = distractors[0] || word;
+    const wrongHanzi = distractors[1] || word;
+    const wrongMeaning = distractors[2] || word;
+    const answer = formatChinesePair(word, word, word);
+    return {
+      subject: "chinese",
+      type: "pair",
+      prompt: "Choose the complete hanzi, pinyin, and meaning match.",
+      hint: "All three parts must belong together.",
+      skill: "Intro Chinese Pair Match",
+      answer,
+      choices: shuffle([
+        answer,
+        formatChinesePair(word, wrongPinyin, word),
+        formatChinesePair(wrongHanzi, word, word),
+        formatChinesePair(word, word, wrongMeaning),
+      ]),
+      hanzi: word.hanzi,
+      pinyin: word.pinyin,
+    };
+  }
+
+  function formatChinesePair(hanziWord, pinyinWord, meaningWord) {
+    return `${hanziWord.hanzi} · ${pinyinWord.pinyin} · ${meaningWord.answer}`;
+  }
+
+  function generateChineseListeningQuestion() {
+    const phrase = CHINESE_LISTENING[Math.floor(Math.random() * CHINESE_LISTENING.length)];
+    const distractors = shuffle(CHINESE_LISTENING.filter((item) => item.answer !== phrase.answer))
+      .slice(0, 3)
+      .map((item) => item.answer);
+    return {
+      subject: "chinese",
+      type: "listening",
+      prompt: "Listen and choose the meaning.",
+      hint: "Intro Mandarin sentence. Use replay if you want to hear it again.",
+      skill: "Intro Chinese Listening",
+      answer: phrase.answer,
+      choices: shuffle([phrase.answer, ...distractors]),
+      audio: phrase.audio,
+      hanzi: phrase.hanzi,
+      pinyin: phrase.pinyin,
+      audioPromptId: `${phrase.audio}-${Date.now()}-${Math.random()}`,
     };
   }
 
@@ -2430,7 +2541,16 @@
     dom.questionReward.textContent = `+${learningReward().label} · ${learningBoostLabel()}`;
     dom.questionPrompt.textContent = question.prompt;
     dom.questionHint.textContent = question.hint;
+    dom.replayAudioButton.hidden = !question.audio;
     dom.answerGrid.innerHTML = question.choices.map((choice, index) => `<button class="answer-button" data-answer="${escapeHtml(choice)}" type="button"><span>${String.fromCharCode(65 + index)}</span>${escapeHtml(choice)}</button>`).join("");
+    const audioKey = question.audioPromptId || question.audio || "";
+    if (question.audio && dom.app.dataset.view === "learn" && audioKey !== lastSpokenQuestionKey) {
+      lastSpokenQuestionKey = audioKey;
+      playLessonAudio();
+    } else if (!question.audio) {
+      lastSpokenQuestionKey = "";
+      stopLessonAudio();
+    }
     dom.streakCount.textContent = `${state.streak} correct`;
     const step = state.lessonStep % 3;
     dom.lessonProgressBar.style.width = `${step / 3 * 100}%`;
@@ -2445,8 +2565,10 @@
   function answerQuestion(choice, button) {
     if (!state.question || dom.answerGrid.dataset.locked === "true") return;
     dom.answerGrid.dataset.locked = "true";
+    stopLessonAudio();
     state.stats.answered += 1;
     const correct = choice === state.question.answer;
+    const reveal = chineseReveal();
     dom.answerGrid.querySelectorAll("button").forEach((answerButton) => {
       answerButton.disabled = true;
       if (answerButton.dataset.answer === state.question.answer) answerButton.classList.add("correct");
@@ -2484,6 +2606,7 @@
           message = `Civic works crate! +${reward.label} plus 1 bonus ore.`;
         }
       }
+      if (reveal) message = `${message}${reveal}`;
       dom.lessonFeedback.textContent = message;
       playSfx("correct");
     } else {
@@ -2491,7 +2614,7 @@
       button.classList.add("wrong");
       dom.lessonFeedback.textContent = state.subject === "social"
         ? `Not quite. The answer is ${state.question.answer}. Re-read the short passage and notice the sentence that supports it.`
-        : `Not quite. The answer is ${state.question.answer}. A new one is coming up.`;
+        : `Not quite. The answer is ${state.question.answer}.${reveal} A new one is coming up.`;
       dom.lessonFeedback.classList.add("error");
       playSfx("wrong");
     }
@@ -3415,6 +3538,29 @@
     window.setTimeout(() => element.remove(), 2800);
   }
 
+  function playLessonAudio() {
+    if (!state.settings.sfx || !state.question?.audio) return;
+    try {
+      speechPlayer ||= new Audio();
+      speechPlayer.pause();
+      speechPlayer.currentTime = 0;
+      speechPlayer.src = state.question.audio;
+      speechPlayer.play().catch(() => {});
+    } catch (error) { /* spoken practice audio is optional */ }
+  }
+
+  function stopLessonAudio() {
+    if (!speechPlayer) return;
+    speechPlayer.pause();
+    speechPlayer.currentTime = 0;
+  }
+
+  function chineseReveal(question = state.question) {
+    if (!question || question.subject !== "chinese" || (!question.hanzi && !question.pinyin)) return "";
+    if (question.hanzi && question.pinyin) return ` Mandarin: ${question.hanzi} · ${question.pinyin}.`;
+    return ` Mandarin: ${question.hanzi || question.pinyin}.`;
+  }
+
   function playSfx(type) {
     if (!state.settings.sfx) return;
     try {
@@ -3514,6 +3660,7 @@
       dom.answerGrid.dataset.locked = "false";
       nextQuestion();
     }));
+    dom.replayAudioButton.addEventListener("click", playLessonAudio);
     dom.whiteboardToggle.addEventListener("click", () => {
       const show = !dom.workBoard.classList.contains("show");
       dom.workBoard.classList.toggle("show", show);
@@ -3579,7 +3726,7 @@
     });
     [dom.buildingModal, dom.settingsModal].forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
     dom.musicToggle.addEventListener("change", () => toggleMusic(dom.musicToggle.checked));
-    dom.sfxToggle.addEventListener("change", () => { state.settings.sfx = dom.sfxToggle.checked; saveState(); playSfx("correct"); });
+    dom.sfxToggle.addEventListener("change", () => { state.settings.sfx = dom.sfxToggle.checked; if (!state.settings.sfx) stopLessonAudio(); saveState(); playSfx("correct"); });
     dom.motionToggle.addEventListener("change", () => {
       state.settings.reduceMotion = dom.motionToggle.checked;
       dom.app.classList.toggle("reduce-motion", state.settings.reduceMotion);

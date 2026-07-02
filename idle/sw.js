@@ -1,4 +1,4 @@
-const CACHE_NAME = "idle-town-pwa-cache-v28";
+const CACHE_NAME = "idle-town-pwa-cache-v29";
 const CROP_FILES = ["carrot", "wheat", "strawberry", "pumpkin", "blueberry", "apple"].flatMap((crop) =>
   ["soil", "sprout", "young", "mature"].map((stage) => `./assets/art/living-world/crops/${crop}-${stage}.png`)
 );
@@ -30,6 +30,26 @@ const COMPO_PEOPLE_FILES = [
 ].map((person) => `./assets/art/compo-world/people/${person}.png`);
 const COMPO_SEASON_MAP_FILES = ["spring", "summer", "winter"].map((season) => `./assets/art/compo-coast-${season}-map.png`);
 const WILDLIFE_FILES = ["dolphin-leap", "deer-run"].map((animal) => `./assets/art/wildlife/${animal}.png`);
+const CHINESE_AUDIO_FILES = [
+  "wo_jin_nian_jiu_sui",
+  "wo_jin_nian_shi_sui",
+  "wo_jin_nian_shi_yi_sui",
+  "ni_ji_sui",
+  "wo_de_shengri_shi_wu_yue_er_shi_hao",
+  "wo_de_shengri_shi_liu_yue_ba_hao",
+  "wo_de_shengri_shi_shi_er_yue_yi_hao",
+  "wo_xihuan_he_shui",
+  "wo_xihuan_he_cha",
+  "wo_xihuan_he_kafei",
+  "wo_xihuan_he_niunai",
+  "ni_xihuan_he_shenme",
+  "wo_shi_meiguoren",
+  "wo_shi_zhongguoren",
+  "wo_zhu_zai_meiguo",
+  "jintian_shi_xingqisi",
+  "wo_you_yige_pengyou",
+  "wo_xihuan_xuexiao",
+].map((clip) => `./assets/audio/chinese/${clip}.wav`);
 const APP_FILES = [
   "./",
   "./index.html",
@@ -56,6 +76,7 @@ const APP_FILES = [
   ...COMPO_PEOPLE_FILES,
   ...COMPO_SEASON_MAP_FILES,
   ...WILDLIFE_FILES,
+  ...CHINESE_AUDIO_FILES,
 ];
 
 self.addEventListener("install", (event) => {
