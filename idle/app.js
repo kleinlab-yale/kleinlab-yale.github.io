@@ -574,6 +574,7 @@
     lessonPassageText: document.getElementById("lesson-passage-text"),
     questionPrompt: document.getElementById("question-prompt"),
     questionHint: document.getElementById("question-hint"),
+    lessonAudioPlayer: document.getElementById("lesson-audio-player"),
     replayAudioButton: document.getElementById("replay-audio-button"),
     answerGrid: document.getElementById("answer-grid"),
     lessonFeedback: document.getElementById("lesson-feedback"),
@@ -624,6 +625,7 @@
   let lastTick = Date.now();
   let audioContext = null;
   let speechPlayer = null;
+  let speechUtterance = null;
   let lastSpokenQuestionKey = "";
   let pendingTimers = [];
   let layoutMode = false;
@@ -2469,6 +2471,7 @@
       answer: phrase.answer,
       choices: shuffle([phrase.answer, ...distractors]),
       audio: phrase.audio,
+      spokenText: phrase.hanzi,
       hanzi: phrase.hanzi,
       pinyin: phrase.pinyin,
       audioPromptId: `${phrase.audio}-${Date.now()}-${Math.random()}`,
@@ -2541,13 +2544,14 @@
     dom.questionReward.textContent = `+${learningReward().label} · ${learningBoostLabel()}`;
     dom.questionPrompt.textContent = question.prompt;
     dom.questionHint.textContent = question.hint;
-    dom.replayAudioButton.hidden = !question.audio;
+    const hasAudio = hasLessonAudio(question);
+    dom.replayAudioButton.hidden = !hasAudio;
     dom.answerGrid.innerHTML = question.choices.map((choice, index) => `<button class="answer-button" data-answer="${escapeHtml(choice)}" type="button"><span>${String.fromCharCode(65 + index)}</span>${escapeHtml(choice)}</button>`).join("");
-    const audioKey = question.audioPromptId || question.audio || "";
-    if (question.audio && dom.app.dataset.view === "learn" && audioKey !== lastSpokenQuestionKey) {
+    const audioKey = question.audioPromptId || question.spokenText || question.audio || "";
+    if (hasAudio && dom.app.dataset.view === "learn" && audioKey !== lastSpokenQuestionKey) {
       lastSpokenQuestionKey = audioKey;
       playLessonAudio();
-    } else if (!question.audio) {
+    } else if (!hasAudio) {
       lastSpokenQuestionKey = "";
       stopLessonAudio();
     }
@@ -3538,21 +3542,71 @@
     window.setTimeout(() => element.remove(), 2800);
   }
 
-  function playLessonAudio() {
-    if (!state.settings.sfx || !state.question?.audio) return;
+  function hasLessonAudio(question = state.question) {
+    return Boolean(question && question.type === "listening" && (question.spokenText || question.hanzi || question.audio));
+  }
+
+  function spokenLessonText(question = state.question) {
+    if (!question || question.type !== "listening") return "";
+    return question.spokenText || question.hanzi || "";
+  }
+
+  function getMandarinVoice() {
+    const synth = window.speechSynthesis;
+    if (!synth?.getVoices) return null;
+    const voices = synth.getVoices();
+    return voices.find((voice) => /^zh[-_]?CN/i.test(voice.lang))
+      || voices.find((voice) => /^zh/i.test(voice.lang))
+      || voices.find((voice) => /tingting|mandarin|chinese/i.test(voice.name));
+  }
+
+  function speakMandarin(text) {
+    if (!text || !window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") return false;
     try {
-      speechPlayer ||= new Audio();
-      speechPlayer.pause();
-      speechPlayer.currentTime = 0;
-      speechPlayer.src = state.question.audio;
-      speechPlayer.play().catch(() => {});
-    } catch (error) { /* spoken practice audio is optional */ }
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      synth.resume?.();
+      speechUtterance = new SpeechSynthesisUtterance(text);
+      speechUtterance.lang = "zh-CN";
+      speechUtterance.rate = 0.82;
+      speechUtterance.pitch = 1;
+      const voice = getMandarinVoice();
+      if (voice) speechUtterance.voice = voice;
+      synth.speak(speechUtterance);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function playLessonAudio() {
+    if (!hasLessonAudio()) return;
+    const spokenText = spokenLessonText();
+    stopLessonAudio();
+    const player = dom.lessonAudioPlayer || (typeof Audio !== "undefined" ? (speechPlayer ||= new Audio()) : null);
+    if (state.question?.audio && player) {
+      try {
+        player.pause();
+        player.src = state.question.audio;
+        player.currentTime = 0;
+        player.play().catch(() => { speakMandarin(spokenText); });
+        return;
+      } catch (error) { /* fall through to speech synthesis */ }
+    }
+    speakMandarin(spokenText);
   }
 
   function stopLessonAudio() {
-    if (!speechPlayer) return;
-    speechPlayer.pause();
-    speechPlayer.currentTime = 0;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    speechUtterance = null;
+    if (dom.lessonAudioPlayer) {
+      dom.lessonAudioPlayer.pause();
+      dom.lessonAudioPlayer.currentTime = 0;
+    }
+    if (speechPlayer) {
+      speechPlayer.pause();
+      speechPlayer.currentTime = 0;
+    }
   }
 
   function chineseReveal(question = state.question) {
