@@ -236,6 +236,31 @@ h1 {
     0 0 2.8rem rgba(56, 169, 154, 0.36);
 }
 
+.hotspot-locked {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 0 0 0.38rem rgba(39, 52, 47, 0.08),
+    0 0 1.3rem rgba(39, 52, 47, 0.12);
+}
+
+.hotspot-locked::before {
+  border-color: rgba(39, 52, 47, 0.28);
+}
+
+.hotspot-locked::after {
+  background: var(--dim);
+  box-shadow: none;
+}
+
+.hotspot-locked:hover,
+.hotspot-locked:focus-visible {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 0 0 0.48rem rgba(39, 52, 47, 0.08),
+    0 0 1.7rem rgba(39, 52, 47, 0.14);
+}
+
 .hotspot-label {
   position: absolute;
   left: 50%;
@@ -304,10 +329,15 @@ h1 {
   font-weight: 800;
 }
 
-.nav-button:disabled {
-  cursor: not-allowed;
+.nav-button.locked {
   color: rgba(39, 52, 47, 0.38);
   background: rgba(255, 255, 255, 0.28);
+}
+
+.nav-button.locked:hover {
+  transform: none;
+  border-color: rgba(39, 52, 47, 0.16);
+  background: rgba(255, 255, 255, 0.32);
 }
 
 .ghost-button {
@@ -321,7 +351,7 @@ h1 {
   font-size: 0.78rem;
 }
 
-.nav-button:not(:disabled):hover,
+.nav-button:not(.locked):hover,
 .ghost-button:hover,
 .small-button:hover,
 .choice-button:hover,
@@ -661,6 +691,22 @@ h1 {
   color: #3f5e56;
   font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.case-closed-copy {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.case-closed-copy p {
+  margin: 0;
+}
+
+.case-closed-copy .panel-label {
+  color: var(--teal);
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  line-height: 1.1;
 }
 
 .riddle {

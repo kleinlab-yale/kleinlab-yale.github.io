@@ -1,10 +1,12 @@
 (function () {
-  const STORAGE_KEY = "kimmy-finch-picnic-pet-v2";
+  const STORAGE_KEY = "kimmy-finch-picnic-pet-v3";
 
   const CASE_BEATS = [
     "clientInterview",
+    "poppyTalked",
     "bakeryClue",
     "parkTrail",
+    "basilTalked",
     "caseSolved"
   ];
 
@@ -95,7 +97,7 @@
     identity:
       "Long mystery clue: the picnic invitation stamp has a tiny crescent-and-star mark like Kimmy's locket.",
     solved:
-      "Case solved: Pickles was hiding safely in the community garden basket."
+      "Case solved: Pickles was hiding safely in the community garden basket. Kimmy found her by following every clue in order."
   };
 
   const NPCS = {
@@ -170,6 +172,12 @@
       image: "./assets/pickles-rabbit.png",
       text:
         "Something soft rustles near the lavender bench. A mint ribbon peeks out from the basket."
+    },
+    gardenRustle: {
+      title: "Lavender Bench",
+      image: "./assets/case1-garden.png",
+      text:
+        "The lavender bench is quiet, shady, and full of little hiding places. Kimmy hears one soft rustle, then nothing. She needs the right rabbit approach before she searches closer."
     }
   };
 
@@ -269,6 +277,9 @@
       title: "Poppy's Bakery",
       subtitle: "Town Picnic Street",
       image: "./assets/case1-bakery.png",
+      unlockFlag: "clientInterview",
+      lockedLead:
+        "Kimmy needs to officially open the case with Lila before leaving the tree fort.",
       lead:
         "The bakery patio smells like warm rolls and carrots. A perfect place for a hungry rabbit to visit.",
       hotspots: [
@@ -291,6 +302,10 @@
         {
           id: "bakery-clues",
           label: "Inspect patio clues",
+          requires: () => getFlag("poppyTalked"),
+          lockedLabel: "Ask Mrs. Poppy first",
+          lockedMessage:
+            "Kimmy should ask Mrs. Poppy what she saw before collecting patio evidence.",
           x: 54,
           y: 73,
           action: () =>
@@ -308,6 +323,10 @@
         {
           id: "bakery-path",
           label: "Follow the park path",
+          requires: () => getFlag("bakeryClue"),
+          lockedLabel: "Find the patio trail",
+          lockedMessage:
+            "Kimmy needs to collect the bakery clues before she knows where to go next.",
           x: 82,
           y: 64,
           action: () => navigate("park")
@@ -318,6 +337,9 @@
       title: "Picnic Park",
       subtitle: "Fountain Path",
       image: "./assets/case1-park.png",
+      unlockFlag: "bakeryClue",
+      lockedLead:
+        "The park is not a real lead yet. Kimmy needs the bakery clues first.",
       lead:
         "Picnic blankets wait under the trees. Near the fountain, the ground still holds tiny tracks.",
       hotspots: [
@@ -340,6 +362,10 @@
         {
           id: "park-gate",
           label: "Go to the garden gate",
+          requires: () => getFlag("parkTrail"),
+          lockedLabel: "Sketch the paw prints",
+          lockedMessage:
+            "Kimmy should inspect the fountain paw prints before following them through the gate.",
           x: 77,
           y: 58,
           action: () => navigate("garden")
@@ -358,6 +384,9 @@
       title: "Community Garden",
       subtitle: "Lavender Beds",
       image: "./assets/case1-garden.png",
+      unlockFlag: "parkTrail",
+      lockedLead:
+        "The garden gate is still just a guess. Kimmy needs the park paw-print trail first.",
       lead:
         "The garden is calm and sweet with lavender. If Pickles wanted a quiet hiding place, this is it.",
       hotspots: [
@@ -379,13 +408,15 @@
         {
           id: "garden-basket",
           label: "Search the lavender bench",
+          requires: () => getFlag("basilTalked"),
+          lockedLabel: "Ask Mr. Basil first",
+          lockedMessage:
+            "Kimmy hears a tiny rustle, but Mr. Basil will know how to approach a scared rabbit safely.",
           x: 66,
           y: 68,
           action: () => {
             if (!getFlag("bakeryClue") || !getFlag("parkTrail") || !getFlag("basilTalked")) {
-              openInspection("pickles", {
-                text:
-                  "Kimmy hears a tiny rustle, but she needs enough clues to coax the rabbit out safely.",
+              openInspection("gardenRustle", {
                 actionLabel: "Back away softly",
                 onAction: () =>
                   speak("Kimmy should gather the bakery clue, the park trail, and Mr. Basil's rabbit tip first.")
@@ -406,6 +437,8 @@
       ]
     }
   };
+
+  const LOCATION_ORDER = ["clubhouse", "bakery", "park", "garden"];
 
   const PUZZLES = {
     coaxPickles: {
@@ -624,10 +657,26 @@
     if (!location) {
       return;
     }
+    if (!canEnterLocation(locationId)) {
+      speak(location.lockedLead || "Kimmy needs another clue before going there.");
+      return;
+    }
     state.location = locationId;
     state.lead = location.lead;
     saveState();
     render();
+  }
+
+  function canEnterLocation(locationId) {
+    const location = LOCATIONS[locationId];
+    if (!location) {
+      return false;
+    }
+    return !location.unlockFlag || getFlag(location.unlockFlag);
+  }
+
+  function canUseHotspot(hotspot) {
+    return !hotspot.requires || hotspot.requires();
   }
 
   function render() {
@@ -680,17 +729,28 @@
     els.hotspotLayer.replaceChildren();
 
     location.hotspots.forEach((hotspot) => {
+      const available = canUseHotspot(hotspot);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "hotspot";
+      button.className = `hotspot${available ? "" : " hotspot-locked"}`;
       button.style.left = `${hotspot.x}%`;
       button.style.top = `${hotspot.y}%`;
-      button.setAttribute("aria-label", hotspot.label);
-      button.addEventListener("click", hotspot.action);
+      button.setAttribute("aria-label", available ? hotspot.label : hotspot.lockedLabel || hotspot.label);
+      if (!available) {
+        button.setAttribute("aria-disabled", "true");
+        button.title = hotspot.lockedMessage || "Kimmy needs another clue first.";
+      }
+      button.addEventListener("click", () => {
+        if (!canUseHotspot(hotspot)) {
+          speak(hotspot.lockedMessage || "Kimmy needs another clue first.");
+          return;
+        }
+        hotspot.action();
+      });
 
       const label = document.createElement("span");
       label.className = "hotspot-label";
-      label.textContent = hotspot.label;
+      label.textContent = available ? hotspot.label : hotspot.lockedLabel || hotspot.label;
       button.append(label);
 
       els.hotspotLayer.append(button);
@@ -700,13 +760,19 @@
   function renderMap() {
     els.mapNav.replaceChildren();
 
-    Object.entries(LOCATIONS).forEach(([id, location]) => {
+    LOCATION_ORDER.forEach((id) => {
+      const location = LOCATIONS[id];
+      const available = canEnterLocation(id);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "nav-button";
-      button.textContent = location.title;
+      button.className = `nav-button${available ? "" : " locked"}`;
+      button.textContent = available ? location.title : `${location.title} locked`;
       if (id === state.location) {
         button.setAttribute("aria-current", "page");
+      }
+      if (!available) {
+        button.setAttribute("aria-disabled", "true");
+        button.title = location.lockedLead || "Locked until Kimmy finds another clue.";
       }
       button.addEventListener("click", () => navigate(id));
       els.mapNav.append(button);
@@ -765,7 +831,9 @@
 
   function renderProgress() {
     const count = CASE_BEATS.filter(getFlag).length;
-    els.progressText.textContent = `${count} of ${CASE_BEATS.length} case beats`;
+    els.progressText.textContent = getFlag("caseSolved")
+      ? "Case solved"
+      : `${count} of ${CASE_BEATS.length} case steps`;
     els.progressFill.style.width = `${(count / CASE_BEATS.length) * 100}%`;
   }
 
@@ -974,6 +1042,7 @@
 
     if (getFlag(puzzle.solvedFlag)) {
       speak(puzzle.already);
+      return;
     }
 
     let picks = [];
@@ -1032,8 +1101,8 @@
     submit.textContent = "Try Sequence";
     submit.addEventListener("click", () => {
       if (arraysMatch(picks, puzzle.answer)) {
-        solvePuzzle(puzzle);
         closeModal();
+        solvePuzzle(puzzle);
       } else {
         speak("Pickles stays hidden. Check Mr. Basil's hint for the gentle order.");
       }
@@ -1069,7 +1138,50 @@
     setFlag(puzzle.solvedFlag);
     addClue(puzzle.solvedClue);
     addItem(puzzle.reward);
-    speak(puzzle.success);
+    state.lead = puzzle.success;
+    saveState();
+    render();
+    showToast(puzzle.success);
+    openCaseClosed();
+  }
+
+  function openCaseClosed() {
+    const modal = createModal("Case Closed: Pickles Found", { wide: true });
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const image = document.createElement("img");
+    image.className = "inspection-image";
+    image.src = "./assets/pickles-rabbit.png";
+    image.alt = "Pickles the rabbit safe in the garden basket";
+
+    const summary = document.createElement("div");
+    summary.className = "case-closed-copy";
+    summary.innerHTML = `
+      <p class="panel-label">Solved</p>
+      <p>Kimmy did not just spot Pickles. She solved the path: Lila's carrot clue led to Mrs. Poppy, the bakery trail led to the park, the paw prints led to the garden, and Mr. Basil taught Kimmy how to coax a nervous rabbit safely.</p>
+      <p>Pickles is safe before the picnic, and Kimmy has a new personal clue tucked away: someone connected to this town knows the crescent-and-star mark on her locket.</p>
+    `;
+
+    body.append(image, summary);
+
+    const stay = document.createElement("button");
+    stay.type = "button";
+    stay.className = "modal-button";
+    stay.textContent = "Review clues";
+    stay.addEventListener("click", closeModal);
+
+    const returnHome = document.createElement("button");
+    returnHome.type = "button";
+    returnHome.className = "modal-button primary";
+    returnHome.textContent = "Return to Tree Fort";
+    returnHome.addEventListener("click", () => {
+      closeModal();
+      navigate("clubhouse");
+      speak("Case 01 is solved. Kimmy can review her clues or peek at the Briar Lane teaser for Case 02.");
+    });
+
+    actions.append(stay, returnHome);
   }
 
   function arraysMatch(a, b) {
@@ -1129,6 +1241,10 @@
   function showHint() {
     if (!getFlag("clientInterview")) {
       speak("Hint: talk to Lila at the clubhouse to learn what Pickles likes.");
+      return;
+    }
+    if (!getFlag("poppyTalked")) {
+      speak("Hint: go to Poppy's Bakery and ask Mrs. Poppy what she saw.");
       return;
     }
     if (!getFlag("bakeryClue")) {
