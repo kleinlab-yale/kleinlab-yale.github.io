@@ -1,0 +1,79 @@
+{
+  "format": "Generate one local WAV per line under assets/audio/. game.js is already wired to these filenames.",
+  "generator": "mystery/tools/generate-voices.mjs uses local macOS say. No API key, no network, no paid speech service.",
+  "direction": "Warm character voices for a bright kid mystery game. Keep the delivery natural, gentle, and storybook-like.",
+  "clips": [
+    {
+      "id": "intro",
+      "file": "assets/audio/intro.wav",
+      "localVoice": "Samantha",
+      "rate": 178,
+      "voice": "warm adult narrator",
+      "tone": "gentle, inviting, lightly suspenseful",
+      "text": "Kimmy Finch knows she was adopted, and her parents love her completely. Still, the first part of her story is a puzzle with only one clue: a tiny crescent locket. From her tree fort mystery club, Kimmy takes small cases around town. Today's case is bright, urgent, and very fluffy: find Pickles before the picnic begins."
+    },
+    {
+      "id": "lila",
+      "file": "assets/audio/lila.wav",
+      "localVoice": "Flo (English (US))",
+      "rate": 198,
+      "voice": "Lila, bright young neighbor",
+      "tone": "worried but hopeful",
+      "text": "Pickles slipped out while we were setting up for the picnic. She has a mint ribbon with a tiny bell, and she will do anything for carrot snacks. Start where snacks smell strongest."
+    },
+    {
+      "id": "poppy",
+      "file": "assets/audio/poppy.wav",
+      "localVoice": "Grandma (English (US))",
+      "rate": 172,
+      "voice": "Mrs. Poppy Vale, friendly baker",
+      "tone": "cozy, helpful, reassuring",
+      "text": "I found flour paw prints near the patio chair, dear. A little cream rabbit sniffed the carrot rolls, then hopped toward the park. For a second I almost called you Mara. Silly old habit."
+    },
+    {
+      "id": "basil",
+      "file": "assets/audio/basil.wav",
+      "localVoice": "Grandpa (English (US))",
+      "rate": 162,
+      "voice": "Mr. Basil Green, gentle older gardener",
+      "tone": "calm and patient",
+      "text": "A rabbit would choose the lavender bench if the picnic felt too noisy. Move slowly, offer a carrot top, then let her hear her little bell."
+    },
+    {
+      "id": "bakeryClues",
+      "file": "assets/audio/bakery-clues.wav",
+      "localVoice": "Sandy (English (US))",
+      "rate": 188,
+      "voice": "Kimmy Finch",
+      "tone": "clever, focused, excited discovery",
+      "text": "Carrot crumbs, a mint ribbon, and flour paw prints. Pickles was definitely here, and the trail points toward the park."
+    },
+    {
+      "id": "parkPrints",
+      "file": "assets/audio/park-prints.wav",
+      "localVoice": "Sandy (English (US))",
+      "rate": 184,
+      "voice": "Kimmy Finch",
+      "tone": "observant and pleased",
+      "text": "These paw prints are tiny and close together. Pickles was not running. She was exploring."
+    },
+    {
+      "id": "coaxPickles",
+      "file": "assets/audio/coax-pickles.wav",
+      "localVoice": "Sandy (English (US))",
+      "rate": 176,
+      "voice": "Kimmy Finch",
+      "tone": "soft, careful, encouraging",
+      "text": "Quiet first, carrot second, bell last. We want Pickles to feel safe, not surprised."
+    },
+    {
+      "id": "locket",
+      "file": "assets/audio/locket.wav",
+      "localVoice": "Sandy (English (US))",
+      "rate": 170,
+      "voice": "Kimmy Finch",
+      "tone": "quietly curious, hopeful",
+      "text": "The picnic envelope has a crescent-and-star mark like my locket. It might be nothing. Or it might belong in my other case file."
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kimmy Finch Mysteries: The Picnic Pet</title>
+    <meta
+      name="description"
+      content="A playable point-and-click mystery demo about Kimmy Finch, her neighborhood mystery club, and a missing pet rabbit."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="case-label">Kimmy Finch Mysteries</p>
+          <h1>The Picnic Pet</h1>
+        </div>
+        <div class="topbar-actions">
+          <div class="progress-wrap" aria-label="Case progress">
+            <span id="progressText">0 of 4 discoveries</span>
+            <div class="progress-track">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+          </div>
+          <button id="voiceButton" class="ghost-button" type="button" hidden>Voice Casting</button>
+          <button id="storyButton" class="ghost-button" type="button">Story</button>
+          <button id="resetButton" class="ghost-button" type="button">Reset</button>
+        </div>
+      </header>
+
+      <main class="game-layout">
+        <section class="stage-panel" aria-label="Current mystery scene">
+          <div class="scene-frame">
+            <div id="sceneImage" class="scene-image">
+              <div class="scene-title">
+                <p id="locationSubtitle"></p>
+                <h2 id="locationTitle"></h2>
+              </div>
+              <div id="hotspotLayer" class="hotspot-layer" aria-label="Scene hotspots"></div>
+            </div>
+          </div>
+
+          <nav id="mapNav" class="map-nav" aria-label="Move to another room"></nav>
+        </section>
+
+        <aside class="case-panel" aria-label="Detective notebook and inventory">
+          <section class="detective-panel">
+            <div class="detective-profile">
+              <img src="./assets/kimmy-avatar.png" alt="Kimmy Finch portrait" />
+              <div>
+                <p class="panel-label">Detective</p>
+                <h2>Kimmy Finch</h2>
+                <p>The clever founder of the Finch Street Mystery Club.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="arc-panel">
+            <p class="panel-label">Long Mystery</p>
+            <p id="arcText"></p>
+          </section>
+
+          <section class="story-panel">
+            <p class="panel-label">Current Lead</p>
+            <p id="leadText"></p>
+          </section>
+
+          <section class="inventory-panel">
+            <div class="panel-heading">
+              <p class="panel-label">Satchel</p>
+              <span id="inventoryCount"></span>
+            </div>
+            <ul id="inventoryList" class="inventory-list"></ul>
+          </section>
+
+          <section class="notebook-panel">
+            <div class="panel-heading">
+              <p class="panel-label">Notebook</p>
+              <button id="hintButton" class="small-button" type="button">Hint</button>
+            </div>
+            <ul id="clueList" class="clue-list"></ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <div id="modalRoot" class="modal-root" aria-live="polite"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="./game.js"></script>
+  </body>
+</html>
