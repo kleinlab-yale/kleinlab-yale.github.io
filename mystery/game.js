@@ -1,5 +1,5 @@
 (function () {
-  const STORAGE_KEY = "kimmy-finch-picnic-pet-v3";
+  const STORAGE_KEY = "kimmy-finch-picnic-pet-v4";
 
   const CASE_BEATS = [
     "clientInterview",
@@ -195,15 +195,37 @@
           x: 22,
           y: 58,
           action: () =>
-            openDialogue("lila", {
-              actionLabel: "Open case",
-              onAction: () => {
-                setFlag("clientInterview");
-                addClue("lila");
-                speak(
-                  "Kimmy takes the case. Pickles has a mint ribbon, a tiny bell, and a serious carrot habit."
-                );
-              }
+            openActionMenu({
+              title: "Lila and the Empty Basket",
+              image: NPCS.lila.portrait,
+              text:
+                "Lila is clutching Pickles' travel basket. The door is open, and a tiny bell string dangles from one corner.",
+              actions: [
+                {
+                  label: "Ask what happened",
+                  description: "Start the case by listening to the client.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("clientInterview");
+                    addClue("lila");
+                    speak(
+                      "Kimmy takes the case. Pickles has a mint ribbon, a tiny bell, and a serious carrot habit."
+                    );
+                  }
+                },
+                {
+                  label: "Examine basket",
+                  description: "Look for a clue before making promises.",
+                  onSelect: () =>
+                    speak("The basket smells like hay, carrots, and a little lavender. Pickles has favorite places.")
+                },
+                {
+                  label: "Promise first",
+                  description: "A kind impulse, but not a detective move.",
+                  onSelect: () =>
+                    speak("Kimmy almost promises too quickly, then remembers: good detectives listen before they leap.")
+                }
+              ]
             })
         },
         {
@@ -212,12 +234,35 @@
           x: 78,
           y: 39,
           action: () =>
-            openInspection("caseBoard", {
-              actionLabel: "Record facts",
-              onAction: () => {
-                addClue("lila");
-                speak("Kimmy writes the basics: cream rabbit, mint ribbon, carrot snacks.");
-              }
+            openActionMenu({
+              title: "Kimmy's Case Board",
+              image: INSPECTIONS.caseBoard.image,
+              text:
+                "The board has string, blank clue cards, and a big question written in blue pencil: Where would Pickles go first?",
+              actions: [
+                {
+                  label: "Read the board",
+                  description: "Review what Kimmy knows right now.",
+                  onSelect: () => openInspection("caseBoard")
+                },
+                {
+                  label: "Pin Lila's facts",
+                  description: "Record the rabbit description as evidence.",
+                  requires: () => getFlag("clientInterview"),
+                  lockedMessage: "Kimmy needs to ask Lila what happened before pinning facts.",
+                  primary: true,
+                  onSelect: () => {
+                    addClue("lila");
+                    speak("Kimmy pins the useful facts: cream rabbit, mint ribbon, carrot snacks.");
+                  }
+                },
+                {
+                  label: "Guess the garden",
+                  description: "Skip the evidence and jump to a conclusion.",
+                  onSelect: () =>
+                    speak("Too soon. Kimmy needs a trail, not a guess.")
+                }
+              ]
             })
         },
         {
@@ -226,15 +271,35 @@
           x: 55,
           y: 68,
           action: () =>
-            openInspection("familyPhoto", {
-              actionLabel: "Add to personal file",
-              onAction: () => {
-                setFlag("familyPhotoFound");
-                addClue("photo");
-                speak(
-                  "Kimmy adds the old photograph to her personal file. The woman in it looks too much like her to ignore."
-                );
-              }
+            openActionMenu({
+              title: "Unlabeled Photograph",
+              image: INSPECTIONS.familyPhoto.image,
+              text:
+                "The photograph is not part of the pet case, but Kimmy keeps noticing the woman in it.",
+              actions: [
+                {
+                  label: "Study the face",
+                  description: "Zoom in and compare details.",
+                  primary: true,
+                  onSelect: () =>
+                    openInspection("familyPhoto", {
+                      actionLabel: "Add to personal file",
+                      onAction: () => {
+                        setFlag("familyPhotoFound");
+                        addClue("photo");
+                        speak(
+                          "Kimmy adds the old photograph to her personal file. The woman in it looks too much like her to ignore."
+                        );
+                      }
+                    })
+                },
+                {
+                  label: "Ignore it",
+                  description: "Stay focused on Pickles.",
+                  onSelect: () =>
+                    speak("Kimmy looks away, but the photograph keeps feeling like a clue waiting for its chapter.")
+                }
+              ]
             })
         },
         {
@@ -243,15 +308,35 @@
           x: 84,
           y: 52,
           action: () =>
-            openInspection("briarClipping", {
-              actionLabel: "Save for Case 02",
-              onAction: () => {
-                setFlag("briarLaneTeased");
-                addClue("briarLane");
-                speak(
-                  "Kimmy saves the Briar Lane clipping for the next case. A haunted house is usually only haunted by clues."
-                );
-              }
+            openActionMenu({
+              title: "Briar Lane Clipping",
+              image: INSPECTIONS.briarClipping.image,
+              text:
+                "The clipping belongs to a later case, but the underlined words make Kimmy curious.",
+              actions: [
+                {
+                  label: "Read clipping",
+                  description: "Open the haunted-house teaser.",
+                  primary: true,
+                  onSelect: () =>
+                    openInspection("briarClipping", {
+                      actionLabel: "Save for Case 02",
+                      onAction: () => {
+                        setFlag("briarLaneTeased");
+                        addClue("briarLane");
+                        speak(
+                          "Kimmy saves the Briar Lane clipping for the next case. A haunted house is usually only haunted by clues."
+                        );
+                      }
+                    })
+                },
+                {
+                  label: "Put it back",
+                  description: "Do not mix cases yet.",
+                  onSelect: () =>
+                    speak("Kimmy leaves the clipping pinned. Pickles is today's case.")
+                }
+              ]
             })
         },
         {
@@ -260,15 +345,35 @@
           x: 72,
           y: 70,
           action: () =>
-            openInspection("locket", {
-              actionLabel: "Record Kimmy clue",
-              onAction: () => {
-                setFlag("identityClueFound");
-                addClue("identity");
-                speak(
-                  "Kimmy notices the picnic envelope has a crescent-and-star mark like her locket. Interesting, but Pickles comes first."
-                );
-              }
+            openActionMenu({
+              title: "Kimmy's Crescent Locket",
+              image: INSPECTIONS.locket.image,
+              text:
+                "The locket is Kimmy's oldest clue. The picnic envelope beside it has a familiar tiny stamp.",
+              actions: [
+                {
+                  label: "Compare symbols",
+                  description: "Add the matching mark to Kimmy's personal mystery.",
+                  primary: true,
+                  onSelect: () =>
+                    openInspection("locket", {
+                      actionLabel: "Record Kimmy clue",
+                      onAction: () => {
+                        setFlag("identityClueFound");
+                        addClue("identity");
+                        speak(
+                          "Kimmy notices the picnic envelope has a crescent-and-star mark like her locket. Interesting, but Pickles comes first."
+                        );
+                      }
+                    })
+                },
+                {
+                  label: "Close locket",
+                  description: "Save the personal mystery for later.",
+                  onSelect: () =>
+                    speak("Kimmy closes the locket carefully. Her own case can wait until Pickles is safe.")
+                }
+              ]
             })
         }
       ]
@@ -289,14 +394,38 @@
           x: 30,
           y: 52,
           action: () =>
-            openDialogue("poppy", {
-              actionLabel: "Record witness hint",
-              onAction: () => {
-                setFlag("poppyTalked");
-                addClue("poppy");
-                addClue("nameEcho");
-                speak("Mrs. Poppy saw Pickles hop toward the park. She also almost called Kimmy by another name: Mara.");
-              }
+            openActionMenu({
+              title: "Mrs. Poppy at the Bakery Window",
+              image: NPCS.poppy.portrait,
+              text:
+                "Mrs. Poppy is dusting flour from the patio chair. She keeps glancing at Kimmy like she recognizes someone else.",
+              actions: [
+                {
+                  label: "Ask what she saw",
+                  description: "Interview the witness before touching evidence.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("poppyTalked");
+                    addClue("poppy");
+                    addClue("nameEcho");
+                    speak("Mrs. Poppy saw Pickles hop toward the park. She also almost called Kimmy by another name: Mara.");
+                  }
+                },
+                {
+                  label: "Buy carrot roll",
+                  description: "Useful smell, not useful evidence.",
+                  onSelect: () =>
+                    speak("The carrot roll smells amazing. Kimmy files away one fact: Pickles would definitely follow this scent.")
+                },
+                {
+                  label: "Ask about Mara",
+                  description: "Press the odd name Mrs. Poppy almost said.",
+                  requires: () => getFlag("poppyTalked"),
+                  lockedMessage: "Kimmy has not heard the strange name yet.",
+                  onSelect: () =>
+                    speak("Mrs. Poppy smiles too fast. 'Old town habit, dear.' Kimmy writes that down because it is not an answer.")
+                }
+              ]
             })
         },
         {
@@ -309,15 +438,36 @@
           x: 54,
           y: 73,
           action: () =>
-            openInspection("bakeryClues", {
-              actionLabel: "Collect clues",
-              onAction: () => {
-                setFlag("bakeryClue");
-                addItem("mintRibbon");
-                addItem("carrotCrumbs");
-                addClue("bakery");
-                speak("Kimmy collects the mint ribbon and carrot crumbs. The trail points toward the park.");
-              }
+            openActionMenu({
+              title: "Bakery Patio Clues",
+              image: INSPECTIONS.bakeryClues.image,
+              text:
+                "Under the patio chair are carrot crumbs, a snag of mint ribbon, and little flour prints.",
+              actions: [
+                {
+                  label: "Look closer",
+                  description: "Zoom in before taking anything.",
+                  onSelect: () => openInspection("bakeryClues")
+                },
+                {
+                  label: "Collect ribbon and crumbs",
+                  description: "Bag the evidence and mark the direction.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("bakeryClue");
+                    addItem("mintRibbon");
+                    addItem("carrotCrumbs");
+                    addClue("bakery");
+                    speak("Kimmy collects the mint ribbon and carrot crumbs. The trail points toward the park.");
+                  }
+                },
+                {
+                  label: "Follow prints now",
+                  description: "Move on without preserving the clue.",
+                  onSelect: () =>
+                    speak("Kimmy stops herself. If she follows the prints now, the patio evidence could be swept away.")
+                }
+              ]
             })
         },
         {
@@ -329,7 +479,27 @@
             "Kimmy needs to collect the bakery clues before she knows where to go next.",
           x: 82,
           y: 64,
-          action: () => navigate("park")
+          action: () =>
+            openActionMenu({
+              title: "Path Toward the Park",
+              image: "./assets/case1-bakery.png",
+              text:
+                "The flour marks fade near the sidewalk. A breeze points the carrot smell toward the park.",
+              actions: [
+                {
+                  label: "Follow the trail",
+                  description: "Leave the bakery after recording the evidence.",
+                  primary: true,
+                  onSelect: () => navigate("park")
+                },
+                {
+                  label: "Search the street",
+                  description: "Check the wrong direction.",
+                  onSelect: () =>
+                    speak("Kimmy checks the street, but the prints vanish there. The park path is the stronger lead.")
+                }
+              ]
+            })
         }
       ]
     },
@@ -349,14 +519,35 @@
           x: 47,
           y: 71,
           action: () =>
-            openInspection("parkPrints", {
-              actionLabel: "Sketch trail",
-              onAction: () => {
-                setFlag("parkTrail");
-                addItem("pawPrintSketch");
-                addClue("park");
-                speak("The paw prints curve around the fountain and head through the garden gate.");
-              }
+            openActionMenu({
+              title: "Fountain Paw Prints",
+              image: INSPECTIONS.parkPrints.image,
+              text:
+                "The prints make a curved path around the fountain. Some are deeper, like Pickles paused to listen.",
+              actions: [
+                {
+                  label: "Look closer",
+                  description: "Zoom into the marks and spacing.",
+                  onSelect: () => openInspection("parkPrints")
+                },
+                {
+                  label: "Sketch the trail",
+                  description: "Record the direction before moving on.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("parkTrail");
+                    addItem("pawPrintSketch");
+                    addClue("park");
+                    speak("The paw prints curve around the fountain and head through the garden gate.");
+                  }
+                },
+                {
+                  label: "Call Pickles",
+                  description: "Try to solve it by shouting.",
+                  onSelect: () =>
+                    speak("No bell answers. A nervous rabbit would hide from a loud voice.")
+                }
+              ]
             })
         },
         {
@@ -368,7 +559,27 @@
             "Kimmy should inspect the fountain paw prints before following them through the gate.",
           x: 77,
           y: 58,
-          action: () => navigate("garden")
+          action: () =>
+            openActionMenu({
+              title: "Garden Gate",
+              image: "./assets/case1-park.png",
+              text:
+                "The gate is open just wide enough for a rabbit. The picnic noise fades on the other side.",
+              actions: [
+                {
+                  label: "Follow paw prints",
+                  description: "Use the sketched trail to choose the next place.",
+                  primary: true,
+                  onSelect: () => navigate("garden")
+                },
+                {
+                  label: "Check picnic tables",
+                  description: "Search where the trail does not go.",
+                  onSelect: () =>
+                    speak("Kimmy checks the picnic tables. Plenty of napkins, no mint ribbon, no rabbit bell.")
+                }
+              ]
+            })
         },
         {
           id: "park-kite",
@@ -376,7 +587,26 @@
           x: 20,
           y: 62,
           action: () =>
-            speak("Kimmy hears picnic music, but no rabbit bell. Pickles must be somewhere quieter.")
+            openActionMenu({
+              title: "Picnic Blankets",
+              image: "./assets/case1-park.png",
+              text:
+                "The picnic blankets are bright and noisy. If Pickles came through here, she probably did not stay.",
+              actions: [
+                {
+                  label: "Listen for bell",
+                  description: "Use sound instead of guessing.",
+                  onSelect: () =>
+                    speak("Kimmy hears picnic music, but no rabbit bell. Pickles must be somewhere quieter.")
+                },
+                {
+                  label: "Search baskets",
+                  description: "A tempting but weak lead.",
+                  onSelect: () =>
+                    speak("Kimmy finds sandwiches, lemonade, and zero rabbits. The paw prints matter more.")
+                }
+              ]
+            })
         }
       ]
     },
@@ -396,13 +626,37 @@
           x: 30,
           y: 50,
           action: () =>
-            openDialogue("basil", {
-              actionLabel: "Record rabbit tip",
-              onAction: () => {
-                setFlag("basilTalked");
-                addClue("basil");
-                speak("Mr. Basil gives Kimmy the gentle order: quiet first, carrot second, bell last.");
-              }
+            openActionMenu({
+              title: "Mr. Basil by the Lavender Beds",
+              image: NPCS.basil.portrait,
+              text:
+                "Mr. Basil trims the lavender slowly, like he is trying not to scare whatever is hiding nearby.",
+              actions: [
+                {
+                  label: "Ask about scared rabbits",
+                  description: "Learn the safe way to bring Pickles out.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("basilTalked");
+                    addClue("basil");
+                    speak("Mr. Basil gives Kimmy the gentle order: quiet first, carrot second, bell last.");
+                  }
+                },
+                {
+                  label: "Show mint ribbon",
+                  description: "Use the clue from Pickles' collar.",
+                  requires: () => hasItem("mintRibbon"),
+                  lockedMessage: "Kimmy has not collected the mint ribbon from the bakery patio yet.",
+                  onSelect: () =>
+                    speak("Mr. Basil nods. 'That tiny bell is familiar to her, but only after she feels safe.'")
+                },
+                {
+                  label: "Search garden alone",
+                  description: "Try to skip the rabbit expert.",
+                  onSelect: () =>
+                    speak("Too many hiding places. Kimmy needs Mr. Basil's advice before searching the lavender bench.")
+                }
+              ]
             })
         },
         {
@@ -416,14 +670,55 @@
           y: 68,
           action: () => {
             if (!getFlag("bakeryClue") || !getFlag("parkTrail") || !getFlag("basilTalked")) {
-              openInspection("gardenRustle", {
-                actionLabel: "Back away softly",
-                onAction: () =>
-                  speak("Kimmy should gather the bakery clue, the park trail, and Mr. Basil's rabbit tip first.")
+              openActionMenu({
+                title: "Lavender Bench Rustle",
+                image: INSPECTIONS.gardenRustle.image,
+                text:
+                  "Something tiny rustles near the bench, then goes still. Kimmy can tell this hiding spot needs a gentle plan.",
+                actions: [
+                  {
+                    label: "Back away softly",
+                    description: "Do not scare the hidden animal.",
+                    primary: true,
+                    onSelect: () =>
+                      speak("Kimmy should gather the bakery clue, the park trail, and Mr. Basil's rabbit tip first.")
+                  },
+                  {
+                    label: "Reach inside",
+                    description: "Rush the hiding place.",
+                    onSelect: () =>
+                      speak("The rustle stops. Kimmy pulls her hand back. A scared rabbit needs patience.")
+                  }
+                ]
               });
               return;
             }
-            openSequencePuzzle("coaxPickles");
+            openActionMenu({
+              title: "Lavender Bench Hiding Spot",
+              image: INSPECTIONS.gardenRustle.image,
+              text:
+                "A soft rustle comes from the basket by the lavender. Kimmy has the ribbon, the carrot clue, the paw-print trail, and Mr. Basil's order.",
+              actions: [
+                {
+                  label: "Listen first",
+                  description: "Confirm Pickles is calm enough to coax.",
+                  onSelect: () =>
+                    speak("Kimmy waits. A tiny bell gives one soft chime from inside the basket.")
+                },
+                {
+                  label: "Reach into basket",
+                  description: "A fast move that could scare Pickles.",
+                  onSelect: () =>
+                    speak("The basket shivers away from Kimmy's hand. Mr. Basil was right: quiet first.")
+                },
+                {
+                  label: "Coax carefully",
+                  description: "Start the final order puzzle.",
+                  primary: true,
+                  onSelect: () => openSequencePuzzle("coaxPickles")
+                }
+              ]
+            });
           }
         },
         {
@@ -432,7 +727,35 @@
           x: 47,
           y: 76,
           action: () =>
-            speak("These carrot tops look exactly like the sort of snack Pickles would trust.")
+            openActionMenu({
+              title: "Fresh Carrot Tops",
+              image: "./assets/case1-garden.png",
+              text:
+                "The carrot patch is neat except for one wiggly row. These tops smell exactly like the bakery crumbs.",
+              actions: [
+                {
+                  label: "Pick one carrot top",
+                  description: "Save a gentle snack for Pickles.",
+                  primary: true,
+                  onSelect: () =>
+                    speak("Kimmy picks one soft carrot top. It is the right kind of snack, but it needs the right order.")
+                },
+                {
+                  label: "Scatter carrots",
+                  description: "Make a noisy shortcut.",
+                  onSelect: () =>
+                    speak("Kimmy decides against it. A trail of snacks would make a mess, not solve the clue.")
+                },
+                {
+                  label: "Ask Mr. Basil first",
+                  description: "Check whether carrots are enough by themselves.",
+                  requires: () => getFlag("basilTalked"),
+                  lockedMessage: "Kimmy should ask Mr. Basil how to approach a nervous rabbit.",
+                  onSelect: () =>
+                    speak("Mr. Basil's rule still fits: quiet first, carrot second, bell last.")
+                }
+              ]
+            })
         }
       ]
     }
@@ -446,7 +769,7 @@
       image: "./assets/pickles-rabbit.png",
       intro:
         "Mr. Basil gave Kimmy the gentle order. What should she do first, second, and last?",
-      choices: ["Walk quietly", "Offer carrot", "Ring ribbon bell"],
+      choices: ["Call loudly", "Walk quietly", "Reach into basket", "Offer carrot", "Ring ribbon bell"],
       answer: ["Walk quietly", "Offer carrot", "Ring ribbon bell"],
       solvedFlag: "caseSolved",
       solvedClue: "solved",
@@ -903,6 +1226,66 @@
     copy.append(heading, paragraph);
     card.append(img, copy);
     return card;
+  }
+
+  function openActionMenu(options) {
+    const modal = createModal(options.title);
+    const body = modal.querySelector(".modal-body");
+    const actionBar = modal.querySelector(".modal-actions");
+
+    if (options.image) {
+      const image = document.createElement("img");
+      image.className = "inspection-image action-menu-image";
+      image.src = options.image;
+      image.alt = options.title;
+      body.append(image);
+    }
+
+    if (options.text) {
+      const text = document.createElement("p");
+      text.className = "action-menu-copy";
+      text.textContent = options.text;
+      body.append(text);
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "action-choice-grid";
+
+    options.actions.forEach((menuAction) => {
+      const isAvailable = !menuAction.requires || menuAction.requires();
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `action-choice${menuAction.primary ? " primary-action" : ""}${isAvailable ? "" : " locked"}`;
+      button.setAttribute("aria-disabled", String(!isAvailable));
+
+      const label = document.createElement("strong");
+      label.textContent = menuAction.label;
+      const description = document.createElement("span");
+      description.textContent = menuAction.description || "";
+      button.append(label, description);
+
+      button.addEventListener("click", () => {
+        if (!isAvailable) {
+          showToast(menuAction.lockedMessage || "Kimmy needs another clue first.");
+          return;
+        }
+        closeModal();
+        if (menuAction.onSelect) {
+          menuAction.onSelect();
+        }
+      });
+
+      grid.append(button);
+    });
+
+    body.append(grid);
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "modal-button";
+    close.textContent = "Close";
+    close.addEventListener("click", closeModal);
+    actionBar.append(close);
   }
 
   function openDialogue(npcId, options = {}) {

@@ -10,7 +10,7 @@ Kimmy Finch is a clever adopted girl who founded the Finch Street Mystery Club. 
 - Bright generated locations: tree-fort mystery HQ, bakery patio, picnic park, and community garden.
 - Kimmy portrait, three NPC portraits, a cute Pickles close-up, and zoomed-in clue art.
 - Friendly NPC dialogue written for future voice acting. The rejected local system-voice experiment is not exposed in the demo UI.
-- Clickable hotspots for talking to townspeople, inspecting clues, collecting notes, and solving a gentle final sequence.
+- Zork-style action menus on hotspots: inspect, interview, collect, try a wrong move, or unlock a better option after finding the right clue.
 - A gated case flow: Lila opens the case, Mrs. Poppy unlocks the bakery evidence, the bakery trail unlocks the park, the park prints unlock the garden, and Mr. Basil unlocks the final rabbit-coaxing puzzle.
 - A notebook, clue bag, long-mystery panel, progress meter, story button, reset button, and map navigation.
 - Serialized clues: Kimmy notices a crescent-and-star mark like her locket, Mrs. Poppy nearly calls her Mara, and an old photograph shows someone who looks like Kimmy.
