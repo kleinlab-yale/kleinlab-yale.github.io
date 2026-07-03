@@ -1,7 +1,7 @@
 (function () {
-  const STORAGE_KEY = "kimmy-finch-picnic-pet-v4";
+  const STORAGE_KEY = "kimmy-finch-mysteries-v5";
 
-  const CASE_BEATS = [
+  const CASE1_BEATS = [
     "clientInterview",
     "poppyTalked",
     "bakeryClue",
@@ -10,19 +10,31 @@
     "caseSolved"
   ];
 
+  const CASE2_BEATS = [
+    "case2Unlocked",
+    "hexibaldWarning",
+    "briarWindowClue",
+    "briarWindClue",
+    "briarInside",
+    "briarMusicClue",
+    "briarVisitorTrail",
+    "grandmotherMet",
+    "briarPortraitClue"
+  ];
+
   const STORY = {
-    title: "Case 01: The Picnic Pet",
+    title: "Kimmy Finch Mysteries",
+    case1Title: "Case 01: The Picnic Pet",
+    case2Title: "Case 02: The Briar Lane House",
     club: "Finch Street Mystery Club",
     intro:
       "Kimmy Finch knows she was adopted, and her parents love her completely. Still, the first part of her story is a puzzle with only one clue: a tiny crescent locket she has had for as long as anyone can remember.",
     mission:
-      "Kimmy is also the best noticer in town. She built the Finch Street Mystery Club in a tree fort, where she reads case files, researches old town maps, and helps neighbors with small, important mysteries. Today's job is bright, urgent, and very fluffy: find Lila's rabbit, Pickles, before the town picnic begins.",
+      "Kimmy is also the best noticer in town. She built the Finch Street Mystery Club in a tree fort, where she reads case files, researches old town maps, and helps neighbors with small, important mysteries.",
     hook:
       "Most cases solve someone else's problem. Every so often, one also gives Kimmy a clue about her own.",
     seriesArc:
-      "A pattern is starting: the grown-ups who bring Kimmy cases seem to know more about her first family than they can say. Some may even be relatives helping from a distance, guiding Kimmy toward the truth because telling her outright could put people in danger.",
-    nextCase:
-      "Case 02 teaser: a harmless 'haunted house' mystery at an abandoned home on Briar Lane. The clues there should feel personal without proving anything yet: a tune Kimmy almost remembers, a faded portrait, and someone who says she has familiar eyes."
+      "Kimmy keeps a private question in the back of her notebook: who were her first family, and why did they leave so few tracks?"
   };
 
   const AUDIO_CLIPS = {
@@ -74,12 +86,36 @@
       inspectTitle: "Pickles Found",
       inspectText:
         "Pickles is safe, cozy, and already nibbling a carrot top like nothing dramatic happened at all."
+    },
+    fiveDollars: {
+      label: "$5 Case Fee",
+      description: "Lila's crinkled thank-you payment for finding Pickles.",
+      image: "./assets/inspect-rabbit-clues.png",
+      inspectTitle: "Five-Dollar Case Fee",
+      inspectText:
+        "The Finch Street Mystery Club's first paid case earned five dollars. Kimmy tucks it away; a future clue may need bus fare, a copy fee, or a very useful snack."
+    },
+    briarFile: {
+      label: "Briar Lane File",
+      description: "Kimmy's notes for the house everyone calls haunted.",
+      image: "./assets/case2-exterior.png",
+      inspectTitle: "Briar Lane File",
+      inspectText:
+        "Lila's warning, Mr. Hexibald's rule, glowing windows, and strange music all point to the same place: the empty old house on Briar Lane."
+    },
+    nurseryKey: {
+      label: "Small Brass Key",
+      description: "A key Mrs. Wren gives Kimmy for the upstairs room.",
+      image: "./assets/npc-grandmother.png",
+      inspectTitle: "Small Brass Key",
+      inspectText:
+        "The key is old, polished by years of careful use, and tied with a faded lavender ribbon."
     }
   };
 
   const CLUES = {
     lila:
-      "Lila says Pickles wears a mint ribbon and always follows the smell of carrots.",
+      "Lila is frantic: Pickles wears a mint ribbon, loves carrots, and disappeared before the picnic. She can pay five dollars if Kimmy finds her.",
     bakery:
       "Bakery clue: carrot crumbs, flour paw prints, and a mint ribbon point away from the patio.",
     poppy:
@@ -89,7 +125,23 @@
     basil:
       "Mr. Basil says nervous rabbits hide near lavender and come out for quiet voices, carrot tops, and familiar bells.",
     briarLane:
-      "Next case clue: the Briar Lane house has glowing windows, a music-box tune, and an old portrait too faded to identify.",
+      "Case 02 lead: Lila feared Pickles had gone near the old Briar Lane house, where Mr. Hexibald warns kids away and someone may be sneaking in after dark.",
+    hexibaldWarning:
+      "Mr. Hexibald is the caretaker. He keeps kids away because the house belonged to a family who left suddenly, and he promised to protect what remains.",
+    briarWindow:
+      "Briar Lane clue: the glowing upper window is lamplight from someone inside, not a ghost.",
+    briarWind:
+      "Briar Lane clue: a loose shutter makes a hollow knocking sound when the wind changes.",
+    briarMusic:
+      "Briar Lane clue: the haunted tune is coming from the old piano in the living room.",
+    briarVisitor:
+      "Briar Lane clue: fresh footprints and a folded shawl prove a real person is visiting the house at night.",
+    grandmother:
+      "Case 02 answer: Mrs. Wren is the nighttime visitor. She is not haunting the house; she comes back because she loved the family who lived there.",
+    briarPortrait:
+      "Long mystery clue: a sun-faded portrait in Briar Lane House shows a young woman with Kimmy's eyes and a crescent locket.",
+    briarHeight:
+      "Long mystery clue: the old girls' room has baby-height marks and a crescent pattern that feel strangely familiar.",
     nameEcho:
       "Long mystery clue: Mrs. Poppy nearly called Kimmy 'Mara,' then quickly pretended she meant 'my dear.'",
     photo:
@@ -97,7 +149,7 @@
     identity:
       "Long mystery clue: the picnic invitation stamp has a tiny crescent-and-star mark like Kimmy's locket.",
     solved:
-      "Case solved: Pickles was hiding safely in the community garden basket. Kimmy found her by following every clue in order."
+      "Case solved: Pickles was hiding safely in the community garden basket. Kimmy found her by following every clue in order and earned the club's first five-dollar fee."
   };
 
   const NPCS = {
@@ -106,7 +158,7 @@
       role: "Pet Owner",
       portrait: "./assets/npc-lila.png",
       line:
-        "Pickles slipped out while we were setting up for the picnic. She has a mint ribbon with a tiny bell, and she will do anything for carrot snacks.",
+        "Please help me, Kimmy. Pickles is gone. I checked the picnic blankets and called her name and I am trying not to cry. I have five dollars if the Mystery Club can find her.",
       hint:
         "Start where snacks smell strongest. Pickles always follows her nose."
     },
@@ -127,6 +179,24 @@
         "A rabbit would choose the lavender bench if the picnic felt too noisy. Move slowly, offer a carrot top, then let her hear her little bell.",
       hint:
         "Quiet first, carrot second, bell last. That order will feel safe to Pickles."
+    },
+    hexibald: {
+      name: "Mr. Hexibald",
+      role: "Briar Lane Caretaker",
+      portrait: "./assets/npc-hexibald.png",
+      line:
+        "That house is not for children, not for games, and certainly not for clubs with notebooks. I keep it locked because I promised I would.",
+      hint:
+        "A warning is a clue about what someone wants hidden."
+    },
+    grandmother: {
+      name: "Mrs. Wren",
+      role: "Night Visitor",
+      portrait: "./assets/npc-grandmother.png",
+      line:
+        "I did not mean to frighten anyone. I come here to play the old lullaby and remember a family I loved very much.",
+      hint:
+        "The house is not haunted. It is remembered."
     }
   };
 
@@ -144,10 +214,10 @@
         "The woman in the old photograph has Kimmy's eyes, Kimmy's thoughtful half-smile, and the same kind of crescent locket. No name, no date, no explanation."
     },
     briarClipping: {
-      title: "Briar Lane Clipping",
-      image: "./assets/inspect-briar-clipping.png",
+      title: "Briar Lane File",
+      image: "./assets/case2-exterior.png",
       text:
-        "A clipped note says the abandoned Briar Lane house glows at dusk and plays music when no one is inside. Someone underlined one phrase: 'the girl has familiar eyes.'"
+        "Kimmy writes the first Case 02 question: if no one lives in Briar Lane House, who keeps entering after dark, turning on lights, and playing the piano?"
     },
     bakeryClues: {
       title: "Bakery Patio Clues",
@@ -178,6 +248,42 @@
       image: "./assets/case1-garden.png",
       text:
         "The lavender bench is quiet, shady, and full of little hiding places. Kimmy hears one soft rustle, then nothing. She needs the right rabbit approach before she searches closer."
+    },
+    hexibaldNotice: {
+      title: "Mr. Hexibald's Warning",
+      image: "./assets/inspect-hexibald-warning.png",
+      text:
+        "A stiff card is wired to the gate. There are no clear words left after the weather, but the careful knots look like Mr. Hexibald's work."
+    },
+    briarWindow: {
+      title: "Glowing Upper Window",
+      image: "./assets/case2-exterior.png",
+      text:
+        "The upper window glows too warmly to be moonlight. Someone inside is using a lamp."
+    },
+    looseShutter: {
+      title: "Loose Shutter",
+      image: "./assets/case2-exterior.png",
+      text:
+        "A shutter taps the wall in a perfect knock-knock pause whenever the wind slides through the gate."
+    },
+    pianoMusic: {
+      title: "Old Piano",
+      image: "./assets/case2-living-room.png",
+      text:
+        "The piano keys are dusty except for the middle notes. Someone has played the same gentle tune more than once."
+    },
+    briarPortrait: {
+      title: "Faded Portrait",
+      image: "./assets/inspect-mara-portrait.png",
+      text:
+        "The portrait is too faded to prove anything. Still, the young woman has Kimmy's eyes, and a crescent locket rests at her collar."
+    },
+    heightMarks: {
+      title: "Old Girls' Room",
+      image: "./assets/case2-nursery.png",
+      text:
+        "The room has been kept gently, not cleaned. A rocking chair, a toy shelf, and tiny height marks suggest someone could not bear to let it disappear."
     }
   };
 
@@ -187,46 +293,14 @@
       subtitle: "Finch Street Maple",
       image: "./assets/treefort-clubhouse.png",
       lead:
-        "Kimmy opens the Finch Street Mystery Club from her tree-fort HQ, where books, maps, and old photographs wait beside today's pet case.",
+        "Kimmy opens the Finch Street Mystery Club from her tree-fort HQ, where books, maps, and old photographs wait for the next knock on the ladder.",
       hotspots: [
         {
           id: "club-lila",
           label: "Talk to Lila",
           x: 22,
           y: 58,
-          action: () =>
-            openActionMenu({
-              title: "Lila and the Empty Basket",
-              image: NPCS.lila.portrait,
-              text:
-                "Lila is clutching Pickles' travel basket. The door is open, and a tiny bell string dangles from one corner.",
-              actions: [
-                {
-                  label: "Ask what happened",
-                  description: "Start the case by listening to the client.",
-                  primary: true,
-                  onSelect: () => {
-                    setFlag("clientInterview");
-                    addClue("lila");
-                    speak(
-                      "Kimmy takes the case. Pickles has a mint ribbon, a tiny bell, and a serious carrot habit."
-                    );
-                  }
-                },
-                {
-                  label: "Examine basket",
-                  description: "Look for a clue before making promises.",
-                  onSelect: () =>
-                    speak("The basket smells like hay, carrots, and a little lavender. Pickles has favorite places.")
-                },
-                {
-                  label: "Promise first",
-                  description: "A kind impulse, but not a detective move.",
-                  onSelect: () =>
-                    speak("Kimmy almost promises too quickly, then remembers: good detectives listen before they leap.")
-                }
-              ]
-            })
+          action: openLilaHotspot
         },
         {
           id: "club-board",
@@ -304,37 +378,34 @@
         },
         {
           id: "club-briar",
-          label: "Read Briar Lane clipping",
+          label: "Open Briar Lane file",
+          showWhen: () => getFlag("case2Unlocked"),
           x: 84,
           y: 52,
           action: () =>
             openActionMenu({
-              title: "Briar Lane Clipping",
+              title: "Briar Lane Case File",
               image: INSPECTIONS.briarClipping.image,
               text:
-                "The clipping belongs to a later case, but the underlined words make Kimmy curious.",
+                "Kimmy starts a new file after Lila mentions the house everyone avoids: someone entering after dark, lights in the windows, piano music, and Mr. Hexibald's warning at the gate.",
               actions: [
                 {
-                  label: "Read clipping",
-                  description: "Open the haunted-house teaser.",
+                  label: "Review Case 02",
+                  description: "Pin Lila's warning and the first question.",
                   primary: true,
                   onSelect: () =>
                     openInspection("briarClipping", {
-                      actionLabel: "Save for Case 02",
+                      actionLabel: "Go to Briar Lane",
                       onAction: () => {
-                        setFlag("briarLaneTeased");
-                        addClue("briarLane");
-                        speak(
-                          "Kimmy saves the Briar Lane clipping for the next case. A haunted house is usually only haunted by clues."
-                        );
+                        navigate("briarExterior");
                       }
                     })
                 },
                 {
-                  label: "Put it back",
-                  description: "Do not mix cases yet.",
+                  label: "Check the fee",
+                  description: "Remember the first paid case reward.",
                   onSelect: () =>
-                    speak("Kimmy leaves the clipping pinned. Pickles is today's case.")
+                    speak("Kimmy has five dollars from Lila's case. She saves it in the club jar for future investigating.")
                 }
               ]
             })
@@ -758,10 +829,578 @@
             })
         }
       ]
+    },
+    briarExterior: {
+      title: "Briar Lane House",
+      subtitle: "Front Gate",
+      image: "./assets/case2-exterior.png",
+      showWhen: () => getFlag("case2Unlocked"),
+      unlockFlag: "case2Unlocked",
+      lockedLead:
+        "Briar Lane is not part of Kimmy's case file yet. Finish helping Lila first.",
+      lead:
+        "Briar Lane House stands empty behind roses and ironwork. Kimmy's question is simple: who keeps entering it after dark?",
+      hotspots: [
+        {
+          id: "briar-hexibald",
+          label: "Talk to Mr. Hexibald",
+          x: 20,
+          y: 61,
+          action: () =>
+            openActionMenu({
+              title: "Mr. Hexibald at the Gate",
+              image: NPCS.hexibald.portrait,
+              text:
+                "Mr. Hexibald steps between Kimmy and the gate. He is stern, but his eyes keep flicking toward the glowing upper window.",
+              actions: [
+                {
+                  label: "Ask why he guards it",
+                  description: "Find out why the house matters.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("hexibaldWarning");
+                    addClue("hexibaldWarning");
+                    speak("Mr. Hexibald says he is the caretaker. The family left suddenly, and he promised to keep the house safe.");
+                  }
+                },
+                {
+                  label: "Mention Pickles",
+                  description: "Explain how this case started.",
+                  onSelect: () =>
+                    speak("Mr. Hexibald softens a little. 'A lost rabbit is one thing. Sneaking into old houses is another.'")
+                },
+                {
+                  label: "Try to slip past",
+                  description: "A bad detective move.",
+                  onSelect: () =>
+                    speak("Kimmy gets exactly three steps before Mr. Hexibald taps his cane. Subtle investigation will work better.")
+                }
+              ]
+            })
+        },
+        {
+          id: "briar-warning",
+          label: "Inspect the gate notice",
+          x: 29,
+          y: 69,
+          action: () =>
+            openActionMenu({
+              title: "Gate Warning",
+              image: INSPECTIONS.hexibaldNotice.image,
+              text:
+                "The notice has weathered blank in places, but it is tied with four careful brass loops.",
+              actions: [
+                {
+                  label: "Look closer",
+                  description: "Zoom into the warning.",
+                  onSelect: () => openInspection("hexibaldNotice")
+                },
+                {
+                  label: "Record caretaker clue",
+                  description: "Treat the warning as evidence.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("hexibaldWarning");
+                    addClue("hexibaldWarning");
+                    speak("Kimmy records the warning. Someone is keeping kids out, but that is not the same as a ghost keeping people away.");
+                  }
+                }
+              ]
+            })
+        },
+        {
+          id: "briar-window",
+          label: "Watch glowing window",
+          x: 61,
+          y: 31,
+          action: () =>
+            openActionMenu({
+              title: "Upper Window Glow",
+              image: INSPECTIONS.briarWindow.image,
+              text:
+                "The upstairs window glows warm and steady, then shifts as if someone moved a lamp.",
+              actions: [
+                {
+                  label: "Study the light",
+                  description: "Separate spooky from practical.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("briarWindowClue");
+                    addClue("briarWindow");
+                    speak("Kimmy decides the glow is lamplight. That means someone living, not something ghostly, is inside.");
+                  }
+                },
+                {
+                  label: "Call it haunted",
+                  description: "Jump to the town rumor.",
+                  onSelect: () =>
+                    speak("Kimmy writes 'haunted?' with a question mark, then underlines the question mark twice.")
+                }
+              ]
+            })
+        },
+        {
+          id: "briar-shutter",
+          label: "Check loose shutter",
+          x: 78,
+          y: 38,
+          action: () =>
+            openActionMenu({
+              title: "Loose Shutter",
+              image: INSPECTIONS.looseShutter.image,
+              text:
+                "The shutter taps once, pauses, then taps twice. From the sidewalk it could sound like a signal.",
+              actions: [
+                {
+                  label: "Match the sound",
+                  description: "Test the 'knocking ghost' rumor.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("briarWindClue");
+                    addClue("briarWind");
+                    speak("Kimmy matches the rhythm to the wind. One haunted-house sound is only a loose shutter.");
+                  }
+                },
+                {
+                  label: "Knock back",
+                  description: "Try to answer the house.",
+                  onSelect: () =>
+                    speak("No one knocks back. Kimmy smiles anyway; experiments count.")
+                }
+              ]
+            })
+        },
+        {
+          id: "briar-porch",
+          label: "Approach the front door",
+          requires: () => getFlag("hexibaldWarning") && getFlag("briarWindowClue") && getFlag("briarWindClue"),
+          lockedLabel: "Gather gate clues",
+          lockedMessage:
+            "Kimmy should understand Mr. Hexibald's warning, the glowing window, and the shutter sound before asking to enter.",
+          x: 54,
+          y: 58,
+          action: () =>
+            openActionMenu({
+              title: "Front Door",
+              image: "./assets/case2-exterior.png",
+              text:
+                "Kimmy can now explain three things: the warning is from a caretaker, the glow is lamplight, and the knocking is a loose shutter.",
+              actions: [
+                {
+                  label: "Ask to look inside",
+                  description: "Use evidence instead of sneaking.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("briarInside");
+                    speak("Mr. Hexibald sighs, then unlocks the door. 'Ten minutes. Notebook open. Hands careful.'");
+                    navigate("briarFoyer");
+                  }
+                },
+                {
+                  label: "Sneak around back",
+                  description: "Ignore the caretaker agreement.",
+                  onSelect: () =>
+                    speak("Kimmy decides she likes permission better than scratches from rose bushes.")
+                }
+              ]
+            })
+        }
+      ]
+    },
+    briarFoyer: {
+      title: "Briar Lane Foyer",
+      subtitle: "Inside the Empty House",
+      image: "./assets/case2-foyer.png",
+      showWhen: () => getFlag("case2Unlocked"),
+      unlockFlag: "briarInside",
+      lockedLead:
+        "Kimmy needs permission from Mr. Hexibald before entering the house.",
+      lead:
+        "The foyer smells like old wood, dust, and lavender polish. The house is empty, but it does not feel forgotten.",
+      hotspots: [
+        {
+          id: "foyer-portraits",
+          label: "Study hallway portraits",
+          x: 13,
+          y: 43,
+          action: () =>
+            openActionMenu({
+              title: "Hallway Portraits",
+              image: "./assets/case2-foyer.png",
+              text:
+                "Most portraits are too faded to identify. One frame has been recently dusted.",
+              actions: [
+                {
+                  label: "Look for family clues",
+                  description: "Start a personal file note.",
+                  onSelect: () =>
+                    speak("Kimmy notices the house has been cared for in small, quiet ways. Someone visits on purpose.")
+                },
+                {
+                  label: "Follow the music",
+                  description: "The piano sound is stronger through the archway.",
+                  primary: true,
+                  onSelect: () => navigate("briarLiving")
+                }
+              ]
+            })
+        },
+        {
+          id: "foyer-floorboard",
+          label: "Inspect loose floorboard",
+          x: 54,
+          y: 78,
+          action: () =>
+            openActionMenu({
+              title: "Loose Floorboard",
+              image: "./assets/case2-foyer.png",
+              text:
+                "A board by the rug lifts slightly. Under it is a clean rectangle where something used to rest.",
+              actions: [
+                {
+                  label: "Measure clean dust",
+                  description: "Find signs of a recent visitor.",
+                  primary: true,
+                  onSelect: () =>
+                    speak("The dust was disturbed recently. Someone knows this house well enough to hide things without making a mess.")
+                },
+                {
+                  label: "Force it open",
+                  description: "Risk damaging the house.",
+                  onSelect: () =>
+                    speak("Kimmy leaves it gentle. This house feels like evidence and memory at the same time.")
+                }
+              ]
+            })
+        },
+        {
+          id: "foyer-parlor",
+          label: "Enter the piano room",
+          x: 88,
+          y: 49,
+          action: () =>
+            openActionMenu({
+              title: "Music Through the Archway",
+              image: "./assets/case2-foyer.png",
+              text:
+                "The piano notes are soft and careful, like someone playing from memory.",
+              actions: [
+                {
+                  label: "Follow the music",
+                  description: "Investigate the haunted tune.",
+                  primary: true,
+                  onSelect: () => navigate("briarLiving")
+                },
+                {
+                  label: "Call out",
+                  description: "Announce Kimmy is inside.",
+                  onSelect: () =>
+                    speak("The music stops. Kimmy waits, then hears one floorboard creak in the piano room.")
+                }
+              ]
+            })
+        },
+        {
+          id: "foyer-stairs",
+          label: "Go upstairs",
+          requires: () => getFlag("grandmotherMet"),
+          lockedLabel: "Find the visitor first",
+          lockedMessage:
+            "The upstairs room matters, but Kimmy should solve who is visiting the house before opening private rooms.",
+          x: 25,
+          y: 42,
+          action: () =>
+            openActionMenu({
+              title: "Stairway to the Old Room",
+              image: "./assets/case2-foyer.png",
+              text:
+                "Mrs. Wren's small key fits the upstairs door. Mr. Hexibald watches, worried but quiet.",
+              actions: [
+                {
+                  label: "Use the small key",
+                  description: "Open the old girls' room.",
+                  primary: true,
+                  onSelect: () => navigate("briarNursery")
+                },
+                {
+                  label: "Wait downstairs",
+                  description: "Leave the private room for later.",
+                  onSelect: () =>
+                    speak("Kimmy waits, but the key feels important in her palm.")
+                }
+              ]
+            })
+        }
+      ]
+    },
+    briarLiving: {
+      title: "Piano Room",
+      subtitle: "Briar Lane Living Room",
+      image: "./assets/case2-living-room.png",
+      showWhen: () => getFlag("case2Unlocked"),
+      unlockFlag: "briarInside",
+      lead:
+        "The living room is dusty except for the piano bench, the middle keys, and a path of fresh footprints across the floor.",
+      hotspots: [
+        {
+          id: "living-piano",
+          label: "Inspect the piano",
+          x: 26,
+          y: 50,
+          action: () =>
+            openActionMenu({
+              title: "Old Piano",
+              image: INSPECTIONS.pianoMusic.image,
+              text:
+                "The piano is out of tune, but the middle keys are clean. The sheet music is open to a lullaby Kimmy almost recognizes.",
+              actions: [
+                {
+                  label: "Listen to the tune",
+                  description: "Find the source of the ghost music.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("briarMusicClue");
+                    addClue("briarMusic");
+                    speak("The haunted music is a piano lullaby. Kimmy almost knows it, which bothers her more than the rumor did.");
+                  }
+                },
+                {
+                  label: "Press random keys",
+                  description: "Make noise before thinking.",
+                  onSelect: () =>
+                    speak("The notes wobble through the room. Kimmy decides the house has enough rumors already.")
+                }
+              ]
+            })
+        },
+        {
+          id: "living-footprints",
+          label: "Follow fresh footprints",
+          x: 34,
+          y: 76,
+          action: () =>
+            openActionMenu({
+              title: "Fresh Footprints",
+              image: "./assets/case2-living-room.png",
+              text:
+                "The footprints are too small for Mr. Hexibald's boots and too steady for kids running on a dare.",
+              actions: [
+                {
+                  label: "Sketch the path",
+                  description: "Track the visitor through the room.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("briarVisitorTrail");
+                    addClue("briarVisitor");
+                    speak("The visitor comes from the side door, sits at the piano, and leaves by the same careful path.");
+                  }
+                },
+                {
+                  label: "Blame a ghost",
+                  description: "Ignore the physical clue.",
+                  onSelect: () =>
+                    speak("Kimmy writes: ghosts probably do not leave muddy shoe prints.")
+                }
+              ]
+            })
+        },
+        {
+          id: "living-shawl",
+          label: "Inspect folded shawl",
+          x: 76,
+          y: 62,
+          action: () =>
+            openActionMenu({
+              title: "Folded Shawl",
+              image: "./assets/case2-living-room.png",
+              text:
+                "A soft shawl rests on the couch. It smells faintly of lavender soap and piano dust.",
+              actions: [
+                {
+                  label: "Record visitor clue",
+                  description: "The house has a human visitor.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("briarVisitorTrail");
+                    addClue("briarVisitor");
+                    speak("The shawl is not old dust. Someone has been here recently, gently, and alone.");
+                  }
+                },
+                {
+                  label: "Put it on",
+                  description: "Tempting, but not evidence-safe.",
+                  onSelect: () =>
+                    speak("Kimmy leaves the shawl where it is. Detectives do not wear clues.")
+                }
+              ]
+            })
+        },
+        {
+          id: "living-grandmother",
+          label: "Speak to the night visitor",
+          requires: () => getFlag("briarMusicClue") && getFlag("briarVisitorTrail"),
+          lockedLabel: "Identify the visitor",
+          lockedMessage:
+            "Kimmy needs the piano clue and the fresh visitor trail before she can understand who is inside.",
+          x: 52,
+          y: 45,
+          action: () =>
+            openActionMenu({
+              title: "Mrs. Wren by the Piano",
+              image: NPCS.grandmother.portrait,
+              text:
+                "An older woman steps from the lamplight, one hand on the piano. She looks startled, then sad, then kind.",
+              actions: [
+                {
+                  label: "Ask why she comes",
+                  description: "Solve the haunting kindly.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("grandmotherMet");
+                    addItem("nurseryKey");
+                    addClue("grandmother");
+                    speak("Mrs. Wren says she comes for memories, not mischief. She gives Kimmy a small key for the upstairs room.");
+                  }
+                },
+                {
+                  label: "Ask if she is a ghost",
+                  description: "Say the rumor out loud.",
+                  onSelect: () =>
+                    speak("Mrs. Wren laughs softly. 'No, dear. Only old enough to creak like one.'")
+                },
+                {
+                  label: "Ask about the family",
+                  description: "Push the bigger mystery.",
+                  onSelect: () =>
+                    speak("Mrs. Wren's smile wavers. 'They loved this house. That is all I can say tonight.'")
+                }
+              ]
+            })
+        }
+      ]
+    },
+    briarNursery: {
+      title: "Old Girls' Room",
+      subtitle: "Upstairs at Briar Lane",
+      image: "./assets/case2-nursery.png",
+      showWhen: () => getFlag("case2Unlocked"),
+      unlockFlag: "grandmotherMet",
+      lockedLead:
+        "Kimmy needs Mrs. Wren's key before entering the upstairs room.",
+      lead:
+        "The old girls' room is not spooky. It is careful, quiet, and preserved like someone has been protecting a memory.",
+      hotspots: [
+        {
+          id: "nursery-mobile",
+          label: "Listen to moon mobile",
+          x: 52,
+          y: 25,
+          action: () =>
+            openActionMenu({
+              title: "Moon Mobile",
+              image: "./assets/case2-nursery.png",
+              text:
+                "The mobile turns above the little bed, chiming the first notes of the piano lullaby.",
+              actions: [
+                {
+                  label: "Hum along",
+                  description: "Kimmy knows more than she can explain.",
+                  primary: true,
+                  onSelect: () =>
+                    speak("Kimmy hums three notes before she realizes she knows them. She stops and writes that down.")
+                },
+                {
+                  label: "Spin it fast",
+                  description: "A noisy shortcut.",
+                  onSelect: () =>
+                    speak("Kimmy keeps it gentle. Some clues are fragile.")
+                }
+              ]
+            })
+        },
+        {
+          id: "nursery-height",
+          label: "Check height marks",
+          x: 13,
+          y: 43,
+          action: () =>
+            openActionMenu({
+              title: "Tiny Height Marks",
+              image: INSPECTIONS.heightMarks.image,
+              text:
+                "The pencil marks are very low, the kind parents make before a child can stand still for long.",
+              actions: [
+                {
+                  label: "Add to personal file",
+                  description: "A small clue, not proof.",
+                  primary: true,
+                  onSelect: () => {
+                    addClue("briarHeight");
+                    speak("Kimmy adds the height marks to her personal file. She cannot prove why they matter, but they do.");
+                  }
+                },
+                {
+                  label: "Measure herself",
+                  description: "Check if the marks belong to her now.",
+                  onSelect: () =>
+                    speak("Kimmy is much taller now. The marks belonged to a baby or toddler, long ago.")
+                }
+              ]
+            })
+        },
+        {
+          id: "nursery-box",
+          label: "Open keepsake box",
+          requires: () => hasItem("nurseryKey"),
+          lockedLabel: "Need small key",
+          lockedMessage:
+            "Mrs. Wren's small brass key should open the keepsake box.",
+          x: 82,
+          y: 55,
+          action: () =>
+            openActionMenu({
+              title: "Keepsake Box",
+              image: "./assets/case2-nursery.png",
+              text:
+                "The little box opens with a quiet click. Inside is an old portrait wrapped in lace.",
+              actions: [
+                {
+                  label: "Study portrait",
+                  description: "Zoom into the woman who looks familiar.",
+                  primary: true,
+                  onSelect: () =>
+                    openInspection("briarPortrait", {
+                      actionLabel: "Save portrait clue",
+                      onAction: () => {
+                        setFlag("briarPortraitClue");
+                        addClue("briarPortrait");
+                        speak("Kimmy saves the portrait clue. She does not know the woman's name yet, but the face feels like a question written for her.");
+                      }
+                    })
+                },
+                {
+                  label: "Close box",
+                  description: "Leave the memory untouched.",
+                  onSelect: () =>
+                    speak("Kimmy closes the box carefully. Even mysteries deserve manners.")
+                }
+              ]
+            })
+        }
+      ]
     }
   };
 
-  const LOCATION_ORDER = ["clubhouse", "bakery", "park", "garden"];
+  const LOCATION_ORDER = [
+    "clubhouse",
+    "bakery",
+    "park",
+    "garden",
+    "briarExterior",
+    "briarFoyer",
+    "briarLiving",
+    "briarNursery"
+  ];
 
   const PUZZLES = {
     coaxPickles: {
@@ -801,6 +1440,7 @@
     inventoryList: document.getElementById("inventoryList"),
     inventoryCount: document.getElementById("inventoryCount"),
     clueList: document.getElementById("clueList"),
+    caseTitle: document.getElementById("caseTitle"),
     hintButton: document.getElementById("hintButton"),
     resetButton: document.getElementById("resetButton"),
     storyButton: document.getElementById("storyButton"),
@@ -819,7 +1459,7 @@
       flags: {},
       voiceEnabled: false,
       lead:
-        "Open the story dossier, talk to Lila, and help Kimmy find Pickles before the picnic."
+        "Open Kimmy's dossier. The first case begins when someone reaches the tree fort for help."
     };
   }
 
@@ -995,7 +1635,16 @@
     if (!location) {
       return false;
     }
-    return !location.unlockFlag || getFlag(location.unlockFlag);
+    return canShowLocation(locationId) && (!location.unlockFlag || getFlag(location.unlockFlag));
+  }
+
+  function canShowLocation(locationId) {
+    const location = LOCATIONS[locationId];
+    return Boolean(location) && (!location.showWhen || location.showWhen());
+  }
+
+  function canShowHotspot(hotspot) {
+    return !hotspot.showWhen || hotspot.showWhen();
   }
 
   function canUseHotspot(hotspot) {
@@ -1003,12 +1652,31 @@
   }
 
   function render() {
-    const location = LOCATIONS[state.location] || LOCATIONS.clubhouse;
+    let location = LOCATIONS[state.location] || LOCATIONS.clubhouse;
+    if (!canEnterLocation(state.location)) {
+      state.location = "clubhouse";
+      location = LOCATIONS.clubhouse;
+      state.lead = location.lead;
+      saveState();
+    }
+    const currentCase = getCurrentCase();
     els.sceneImage.style.backgroundImage = `url("${location.image}")`;
     els.locationTitle.textContent = location.title;
     els.locationSubtitle.textContent = location.subtitle;
+    if (els.caseTitle) {
+      els.caseTitle.textContent = currentCase.title;
+    }
     els.leadText.textContent = state.lead || location.lead;
-    if (getFlag("familyPhotoFound")) {
+    if (getFlag("briarPortraitClue")) {
+      els.arcText.textContent =
+        "Kimmy has found a Briar Lane portrait of a young woman with her eyes and a crescent locket. Mrs. Wren knows more than she is saying.";
+    } else if (getFlag("grandmotherMet")) {
+      els.arcText.textContent =
+        "Mrs. Wren solved the ghost rumor, but not the bigger question. She remembers the house like family and gave Kimmy a key without explaining why.";
+    } else if (getFlag("case2Unlocked")) {
+      els.arcText.textContent =
+        "Briar Lane is supposed to be empty, but Lila's warning opened a new lead: someone is visiting the old house after dark.";
+    } else if (getFlag("familyPhotoFound")) {
       els.arcText.textContent =
         "Kimmy has two personal clues now: a crescent mark like her locket and an old photograph of a woman who looks like her. Someone may be guiding her with cases.";
     } else if (getFlag("identityClueFound")) {
@@ -1024,6 +1692,16 @@
     renderClues();
     renderProgress();
     renderVoiceButton();
+  }
+
+  function getCurrentCase() {
+    if (state.location && state.location.startsWith("briar")) {
+      return { title: STORY.case2Title };
+    }
+    if (getFlag("case2Unlocked") && getFlag("caseSolved")) {
+      return { title: STORY.case2Title };
+    }
+    return { title: STORY.case1Title };
   }
 
   function renderVoiceButton() {
@@ -1051,7 +1729,7 @@
   function renderHotspots(location) {
     els.hotspotLayer.replaceChildren();
 
-    location.hotspots.forEach((hotspot) => {
+    location.hotspots.filter(canShowHotspot).forEach((hotspot) => {
       const available = canUseHotspot(hotspot);
       const button = document.createElement("button");
       button.type = "button";
@@ -1084,6 +1762,9 @@
     els.mapNav.replaceChildren();
 
     LOCATION_ORDER.forEach((id) => {
+      if (!canShowLocation(id)) {
+        return;
+      }
       const location = LOCATIONS[id];
       const available = canEnterLocation(id);
       const button = document.createElement("button");
@@ -1153,11 +1834,20 @@
   }
 
   function renderProgress() {
-    const count = CASE_BEATS.filter(getFlag).length;
+    if (getFlag("case2Unlocked")) {
+      const count = CASE2_BEATS.filter(getFlag).length;
+      els.progressText.textContent = getFlag("briarPortraitClue")
+        ? "Case 2: first room solved"
+        : `Case 2: ${count} of ${CASE2_BEATS.length} leads`;
+      els.progressFill.style.width = `${(count / CASE2_BEATS.length) * 100}%`;
+      return;
+    }
+
+    const count = CASE1_BEATS.filter(getFlag).length;
     els.progressText.textContent = getFlag("caseSolved")
-      ? "Case solved"
-      : `${count} of ${CASE_BEATS.length} case steps`;
-    els.progressFill.style.width = `${(count / CASE_BEATS.length) * 100}%`;
+      ? "Case 1 solved"
+      : `Case 1: ${count} of ${CASE1_BEATS.length} steps`;
+    els.progressFill.style.width = `${(count / CASE1_BEATS.length) * 100}%`;
   }
 
   function openIntro(isFirstRun) {
@@ -1177,15 +1867,14 @@
       <p>${STORY.mission}</p>
       <p>${STORY.hook}</p>
       <p>${STORY.seriesArc}</p>
-      <p>${STORY.nextCase}</p>
     `;
 
     const cast = document.createElement("div");
     cast.className = "cast-grid";
     cast.append(
       createCastCard("./assets/kimmy-avatar.png", "Kimmy Finch", "Founder, clue-spotter, keeper of the crescent locket."),
-      createCastCard("./assets/npc-lila.png", "Lila", "Kimmy's first paying client. Her rabbit Pickles is missing."),
-      createCastCard("./assets/inspect-family-photo.png", "The Unlabeled Photo", "A quiet clue from Kimmy's own mystery file.")
+      createCastCard("./assets/treefort-clubhouse.png", "Finch Street Mystery Club", "A tree-fort headquarters for maps, books, case files, and neighbor mysteries."),
+      createCastCard("./assets/inspect-family-photo.png", "The Private File", "Kimmy keeps the crescent locket and unlabeled photo separate from club business.")
     );
 
     body.append(hero, story, cast);
@@ -1193,13 +1882,15 @@
     const start = document.createElement("button");
     start.type = "button";
     start.className = "modal-button primary";
-    start.textContent = isFirstRun ? "Start the case" : "Back to the case";
+    start.textContent = isFirstRun ? "Open the clubhouse" : "Back to the notebook";
     start.addEventListener("click", () => {
       setFlag("introSeen");
       closeModal();
-      speak(
-        "Kimmy opens her first paid case: find Pickles before the town picnic begins."
-      );
+      if (isFirstRun && !getFlag("clientInterview")) {
+        openCase1Request();
+        return;
+      }
+      speak("Kimmy reviews the club notebook and her private mystery file.");
     });
     if (VOICE_FEATURE_ENABLED) {
       const voice = document.createElement("button");
@@ -1210,6 +1901,137 @@
       actions.append(voice);
     }
     actions.append(start);
+  }
+
+  function openCase1Request() {
+    openActionMenu({
+      title: "Incoming Case: Pickles Is Missing",
+      image: NPCS.lila.portrait,
+      text:
+        "The tree-fort pulley basket rattles with an urgent note from Lila: Pickles is missing. Please help. I have five dollars.",
+      actions: [
+        {
+          label: "Invite Lila in",
+          description: "Start by listening to the worried client.",
+          primary: true,
+          onSelect: openLilaCaseMenu
+        },
+        {
+          label: "Check club rules",
+          description: "Remember how Kimmy handles a case.",
+          onSelect: () =>
+            speak("Kimmy writes the club rules again: listen first, collect clues, be kind to worried clients.")
+        }
+      ]
+    });
+  }
+
+  function openLilaHotspot() {
+    if (getFlag("caseSolved")) {
+      openCase2Bridge();
+      return;
+    }
+    openLilaCaseMenu();
+  }
+
+  function openLilaCaseMenu() {
+    openActionMenu({
+      title: "Lila and the Empty Basket",
+      image: NPCS.lila.portrait,
+      text:
+        "Lila climbs into the tree fort with Pickles' travel basket hugged to her chest. The door is open, and she is blinking hard like she does not want to cry.",
+      actions: [
+        {
+          label: "Ask what happened",
+          description: "Start the case by listening to the client.",
+          primary: true,
+          onSelect: () => {
+            setFlag("clientInterview");
+            addClue("lila");
+            speak(
+              "Kimmy takes the case for five dollars. Pickles has a mint ribbon, a tiny bell, and a serious carrot habit."
+            );
+          }
+        },
+        {
+          label: "Examine basket",
+          description: "Look for a clue before making promises.",
+          onSelect: () =>
+            speak("The basket smells like hay, carrots, and a little lavender. Pickles has favorite places.")
+        },
+        {
+          label: "Promise first",
+          description: "A kind impulse, but not a detective move.",
+          onSelect: () =>
+            speak("Kimmy promises carefully: she will follow every clue, and she will not give up on Pickles.")
+        }
+      ]
+    });
+  }
+
+  function unlockCase2(message) {
+    setFlag("case2Unlocked");
+    addItem("fiveDollars");
+    addItem("briarFile");
+    addClue("briarLane");
+    speak(message);
+  }
+
+  function openCase2Bridge() {
+    if (getFlag("case2Unlocked")) {
+      openActionMenu({
+        title: "Briar Lane Lead",
+        image: INSPECTIONS.briarClipping.image,
+        text:
+          "Kimmy's new question is waiting: if the old house is empty, who keeps entering after dark?",
+        actions: [
+          {
+            label: "Go to Briar Lane",
+            description: "Begin Case 02 at the front gate.",
+            primary: true,
+            onSelect: () => navigate("briarExterior")
+          },
+          {
+            label: "Review the file",
+            description: "Look again at Kimmy's first Case 02 note.",
+            onSelect: () => openInspection("briarClipping")
+          }
+        ]
+      });
+      return;
+    }
+
+    openActionMenu({
+      title: "Lila's Thank-You",
+      image: NPCS.lila.portrait,
+      text:
+        "Lila hugs Pickles so tightly the little bell jingles. She pays the promised five dollars, then admits she was terrified Pickles had gone to Briar Lane House. No one goes there. Mr. Hexibald says to stay away.",
+      actions: [
+        {
+          label: "Ask about Briar Lane",
+          description: "Let Lila's fear become the next case.",
+          primary: true,
+          onSelect: () => {
+            unlockCase2("Case 02 begins: if Briar Lane House is empty, who keeps entering it after dark?");
+            navigate("briarExterior");
+          }
+        },
+        {
+          label: "Ask about Mr. Hexibald",
+          description: "Learn why the caretaker sounds suspicious.",
+          onSelect: () =>
+            unlockCase2("Lila says Mr. Hexibald has guarded Briar Lane for years. Kimmy opens a new file: caretaker, lights, piano music, night visitor.")
+        },
+        {
+          label: "Put $5 in the club jar",
+          description: "Save the fee for a future investigation.",
+          onSelect: () => {
+            addItem("fiveDollars");
+            speak("Kimmy saves the five dollars in the club jar. A future case may need bus fare, a copy fee, or exactly one strategic snack.");
+          }
+        }
+      ]
+    });
   }
 
   function createCastCard(image, name, text) {
@@ -1543,7 +2365,7 @@
     summary.innerHTML = `
       <p class="panel-label">Solved</p>
       <p>Kimmy did not just spot Pickles. She solved the path: Lila's carrot clue led to Mrs. Poppy, the bakery trail led to the park, the paw prints led to the garden, and Mr. Basil taught Kimmy how to coax a nervous rabbit safely.</p>
-      <p>Pickles is safe before the picnic, and Kimmy has a new personal clue tucked away: someone connected to this town knows the crescent-and-star mark on her locket.</p>
+      <p>Pickles is safe before the picnic. Now Kimmy needs to return Pickles to Lila, collect the five-dollar case fee, and hear why Lila was afraid of the old house on Briar Lane.</p>
     `;
 
     body.append(image, summary);
@@ -1554,17 +2376,17 @@
     stay.textContent = "Review clues";
     stay.addEventListener("click", closeModal);
 
-    const returnHome = document.createElement("button");
-    returnHome.type = "button";
-    returnHome.className = "modal-button primary";
-    returnHome.textContent = "Return to Tree Fort";
-    returnHome.addEventListener("click", () => {
+    const thankLila = document.createElement("button");
+    thankLila.type = "button";
+    thankLila.className = "modal-button primary";
+    thankLila.textContent = "Return Pickles to Lila";
+    thankLila.addEventListener("click", () => {
       closeModal();
       navigate("clubhouse");
-      speak("Case 01 is solved. Kimmy can review her clues or peek at the Briar Lane teaser for Case 02.");
+      openCase2Bridge();
     });
 
-    actions.append(stay, returnHome);
+    actions.append(stay, thankLila);
   }
 
   function arraysMatch(a, b) {
@@ -1646,6 +2468,42 @@
       speak("Hint: coax Pickles with quiet feet, a carrot, and then the ribbon bell.");
       return;
     }
+    if (!getFlag("case2Unlocked")) {
+      speak("Hint: return Pickles to Lila at the clubhouse. Her thank-you points Kimmy toward the next mystery.");
+      return;
+    }
+    if (!getFlag("hexibaldWarning")) {
+      speak("Hint: at Briar Lane, ask Mr. Hexibald why he keeps everyone away.");
+      return;
+    }
+    if (!getFlag("briarWindowClue")) {
+      speak("Hint: study the glowing upper window. Is it spooky, or is it a lamp?");
+      return;
+    }
+    if (!getFlag("briarWindClue")) {
+      speak("Hint: check the loose shutter and match its knocking sound to the wind.");
+      return;
+    }
+    if (!getFlag("briarInside")) {
+      speak("Hint: once Kimmy has the gate clues, ask Mr. Hexibald for permission to look inside.");
+      return;
+    }
+    if (!getFlag("briarMusicClue")) {
+      speak("Hint: follow the piano music into the living room and inspect the keys.");
+      return;
+    }
+    if (!getFlag("briarVisitorTrail")) {
+      speak("Hint: the footprints and shawl prove someone real is visiting Briar Lane at night.");
+      return;
+    }
+    if (!getFlag("grandmotherMet")) {
+      speak("Hint: after the piano clue and visitor trail, speak kindly to the night visitor.");
+      return;
+    }
+    if (!getFlag("briarPortraitClue")) {
+      speak("Hint: use Mrs. Wren's small key upstairs. The old girls' room has a keepsake box.");
+      return;
+    }
     if (!getFlag("identityClueFound")) {
       speak("Hint: inspect Kimmy's locket back at the clubhouse.");
       return;
@@ -1654,7 +2512,7 @@
       speak("Hint: inspect the old photograph on the tree-fort desk.");
       return;
     }
-    speak("The first case is solved, and Kimmy has a tiny clue for her own mystery.");
+    speak("Case 02's opening mystery is solved: Briar Lane is not haunted. Mrs. Wren has memories there, and Kimmy has a new family clue.");
   }
 
   els.hintButton.addEventListener("click", showHint);

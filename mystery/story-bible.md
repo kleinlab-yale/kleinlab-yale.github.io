@@ -34,20 +34,35 @@ Long-arc clues:
 
 ## Case 02: The Briar Lane House
 
-Surface mystery: kids think the abandoned house on Briar Lane is haunted. Windows glow at dusk, music plays from inside, and someone has been moving things around.
+Surface mystery: kids think the abandoned house on Briar Lane is haunted. Windows glow at dusk, a shutter knocks like a signal, piano music plays from inside, and someone has been sneaking in after dark.
 
-True case answer: the "haunting" has practical causes: wind through loose shutters, a broken music box, reflective glass, and a shy person secretly protecting the house from vandals.
+True case answer: the house is not haunted. Mr. Hexibald is only the caretaker, the knocking is a loose shutter, the glow is lamplight, and the night visitor is Mrs. Wren, an older woman who returns because the house is full of fond memories.
+
+Secret continuity: Briar Lane House is where Kimmy lived as a baby before her parents disappeared into hiding. The town only knows that the family left suddenly. Kimmy should not discover the whole truth in this chapter; she should only collect clues that feel too personal to ignore.
+
+Important rooms:
+
+- Exterior/front gate: Mr. Hexibald warns kids away because he promised to protect what remains.
+- Foyer: quiet evidence that someone has cared for the house in small ways.
+- Living room: an old piano where Mrs. Wren plays a lullaby from memory.
+- Old girls' room: a preserved upstairs room that would have been Kimmy's as a baby.
 
 Long-arc clues should be intriguing, not conclusive:
 
-- A nursery wallpaper pattern includes faint crescent shapes that match Kimmy's locket, but could just be old decor.
-- A dusty family portrait includes a woman who resembles Kimmy, but the face is partly sun-faded.
-- A height mark on a doorframe has initials that might be "K" or might be a scratched old "R."
-- The music box plays a tune Kimmy somehow recognizes, though she cannot explain why.
-- A neighbor says, "You have her eyes," then changes the subject.
-- The person who hired Kimmy knows the tree-fort clubhouse has a research shelf, even though Kimmy never told them.
+- A nursery pattern includes faint crescent shapes that match Kimmy's locket, but could just be old decor.
+- A sun-faded portrait includes a young woman who resembles Kimmy. This is secretly her mother, Mara.
+- Baby-height marks on the doorframe feel important but do not name Kimmy.
+- The piano lullaby is one Kimmy somehow recognizes, though she cannot explain why.
+- Mrs. Wren looks at Kimmy with deep familiarity, gives her a key, and says only that she loved the family who lived there.
+- Mr. Hexibald should not have a portrait inside the house; he belongs at the gate as caretaker.
 
 The chapter should end with Kimmy solving the haunted-house case clearly, while the family clues remain questions for her personal file.
+
+## Case 03: The Observatory
+
+Surface mystery: the old observatory or Moonwake setting can become a later, more advanced case.
+
+Use the existing Moonwake Observatory concept assets for this chapter, not for Case 02. Case 03 can be stranger and more puzzle-heavy after the player understands the mystery-club flow.
 
 ## Tone Rules
 
