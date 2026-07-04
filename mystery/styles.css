@@ -647,9 +647,11 @@ h1 {
 }
 
 .modal {
+  display: flex;
+  flex-direction: column;
   width: min(42rem, 100%);
   max-height: min(42rem, calc(100vh - 2rem));
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid rgba(39, 52, 47, 0.16);
   border-radius: var(--radius);
   background:
@@ -690,6 +692,8 @@ h1 {
 }
 
 .modal-body {
+  min-height: 0;
+  overflow: auto;
   padding: 1rem;
 }
 
@@ -961,6 +965,29 @@ h1 {
   line-height: 1.1;
 }
 
+.case-transition-card {
+  display: grid;
+  gap: 0.32rem;
+  margin-top: 0.2rem;
+  padding: 0.78rem 0.84rem;
+  border: 1px solid rgba(56, 169, 154, 0.22);
+  border-left: 4px solid var(--teal);
+  border-radius: var(--radius);
+  background: rgba(56, 169, 154, 0.1);
+}
+
+.case-transition-card h4 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-story);
+  font-size: 1.18rem;
+  line-height: 1.1;
+}
+
+.case-transition-card p {
+  margin: 0;
+}
+
 .riddle {
   margin: 0.75rem 0 1rem;
   padding: 0.82rem;
@@ -1178,6 +1205,77 @@ h1 {
   animation: puzzleBump 180ms ease;
 }
 
+.catalog-cipher-board {
+  width: min(100%, 42rem);
+  justify-self: center;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding: clamp(0.75rem, 2vw, 1.15rem);
+  border: 1px solid rgba(39, 52, 47, 0.18);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(rgba(35, 24, 16, 0.08), rgba(35, 24, 16, 0.08)),
+    url("./assets/case4-catalog-cipher.png") center / cover;
+  box-shadow: 0 18px 46px rgba(61, 42, 23, 0.26);
+}
+
+.catalog-cipher-board.solved {
+  box-shadow:
+    0 18px 46px rgba(61, 42, 23, 0.24),
+    0 0 0 0.2rem rgba(56, 169, 154, 0.22);
+}
+
+.catalog-cipher-board.bump {
+  animation: puzzleBump 180ms ease;
+}
+
+.cipher-dial {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 0;
+  padding: 0.48rem;
+  border: 1px solid rgba(255, 246, 215, 0.6);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(255, 250, 240, 0.78), rgba(230, 168, 63, 0.28)),
+    rgba(90, 57, 25, 0.58);
+  box-shadow:
+    inset 0 0 0 1px rgba(91, 62, 25, 0.12),
+    0 0.65rem 1.2rem rgba(39, 52, 47, 0.22);
+}
+
+.cipher-step,
+.cipher-letter {
+  border: 1px solid rgba(91, 62, 25, 0.22);
+  border-radius: calc(var(--radius) - 2px);
+  background: rgba(255, 250, 240, 0.84);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cipher-step {
+  min-height: 2.1rem;
+  font-weight: 900;
+}
+
+.cipher-letter {
+  min-height: clamp(3.5rem, 10vw, 5.2rem);
+  font-family: var(--font-story);
+  font-size: clamp(1.9rem, 6vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+  background:
+    radial-gradient(circle at 38% 20%, rgba(255, 255, 255, 0.9), transparent 34%),
+    linear-gradient(135deg, rgba(230, 168, 63, 0.78), rgba(122, 84, 21, 0.52));
+}
+
+.catalog-cipher-board.solved .cipher-letter {
+  background:
+    radial-gradient(circle at 38% 20%, rgba(255, 255, 255, 0.9), transparent 34%),
+    linear-gradient(135deg, rgba(56, 169, 154, 0.82), rgba(230, 168, 63, 0.56));
+}
+
 @keyframes puzzleBump {
   0%,
   100% {
@@ -1226,10 +1324,17 @@ h1 {
 }
 
 .modal-actions {
+  flex: 0 0 auto;
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.55rem;
-  padding: 0 1rem 1rem;
+  padding: 0.72rem 1rem 1rem;
+  border-top: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 244, 0.94), rgba(255, 245, 227, 0.98)),
+    var(--panel-solid);
 }
 
 .modal-button {
@@ -1347,6 +1452,33 @@ h1 {
 
   .dialogue-card img {
     width: min(12rem, 100%);
+  }
+
+  .modal {
+    max-height: calc(100vh - 1rem);
+  }
+
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions .modal-button {
+    width: 100%;
+  }
+
+  .catalog-cipher-board {
+    gap: 0.35rem;
+    padding: 0.55rem;
+  }
+
+  .cipher-dial {
+    gap: 0.3rem;
+    padding: 0.34rem;
+  }
+
+  .cipher-step {
+    min-height: 1.8rem;
   }
 }
 

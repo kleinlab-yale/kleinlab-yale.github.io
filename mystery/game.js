@@ -1,5 +1,5 @@
 (function () {
-  const APP_BUILD_ID = "20260704-kayla-slide1";
+  const APP_BUILD_ID = "20260704-case4-library1";
   const STORAGE_KEY = "kimmy-finch-mysteries-save";
   const RESET_MARKER_KEY = "kimmy-finch-mysteries-reset-build";
   const FORCE_RESET_ON_BUILD = "20260704-shell1";
@@ -40,11 +40,23 @@
     "case3Solved"
   ];
 
+  const CASE4_BEATS = [
+    "case4Unlocked",
+    "rowanTalked",
+    "librarySlipFound",
+    "catalogDrawerFound",
+    "libraryCipherSolved",
+    "bookChuteTested",
+    "quiltPatternFound",
+    "case4Solved"
+  ];
+
   const STORY = {
     title: "Kayla Finch Mysteries",
     case1Title: "Case 01: The Picnic Pet",
     case2Title: "Case 02: The Briar Lane House",
     case3Title: "Case 03: The Moonwake Observatory",
+    case4Title: "Case 04: The Vanishing Blue Book",
     club: "Finch Street Mystery Club",
     intro:
       "Kayla Finch has always known two true things: she was adopted, and the Finches are her family completely. Her parents answer every question they can, but the first part of Kayla's story still has blank spaces.",
@@ -200,7 +212,55 @@
       image: "./assets/inspect-archive.jpg",
       inspectTitle: "Moonwake Ledger",
       inspectText:
-        "The ledger connects the Gale, Wren, and Finch names through old family branches. Kayla underlines Mila Gale twice."
+        "The ledger connects the Gale, Wren, and Kline names through old family branches. Kayla underlines Mila Gale and the unfamiliar Kline branch twice."
+    },
+    libraryCallSlip: {
+      label: "Library Call Slip",
+      description: "A library slip tucked inside the Moonwake ledger page.",
+      image: "./assets/case4-catalog-cipher.png",
+      inspectTitle: "Library Call Slip",
+      inspectText:
+        "The slip points Kayla to Rowan Library's local-history shelves. It feels less like a random note and more like the next breadcrumb."
+    },
+    cipherWheel: {
+      label: "Catalog Cipher Wheel",
+      description: "A brass wheel from the old card catalog.",
+      image: "./assets/case4-catalog-cipher.png",
+      inspectTitle: "Catalog Cipher Wheel",
+      inspectText:
+        "The wheel has blank brass segments and one little notch. It is built to turn a remembered name into a shelf location."
+    },
+    rowanKeyCard: {
+      label: "Rowan Key Card",
+      description: "Ms. Rowan's old archive card for the local-history room.",
+      image: "./assets/npc-rowan.png",
+      inspectTitle: "Rowan Key Card",
+      inspectText:
+        "The card does not look official anymore, but Ms. Rowan says old library doors still respect old library manners."
+    },
+    blueBook: {
+      label: "Blue Founders Book",
+      description: "The local-history book that kept vanishing from display.",
+      image: "./assets/case4-history-room.png",
+      inspectTitle: "Blue Founders Book",
+      inspectText:
+        "The blue book is not stolen. Its display stand tilts toward a hidden return chute whenever the room warms in afternoon sun."
+    },
+    quiltPatternSketch: {
+      label: "Quilt Pattern Sketch",
+      description: "Kayla's sketch of the family quilt pattern in the history room.",
+      image: "./assets/case4-history-room.png",
+      inspectTitle: "Quilt Pattern Sketch",
+      inspectText:
+        "The quilt repeats a small four-point pattern that also appears on the back of the old photograph. Kayla files it under not proof, but not nothing."
+    },
+    maraFileCard: {
+      label: "Mara File Card",
+      description: "A copied local-history card with the name Mara Kline.",
+      image: "./assets/case4-catalog-cipher.png",
+      inspectTitle: "Mara File Card",
+      inspectText:
+        "The card links the initials M.K. to the name Mara Kline. It still does not explain who Mara is to Kayla, but it gives the private file a real family name."
     }
   };
 
@@ -252,15 +312,33 @@
     archiveCode:
       "Moonwake code clue: the archive lock uses numbers from earlier cases: Mila's five dollars, the old height mark, and the three moon phases.",
     case3Solved:
-      "Case solved: Kayla opens the Moonwake archive and finds a ledger linking Gale, Wren, and Finch family branches.",
+      "Case solved: Kayla opens the Moonwake archive and finds a ledger linking Gale, Wren, and Kline family branches.",
     milaCousin:
       "Long mystery clue: the Moonwake ledger suggests Mila Gale is not only Kayla's best friend. She may be Kayla's cousin.",
+    libraryLead:
+      "Case 04 lead: a library call slip hidden with the Moonwake ledger points to Rowan Library's local-history room.",
+    rowan:
+      "Ms. Rowan asks the Mystery Club to solve a bright little library mystery: a blue local-history book keeps vanishing from display and reappearing on the return cart.",
+    librarySlip:
+      "Library clue: the return cart holds a blank call slip, blue book dust, and a mark from the old card catalog.",
+    catalogCipher:
+      "Library clue: the card catalog drawer hides a brass cipher wheel that responds to a remembered name.",
+    catalogCipherSolved:
+      "Secret solved: the catalog cipher opens the local-history room when Kayla sets the Kline family name from the Moonwake ledger.",
+    bookChute:
+      "Case 04 answer: the blue book is not being stolen. Its display stand tilts toward a hidden return chute when afternoon sun warms the shelf.",
+    quiltPattern:
+      "Long mystery clue: the history-room quilt repeats the same small pattern Kayla found on the back of the old photograph.",
+    maraName:
+      "Long mystery clue: a local-history file card connects the initials M.K. to the name Mara Kline.",
+    case4Solved:
+      "Case solved: Kayla fixes the vanishing-book mystery and keeps the Mara file card in her private notes.",
     nameEcho:
       "Long mystery clue: Mrs. Poppy nearly called Kayla 'Mara,' then quickly pretended she meant 'my dear.'",
     photo:
       "Long mystery clue: an old photograph in the tree fort shows a young woman who looks almost exactly like Kayla.",
     photoBacking:
-      "Long mystery clue: after Kayla restores the torn photograph, the back reveals a tiny crescent stamp and the initials M.F., as if someone wanted the picture found later.",
+      "Long mystery clue: after Kayla restores the torn photograph, the back reveals a tiny crescent stamp and the initials M.K., as if someone wanted the picture found later.",
     identity:
       "Long mystery clue: the picnic invitation stamp has a tiny crescent-and-star mark like Kayla's locket.",
     solved:
@@ -321,6 +399,15 @@
         "The dome flashed three times last night. I checked the logbook, and nobody signed in. That means either someone forgot, or the observatory is answering old stars.",
       hint:
         "Start with the gate token, then compare the chart to the moon dials."
+    },
+    rowan: {
+      name: "Ms. Rowan",
+      role: "Librarian",
+      portrait: "./assets/npc-rowan.png",
+      line:
+        "I have a case for your club, Kayla. A blue local-history book keeps leaving its display and turning up on the return cart. I know books wander in stories, but I prefer evidence.",
+      hint:
+        "Start with the return cart, then the old catalog drawer. Libraries remember where things belong."
     }
   };
 
@@ -455,7 +542,31 @@
       title: "Moonwake Family Ledger",
       image: "./assets/inspect-archive.jpg",
       text:
-        "The ledger is old, careful, and full of family branches. Kayla sees Gale near Finch, and Mila's name suddenly feels much less random."
+        "The ledger is old, careful, and full of family branches. Kayla sees Gale near Kline, and Mila's name suddenly feels much less random."
+    },
+    libraryCallSlip: {
+      title: "Library Call Slip",
+      image: "./assets/case4-catalog-cipher.png",
+      text:
+        "The old slip points to Rowan Library's local-history catalog. It was tucked into the Moonwake ledger like the next page of a mystery."
+    },
+    catalogCipher: {
+      title: "Old Catalog Cipher",
+      image: "./assets/case4-catalog-cipher.png",
+      text:
+        "The brass wheel is not a lock by itself. It needs the right family name from Kayla's newest clue: Kline."
+    },
+    libraryBookChute: {
+      title: "Blue Book Display",
+      image: "./assets/case4-history-room.png",
+      text:
+        "The blue book sits on a tilted stand above a narrow slot. If the shelf warms and shifts, the book could slide into a hidden return chute."
+    },
+    quiltPattern: {
+      title: "Town Quilt Pattern",
+      image: "./assets/case4-history-room.png",
+      text:
+        "The quilt pattern is cheerful and public, but one small shape matches the hidden backing mark from Kayla's restored photograph."
     }
   };
 
@@ -588,6 +699,33 @@
                   description: "Remember which earlier items may matter.",
                   onSelect: () =>
                     speak("Kayla checks her satchel: Pickles' bell from Mila, the five-dollar fee, Mrs. Wren's chart, and the crescent token all feel useful.")
+                }
+              ]
+            })
+        },
+        {
+          id: "club-library",
+          label: "Open library file",
+          showWhen: () => getFlag("case4Unlocked") || getFlag("case3Solved"),
+          x: 90,
+          y: 24,
+          action: () =>
+            openActionMenu({
+              title: "Rowan Library File",
+              image: "./assets/case4-library.png",
+              text:
+                "Kayla pins the library call slip from the Moonwake ledger. The next question is simple and strange: why does the blue local-history book keep vanishing from its display?",
+              actions: [
+                {
+                  label: "Begin Case 04",
+                  description: "Follow the Moonwake ledger slip to Rowan Library.",
+                  primary: true,
+                  onSelect: beginCase4
+                },
+                {
+                  label: "Review library slip",
+                  description: "Zoom into the clue that bridges Case 03 to Case 04.",
+                  onSelect: () => openInspection("libraryCallSlip")
                 }
               ]
             })
@@ -2004,7 +2142,7 @@
               title: "Moonwake Family Ledger",
               image: INSPECTIONS.archiveLedger.image,
               text:
-                "The ledger is not a full answer, but it is a door opening. Gale, Wren, and Finch names appear in the same old family branches.",
+                "The ledger is not a full answer, but it is a door opening. Gale, Wren, and Kline names appear in the same old family branches.",
               actions: [
                 {
                   label: "Copy ledger page",
@@ -2060,6 +2198,268 @@
             })
         }
       ]
+    },
+    rowanLibrary: {
+      title: "Rowan Library",
+      subtitle: "Main Reading Room",
+      image: "./assets/case4-library.png",
+      showWhen: () => getFlag("case4Unlocked"),
+      unlockFlag: "case4Unlocked",
+      lockedLead:
+        "Rowan Library is not in Kayla's active case file yet. Finish the Moonwake archive first.",
+      lead:
+        "Rowan Library is warm, bright, and full of quiet footsteps. Ms. Rowan's blue local-history book keeps vanishing from display and reappearing on the return cart.",
+      hotspots: [
+        {
+          id: "library-rowan",
+          label: "Talk to Ms. Rowan",
+          x: 82,
+          y: 54,
+          action: () =>
+            openActionMenu({
+              title: "Ms. Rowan at the Desk",
+              image: NPCS.rowan.portrait,
+              text:
+                "Ms. Rowan has a neat stack of blank library cards and the expression of someone who has been waiting for Kayla to notice the right shelf.",
+              actions: [
+                {
+                  label: "Ask about the blue book",
+                  description: "Open the Case 04 surface mystery.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("rowanTalked");
+                    addClue("rowan");
+                    speak("Ms. Rowan hires the Mystery Club for one dollar: solve why the blue local-history book keeps vanishing from display and appearing on the return cart.");
+                  }
+                },
+                {
+                  label: "Ask about Kline",
+                  description: "Follow the long mystery gently.",
+                  requires: () => hasClue("case3Solved"),
+                  lockedMessage: "Kayla has not copied the Moonwake ledger yet.",
+                  onSelect: () =>
+                    speak("Ms. Rowan pauses at the Kline name. 'Old town records can be shy. Start with the case, then the catalog.'")
+                }
+              ]
+            })
+        },
+        {
+          id: "library-cart",
+          label: "Inspect return cart",
+          requires: () => getFlag("rowanTalked"),
+          lockedLabel: "Talk to Ms. Rowan first",
+          lockedMessage:
+            "Kayla should hear Ms. Rowan's missing-book case before touching the return cart.",
+          x: 76,
+          y: 76,
+          action: () =>
+            openActionMenu({
+              title: "Return Cart",
+              image: "./assets/case4-library.png",
+              text:
+                "The blue book is not on display. Again. On the return cart, Kayla finds blue cover dust, a blank call slip, and one card-catalog smudge.",
+              actions: [
+                {
+                  label: "Collect the slip",
+                  description: "Record the clue that points to the catalog drawers.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("librarySlipFound");
+                    addItem("libraryCallSlip");
+                    addClue("librarySlip");
+                    speak("Kayla saves the blank call slip and blue book dust. The smudge points to the old card catalog.");
+                  }
+                },
+                {
+                  label: "Blame a prank",
+                  description: "Guess before checking the mechanism.",
+                  xpPenalty: 2,
+                  xpReason: "guessing before testing the return trail costs detective XP.",
+                  onSelect: () =>
+                    speak("Maybe, but good detectives do not stop at maybe. The cart has a catalog clue.")
+                }
+              ]
+            })
+        },
+        {
+          id: "library-catalog",
+          label: "Open card catalog",
+          requires: () => getFlag("librarySlipFound"),
+          lockedLabel: "Find return-cart clue",
+          lockedMessage:
+            "The catalog matters after Kayla finds the slip and smudge on the return cart.",
+          x: 64,
+          y: 55,
+          action: () =>
+            openActionMenu({
+              title: "Old Card Catalog",
+              image: INSPECTIONS.catalogCipher.image,
+              text:
+                "One drawer sticks out by a finger-width. Inside is a brass cipher wheel and a note-sized space where the blue book's call card should be.",
+              actions: [
+                {
+                  label: "Take cipher wheel",
+                  description: "Add the catalog tool to the satchel.",
+                  primary: !hasItem("cipherWheel"),
+                  onSelect: () => {
+                    setFlag("catalogDrawerFound");
+                    addItem("cipherWheel");
+                    addClue("catalogCipher");
+                    speak("Kayla adds the catalog cipher wheel to her satchel. The wheel wants a five-letter family name.");
+                  }
+                },
+                {
+                  label: "Solve catalog cipher",
+                  description: "Use the Kline clue from Moonwake to open the local-history room.",
+                  requires: () => hasItem("cipherWheel") || getFlag("catalogDrawerFound"),
+                  lockedMessage: "Kayla should take the cipher wheel from the catalog drawer first.",
+                  primary: hasItem("cipherWheel") || getFlag("catalogDrawerFound"),
+                  onSelect: openCatalogCipherMiniGame
+                }
+              ]
+            })
+        },
+        {
+          id: "library-history-door",
+          label: "Enter local-history room",
+          requires: () => getFlag("libraryCipherSolved"),
+          lockedLabel: "Solve catalog cipher",
+          lockedMessage:
+            "The local-history room is locked until Kayla solves the catalog cipher.",
+          x: 51,
+          y: 32,
+          action: () => navigate("historyRoom")
+        }
+      ]
+    },
+    historyRoom: {
+      title: "Local History Room",
+      subtitle: "Rowan Library",
+      image: "./assets/case4-history-room.png",
+      showWhen: () => getFlag("case4Unlocked"),
+      unlockFlag: "libraryCipherSolved",
+      lockedLead:
+        "The local-history room opens after Kayla solves the old catalog cipher.",
+      lead:
+        "The local-history room feels half library, half tiny museum. The blue book waits on a display stand beside town ribbons, a quilt, and flat-file drawers.",
+      hotspots: [
+        {
+          id: "history-blue-book",
+          label: "Test blue book display",
+          x: 19,
+          y: 74,
+          action: () =>
+            openActionMenu({
+              title: "Vanishing Blue Book",
+              image: INSPECTIONS.libraryBookChute.image,
+              text:
+                "The blue book rests on a slanted stand. A narrow slot hides behind the lip, exactly the width of a book cover.",
+              actions: [
+                {
+                  label: "Tie Pickles' bell",
+                  description: "Use a Case 01 satchel item to test whether the book moves.",
+                  requires: () => hasItem("picklesBell"),
+                  lockedMessage: "Kayla needs Pickles' tiny bell from Mila's thank-you to test the moving stand gently.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("bookChuteTested");
+                    addItem("blueBook");
+                    addClue("bookChute");
+                    speak("When afternoon sun warms the stand, the blue book slides into a hidden return chute and Pickles' bell rings. The book was not stolen; it was being returned by a clever old display.");
+                  }
+                },
+                {
+                  label: "Hold the book still",
+                  description: "Stop the vanishing without explaining it.",
+                  onSelect: () =>
+                    speak("The book stays put while Kayla holds it, but that only proves her hand works. She needs to test the stand.")
+                }
+              ]
+            })
+        },
+        {
+          id: "history-quilt",
+          label: "Study town quilt",
+          x: 73,
+          y: 29,
+          action: () =>
+            openActionMenu({
+              title: "Town Quilt Pattern",
+              image: INSPECTIONS.quiltPattern.image,
+              text:
+                "The quilt is cheerful and public, but one little four-point pattern repeats in a way Kayla has seen before.",
+              actions: [
+                {
+                  label: "Compare to photo backing",
+                  description: "Connect the public town pattern to Kayla's private clue.",
+                  requires: () => getFlag("photoSlideSolved"),
+                  lockedMessage: "Kayla should restore the old photograph before comparing its backing mark to the quilt.",
+                  primary: getFlag("photoSlideSolved") && !getFlag("quiltPatternFound"),
+                  onSelect: () => {
+                    setFlag("quiltPatternFound");
+                    addItem("quiltPatternSketch");
+                    addClue("quiltPattern");
+                    speak("The quilt pattern matches the hidden mark on Kayla's restored photograph. The clue is public, but someone used it privately.");
+                  }
+                },
+                {
+                  label: "Sketch the pattern",
+                  description: "Save the pattern even if Kayla cannot prove it yet.",
+                  onSelect: () => {
+                    setFlag("quiltPatternFound");
+                    addItem("quiltPatternSketch");
+                    addClue("quiltPattern");
+                    speak("Kayla sketches the quilt pattern. It feels familiar enough to keep in her private file.");
+                  }
+                }
+              ]
+            })
+        },
+        {
+          id: "history-flat-file",
+          label: "Open Kline flat file",
+          requires: () => getFlag("bookChuteTested") && getFlag("quiltPatternFound"),
+          lockedLabel: "Solve room clues",
+          lockedMessage:
+            "Kayla should prove why the blue book vanishes and record the quilt pattern before opening the Kline flat file.",
+          x: 60,
+          y: 62,
+          action: () =>
+            openActionMenu({
+              title: "Kline Family File",
+              image: "./assets/case4-catalog-cipher.png",
+              text:
+                "The flat-file drawer sticks for a moment, then slides open. A local-history card sits alone in the front pocket.",
+              actions: [
+                {
+                  label: "Copy Mara Kline card",
+                  description: "Solve the case and advance Kayla's private mystery.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("case4Solved");
+                    addItem("maraFileCard");
+                    addClue("maraName");
+                    addClue("case4Solved");
+                    openCase4Closed();
+                  }
+                },
+                {
+                  label: "Ask Ms. Rowan first",
+                  description: "Be careful with family records.",
+                  onSelect: () =>
+                    speak("Ms. Rowan nods from the doorway. 'Copy only what you can explain, Kayla. The rest will wait.'")
+                }
+              ]
+            })
+        },
+        {
+          id: "history-library-return",
+          label: "Return to reading room",
+          x: 91,
+          y: 72,
+          action: () => navigate("rowanLibrary")
+        }
+      ]
     }
   };
 
@@ -2075,7 +2475,9 @@
     "observatoryExterior",
     "observatoryWorkshop",
     "observatoryDome",
-    "observatoryArchive"
+    "observatoryArchive",
+    "rowanLibrary",
+    "historyRoom"
   ];
 
   const PUZZLES = {
@@ -2122,6 +2524,12 @@
     blank: 8,
     solved: [0, 1, 2, 3, 4, 5, 6, 7, 8],
     start: [0, 1, 2, 6, 3, 5, 4, 7, 8]
+  };
+
+  const CATALOG_CIPHER = {
+    alphabet: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""),
+    answer: "KLINE",
+    start: "GRAEF"
   };
 
   const state = loadState();
@@ -2493,9 +2901,72 @@
     }
     if (!getFlag("case2Unlocked")) {
       return {
-        text: "Return Pickles to Mila at the clubhouse.",
+        text: "Case 01 is solved. Talk to Mila at the clubhouse to begin Case 02.",
         locationId: "clubhouse",
         hotspotIds: ["club-mila"]
+      };
+    }
+    if (getFlag("case4Unlocked")) {
+      if (!getFlag("rowanTalked")) {
+        return {
+          text: "Ask Ms. Rowan why the blue book keeps vanishing.",
+          locationId: "rowanLibrary",
+          hotspotIds: ["library-rowan"]
+        };
+      }
+      if (!getFlag("librarySlipFound")) {
+        return {
+          text: "Inspect the return cart for the blue book's trail.",
+          locationId: "rowanLibrary",
+          hotspotIds: ["library-cart"]
+        };
+      }
+      if (!getFlag("catalogDrawerFound")) {
+        return {
+          text: "Open the old card catalog drawer.",
+          locationId: "rowanLibrary",
+          hotspotIds: ["library-catalog"]
+        };
+      }
+      if (!getFlag("libraryCipherSolved")) {
+        return {
+          text: "Solve the catalog cipher with the Kline family clue.",
+          locationId: "rowanLibrary",
+          hotspotIds: ["library-catalog"]
+        };
+      }
+      if (!getFlag("bookChuteTested")) {
+        return {
+          text: "Test the blue book display with Pickles' bell.",
+          locationId: "historyRoom",
+          hotspotIds: ["history-blue-book"]
+        };
+      }
+      if (!getFlag("quiltPatternFound")) {
+        return {
+          text: "Compare the town quilt pattern to Kayla's photo clue.",
+          locationId: "historyRoom",
+          hotspotIds: ["history-quilt"]
+        };
+      }
+      if (!getFlag("case4Solved")) {
+        return {
+          text: "Open the Kline flat file and copy the Mara card.",
+          locationId: "historyRoom",
+          hotspotIds: ["history-flat-file"]
+        };
+      }
+      return {
+        text: "Case 04 is solved. Review the Mara Kline card or return to the clubhouse.",
+        locationId: state.location,
+        hotspotIds: []
+      };
+    }
+    if (getFlag("case3Solved")) {
+      return {
+        text: "Case 03 is solved. Open the Rowan Library file to begin Case 04.",
+        locationId: "clubhouse",
+        hotspotIds: ["club-library", "club-board"]
       };
     }
     if (getFlag("case3Unlocked")) {
@@ -2635,7 +3106,7 @@
     }
     if (!getFlag("case3Unlocked")) {
       return {
-        text: "Take Mrs. Wren's observatory lead.",
+        text: "Case 02 is solved. Collect Mrs. Wren's Moonwake lead at the clubhouse.",
         locationId: "clubhouse",
         hotspotIds: ["club-mila"]
       };
@@ -2680,11 +3151,20 @@
   }
 
   function getArcText() {
+    if (getFlag("case4Solved")) {
+      return "Kayla has a new private-file name: Mara Kline. Finch is still the family that raised her; Kline is the family line the old clues keep protecting.";
+    }
+    if (getFlag("maraName")) {
+      return "The Rowan Library card connects M.K. to Mara Kline. Kayla does not know whether Mara is her mother yet, but the Kline name belongs in the center of the private file.";
+    }
+    if (getFlag("case4Unlocked")) {
+      return "Moonwake's ledger pointed Kayla to Rowan Library. The Kline branch is not her adopted Finch name, which makes it feel like a clue from before she was adopted.";
+    }
     if (getFlag("milaCousin")) {
-      return "Moonwake's ledger connects Gale, Wren, and Finch branches. Kayla is not ready to call Mila her cousin yet, but the clue is too strong to ignore.";
+      return "Moonwake's ledger connects Gale, Wren, and Kline branches. Kayla is not ready to call Mila her cousin yet, but the clue is too strong to ignore.";
     }
     if (getFlag("case3Solved")) {
-      return "Kayla solved Moonwake's strange lights and found a family ledger hiding under the surface mystery. Mila's last name may belong in Kayla's private file.";
+      return "Kayla solved Moonwake's strange lights and found a family ledger hiding under the surface mystery. The Kline branch may belong in Kayla's private file.";
     }
     if (getFlag("prismAligned")) {
       return "The observatory flashes are a prism signal, not magic. Now Kayla needs to learn why someone wanted her to reach the archive.";
@@ -2699,7 +3179,7 @@
       return "Mrs. Wren solved the ghost rumor, but not the bigger question. She remembers the house like family and gave Kayla a key without explaining why.";
     }
     if (getFlag("photoSlideSolved")) {
-      return "Kayla restored the old photograph and found a crescent stamp with the initials M.F. on the back. The picture was saved for someone to notice.";
+      return "Kayla restored the old photograph and found a crescent stamp with the initials M.K. on the back. The picture was saved for someone to notice.";
     }
     if (getFlag("case2Unlocked")) {
       return "Briar Lane is supposed to be empty, but Mila's warning opened a new lead: someone is visiting the old house after dark.";
@@ -2742,16 +3222,56 @@
   }
 
   function getCaseBoardDetail() {
+    if (getFlag("case4Unlocked")) {
+      const solved = getFlag("case4Solved");
+      const detail = {
+        title: solved ? "Case Board: Mara Kline Card" : "Case Board: Vanishing Blue Book",
+        image: solved ? "./assets/case4-catalog-cipher.png" : "./assets/case4-library.png",
+        text: solved
+          ? "The library board is complete: the blue book had a hidden return chute, and the Kline file gave Kayla a new private clue."
+          : "The board now shows Rowan Library, Ms. Rowan's missing blue book, the return cart, and the old card catalog cipher.",
+        inspectText: solved
+          ? "Kayla marks Case 04 solved and files Mara Kline under the private mystery. Finch is her adopted family name; Kline is the family line the clues are starting to name."
+          : "Current case: Rowan Library. Kayla pins Ms. Rowan's report, the return-cart slip, the catalog cipher wheel, and the question: why does the blue book keep returning itself?"
+      };
+      detail.actions = [
+        {
+          label: solved ? "Review Mara card" : "Read library board",
+          description: "Review the current Case 04 file.",
+          onSelect: () => openCurrentCaseBoardInspection(detail)
+        },
+        {
+          label: "Go to Rowan Library",
+          description: "Return to the library and keep working Case 04.",
+          primary: !solved,
+          onSelect: () => navigate("rowanLibrary")
+        },
+        {
+          label: solved ? "File Kline clue" : "Check Kline clue",
+          description: solved
+            ? "Think about what the solved library case revealed about Kayla."
+            : "Review why the catalog cipher uses Kline, not Finch.",
+          onSelect: () =>
+            speak(
+              solved
+                ? "Kayla writes it carefully: Finch is home. Kline is the name from before. Both can be true."
+                : "The Moonwake ledger used Kline. The library catalog responds to Kline. Kayla is starting to understand that Finch may not be her first family name."
+            )
+        }
+      ];
+      return detail;
+    }
+
     if (getFlag("case3Unlocked")) {
       const solved = getFlag("case3Solved");
       const detail = {
         title: solved ? "Case Board: Moonwake Archive" : "Case Board: Moonwake Observatory",
         image: solved ? "./assets/inspect-archive.jpg" : "./assets/case2-observatory-handoff.jpg",
         text: solved
-          ? "The board has shifted to the family ledger Kayla found at Moonwake. This case is solved, but the long mystery just got louder."
+          ? "The board has shifted to the family ledger Kayla found at Moonwake. This case is solved, and the Kline branch points to Rowan Library."
           : "Mrs. Wren's star chart and crescent token are pinned as the current case file. The question is why Moonwake flashes after midnight.",
         inspectText: solved
-          ? "Kayla marks the Moonwake case solved and circles the ledger branch connecting Gale, Wren, and Finch. Mila's name suddenly feels like evidence."
+          ? "Kayla marks the Moonwake case solved and circles the ledger branch connecting Gale, Wren, and Kline. Mila's name suddenly feels like evidence."
           : "Current case: Moonwake Observatory. Kayla pins Mrs. Wren's star chart, the crescent token, Theo's locked-gate report, and the question: what is making the dome flash?"
       };
       detail.actions = [
@@ -2767,15 +3287,26 @@
           onSelect: () => navigate("observatoryExterior")
         },
         {
-          label: solved ? "Add to personal file" : "Check useful numbers",
+          label: solved ? "Begin Case 04" : "Check useful numbers",
+          description: solved
+            ? "Follow the library slip hidden with the Moonwake ledger."
+            : "Review the earlier case objects that may matter at Moonwake.",
+          primary: solved && !getFlag("case4Unlocked"),
+          onSelect: solved && !getFlag("case4Unlocked")
+            ? openCase4Bridge
+            : () =>
+                speak("Kayla checks her satchel: Mila's five dollars, the 17-inch height mark, and three moon phases might be more than souvenirs.")
+        },
+        {
+          label: solved ? "Add to personal file" : "Review personal thread",
           description: solved
             ? "Think about what the solved case revealed about Kayla."
-            : "Review the earlier case objects that may matter at Moonwake.",
+            : "Review the longer family mystery thread.",
           onSelect: () =>
             speak(
               solved
-                ? "Kayla files the ledger under her personal mystery: Gale, Wren, Finch. Maybe Mila has been family all along."
-                : "Kayla checks her satchel: Mila's five dollars, the 17-inch height mark, and three moon phases might be more than souvenirs."
+                ? "Kayla files the ledger under her personal mystery: Gale, Wren, Kline. Maybe Mila has been family all along."
+                : "Kayla checks the private file: crescent locket, old photograph, Briar portrait, and a name she does not understand yet."
             )
         }
       ];
@@ -2832,7 +3363,7 @@
           label: "Talk to Mila",
           description: "Let Mila explain the next worry that points to Case 02.",
           primary: true,
-          onSelect: openCase1Victory
+          onSelect: openCase2Bridge
         }
       ];
       return detail;
@@ -2914,6 +3445,12 @@
   }
 
   function getCurrentCase() {
+    if (state.location === "rowanLibrary" || state.location === "historyRoom") {
+      return { title: STORY.case4Title };
+    }
+    if (getFlag("case4Unlocked")) {
+      return { title: STORY.case4Title };
+    }
     if (state.location && state.location.startsWith("observatory")) {
       return { title: STORY.case3Title };
     }
@@ -3154,6 +3691,15 @@
   }
 
   function renderProgress() {
+    if (getFlag("case4Unlocked")) {
+      const count = CASE4_BEATS.filter(getFlag).length;
+      els.progressText.textContent = getFlag("case4Solved")
+        ? "Case 4 solved"
+        : `Case 4: ${count} of ${CASE4_BEATS.length} leads`;
+      els.progressFill.style.width = `${(count / CASE4_BEATS.length) * 100}%`;
+      return;
+    }
+
     if (getFlag("case3Unlocked")) {
       const count = CASE3_BEATS.filter(getFlag).length;
       els.progressText.textContent = getFlag("case3Solved")
@@ -3335,6 +3881,56 @@
     speak(message);
   }
 
+  function beginCase2() {
+    if (!getFlag("case2Unlocked")) {
+      unlockCase2("Case 02 begins: if Briar Lane House is empty, who keeps entering it after dark?");
+    }
+    navigate("briarExterior");
+  }
+
+  function beginCase3() {
+    if (!getFlag("case3Unlocked")) {
+      unlockCase3("Case 03 begins: Moonwake Observatory is flashing impossible moon signals.");
+    }
+    navigate("observatoryExterior");
+  }
+
+  function unlockCase4(message) {
+    setFlag("case4Unlocked");
+    addItem("libraryCallSlip");
+    addClue("libraryLead");
+    speak(message);
+  }
+
+  function beginCase4() {
+    if (!getFlag("case4Unlocked")) {
+      unlockCase4("Case 04 begins: Rowan Library's blue local-history book keeps vanishing from display.");
+    }
+    navigate("rowanLibrary");
+  }
+
+  function openCase4Bridge() {
+    openActionMenu({
+      title: "Next Case: Rowan Library",
+      image: "./assets/case4-library.png",
+      text:
+        "Inside the Moonwake ledger, Kayla finds an old library call slip. Ms. Rowan at Rowan Library has a small, bright case for the Mystery Club: a blue local-history book keeps disappearing from display and coming back on the return cart.",
+      actions: [
+        {
+          label: "Begin Case 04",
+          description: "Follow the ledger slip to Rowan Library.",
+          primary: true,
+          onSelect: beginCase4
+        },
+        {
+          label: "Review the slip",
+          description: "Zoom into the clue connecting Moonwake to the library.",
+          onSelect: () => openInspection("libraryCallSlip")
+        }
+      ]
+    });
+  }
+
   function openCase2Bridge() {
     if (getFlag("briarPortraitClue") && !getFlag("case3Unlocked")) {
       openCase2Closed();
@@ -3343,16 +3939,16 @@
 
     if (getFlag("case2Unlocked")) {
       openActionMenu({
-        title: "Briar Lane Lead",
+        title: "Case 02: Briar Lane House",
         image: INSPECTIONS.briarClipping.image,
         text:
-          "Kayla's new question is waiting: if the old house is empty, who keeps entering after dark?",
+          "The next case is ready. Mila's worry points Kayla to Briar Lane House, where someone keeps entering after dark even though everyone says it is empty.",
         actions: [
           {
-            label: "Go to Briar Lane",
-            description: "Begin Case 02 at the front gate.",
+            label: "Begin Case 02",
+            description: "Go to Briar Lane and start the haunted-house investigation.",
             primary: true,
-            onSelect: () => navigate("briarExterior")
+            onSelect: beginCase2
           },
           {
             label: "Review the file",
@@ -3365,25 +3961,24 @@
     }
 
     openActionMenu({
-      title: "Mila's Thank-You",
+      title: "Next Case: Briar Lane House",
       image: INSPECTIONS.case1ThankYou.image,
       text:
-        "Mila hugs Kayla and Pickles so tightly the little bell jingles. She jokes that Mrs. Poppy always says they have the same stubborn detective smile, then pays the promised five dollars and admits she was terrified Pickles had gone to Briar Lane House. No one goes there. Mr. Hexibald says to stay away.",
+        "Mila hugs Kayla and Pickles so tightly the little bell jingles. Then she admits why she panicked: she was terrified Pickles had gone to Briar Lane House. No one goes there. Mr. Hexibald says to stay away.",
       actions: [
         {
-          label: "Ask about Briar Lane",
-          description: "Let Mila's fear become the next case.",
+          label: "Begin Case 02",
+          description: "Take Mila's warning as the next mystery.",
           primary: true,
-          onSelect: () => {
-            unlockCase2("Case 02 begins: if Briar Lane House is empty, who keeps entering it after dark?");
-            navigate("briarExterior");
-          }
+          onSelect: beginCase2
         },
         {
           label: "Ask about Mr. Hexibald",
-          description: "Learn why the caretaker sounds suspicious.",
-          onSelect: () =>
-            unlockCase2("Mila says Mr. Hexibald has guarded Briar Lane for years. Kayla opens a new file: caretaker, lights, piano music, night visitor.")
+          description: "Hear the caretaker clue, then start Case 02.",
+          onSelect: () => {
+            unlockCase2("Mila says Mr. Hexibald has guarded Briar Lane for years. Kayla opens a new file: caretaker, lights, piano music, night visitor.");
+            navigate("briarExterior");
+          }
         },
         {
           label: "Put $5 in the club jar",
@@ -3413,6 +4008,11 @@
       <p class="panel-label">Solved</p>
       <p>Briar Lane House was never haunted. The glowing window was a lamp, the knocking was a shutter, and the music was Mrs. Wren playing an old lullaby in a house she loved.</p>
       <p>Then the case becomes personal. The old girls' room holds a portrait of a woman with Kayla's eyes and a crescent locket. Mrs. Wren cannot tell Kayla everything, but she can give her the next clue: a folded star chart and a brass crescent token for Moonwake Observatory.</p>
+      <div class="case-transition-card">
+        <p class="panel-label">Next case unlocked</p>
+        <h4>Case 03: Moonwake Observatory</h4>
+        <p>Use the button below when you are ready. Kayla will put Mrs. Wren's star chart and crescent token in the satchel, then follow the clue to Moonwake.</p>
+      </div>
     `;
 
     body.append(image, summary);
@@ -3426,11 +4026,10 @@
     const takeLead = document.createElement("button");
     takeLead.type = "button";
     takeLead.className = "modal-button primary";
-    takeLead.textContent = "Take observatory clue";
+    takeLead.textContent = "Begin Case 03";
     takeLead.addEventListener("click", () => {
       closeModal();
-      unlockCase3("Case 03 begins: Moonwake Observatory is flashing impossible moon signals.");
-      navigate("observatoryExterior");
+      beginCase3();
     });
 
     actions.append(stay, takeLead);
@@ -3451,7 +4050,12 @@
     summary.innerHTML = `
       <p class="panel-label">Solved</p>
       <p>The Moonwake flashes were not magic. They were an old prism signal system, reawakened by the telescope, the moon dials, and a careful signal-cord test with Pickles' bell.</p>
-      <p>The hidden archive needed clues from every case: Mila's five-dollar fee, the Briar Lane height mark, and the three moon phases. Inside, Kayla finds a ledger connecting Gale, Wren, and Finch family branches. Mila might not just be her best friend. She might be family.</p>
+      <p>The hidden archive needed clues from every case: Mila's five-dollar fee, the Briar Lane height mark, and the three moon phases. Inside, Kayla finds a ledger connecting Gale, Wren, and Kline family branches. Mila might not just be her best friend. She might be family.</p>
+      <div class="case-transition-card">
+        <p class="panel-label">Next case unlocked</p>
+        <h4>Case 04: The Vanishing Blue Book</h4>
+        <p>Use the button below when you are ready. Kayla will follow the Moonwake ledger slip to Rowan Library and a new local-history mystery.</p>
+      </div>
     `;
 
     body.append(image, summary);
@@ -3465,11 +4069,49 @@
     const returnHome = document.createElement("button");
     returnHome.type = "button";
     returnHome.className = "modal-button primary";
+    returnHome.textContent = "Begin Case 04";
+    returnHome.addEventListener("click", () => {
+      closeModal();
+      beginCase4();
+    });
+
+    actions.append(review, returnHome);
+  }
+
+  function openCase4Closed() {
+    const modal = createModal("Case Closed: Vanishing Blue Book", { wide: true });
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const image = document.createElement("img");
+    image.className = "inspection-image";
+    image.src = "./assets/case4-history-room.png";
+    image.alt = "Rowan Library local-history room with the blue book display";
+
+    const summary = document.createElement("div");
+    summary.className = "case-closed-copy";
+    summary.innerHTML = `
+      <p class="panel-label">Solved</p>
+      <p>The blue local-history book was never stolen. Its old display stand tilts when afternoon sun warms the shelf, sliding the book into a hidden return chute and sending it back to the cart.</p>
+      <p>The deeper clue is quieter: the catalog cipher uses the Kline branch from Moonwake, and the local-history drawer gives Kayla a copied card for Mara Kline. Finch is still the family name that raised her. Kline is the name her private file has been waiting to understand.</p>
+    `;
+
+    body.append(image, summary);
+
+    const review = document.createElement("button");
+    review.type = "button";
+    review.className = "modal-button";
+    review.textContent = "Review library clues";
+    review.addEventListener("click", closeModal);
+
+    const returnHome = document.createElement("button");
+    returnHome.type = "button";
+    returnHome.className = "modal-button primary";
     returnHome.textContent = "Return to clubhouse";
     returnHome.addEventListener("click", () => {
       closeModal();
       navigate("clubhouse");
-      speak("Kayla tapes the Moonwake ledger page into her private file. She is not ready to tell Mila yet, but tomorrow's club meeting will be different.");
+      speak("Kayla files the Mara Kline card behind the locket sketch. She has a real family name now, but not the whole story.");
     });
 
     actions.append(review, returnHome);
@@ -4005,7 +4647,7 @@
         setFlag("photoSlideSolved");
         addClue("photoBacking");
         changeXp(8, "XP +8: restored the torn photograph puzzle.", { once: "mini:photoSlide" });
-        speak("The restored photograph has a tiny crescent stamp on the back and the initials M.F. Kayla files it with her private clues.");
+        speak("The restored photograph has a tiny crescent stamp on the back and the initials M.K. Kayla files it with her private clues.");
       }
       renderSlidePuzzle();
     }
@@ -4082,12 +4724,158 @@
     takeClue.textContent = "File backing clue";
     takeClue.addEventListener("click", () => {
       closeModal();
-      speak("Kayla marks the photo backing as a private-file clue: crescent stamp, initials M.F., no explanation yet.");
+      speak("Kayla marks the photo backing as a private-file clue: crescent stamp, initials M.K., no explanation yet.");
     });
 
     body.append(intro, board, moveCount, status);
     actions.append(reset, close, takeClue);
     renderSlidePuzzle();
+    modal.focus();
+  }
+
+  function openCatalogCipherMiniGame() {
+    if (!hasItem("cipherWheel")) {
+      setFlag("catalogDrawerFound");
+      addItem("cipherWheel");
+      addClue("catalogCipher");
+    }
+
+    const modal = createModal("Catalog Cipher Wheel", { wide: true });
+    modal.classList.add("mini-game-modal", "catalog-cipher-modal");
+    modal.tabIndex = -1;
+
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const intro = document.createElement("div");
+    intro.className = "mini-game-intro";
+    intro.innerHTML = `
+      <p class="panel-label">Mini Puzzle</p>
+      <p>Turn the old catalog dials to the five-letter family branch from Moonwake. Finch is Kayla's adopted family name; the hidden branch is different.</p>
+    `;
+
+    const board = document.createElement("div");
+    board.className = "catalog-cipher-board";
+    board.setAttribute("role", "application");
+    board.setAttribute("aria-label", "Catalog cipher letter dials");
+
+    const feedback = document.createElement("p");
+    feedback.className = "mini-game-status";
+
+    let letters = getFlag("libraryCipherSolved")
+      ? CATALOG_CIPHER.answer.split("")
+      : CATALOG_CIPHER.start.split("");
+    let solved = getFlag("libraryCipherSolved");
+
+    function cycleLetter(index, delta) {
+      if (solved) {
+        return;
+      }
+      const alphabet = CATALOG_CIPHER.alphabet;
+      const current = alphabet.indexOf(letters[index]);
+      const next = (current + delta + alphabet.length) % alphabet.length;
+      letters[index] = alphabet[next];
+      renderCipher();
+    }
+
+    function renderCipher() {
+      board.replaceChildren();
+      letters.forEach((letter, index) => {
+        const dial = document.createElement("div");
+        dial.className = "cipher-dial";
+
+        const up = document.createElement("button");
+        up.type = "button";
+        up.className = "cipher-step";
+        up.textContent = "+";
+        up.setAttribute("aria-label", `Advance cipher dial ${index + 1}`);
+        up.addEventListener("click", () => cycleLetter(index, 1));
+
+        const display = document.createElement("button");
+        display.type = "button";
+        display.className = "cipher-letter";
+        display.textContent = letter;
+        display.setAttribute("aria-label", `Cipher dial ${index + 1}: ${letter}`);
+        display.addEventListener("click", () => cycleLetter(index, 1));
+
+        const down = document.createElement("button");
+        down.type = "button";
+        down.className = "cipher-step";
+        down.textContent = "-";
+        down.setAttribute("aria-label", `Reverse cipher dial ${index + 1}`);
+        down.addEventListener("click", () => cycleLetter(index, -1));
+
+        dial.append(up, display, down);
+        board.append(dial);
+      });
+      board.classList.toggle("solved", solved);
+      feedback.textContent = solved
+        ? "The catalog drawer unlocks the local-history room. Ms. Rowan's old archive card is now in Kayla's satchel."
+        : "Clue: the answer is the family name from Moonwake's hidden branch, not Kayla's adopted surname.";
+      enterRoom.hidden = !solved;
+    }
+
+    function submitCipher() {
+      if (letters.join("") !== CATALOG_CIPHER.answer) {
+        changeXp(-2, "XP -2: the catalog dials need the exact family branch.");
+        feedback.textContent = "The drawer stays shut. The answer is five letters from the Moonwake ledger branch.";
+        showToast(`${feedback.textContent} ${pendingXpMessage || ""}`.trim());
+        pendingXpMessage = "";
+        board.classList.remove("bump");
+        requestAnimationFrame(() => {
+          board.classList.add("bump");
+          setTimeout(() => board.classList.remove("bump"), 220);
+        });
+        return;
+      }
+      if (!solved) {
+        solved = true;
+        setFlag("libraryCipherSolved");
+        addItem("rowanKeyCard");
+        addClue("catalogCipherSolved");
+        changeXp(10, "XP +10: solved the catalog cipher mini-game.", { once: "mini:catalogCipher" });
+        speak("The catalog drawer clicks open on KLINE. Ms. Rowan's old archive card slides out, and the local-history room unlocks.");
+      }
+      renderCipher();
+    }
+
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "modal-button";
+    reset.textContent = "Reset Dials";
+    reset.addEventListener("click", () => {
+      if (solved) {
+        speak("The catalog cipher is already solved. Kayla leaves the KLINE setting in her notes.");
+        return;
+      }
+      letters = CATALOG_CIPHER.start.split("");
+      renderCipher();
+    });
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "modal-button";
+    close.textContent = "Close";
+    close.addEventListener("click", closeModal);
+
+    const submit = document.createElement("button");
+    submit.type = "button";
+    submit.className = "modal-button primary";
+    submit.textContent = "Try Cipher";
+    submit.addEventListener("click", submitCipher);
+
+    const enterRoom = document.createElement("button");
+    enterRoom.type = "button";
+    enterRoom.className = "modal-button primary";
+    enterRoom.textContent = "Enter history room";
+    enterRoom.addEventListener("click", () => {
+      closeModal();
+      navigate("historyRoom");
+    });
+
+    body.append(intro, board, feedback);
+    actions.append(reset, close, submit, enterRoom);
+    renderCipher();
     modal.focus();
   }
 
@@ -4247,6 +5035,11 @@
       <p class="panel-label">Solved</p>
       <p>Kayla did not just spot Pickles. She solved the path: Mila's carrot clue led to Mrs. Poppy, the bakery trail led to the park, the paw prints led to the garden, and Mr. Basil taught Kayla how to coax a nervous rabbit safely.</p>
       <p>Mila hugs Kayla at the tree fort, pays the five-dollar case fee, and ties Pickles' tiny bell to a mint ribbon for Kayla's satchel. She also admits why she panicked: she was afraid Pickles had gone near Briar Lane House, where no one is supposed to go.</p>
+      <div class="case-transition-card">
+        <p class="panel-label">Next case unlocked</p>
+        <h4>Case 02: Briar Lane House</h4>
+        <p>Use the button below when you are ready. Kayla will start a new file and go straight to the house everyone calls haunted.</p>
+      </div>
     `;
 
     body.append(image, summary);
@@ -4260,11 +5053,10 @@
     const thankMila = document.createElement("button");
     thankMila.type = "button";
     thankMila.className = "modal-button primary";
-    thankMila.textContent = "Return Pickles to Mila";
+    thankMila.textContent = "Begin Case 02";
     thankMila.addEventListener("click", () => {
       closeModal();
-      navigate("clubhouse");
-      openCase2Bridge();
+      beginCase2();
     });
 
     actions.append(stay, thankMila);
@@ -4353,6 +5145,42 @@
       speak("Hint: return Pickles to Mila at the clubhouse. Her thank-you points Kayla toward the next mystery.");
       return;
     }
+    if (getFlag("case4Unlocked")) {
+      if (!getFlag("rowanTalked")) {
+        speak("Hint: at Rowan Library, talk to Ms. Rowan about the vanishing blue book.");
+        return;
+      }
+      if (!getFlag("librarySlipFound")) {
+        speak("Hint: inspect the return cart. The blue book leaves dust and a catalog clue behind.");
+        return;
+      }
+      if (!getFlag("catalogDrawerFound")) {
+        speak("Hint: open the old card catalog drawer and take the brass cipher wheel.");
+        return;
+      }
+      if (!getFlag("libraryCipherSolved")) {
+        speak("Hint: solve the catalog cipher with KLINE, the family branch from the Moonwake ledger.");
+        return;
+      }
+      if (!getFlag("bookChuteTested")) {
+        speak("Hint: in the local-history room, use Pickles' tiny bell to test the blue book display stand.");
+        return;
+      }
+      if (!getFlag("quiltPatternFound")) {
+        speak("Hint: study the town quilt pattern and compare it to Kayla's restored photograph clue.");
+        return;
+      }
+      if (!getFlag("case4Solved")) {
+        speak("Hint: open the Kline flat file and copy the Mara Kline card.");
+        return;
+      }
+      speak("Case 04 is solved: the blue book used a hidden return chute, and Kayla has the name Mara Kline in her private file.");
+      return;
+    }
+    if (getFlag("case3Solved")) {
+      speak("Hint: open the Rowan Library file at the clubhouse or use the Case 03 closing screen to begin Case 04.");
+      return;
+    }
     if (getFlag("case3Unlocked")) {
       if (!getFlag("theoTalked")) {
         speak("Hint: at Moonwake Observatory, talk to Theo about the three flashes and the blank sign-in ledger.");
@@ -4387,7 +5215,7 @@
         return;
       }
       if (!getFlag("case3Solved")) {
-        speak("Hint: read the Moonwake family ledger in the archive. The Gale, Wren, and Finch names are the real prize.");
+        speak("Hint: read the Moonwake family ledger in the archive. The Gale, Wren, and Kline names are the real prize.");
         return;
       }
       speak("Case 03 is solved: the flashes were a prism signal, and the ledger hints that Mila Gale may be Kayla's cousin.");

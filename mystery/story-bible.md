@@ -8,6 +8,8 @@ The long arc should feel like a mystery show for kids: every case has a complete
 
 The intro should establish that Kayla's adoptive parents are loving and supportive. Kayla's mystery is not about whether she belongs with them; she does. The mystery is about the missing first chapter of her life, the crescent locket, and why people around town seem to know more than they can say.
 
+Finch is Kayla's adopted family name. The hidden biological family name is Kline, but Kayla should discover that gradually through evidence, not through exposition.
+
 ## Long Mystery
 
 Kayla's birth family went into hiding under fake identities to keep her safe. The reason should stay vague for a long time: rumors of a dangerous ruler, a powerful family enemy, or an old conflict from outside town. The eventual follow-up game can reveal the larger threat.
@@ -37,7 +39,7 @@ Long-arc clues:
 - Mrs. Poppy almost calls Kayla "Mara."
 - The picnic envelope has a crescent-and-star mark like Kayla's locket.
 - An old photograph in the tree-fort HQ shows a woman who looks like Kayla.
-- Restoring the old photograph through a slide-piece puzzle reveals a hidden backing mark: a crescent stamp and the initials M.F.
+- Restoring the old photograph through a slide-piece puzzle reveals a hidden backing mark: a crescent stamp and the initials M.K.
 - Mila jokes during the thank-you hug that Mrs. Poppy says she and Kayla have the same stubborn detective smile. Mrs. Poppy goes quiet, but this should feel like a small odd moment rather than proof. Mila should look distinct from Kayla, not like a twin.
 - Mila gives Kayla five dollars and Pickles' tiny bell. Both become useful satchel objects later.
 
@@ -81,9 +83,25 @@ Puzzle continuity:
 - Case 02 gives Kayla the 17-inch Briar Lane height-mark sketch through a moon-maze toy mini-game, plus Mrs. Wren's observatory handoff.
 - Case 03 uses those earlier clues to open an archive drawer with the code 5 - 17 - 3: five dollars, the old height mark, and three moon phases.
 
-Long-arc reveal: the archive ledger connects Gale, Wren, and Finch family branches. It does not fully explain Kayla's identity, but it strongly suggests Mila Gale may be Kayla's cousin. This turns Mila's earlier family-name and "detective smile" moments into real clues without making the whole family mystery obvious yet.
+Long-arc reveal: the archive ledger connects Gale, Wren, and Kline family branches. It does not fully explain Kayla's identity, but it strongly suggests Mila Gale may be Kayla's cousin through the hidden Kline line. This turns Mila's earlier family-name and "detective smile" moments into real clues without making the whole family mystery obvious yet.
 
 Case 03 should feel more puzzle-heavy than Case 01 and Case 02 because the player has now learned how Kayla's mystery club works. It should still stay cozy, wondrous, and emotionally safe.
+
+Bridge to Case 04: inside the Moonwake ledger, Kayla finds an old Rowan Library call slip. The slip points her to a public, cozy local-history mystery rather than another spooky or observatory setting.
+
+## Case 04: The Vanishing Blue Book
+
+Surface mystery: Ms. Rowan at Rowan Library asks the Mystery Club why a blue local-history book keeps disappearing from display and reappearing on the return cart.
+
+True case answer: the book is not being stolen. Its old display stand tilts when afternoon sun warms the shelf, sliding the book into a hidden return chute.
+
+Puzzle continuity:
+
+- Case 03 gives Kayla the Kline branch clue through the Moonwake ledger.
+- Case 04 uses the Kline name to solve a five-letter card-catalog cipher mini-game.
+- Case 01's Pickles bell becomes a gentle way to test the moving book stand.
+
+Long-arc reveal: the local-history drawer gives Kayla a file card for Mara Kline, connecting the M.K. initials from the restored photograph to a real name. This should feel like progress, not the final answer.
 
 ## Tone Rules
 
