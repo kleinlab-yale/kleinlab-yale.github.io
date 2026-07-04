@@ -8,7 +8,8 @@
       name="description"
       content="A playable point-and-click mystery series demo about Kimmy Finch, her neighborhood mystery club, a missing pet, and a not-so-haunted house."
     />
-    <link rel="stylesheet" href="./styles.css" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <link rel="stylesheet" href="./styles.css?v=20260704-mini1" />
   </head>
   <body>
     <div class="app-shell">
@@ -18,6 +19,7 @@
           <h1 id="caseTitle">Case 01: The Picnic Pet</h1>
         </div>
         <div class="topbar-actions">
+          <div id="xpBadge" class="xp-badge" aria-label="Detective XP">XP 100</div>
           <div class="progress-wrap" aria-label="Case progress">
             <span id="progressText">Case 1: 0 of 6 steps</span>
             <div class="progress-track">
@@ -38,6 +40,7 @@
                 <p id="locationSubtitle"></p>
                 <h2 id="locationTitle"></h2>
               </div>
+              <div id="objectiveChip" class="objective-chip"></div>
               <div id="hotspotLayer" class="hotspot-layer" aria-label="Scene hotspots"></div>
             </div>
           </div>
@@ -89,6 +92,6 @@
     <div id="modalRoot" class="modal-root" aria-live="polite"></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script src="./game.js"></script>
+    <script src="./game.js?v=20260704-mini1"></script>
   </body>
 </html>

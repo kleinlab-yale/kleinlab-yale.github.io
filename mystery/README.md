@@ -15,7 +15,10 @@ Kimmy Finch is a clever adopted girl who founded the Finch Street Mystery Club. 
 - A richer story intro with Kimmy at home with her adoptive parents, Kimmy and Lila in the tree-fort club, and a clearer explanation of Kimmy's background before the first case begins.
 - Friendly NPC dialogue written for future voice acting. The rejected local system-voice experiment is not exposed in the demo UI.
 - Zork-style action menus on hotspots: inspect, interview, collect, try a wrong move, or unlock a better option after finding the right clue.
+- A clearer guided play layer: the current next lead appears on the scene, the next useful hotspot glows, map buttons say when they are current/next/locked, and choices are tagged as best next step, try-and-learn, needs clue, or costs XP.
 - A gated case flow: Lila opens the case, Mrs. Poppy unlocks the bakery evidence, the bakery trail unlocks the park, the park prints unlock the garden, and Mr. Basil unlocks the final rabbit-coaxing puzzle.
+- Detective XP starts at 100. Evidence-based choices add XP, while guesses, rushing, loud shortcuts, or wrong puzzle sequences lower XP a little with an explanation.
+- A first object mini-game: the Briar Lane nursery drawer contains a moon-maze toy. Solving it reveals the 17-inch height-mark sketch needed later for the Moonwake archive code.
 - A notebook, clue bag, long-mystery panel, progress meter, story button, reset button, and map navigation.
 - A satchel loop where objects from earlier cases matter later: Pickles' bell, Lila's five-dollar fee, the 17-inch Briar Lane height-mark sketch, Mrs. Wren's star chart, and the crescent observatory token all feed Case 03.
 - Serialized clues: Kimmy notices a crescent-and-star mark like her locket, Mrs. Poppy nearly calls her Mara, an old photograph shows someone who looks like Kimmy, Briar Lane holds a portrait and old room that feel personal, and Moonwake's ledger hints that Lila Vale may be Kimmy's cousin.
@@ -31,6 +34,10 @@ python3 -m http.server 8001
 ```
 
 Then visit `http://127.0.0.1:8001/mystery/`.
+
+## Save and refresh behavior
+
+The game uses a stable `localStorage` save key, `kimmy-finch-mysteries-save`, so refreshing on iPad should load updated CSS/JS while preserving progress. Older `kimmy-finch-mysteries-v6` saves migrate automatically. The Reset button intentionally clears both the current and legacy save keys.
 
 ## Voice status
 

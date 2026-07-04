@@ -1,5 +1,7 @@
 (function () {
-  const STORAGE_KEY = "kimmy-finch-mysteries-v6";
+  const APP_BUILD_ID = "20260704-mini1";
+  const STORAGE_KEY = "kimmy-finch-mysteries-save";
+  const LEGACY_STORAGE_KEYS = ["kimmy-finch-mysteries-v6"];
   const TOAST_DURATION_MS = 7800;
 
   const CASE1_BEATS = [
@@ -20,6 +22,7 @@
     "briarMusicClue",
     "briarVisitorTrail",
     "grandmotherMet",
+    "moonMazeSolved",
     "briarPortraitClue",
     "observatoryLead"
   ];
@@ -133,10 +136,18 @@
       inspectText:
         "The key is old, polished by years of careful use, and tied with a faded lavender ribbon."
     },
+    moonMazeToy: {
+      label: "Moon-Maze Toy",
+      description: "An old wooden maze toy from the nursery drawer.",
+      image: "./assets/mini-moon-maze.png",
+      inspectTitle: "Moon-Maze Toy",
+      inspectText:
+        "The wooden toy has brass moon rails and a tiny blue bead. A hidden drawer edge waits near the crescent-shaped finish."
+    },
     heightMarkSketch: {
       label: "Height Mark Sketch",
       description: "Kimmy's copy of the old 17-inch mark in the girls' room.",
-      image: "./assets/case2-nursery.png",
+      image: "./assets/mini-moon-maze.png",
       inspectTitle: "Height Mark Sketch",
       inspectText:
         "Kimmy copied the little 17-inch mark from the nursery doorframe. It is too small for her now, but the number feels saved for a reason."
@@ -218,6 +229,8 @@
       "Briar Lane clue: fresh footprints and a folded shawl prove a real person is visiting the house at night.",
     grandmother:
       "Case 02 answer: Mrs. Wren is the nighttime visitor. She is not haunting the house; she comes back because she loved the family who lived there.",
+    moonMazeToy:
+      "Briar Lane object clue: the old nursery drawer holds a wooden moon-maze toy with a hidden compartment.",
     briarPortrait:
       "Long mystery clue: a sun-faded portrait in Briar Lane House shows a young woman with Kimmy's eyes and a crescent locket.",
     briarHeight:
@@ -402,7 +415,13 @@
       title: "Old Girls' Room",
       image: "./assets/case2-nursery.png",
       text:
-        "The room has been kept gently, not cleaned. A rocking chair, a toy shelf, and tiny height marks suggest someone could not bear to let it disappear. One old pencil mark reads 17 inches."
+        "The room has been kept gently, not cleaned. A rocking chair, a toy shelf, and tiny height marks suggest someone could not bear to let it disappear. One old pencil mark reads 17 inches, but a sliding toy panel covers the clearest view."
+    },
+    moonMazeToy: {
+      title: "Moon-Maze Toy",
+      image: "./assets/mini-moon-maze.png",
+      text:
+        "The toy is heavy for its size, carved with moon rails and tiny brass stars. The blue bead rests at the start of a maze, and the finish sits beside a hidden drawer seam."
     },
     observatoryGate: {
       title: "Moonwake Gate",
@@ -470,20 +489,22 @@
                 },
                 {
                   label: "Pin Lila's facts",
-                  description: "Record the rabbit description as evidence.",
+                  description: "Record the rabbit description so Kimmy knows what trail to follow.",
                   requires: () => getFlag("clientInterview"),
                   lockedMessage: "Kimmy needs to ask Lila what happened before pinning facts.",
                   primary: true,
                   onSelect: () => {
                     addClue("lila");
-                    speak("Kimmy pins the useful facts: cream rabbit, mint ribbon, carrot snacks.");
+                    speak("Kimmy pins the useful facts: cream rabbit, mint ribbon, carrot snacks. Next lead: the bakery smells like carrots.");
                   }
                 },
                 {
                   label: "Guess the garden",
-                  description: "Skip the evidence and jump to a conclusion.",
+                  description: "A guess without a trail. This will not unlock the next place.",
+                  xpPenalty: 2,
+                  xpReason: "guessing before collecting a trail costs detective XP.",
                   onSelect: () =>
-                    speak("Too soon. Kimmy needs a trail, not a guess.")
+                    speak("Too soon. Kimmy needs a trail, not a guess. A good detective starts with the witness and the snack clue.")
                 }
               ]
             })
@@ -654,20 +675,22 @@
               actions: [
                 {
                   label: "Ask what she saw",
-                  description: "Interview the witness before touching evidence.",
+                  description: "Best first step here: learn where Pickles went after the carrot rolls.",
                   primary: true,
                   onSelect: () => {
                     setFlag("poppyTalked");
                     addClue("poppy");
                     addClue("nameEcho");
-                    speak("Mrs. Poppy saw Pickles hop toward the park. She also almost called Kimmy by another name: Mara.");
+                    speak("Mrs. Poppy saw Pickles hop toward the park. New action unlocked: inspect the patio clues before following the trail.");
                   }
                 },
                 {
                   label: "Buy carrot roll",
-                  description: "Useful smell, not useful evidence.",
+                  description: "A funny experiment, but it does not record evidence.",
+                  xpPenalty: 1,
+                  xpReason: "snacks are tempting, but evidence comes first.",
                   onSelect: () =>
-                    speak("The carrot roll smells amazing. Kimmy files away one fact: Pickles would definitely follow this scent.")
+                    speak("The carrot roll smells amazing, but buying one does not prove where Pickles went. Kimmy still needs Mrs. Poppy's witness clue.")
                 },
                 {
                   label: "Ask about Mara",
@@ -703,21 +726,23 @@
                 },
                 {
                   label: "Collect ribbon and crumbs",
-                  description: "Bag the evidence and mark the direction.",
+                  description: "This records the trail and unlocks the path toward the park.",
                   primary: true,
                   onSelect: () => {
                     setFlag("bakeryClue");
                     addItem("mintRibbon");
                     addItem("carrotCrumbs");
                     addClue("bakery");
-                    speak("Kimmy collects the mint ribbon and carrot crumbs. The trail points toward the park.");
+                    speak("Kimmy collects the mint ribbon and carrot crumbs. New place unlocked: Picnic Park.");
                   }
                 },
                 {
                   label: "Follow prints now",
-                  description: "Move on without preserving the clue.",
+                  description: "Rushing ahead loses the proof. Record the clue first.",
+                  xpPenalty: 2,
+                  xpReason: "rushing ahead before saving evidence weakens the case.",
                   onSelect: () =>
-                    speak("Kimmy stops herself. If she follows the prints now, the patio evidence could be swept away.")
+                    speak("Kimmy stops herself. If she follows the prints now, the patio evidence could be swept away. Collect the ribbon and crumbs first.")
                 }
               ]
             })
@@ -747,6 +772,8 @@
                 {
                   label: "Search the street",
                   description: "Check the wrong direction.",
+                  xpPenalty: 2,
+                  xpReason: "the recorded trail points the other way.",
                   onSelect: () =>
                     speak("Kimmy checks the street, but the prints vanish there. The park path is the stronger lead.")
                 }
@@ -784,20 +811,22 @@
                 },
                 {
                   label: "Sketch the trail",
-                  description: "Record the direction before moving on.",
+                  description: "This records the direction and unlocks the garden gate.",
                   primary: true,
                   onSelect: () => {
                     setFlag("parkTrail");
                     addItem("pawPrintSketch");
                     addClue("park");
-                    speak("The paw prints curve around the fountain and head through the garden gate.");
+                    speak("The paw prints curve around the fountain and head through the garden gate. New lead: the community garden.");
                   }
                 },
                 {
                   label: "Call Pickles",
-                  description: "Try to solve it by shouting.",
+                  description: "A loud shortcut. It teaches why Pickles needs quiet.",
+                  xpPenalty: 2,
+                  xpReason: "a loud call scares a nervous rabbit.",
                   onSelect: () =>
-                    speak("No bell answers. A nervous rabbit would hide from a loud voice.")
+                    speak("No bell answers. A nervous rabbit would hide from a loud voice. Kimmy needs a quieter plan.")
                 }
               ]
             })
@@ -827,6 +856,8 @@
                 {
                   label: "Check picnic tables",
                   description: "Search where the trail does not go.",
+                  xpPenalty: 2,
+                  xpReason: "the paw prints point through the garden gate.",
                   onSelect: () =>
                     speak("Kimmy checks the picnic tables. Plenty of napkins, no mint ribbon, no rabbit bell.")
                 }
@@ -854,6 +885,8 @@
                 {
                   label: "Search baskets",
                   description: "A tempting but weak lead.",
+                  xpPenalty: 2,
+                  xpReason: "random searching is weaker than following paw prints.",
                   onSelect: () =>
                     speak("Kimmy finds sandwiches, lemonade, and zero rabbits. The paw prints matter more.")
                 }
@@ -886,12 +919,12 @@
               actions: [
                 {
                   label: "Ask about scared rabbits",
-                  description: "Learn the safe way to bring Pickles out.",
+                  description: "This gives the final order clue for the rabbit puzzle.",
                   primary: true,
                   onSelect: () => {
                     setFlag("basilTalked");
                     addClue("basil");
-                    speak("Mr. Basil gives Kimmy the gentle order: quiet first, carrot second, bell last.");
+                    speak("Mr. Basil gives Kimmy the gentle order: quiet first, carrot second, bell last. New action unlocked: search the lavender bench.");
                   }
                 },
                 {
@@ -904,9 +937,11 @@
                 },
                 {
                   label: "Search garden alone",
-                  description: "Try to skip the rabbit expert.",
+                  description: "Too many hiding places. This explains why Basil's clue matters.",
+                  xpPenalty: 2,
+                  xpReason: "skipping the rabbit expert makes the search harder.",
                   onSelect: () =>
-                    speak("Too many hiding places. Kimmy needs Mr. Basil's advice before searching the lavender bench.")
+                    speak("Too many hiding places. Kimmy needs Mr. Basil's rabbit advice before searching the lavender bench.")
                 }
               ]
             })
@@ -938,6 +973,8 @@
                   {
                     label: "Reach inside",
                     description: "Rush the hiding place.",
+                    xpPenalty: 3,
+                    xpReason: "grabbing at a scared rabbit makes her hide.",
                     onSelect: () =>
                       speak("The rustle stops. Kimmy pulls her hand back. A scared rabbit needs patience.")
                   }
@@ -960,6 +997,8 @@
                 {
                   label: "Reach into basket",
                   description: "A fast move that could scare Pickles.",
+                  xpPenalty: 3,
+                  xpReason: "reaching in before Pickles feels safe is too sudden.",
                   onSelect: () =>
                     speak("The basket shivers away from Kimmy's hand. Mr. Basil was right: quiet first.")
                 },
@@ -995,6 +1034,8 @@
                 {
                   label: "Scatter carrots",
                   description: "Make a noisy shortcut.",
+                  xpPenalty: 1,
+                  xpReason: "messy shortcuts do not solve the clue.",
                   onSelect: () =>
                     speak("Kimmy decides against it. A trail of snacks would make a mess, not solve the clue.")
                 },
@@ -1500,6 +1541,45 @@
             })
         },
         {
+          id: "nursery-toy-drawer",
+          label: "Open toy drawer",
+          x: 67,
+          y: 74,
+          action: () =>
+            openActionMenu({
+              title: "Toy Drawer",
+              image: INSPECTIONS.moonMazeToy.image,
+              text:
+                "The drawer is lined with lavender cloth. Under a knitted blanket, Kimmy finds a wooden moon-maze toy with a tiny hidden latch.",
+              actions: [
+                {
+                  label: "Take moon-maze toy",
+                  description: "Add the object to Kimmy's satchel.",
+                  primary: !hasItem("moonMazeToy"),
+                  onSelect: () => {
+                    addItem("moonMazeToy");
+                    addClue("moonMazeToy");
+                    speak("Kimmy adds the moon-maze toy to her satchel. Its hidden latch feels like it wants a careful hand.");
+                  }
+                },
+                {
+                  label: "Play moon maze",
+                  description: "Guide the blue bead to the crescent finish.",
+                  requires: () => hasItem("moonMazeToy"),
+                  lockedMessage: "Kimmy should take the moon-maze toy before playing it.",
+                  primary: hasItem("moonMazeToy"),
+                  onSelect: openMoonMazeMiniGame
+                },
+                {
+                  label: "Leave drawer neat",
+                  description: "Keep the room as Mrs. Wren preserved it.",
+                  onSelect: () =>
+                    speak("Kimmy smooths the drawer cloth back into place. The toy still feels like the useful clue.")
+                }
+              ]
+            })
+        },
+        {
           id: "nursery-height",
           label: "Check height marks",
           x: 13,
@@ -1514,6 +1594,8 @@
                 {
                   label: "Add to personal file",
                   description: "A small clue, not proof.",
+                  requires: () => getFlag("moonMazeSolved"),
+                  lockedMessage: "The clearest 17-inch mark is hidden behind the toy drawer's moon-maze latch.",
                   primary: true,
                   onSelect: () => {
                     addItem("heightMarkSketch");
@@ -2021,7 +2103,7 @@
       title: "Coax Pickles Out",
       image: "./assets/pickles-rabbit.png",
       intro:
-        "Mr. Basil gave Kimmy the gentle order. What should she do first, second, and last?",
+        "Mr. Basil's clue is the order: make Pickles feel safe, offer a snack, then use the familiar bell. Choose three moves in order.",
       choices: ["Call loudly", "Walk quietly", "Reach into basket", "Offer carrot", "Ring ribbon bell"],
       answer: ["Walk quietly", "Offer carrot", "Ring ribbon bell"],
       solvedFlag: "caseSolved",
@@ -2034,9 +2116,30 @@
     }
   };
 
+  const MOON_MAZE = {
+    size: 6,
+    start: { col: 0, row: 5 },
+    goal: { col: 5, row: 0 },
+    blocked: new Set([
+      "1,0",
+      "1,1",
+      "3,1",
+      "4,1",
+      "3,2",
+      "0,3",
+      "1,3",
+      "5,3",
+      "1,4",
+      "3,4",
+      "3,5",
+      "4,5"
+    ])
+  };
+
   const state = loadState();
   let toastTimer = null;
   let activeAudio = null;
+  let pendingXpMessage = "";
   const audioStatus = {
     checked: false,
     hasAnyClip: false,
@@ -2055,6 +2158,8 @@
     inventoryCount: document.getElementById("inventoryCount"),
     clueList: document.getElementById("clueList"),
     caseTitle: document.getElementById("caseTitle"),
+    xpBadge: document.getElementById("xpBadge"),
+    objectiveChip: document.getElementById("objectiveChip"),
     hintButton: document.getElementById("hintButton"),
     resetButton: document.getElementById("resetButton"),
     storyButton: document.getElementById("storyButton"),
@@ -2071,6 +2176,12 @@
       inventory: [],
       clues: [],
       flags: {},
+      xp: 100,
+      xpEvents: [],
+      meta: {
+        createdWith: APP_BUILD_ID,
+        lastBuildSeen: APP_BUILD_ID
+      },
       voiceEnabled: false,
       lead:
         "Open Kimmy's dossier. The first case begins when someone reaches the tree fort for help."
@@ -2078,15 +2189,47 @@
   }
 
   function loadState() {
+    const fallback = defaultState();
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      return saved && saved.flags ? { ...defaultState(), ...saved } : defaultState();
+      const saved = readSavedState(STORAGE_KEY) || LEGACY_STORAGE_KEYS.map(readSavedState).find(Boolean);
+      if (!saved || !saved.flags) {
+        return fallback;
+      }
+      const migrated = {
+        ...fallback,
+        ...saved,
+        inventory: Array.isArray(saved.inventory) ? saved.inventory : [],
+        clues: Array.isArray(saved.clues) ? saved.clues : [],
+        xp: Number.isFinite(saved.xp) ? saved.xp : fallback.xp,
+        xpEvents: Array.isArray(saved.xpEvents) ? saved.xpEvents : [],
+        flags: saved.flags && typeof saved.flags === "object" ? saved.flags : {},
+        meta: {
+          ...fallback.meta,
+          ...(saved.meta || {}),
+          lastBuildSeen: APP_BUILD_ID
+        }
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
     } catch (error) {
-      return defaultState();
+      return fallback;
+    }
+  }
+
+  function readSavedState(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
     }
   }
 
   function saveState() {
+    state.meta = {
+      ...(state.meta || {}),
+      lastBuildSeen: APP_BUILD_ID
+    };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
@@ -2125,11 +2268,56 @@
     render();
   }
 
+  function changeXp(amount, reason, options = {}) {
+    if (!Number.isFinite(amount) || amount === 0) {
+      return;
+    }
+    if (options.once) {
+      state.xpEvents = Array.isArray(state.xpEvents) ? state.xpEvents : [];
+      if (state.xpEvents.includes(options.once)) {
+        return;
+      }
+      state.xpEvents.push(options.once);
+    }
+    const currentXp = Number.isFinite(state.xp) ? state.xp : 100;
+    state.xp = Math.max(0, Math.min(150, currentXp + amount));
+    saveState();
+    renderXp();
+    if (reason) {
+      pendingXpMessage = reason;
+    }
+  }
+
+  function applyChoiceXp(menuAction, menuTitle) {
+    const eventKey = `choice:${menuTitle}:${menuAction.label}`;
+    if (Number.isFinite(menuAction.xpPenalty)) {
+      changeXp(
+        -Math.abs(menuAction.xpPenalty),
+        `XP -${Math.abs(menuAction.xpPenalty)}: ${menuAction.xpReason || "That choice skipped the evidence."}`,
+        { once: eventKey }
+      );
+      return;
+    }
+    if (Number.isFinite(menuAction.xpReward)) {
+      changeXp(
+        Math.abs(menuAction.xpReward),
+        `XP +${Math.abs(menuAction.xpReward)}: ${menuAction.xpReason || "Good detective choice."}`,
+        { once: eventKey }
+      );
+      return;
+    }
+    if (menuAction.primary) {
+      changeXp(2, "XP +2: good detective choice.", { once: eventKey });
+    }
+  }
+
   function speak(message) {
+    const toastMessage = pendingXpMessage ? `${message} ${pendingXpMessage}` : message;
+    pendingXpMessage = "";
     state.lead = message;
     saveState();
     render();
-    showToast(message);
+    showToast(toastMessage);
   }
 
   function hasGeneratedAudio() {
@@ -2265,6 +2453,205 @@
     return !hotspot.requires || hotspot.requires();
   }
 
+  function getGuidance() {
+    if (!getFlag("clientInterview")) {
+      return {
+        text: "Talk to Lila at the tree fort and learn what Pickles likes.",
+        locationId: "clubhouse",
+        hotspotIds: ["club-lila"]
+      };
+    }
+    if (!getFlag("poppyTalked")) {
+      return {
+        text: "Go to Poppy's Bakery and ask Mrs. Poppy what she saw.",
+        locationId: "bakery",
+        hotspotIds: ["bakery-poppy"]
+      };
+    }
+    if (!getFlag("bakeryClue")) {
+      return {
+        text: "Inspect the bakery patio clues before leaving.",
+        locationId: "bakery",
+        hotspotIds: ["bakery-clues"]
+      };
+    }
+    if (!getFlag("parkTrail")) {
+      return {
+        text: "Follow the trail to Picnic Park and sketch the paw prints.",
+        locationId: "park",
+        hotspotIds: ["park-prints"]
+      };
+    }
+    if (!getFlag("basilTalked")) {
+      return {
+        text: "Go to the community garden and ask Mr. Basil how to approach a scared rabbit.",
+        locationId: "garden",
+        hotspotIds: ["garden-basil"]
+      };
+    }
+    if (!getFlag("caseSolved")) {
+      return {
+        text: "Search the lavender bench and use Mr. Basil's gentle order.",
+        locationId: "garden",
+        hotspotIds: ["garden-basket"]
+      };
+    }
+    if (!getFlag("case2Unlocked")) {
+      return {
+        text: "Return Pickles to Lila at the clubhouse.",
+        locationId: "clubhouse",
+        hotspotIds: ["club-lila"]
+      };
+    }
+    if (getFlag("case3Unlocked")) {
+      if (!getFlag("theoTalked")) {
+        return {
+          text: "Ask Theo what flashed at Moonwake Observatory.",
+          locationId: "observatoryExterior",
+          hotspotIds: ["observatory-theo"]
+        };
+      }
+      if (!getFlag("observatoryGate")) {
+        return {
+          text: "Use Mrs. Wren's crescent token on the observatory gate.",
+          locationId: "observatoryExterior",
+          hotspotIds: ["observatory-gate"]
+        };
+      }
+      if (!getFlag("starChartRead")) {
+        return {
+          text: "Lay out Mrs. Wren's star chart and trace the moonlight path.",
+          locationId: "observatoryWorkshop",
+          hotspotIds: ["workshop-chart"]
+        };
+      }
+      if (!getFlag("moonDialClue")) {
+        return {
+          text: "Inspect the moon dials and sketch the new-half-full order.",
+          locationId: "observatoryWorkshop",
+          hotspotIds: ["workshop-dials"]
+        };
+      }
+      if (!getFlag("bellTested")) {
+        return {
+          text: "Test the signal cord with Pickles' tiny bell.",
+          locationId: "observatoryWorkshop",
+          hotspotIds: ["workshop-bell"]
+        };
+      }
+      if (!getFlag("telescopeAligned")) {
+        return {
+          text: "Go to the dome and align the telescope with the star chart.",
+          locationId: "observatoryDome",
+          hotspotIds: ["dome-telescope"]
+        };
+      }
+      if (!getFlag("prismAligned")) {
+        return {
+          text: "Align the floor prism after the telescope, dials, and bell test are ready.",
+          locationId: "observatoryDome",
+          hotspotIds: ["dome-prism"]
+        };
+      }
+      if (!getFlag("archiveUnlocked")) {
+        return {
+          text: "Open the workshop drawer with the numbers from Cases 1, 2, and 3.",
+          locationId: "observatoryWorkshop",
+          hotspotIds: ["workshop-lock"]
+        };
+      }
+      if (!getFlag("case3Solved")) {
+        return {
+          text: "Read the Moonwake family ledger in the archive.",
+          locationId: "observatoryArchive",
+          hotspotIds: ["archive-ledger"]
+        };
+      }
+      return {
+        text: "Case 03 is solved. Review the ledger or return to the clubhouse.",
+        locationId: state.location,
+        hotspotIds: []
+      };
+    }
+    if (!getFlag("hexibaldWarning")) {
+      return {
+        text: "At Briar Lane, ask Mr. Hexibald why he keeps everyone away.",
+        locationId: "briarExterior",
+        hotspotIds: ["briar-hexibald", "briar-warning"]
+      };
+    }
+    if (!getFlag("briarWindowClue")) {
+      return {
+        text: "Study the glowing upper window.",
+        locationId: "briarExterior",
+        hotspotIds: ["briar-window"]
+      };
+    }
+    if (!getFlag("briarWindClue")) {
+      return {
+        text: "Check the loose shutter and match the knocking sound.",
+        locationId: "briarExterior",
+        hotspotIds: ["briar-shutter"]
+      };
+    }
+    if (!getFlag("briarInside")) {
+      return {
+        text: "Ask Mr. Hexibald for permission to look inside.",
+        locationId: "briarExterior",
+        hotspotIds: ["briar-porch"]
+      };
+    }
+    if (!getFlag("briarMusicClue")) {
+      return {
+        text: "Follow the piano music and inspect the keys.",
+        locationId: "briarLiving",
+        hotspotIds: ["living-piano"]
+      };
+    }
+    if (!getFlag("briarVisitorTrail")) {
+      return {
+        text: "Use the footprints or shawl to prove a real person visits the house.",
+        locationId: "briarLiving",
+        hotspotIds: ["living-footprints", "living-shawl"]
+      };
+    }
+    if (!getFlag("grandmotherMet")) {
+      return {
+        text: "Speak kindly to the night visitor by the piano.",
+        locationId: "briarLiving",
+        hotspotIds: ["living-grandmother"]
+      };
+    }
+    if (!getFlag("moonMazeSolved")) {
+      return {
+        text: hasItem("moonMazeToy")
+          ? "Play the moon-maze toy in the old girls' room."
+          : "Open the toy drawer in the old girls' room.",
+        locationId: "briarNursery",
+        hotspotIds: ["nursery-toy-drawer"]
+      };
+    }
+    if (!getFlag("briarPortraitClue")) {
+      return {
+        text: "Open the keepsake box and study the old portrait.",
+        locationId: "briarNursery",
+        hotspotIds: ["nursery-box"]
+      };
+    }
+    if (!getFlag("case3Unlocked")) {
+      return {
+        text: "Take Mrs. Wren's observatory lead.",
+        locationId: "clubhouse",
+        hotspotIds: ["club-lila"]
+      };
+    }
+    return {
+      text: "Review Kimmy's private file or follow the next case lead.",
+      locationId: state.location,
+      hotspotIds: []
+    };
+  }
+
   function render() {
     let location = LOCATIONS[state.location] || LOCATIONS.clubhouse;
     if (!canEnterLocation(state.location)) {
@@ -2279,6 +2666,10 @@
     els.locationSubtitle.textContent = location.subtitle;
     if (els.caseTitle) {
       els.caseTitle.textContent = currentCase.title;
+    }
+    const guidance = getGuidance();
+    if (els.objectiveChip) {
+      els.objectiveChip.textContent = `Next lead: ${guidance.text}`;
     }
     els.leadText.textContent = state.lead || location.lead;
     if (getFlag("lilaCousin")) {
@@ -2312,12 +2703,23 @@
       els.arcText.textContent =
         "Kimmy's oldest clue is a crescent locket from before she was adopted. Most club cases are for neighbors, but some leave crumbs for Kimmy too.";
     }
-    renderHotspots(location);
-    renderMap();
+    renderHotspots(location, guidance);
+    renderMap(guidance);
     renderInventory();
     renderClues();
+    renderXp();
     renderProgress();
     renderVoiceButton();
+  }
+
+  function renderXp() {
+    if (!els.xpBadge) {
+      return;
+    }
+    const xp = Number.isFinite(state.xp) ? state.xp : 100;
+    els.xpBadge.textContent = `XP ${xp}`;
+    els.xpBadge.classList.toggle("xp-low", xp < 70);
+    els.xpBadge.classList.toggle("xp-high", xp >= 120);
   }
 
   function getCurrentCase() {
@@ -2358,17 +2760,22 @@
     els.voiceButton.setAttribute("aria-pressed", String(state.voiceEnabled));
   }
 
-  function renderHotspots(location) {
+  function renderHotspots(location, guidance) {
     els.hotspotLayer.replaceChildren();
+    const nextHotspots = new Set(guidance.hotspotIds || []);
 
     location.hotspots.filter(canShowHotspot).forEach((hotspot) => {
       const available = canUseHotspot(hotspot);
+      const isNext = available && nextHotspots.has(hotspot.id);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `hotspot${available ? "" : " hotspot-locked"}`;
+      button.className = `hotspot${available ? "" : " hotspot-locked"}${isNext ? " hotspot-next" : ""}`;
       button.style.left = `${hotspot.x}%`;
       button.style.top = `${hotspot.y}%`;
       button.setAttribute("aria-label", available ? hotspot.label : hotspot.lockedLabel || hotspot.label);
+      if (isNext) {
+        button.setAttribute("data-next", "Next lead");
+      }
       if (!available) {
         button.setAttribute("aria-disabled", "true");
         button.title = hotspot.lockedMessage || "Kimmy needs another clue first.";
@@ -2383,14 +2790,18 @@
 
       const label = document.createElement("span");
       label.className = "hotspot-label";
-      label.textContent = available ? hotspot.label : hotspot.lockedLabel || hotspot.label;
+      label.textContent = isNext
+        ? `Next: ${hotspot.label}`
+        : available
+          ? hotspot.label
+          : hotspot.lockedLabel || hotspot.label;
       button.append(label);
 
       els.hotspotLayer.append(button);
     });
   }
 
-  function renderMap() {
+  function renderMap(guidance) {
     els.mapNav.replaceChildren();
 
     LOCATION_ORDER.forEach((id) => {
@@ -2399,16 +2810,23 @@
       }
       const location = LOCATIONS[id];
       const available = canEnterLocation(id);
+      const isNext = available && guidance.locationId === id && id !== state.location;
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `nav-button${available ? "" : " locked"}`;
-      button.textContent = available ? location.title : `${location.title} locked`;
+      button.className = `nav-button${available ? "" : " locked"}${isNext ? " next-lead" : ""}`;
+      const stateLabel = id === state.location ? "current" : isNext ? "next lead" : !available ? "locked" : "";
+      button.textContent = stateLabel ? `${location.title} • ${stateLabel}` : location.title;
       if (id === state.location) {
         button.setAttribute("aria-current", "page");
+        button.title = "Kimmy is here now.";
       }
       if (!available) {
         button.setAttribute("aria-disabled", "true");
         button.title = location.lockedLead || "Locked until Kimmy finds another clue.";
+      } else if (isNext) {
+        button.title = `Next lead: ${guidance.text}`;
+      } else if (id !== state.location) {
+        button.title = `Move to ${location.title}.`;
       }
       button.addEventListener("click", () => navigate(id));
       els.mapNav.append(button);
@@ -2608,19 +3026,19 @@
             setFlag("clientInterview");
             addClue("lila");
             speak(
-              "Kimmy takes the case for five dollars. Pickles has a mint ribbon, a tiny bell, and a serious carrot habit."
+              "Kimmy takes the case for five dollars. Pickles has a mint ribbon, a tiny bell, and a serious carrot habit. Next lead: Poppy's Bakery."
             );
           }
         },
         {
           label: "Examine basket",
-          description: "Look for a clue before making promises.",
+          description: "A small clue, but Lila still needs to tell the full story first.",
           onSelect: () =>
-            speak("The basket smells like hay, carrots, and a little lavender. Pickles has favorite places.")
+            speak("The basket smells like hay, carrots, and lavender. Helpful, but Kimmy still needs to ask Lila what happened.")
         },
         {
           label: "Promise first",
-          description: "A kind impulse, but not a detective move.",
+          description: "Kind, but it does not open the trail yet.",
           onSelect: () =>
             speak("Kimmy promises carefully: she will follow every clue, and she will not give up on Pickles.")
         }
@@ -2839,6 +3257,10 @@
       body.append(text);
     }
 
+    const feedback = document.createElement("p");
+    feedback.className = "action-menu-feedback";
+    feedback.hidden = true;
+
     const grid = document.createElement("div");
     grid.className = "action-choice-grid";
 
@@ -2851,25 +3273,41 @@
 
       const label = document.createElement("strong");
       label.textContent = menuAction.label;
+      const tag = document.createElement("em");
+      tag.className = "action-choice-tag";
+      tag.textContent = !isAvailable
+        ? "Needs clue"
+        : Number.isFinite(menuAction.xpPenalty)
+          ? "Costs XP"
+          : menuAction.primary
+            ? "Best next step"
+            : "Try and learn";
       const description = document.createElement("span");
       description.textContent = menuAction.description || "";
-      button.append(label, description);
+      button.append(label, tag, description);
 
       button.addEventListener("click", () => {
         if (!isAvailable) {
-          showToast(menuAction.lockedMessage || "Kimmy needs another clue first.");
+          feedback.hidden = false;
+          feedback.textContent = menuAction.lockedMessage || "Kimmy needs another clue first.";
+          showToast(feedback.textContent);
           return;
         }
+        applyChoiceXp(menuAction, options.title);
         closeModal();
         if (menuAction.onSelect) {
           menuAction.onSelect();
+        }
+        if (pendingXpMessage) {
+          showToast(pendingXpMessage);
+          pendingXpMessage = "";
         }
       });
 
       grid.append(button);
     });
 
-    body.append(grid);
+    body.append(grid, feedback);
 
     const close = document.createElement("button");
     close.type = "button";
@@ -3008,6 +3446,225 @@
     });
   }
 
+  function openMoonMazeMiniGame() {
+    if (!hasItem("moonMazeToy")) {
+      addItem("moonMazeToy");
+      addClue("moonMazeToy");
+    }
+
+    const modal = createModal("Moon-Maze Toy", { wide: true });
+    modal.classList.add("mini-game-modal");
+    modal.tabIndex = -1;
+
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const intro = document.createElement("div");
+    intro.className = "mini-game-intro";
+    intro.innerHTML = `
+      <p class="panel-label">Mini Puzzle</p>
+      <p>Guide the blue bead through the moon rails to the crescent finish. Use swipes, arrow keys, or the brass controls.</p>
+    `;
+
+    const board = document.createElement("div");
+    board.className = "moon-maze-board";
+    board.style.setProperty("--maze-size", MOON_MAZE.size);
+    board.setAttribute("role", "application");
+    board.setAttribute("aria-label", "Moon-maze toy puzzle");
+
+    const grid = document.createElement("div");
+    grid.className = "moon-maze-grid";
+    for (let row = 0; row < MOON_MAZE.size; row += 1) {
+      for (let col = 0; col < MOON_MAZE.size; col += 1) {
+        const cell = document.createElement("div");
+        cell.className = `maze-cell${MOON_MAZE.blocked.has(`${col},${row}`) ? " blocked" : ""}`;
+        cell.style.gridColumn = String(col + 1);
+        cell.style.gridRow = String(row + 1);
+        grid.append(cell);
+      }
+    }
+
+    const goal = document.createElement("div");
+    goal.className = "maze-goal";
+    const marble = document.createElement("div");
+    marble.className = "maze-marble";
+    const glint = document.createElement("span");
+    glint.setAttribute("aria-hidden", "true");
+    marble.append(glint);
+    board.append(grid, goal, marble);
+
+    const status = document.createElement("p");
+    status.className = "mini-game-status";
+
+    const controls = document.createElement("div");
+    controls.className = "maze-controls";
+
+    const moveCount = document.createElement("span");
+    moveCount.className = "maze-move-count";
+
+    let position = { ...MOON_MAZE.start };
+    let moves = 0;
+    let solved = getFlag("moonMazeSolved");
+    let swipeStart = null;
+
+    function canEnter(col, row) {
+      return (
+        col >= 0 &&
+        row >= 0 &&
+        col < MOON_MAZE.size &&
+        row < MOON_MAZE.size &&
+        !MOON_MAZE.blocked.has(`${col},${row}`)
+      );
+    }
+
+    function placeToken(token, point) {
+      const mazeOffset = 18;
+      const mazeSpan = 64;
+      const cellSpan = mazeSpan / MOON_MAZE.size;
+      token.style.left = `${mazeOffset + (point.col + 0.5) * cellSpan}%`;
+      token.style.top = `${mazeOffset + (point.row + 0.5) * cellSpan}%`;
+    }
+
+    function updateMazeUi() {
+      placeToken(goal, MOON_MAZE.goal);
+      placeToken(marble, position);
+      moveCount.textContent = `${moves} move${moves === 1 ? "" : "s"}`;
+      status.textContent = solved
+        ? "The crescent latch has opened. Kimmy can copy the 17-inch mark."
+        : "The bead rolls only through open moon rails. Find the path to the crescent finish.";
+      board.classList.toggle("solved", solved);
+      takeSketch.hidden = !solved;
+    }
+
+    function bump() {
+      board.classList.remove("bump");
+      requestAnimationFrame(() => {
+        board.classList.add("bump");
+        setTimeout(() => board.classList.remove("bump"), 220);
+      });
+      changeXp(-1, "XP -1: that rail blocks the bead.");
+      if (pendingXpMessage) {
+        showToast(pendingXpMessage);
+        pendingXpMessage = "";
+      }
+    }
+
+    function completeMaze() {
+      if (!solved) {
+        solved = true;
+        setFlag("moonMazeSolved");
+        addItem("heightMarkSketch");
+        addClue("briarHeight");
+        changeXp(10, "XP +10: solved the moon-maze mini-game.", { once: "mini:moonMaze" });
+        speak("The moon-maze latch opens with a soft click. Behind it, Kimmy finds the clear 17-inch height mark.");
+      }
+      updateMazeUi();
+    }
+
+    function move(dx, dy) {
+      if (solved) {
+        return;
+      }
+      const next = { col: position.col + dx, row: position.row + dy };
+      if (!canEnter(next.col, next.row)) {
+        bump();
+        return;
+      }
+      position = next;
+      moves += 1;
+      if (position.col === MOON_MAZE.goal.col && position.row === MOON_MAZE.goal.row) {
+        completeMaze();
+        return;
+      }
+      updateMazeUi();
+    }
+
+    function addControl(label, dx, dy) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "maze-control-button";
+      button.textContent = label;
+      button.addEventListener("click", () => move(dx, dy));
+      controls.append(button);
+    }
+
+    addControl("Up", 0, -1);
+    addControl("Left", -1, 0);
+    addControl("Right", 1, 0);
+    addControl("Down", 0, 1);
+
+    board.addEventListener("pointerdown", (event) => {
+      swipeStart = { x: event.clientX, y: event.clientY };
+      board.setPointerCapture(event.pointerId);
+    });
+
+    board.addEventListener("pointerup", (event) => {
+      if (!swipeStart) {
+        return;
+      }
+      const dx = event.clientX - swipeStart.x;
+      const dy = event.clientY - swipeStart.y;
+      swipeStart = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) {
+        return;
+      }
+      if (Math.abs(dx) > Math.abs(dy)) {
+        move(dx > 0 ? 1 : -1, 0);
+      } else {
+        move(0, dy > 0 ? 1 : -1);
+      }
+    });
+
+    modal.addEventListener("keydown", (event) => {
+      const keyMoves = {
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0]
+      };
+      const delta = keyMoves[event.key];
+      if (!delta) {
+        return;
+      }
+      event.preventDefault();
+      move(delta[0], delta[1]);
+    });
+
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "modal-button";
+    reset.textContent = "Reset Maze";
+    reset.addEventListener("click", () => {
+      if (solved) {
+        speak("The latch is already open. Kimmy leaves the solved path in her notes.");
+        return;
+      }
+      position = { ...MOON_MAZE.start };
+      moves = 0;
+      updateMazeUi();
+    });
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "modal-button";
+    close.textContent = "Close";
+    close.addEventListener("click", closeModal);
+
+    const takeSketch = document.createElement("button");
+    takeSketch.type = "button";
+    takeSketch.className = "modal-button primary";
+    takeSketch.textContent = "Take 17-inch sketch";
+    takeSketch.addEventListener("click", () => {
+      closeModal();
+      speak("Kimmy tucks the 17-inch height-mark sketch into her satchel. It feels like a number waiting for another lock.");
+    });
+
+    body.append(intro, board, controls, moveCount, status);
+    actions.append(reset, close, takeSketch);
+    updateMazeUi();
+    modal.focus();
+  }
+
   function openSequencePuzzle(puzzleId) {
     const puzzle = PUZZLES[puzzleId];
     if (!puzzle) {
@@ -3038,6 +3695,10 @@
     readout.className = "sequence-readout";
     readout.textContent = "Pick three in order.";
 
+    const feedback = document.createElement("p");
+    feedback.className = "sequence-feedback";
+    feedback.textContent = "Clue: safe first, snack second, familiar bell last.";
+
     const grid = document.createElement("div");
     grid.className = "choice-grid";
 
@@ -3049,6 +3710,7 @@
       button.addEventListener("click", () => {
         if (picks.length >= puzzle.answer.length) {
           picks = [];
+          feedback.textContent = "Starting a new try.";
         }
         picks.push(choice);
         updatePuzzleReadout(readout, picks);
@@ -3066,6 +3728,7 @@
     clear.addEventListener("click", () => {
       picks = [];
       updatePuzzleReadout(readout, picks);
+      feedback.textContent = "Clue: safe first, snack second, familiar bell last.";
       grid.querySelectorAll(".choice-button").forEach((item) => item.classList.remove("selected"));
     });
 
@@ -3078,11 +3741,15 @@
         closeModal();
         solvePuzzle(puzzle);
       } else {
-        speak("Pickles stays hidden. Check Mr. Basil's hint for the gentle order.");
+        const mistake = explainSequenceMistake(picks, puzzle.answer);
+        changeXp(-3, "XP -3: the sequence startled Pickles.");
+        feedback.textContent = `${mistake} XP -3.`;
+        showToast(`${mistake} XP -3.`);
+        pendingXpMessage = "";
       }
     });
 
-    body.append(image, riddle, grid, readout);
+    body.append(image, riddle, grid, readout, feedback);
     if (VOICE_FEATURE_ENABLED) {
       const hear = document.createElement("button");
       hear.type = "button";
@@ -3092,6 +3759,22 @@
       actions.append(hear);
     }
     actions.append(clear, submit);
+  }
+
+  function explainSequenceMistake(picks, answer) {
+    if (picks.length < answer.length) {
+      return "Pick three moves before trying the sequence.";
+    }
+    if (picks[0] !== answer[0]) {
+      return "Pickles is nervous. The first move must be quiet and gentle so she does not hide deeper in the basket.";
+    }
+    if (picks[1] !== answer[1]) {
+      return "After Kimmy moves quietly, Pickles needs a reason to come forward. The carrot comes before the bell.";
+    }
+    if (picks[2] !== answer[2]) {
+      return "The bell works last, after Pickles feels safe and smells the carrot. Ringing it too early startles her.";
+    }
+    return "That almost works. Use Mr. Basil's exact clue: quiet first, carrot second, bell last.";
   }
 
   function updatePuzzleReadout(readout, picks) {
@@ -3109,13 +3792,16 @@
   }
 
   function solvePuzzle(puzzle) {
+    changeXp(8, "XP +8: solved the sequence puzzle.", { once: `puzzle:${puzzle.title}` });
     setFlag(puzzle.solvedFlag);
     addClue(puzzle.solvedClue);
     addItem(puzzle.reward);
     state.lead = puzzle.success;
     saveState();
     render();
-    showToast(puzzle.success);
+    const xpMessage = pendingXpMessage ? ` ${pendingXpMessage}` : "";
+    pendingXpMessage = "";
+    showToast(`${puzzle.success}${xpMessage}`);
     openCaseClosed();
   }
 
@@ -3309,6 +3995,12 @@
       speak("Hint: after the piano clue and visitor trail, speak kindly to the night visitor.");
       return;
     }
+    if (!getFlag("moonMazeSolved")) {
+      speak(hasItem("moonMazeToy")
+        ? "Hint: play the moon-maze toy in the old girls' room. Guide the bead to the crescent finish."
+        : "Hint: open the toy drawer in the old girls' room and take the moon-maze toy.");
+      return;
+    }
     if (!getFlag("briarPortraitClue")) {
       speak("Hint: use Mrs. Wren's small key upstairs. The old girls' room has a keepsake box.");
       return;
@@ -3337,6 +4029,7 @@
       activeAudio.currentTime = 0;
     }
     localStorage.removeItem(STORAGE_KEY);
+    LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
     Object.assign(state, defaultState());
     render();
     openIntro(true);

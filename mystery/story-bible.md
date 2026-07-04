@@ -22,6 +22,8 @@ Recurring clue patterns:
 - Crescent-and-star marks appear as quiet signals.
 - Case locations connect to Kimmy's family history without proving it too early.
 - Satchel objects from solved cases can become tools in later cases, so each chapter leaves both a story clue and a practical clue behind.
+- The interface should always help young players understand the next useful action: one next-lead prompt, one visibly glowing hotspot or map destination, and clear feedback when an option is wrong.
+- Detective XP should reward evidence-based choices and gently subtract points for guesses, rushing, or puzzle mistakes. It should teach detective thinking, not punish curiosity.
 
 ## Case 01: The Picnic Pet
 
@@ -74,7 +76,7 @@ True case answer: the flashes are caused by an old prism signal system. Kimmy us
 Puzzle continuity:
 
 - Case 01 gives Kimmy Pickles' bell and the five-dollar fee.
-- Case 02 gives Kimmy the 17-inch Briar Lane height-mark sketch and Mrs. Wren's observatory handoff.
+- Case 02 gives Kimmy the 17-inch Briar Lane height-mark sketch through a moon-maze toy mini-game, plus Mrs. Wren's observatory handoff.
 - Case 03 uses those earlier clues to open an archive drawer with the code 5 - 17 - 3: five dollars, the old height mark, and three moon phases.
 
 Long-arc reveal: the archive ledger connects Vale, Wren, and Finch family branches. It does not fully explain Kimmy's identity, but it strongly suggests Lila Vale may be Kimmy's cousin. This turns Lila's earlier family-name and "detective smile" moments into real clues without making the whole family mystery obvious yet.
