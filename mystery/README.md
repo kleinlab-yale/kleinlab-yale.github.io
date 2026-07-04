@@ -16,6 +16,7 @@ Kimmy Finch is a clever adopted girl who founded the Finch Street Mystery Club. 
 - Friendly NPC dialogue written for future voice acting. The rejected local system-voice experiment is not exposed in the demo UI.
 - Zork-style action menus on hotspots: inspect, interview, collect, try a wrong move, or unlock a better option after finding the right clue.
 - A clearer guided play layer: the current next lead appears on the scene, the next useful hotspot glows, map buttons say when they are current/next/locked, and choices are tagged as best next step, try-and-learn, needs clue, or costs XP.
+- A dynamic case board in the tree-fort HQ: before Lila's interview it is empty, then it shows the active case file for Lila/Pickles, Briar Lane, or Moonwake instead of reusing a clue photo.
 - A gated case flow: Lila opens the case, Mrs. Poppy unlocks the bakery evidence, the bakery trail unlocks the park, the park prints unlock the garden, and Mr. Basil unlocks the final rabbit-coaxing puzzle.
 - Detective XP starts at 100. Evidence-based choices add XP, while guesses, rushing, loud shortcuts, or wrong puzzle sequences lower XP a little with an explanation.
 - A first object mini-game: the Briar Lane nursery drawer contains a moon-maze toy. Solving it reveals the 17-inch height-mark sketch needed later for the Moonwake archive code.
@@ -53,4 +54,4 @@ node mystery/tools/generate-voices.mjs --dry-run
 
 ## Asset notes
 
-The current Case 01, Case 02, and early Case 03 art are live in the demo. Moonwake Observatory uses the earlier observatory concept assets, while the haunted-house chapter uses separate Briar Lane assets.
+The current Case 01, Case 02, and early Case 03 art are live in the demo. Moonwake Observatory uses the earlier observatory concept assets, while the haunted-house chapter uses separate Briar Lane assets. The blank case-board close-up is used before Lila starts Case 01, and the bakery clue close-up and fountain paw-print close-up are intentionally separate images so the trail reads as two different places.

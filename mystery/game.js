@@ -1,5 +1,5 @@
 (function () {
-  const APP_BUILD_ID = "20260704-mini1";
+  const APP_BUILD_ID = "20260704-board1";
   const STORAGE_KEY = "kimmy-finch-mysteries-save";
   const LEGACY_STORAGE_KEYS = ["kimmy-finch-mysteries-v6"];
   const TOAST_DURATION_MS = 7800;
@@ -91,7 +91,7 @@
     pawPrintSketch: {
       label: "Paw Print Sketch",
       description: "Kimmy's quick drawing of the tiny park tracks.",
-      image: "./assets/inspect-rabbit-clues.png",
+      image: "./assets/inspect-fountain-paw-prints.png",
       inspectTitle: "Paw Print Sketch",
       inspectText:
         "The little prints curve around the fountain and head toward the community garden gate."
@@ -323,9 +323,9 @@
   const INSPECTIONS = {
     caseBoard: {
       title: "Kimmy's Case Board",
-      image: "./assets/inspect-rabbit-clues.png",
+      image: "./assets/case-board-empty.png",
       text:
-        "In the tree-fort HQ, Kimmy pins up three facts: Pickles is cream-colored, wears mint green, and loves carrots."
+        "The tree-fort board is ready for a case, but Kimmy has not pinned any Pickles clues yet."
     },
     familyPhoto: {
       title: "The Unlabeled Photograph",
@@ -359,7 +359,7 @@
     },
     parkPrints: {
       title: "Fountain Paw Prints",
-      image: "./assets/inspect-rabbit-clues.png",
+      image: "./assets/inspect-fountain-paw-prints.png",
       text:
         "The prints are tiny and close together. Pickles was not running; she was exploring."
     },
@@ -475,39 +475,7 @@
           label: "Check the case board",
           x: 78,
           y: 39,
-          action: () =>
-            openActionMenu({
-              title: "Kimmy's Case Board",
-              image: INSPECTIONS.caseBoard.image,
-              text:
-                "The board has string, blank clue cards, and a big question written in blue pencil: Where would Pickles go first?",
-              actions: [
-                {
-                  label: "Read the board",
-                  description: "Review what Kimmy knows right now.",
-                  onSelect: () => openInspection("caseBoard")
-                },
-                {
-                  label: "Pin Lila's facts",
-                  description: "Record the rabbit description so Kimmy knows what trail to follow.",
-                  requires: () => getFlag("clientInterview"),
-                  lockedMessage: "Kimmy needs to ask Lila what happened before pinning facts.",
-                  primary: true,
-                  onSelect: () => {
-                    addClue("lila");
-                    speak("Kimmy pins the useful facts: cream rabbit, mint ribbon, carrot snacks. Next lead: the bakery smells like carrots.");
-                  }
-                },
-                {
-                  label: "Guess the garden",
-                  description: "A guess without a trail. This will not unlock the next place.",
-                  xpPenalty: 2,
-                  xpReason: "guessing before collecting a trail costs detective XP.",
-                  onSelect: () =>
-                    speak("Too soon. Kimmy needs a trail, not a guess. A good detective starts with the witness and the snack clue.")
-                }
-              ]
-            })
+          action: openCaseBoard
         },
         {
           id: "club-photo",
@@ -2255,6 +2223,10 @@
     render();
   }
 
+  function hasClue(clueId) {
+    return state.clues.includes(clueId);
+  }
+
   function getFlag(flag) {
     return Boolean(state.flags[flag]);
   }
@@ -2720,6 +2692,196 @@
     els.xpBadge.textContent = `XP ${xp}`;
     els.xpBadge.classList.toggle("xp-low", xp < 70);
     els.xpBadge.classList.toggle("xp-high", xp >= 120);
+  }
+
+  function openCaseBoard() {
+    const detail = getCaseBoardDetail();
+    openActionMenu({
+      title: detail.title,
+      image: detail.image,
+      text: detail.text,
+      actions: detail.actions
+    });
+  }
+
+  function openCurrentCaseBoardInspection(detail = getCaseBoardDetail()) {
+    openInspection("caseBoard", {
+      title: detail.title,
+      image: detail.image,
+      text: detail.inspectText || detail.text
+    });
+  }
+
+  function getCaseBoardDetail() {
+    if (getFlag("case3Unlocked")) {
+      const solved = getFlag("case3Solved");
+      const detail = {
+        title: solved ? "Case Board: Moonwake Archive" : "Case Board: Moonwake Observatory",
+        image: solved ? "./assets/inspect-archive.png" : "./assets/case2-observatory-handoff.png",
+        text: solved
+          ? "The board has shifted to the family ledger Kimmy found at Moonwake. This case is solved, but the long mystery just got louder."
+          : "Mrs. Wren's star chart and crescent token are pinned as the current case file. The question is why Moonwake flashes after midnight.",
+        inspectText: solved
+          ? "Kimmy marks the Moonwake case solved and circles the ledger branch connecting Vale, Wren, and Finch. Lila's name suddenly feels like evidence."
+          : "Current case: Moonwake Observatory. Kimmy pins Mrs. Wren's star chart, the crescent token, Theo's locked-gate report, and the question: what is making the dome flash?"
+      };
+      detail.actions = [
+        {
+          label: solved ? "Review family ledger" : "Read Moonwake board",
+          description: "Review the current Case 03 file.",
+          onSelect: () => openCurrentCaseBoardInspection(detail)
+        },
+        {
+          label: "Go to Observatory",
+          description: "Return to Moonwake and keep working the current case.",
+          primary: !solved,
+          onSelect: () => navigate("observatoryExterior")
+        },
+        {
+          label: solved ? "Add to personal file" : "Check useful numbers",
+          description: solved
+            ? "Think about what the solved case revealed about Kimmy."
+            : "Review the earlier case objects that may matter at Moonwake.",
+          onSelect: () =>
+            speak(
+              solved
+                ? "Kimmy files the ledger under her personal mystery: Vale, Wren, Finch. Maybe Lila has been family all along."
+                : "Kimmy checks her satchel: Lila's five dollars, the 17-inch height mark, and three moon phases might be more than souvenirs."
+            )
+        }
+      ];
+      return detail;
+    }
+
+    if (getFlag("case2Unlocked")) {
+      const detail = {
+        title: "Case Board: Briar Lane House",
+        image: "./assets/case2-exterior.png",
+        text:
+          "The board now shows Briar Lane House, not Pickles. Kimmy's current question is who keeps entering the empty house after dark.",
+        inspectText:
+          "Current case: Briar Lane House. Kimmy pins Lila's worry, Mr. Hexibald's warning, the glowing upstairs window, the shutter knock, and the old piano music."
+      };
+      detail.actions = [
+        {
+          label: "Read Briar Lane board",
+          description: "Review the current Case 02 file.",
+          onSelect: () => openCurrentCaseBoardInspection(detail)
+        },
+        {
+          label: "Go to Briar Lane",
+          description: "Return to the front gate and investigate the house.",
+          primary: !getFlag("briarPortraitClue"),
+          onSelect: () => navigate("briarExterior")
+        },
+        {
+          label: "Name the question",
+          description: "Clarify what Kimmy is trying to prove.",
+          onSelect: () =>
+            speak("Kimmy writes the real question: if Briar Lane is empty, who is visiting after dark, and why do they care so much?")
+        }
+      ];
+      return detail;
+    }
+
+    if (getFlag("caseSolved")) {
+      const detail = {
+        title: "Case Board: Pickles Found",
+        image: "./assets/case1-thank-you.png",
+        text:
+          "The Pickles board is complete. Kimmy solved the trail in order and earned the club's first five-dollar case fee.",
+        inspectText:
+          "Solved case: Lila's carrot clue led to Mrs. Poppy, the bakery trail led to the fountain, the fountain prints led to the garden, and Mr. Basil's order brought Pickles out safely."
+      };
+      detail.actions = [
+        {
+          label: "Read solved board",
+          description: "Review why the Pickles case worked.",
+          onSelect: () => openCurrentCaseBoardInspection(detail)
+        },
+        {
+          label: "Talk to Lila",
+          description: "Let Lila explain the next worry that points to Case 02.",
+          primary: true,
+          onSelect: openCase1Victory
+        }
+      ];
+      return detail;
+    }
+
+    if (getFlag("clientInterview")) {
+      const lilaPinned = hasClue("lila");
+      const detail = {
+        title: "Case Board: Lila and Pickles",
+        image: "./assets/npc-lila.png",
+        text:
+          "Lila's worried client card is pinned to the board. Kimmy knows Pickles is cream-colored, wears mint green, and loves carrot snacks.",
+        inspectText:
+          "Current case: Lila's missing rabbit. Kimmy pins the witness facts, then asks the useful question: where would a hungry rabbit go first?"
+      };
+      detail.actions = [
+        {
+          label: "Read Pickles board",
+          description: "Review the current Case 01 file.",
+          onSelect: () => openCurrentCaseBoardInspection(detail)
+        },
+        {
+          label: lilaPinned ? "Review Lila's facts" : "Pin Lila's facts",
+          description: lilaPinned
+            ? "Confirm the facts without changing the trail."
+            : "Record the rabbit description so Kimmy knows what trail to follow.",
+          primary: !lilaPinned,
+          onSelect: () => {
+            addClue("lila");
+            speak(
+              lilaPinned
+                ? "Kimmy checks the pinned facts again: cream rabbit, mint ribbon, carrot snacks. The bakery is still the strongest next lead."
+                : "Kimmy pins the useful facts: cream rabbit, mint ribbon, carrot snacks. Next lead: the bakery smells like carrots."
+            );
+          }
+        },
+        {
+          label: "Guess the garden",
+          description: "A guess without a trail. This will not unlock the next place.",
+          xpPenalty: 2,
+          xpReason: "guessing before collecting a trail costs detective XP.",
+          onSelect: () =>
+            speak("Too soon. Kimmy needs a trail, not a guess. A good detective starts with the witness and the snack clue.")
+        }
+      ];
+      return detail;
+    }
+
+    const detail = {
+      title: "Kimmy's Case Board",
+      image: INSPECTIONS.caseBoard.image,
+      text:
+        "The tree-fort board is ready, but the Pickles case has not started yet. Kimmy should hear Lila's whole story before pinning any clues.",
+      inspectText:
+        "No active case is pinned yet. Kimmy keeps blank cards, string, and thumbtacks ready for the next client."
+    };
+    detail.actions = [
+      {
+        label: "Read empty board",
+        description: "Check what Kimmy knows before the first client interview.",
+        onSelect: () => openCurrentCaseBoardInspection(detail)
+      },
+      {
+        label: "Talk to Lila",
+        description: "Start the first case by hearing from the worried pet owner.",
+        primary: true,
+        onSelect: openLilaHotspot
+      },
+      {
+        label: "Pin a clue now",
+        description: "Too early. Kimmy needs a witness statement first.",
+        xpPenalty: 1,
+        xpReason: "pinning a clue before an interview is just guessing.",
+        onSelect: () =>
+          speak("Kimmy stops with the thumbtack in her hand. No case facts yet. First rule: talk to the client.")
+      }
+    ];
+    return detail;
   }
 
   function getCurrentCase() {

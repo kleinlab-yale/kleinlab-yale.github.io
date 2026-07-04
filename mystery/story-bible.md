@@ -24,6 +24,7 @@ Recurring clue patterns:
 - Satchel objects from solved cases can become tools in later cases, so each chapter leaves both a story clue and a practical clue behind.
 - The interface should always help young players understand the next useful action: one next-lead prompt, one visibly glowing hotspot or map destination, and clear feedback when an option is wrong.
 - Detective XP should reward evidence-based choices and gently subtract points for guesses, rushing, or puzzle mistakes. It should teach detective thinking, not punish curiosity.
+- The tree-fort case board should show the current case or client. It must not reveal clue art before Kimmy has actually started or reached that case.
 
 ## Case 01: The Picnic Pet
 
