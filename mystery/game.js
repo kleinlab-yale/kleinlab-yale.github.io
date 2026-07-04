@@ -77,7 +77,7 @@
     mintRibbon: {
       label: "Mint Ribbon",
       description: "A soft ribbon from Pickles' collar.",
-      image: "./assets/inspect-rabbit-clues.png",
+      image: "./assets/inspect-rabbit-clues.jpg",
       inspectTitle: "Mint Ribbon",
       inspectText:
         "The ribbon smells faintly like carrot rolls and garden lavender."
@@ -85,7 +85,7 @@
     carrotCrumbs: {
       label: "Carrot Crumbs",
       description: "Tiny orange crumbs from the bakery patio.",
-      image: "./assets/inspect-rabbit-clues.png",
+      image: "./assets/inspect-rabbit-clues.jpg",
       inspectTitle: "Carrot Crumbs",
       inspectText:
         "Pickles probably stopped at the bakery first. These crumbs point away from the patio."
@@ -93,7 +93,7 @@
     pawPrintSketch: {
       label: "Paw Print Sketch",
       description: "Kimmy's quick drawing of the tiny park tracks.",
-      image: "./assets/inspect-fountain-paw-prints.png",
+      image: "./assets/inspect-fountain-paw-prints.jpg",
       inspectTitle: "Paw Print Sketch",
       inspectText:
         "The little prints curve around the fountain and head toward the community garden gate."
@@ -101,7 +101,7 @@
     pickles: {
       label: "Pickles",
       description: "A very relieved, very cute rabbit.",
-      image: "./assets/pickles-rabbit.png",
+      image: "./assets/pickles-rabbit.jpg",
       inspectTitle: "Pickles Found",
       inspectText:
         "Pickles is safe, cozy, and already nibbling a carrot top like nothing dramatic happened at all."
@@ -109,7 +109,7 @@
     picklesBell: {
       label: "Pickles' Bell",
       description: "Mila's thank-you gift from Pickles' mint ribbon.",
-      image: "./assets/case1-thank-you-mila.png",
+      image: "./assets/case1-thank-you-mila.jpg",
       inspectTitle: "Pickles' Bell",
       inspectText:
         "Mila tied the tiny bell to a spare mint ribbon and gave it to Kimmy. It rings softly enough to test delicate mechanisms without startling anyone."
@@ -117,7 +117,7 @@
     fiveDollars: {
       label: "$5 Case Fee",
       description: "Mila's crinkled thank-you payment for finding Pickles.",
-      image: "./assets/inspect-rabbit-clues.png",
+      image: "./assets/inspect-rabbit-clues.jpg",
       inspectTitle: "Five-Dollar Case Fee",
       inspectText:
         "The Finch Street Mystery Club's first paid case earned five dollars. Kimmy tucks it away; a future clue may need bus fare, a copy fee, or a very useful snack."
@@ -125,7 +125,7 @@
     briarFile: {
       label: "Briar Lane File",
       description: "Kimmy's notes for the house everyone calls haunted.",
-      image: "./assets/case2-exterior.png",
+      image: "./assets/case2-exterior.jpg",
       inspectTitle: "Briar Lane File",
       inspectText:
         "Mila's warning, Mr. Hexibald's rule, glowing windows, and strange music all point to the same place: the empty old house on Briar Lane."
@@ -133,7 +133,7 @@
     nurseryKey: {
       label: "Small Brass Key",
       description: "A key Mrs. Wren gives Kimmy for the upstairs room.",
-      image: "./assets/npc-grandmother.png",
+      image: "./assets/npc-grandmother.jpg",
       inspectTitle: "Small Brass Key",
       inspectText:
         "The key is old, polished by years of careful use, and tied with a faded lavender ribbon."
@@ -141,7 +141,7 @@
     moonMazeToy: {
       label: "Moon-Maze Toy",
       description: "An old wooden maze toy from the nursery drawer.",
-      image: "./assets/mini-moon-maze.png",
+      image: "./assets/mini-moon-maze.jpg",
       inspectTitle: "Moon-Maze Toy",
       inspectText:
         "The wooden toy has brass moon rails and a tiny blue bead. A hidden drawer edge waits near the crescent-shaped finish."
@@ -149,7 +149,7 @@
     heightMarkSketch: {
       label: "Height Mark Sketch",
       description: "Kimmy's copy of the old 17-inch mark in the girls' room.",
-      image: "./assets/mini-moon-maze.png",
+      image: "./assets/mini-moon-maze.jpg",
       inspectTitle: "Height Mark Sketch",
       inspectText:
         "Kimmy copied the little 17-inch mark from the nursery doorframe. It is too small for her now, but the number feels saved for a reason."
@@ -157,7 +157,7 @@
     maraPortraitCopy: {
       label: "Faded Portrait Copy",
       description: "A copy of the portrait of a woman who looks like Kimmy.",
-      image: "./assets/inspect-mara-portrait.png",
+      image: "./assets/inspect-mara-portrait.jpg",
       inspectTitle: "Faded Portrait Copy",
       inspectText:
         "The young woman in the portrait has Kimmy's eyes and a crescent locket. Kimmy does not know the name Mara yet, but the satchel keeps the question safe."
@@ -165,7 +165,7 @@
     starChart: {
       label: "Mrs. Wren's Star Chart",
       description: "A folded chart pointing toward Moonwake Observatory.",
-      image: "./assets/case2-observatory-handoff.png",
+      image: "./assets/case2-observatory-handoff.jpg",
       inspectTitle: "Mrs. Wren's Star Chart",
       inspectText:
         "The paper shows the Moonwake Observatory dome and three moon phases circled in old ink. Mrs. Wren would not say who drew it."
@@ -173,7 +173,7 @@
     observatoryToken: {
       label: "Crescent Observatory Token",
       description: "A brass crescent token that fits an old observatory gate.",
-      image: "./assets/case2-observatory-handoff.png",
+      image: "./assets/case2-observatory-handoff.jpg",
       inspectTitle: "Crescent Observatory Token",
       inspectText:
         "The crescent shape matches Kimmy's locket almost too well. One edge is notched like it belongs in a lock."
@@ -181,7 +181,7 @@
     moonDialSketch: {
       label: "Moon Dial Sketch",
       description: "Kimmy's sketch of the observatory's three moon dials.",
-      image: "./assets/inspect-dials.png",
+      image: "./assets/inspect-dials.jpg",
       inspectTitle: "Moon Dial Sketch",
       inspectText:
         "The dials show new moon, half moon, and full moon. Kimmy labels them as a three-step sequence."
@@ -189,7 +189,7 @@
     prismNote: {
       label: "Prism Note",
       description: "A note about how the observatory creates flashing signals.",
-      image: "./assets/inspect-prism.png",
+      image: "./assets/inspect-prism.jpg",
       inspectTitle: "Prism Note",
       inspectText:
         "The prism splits moonlight into bright pulses. With the right chart, the flashes become a message instead of a mystery."
@@ -197,7 +197,7 @@
     archiveLedger: {
       label: "Moonwake Ledger",
       description: "A copied page from the observatory family ledger.",
-      image: "./assets/inspect-archive.png",
+      image: "./assets/inspect-archive.jpg",
       inspectTitle: "Moonwake Ledger",
       inspectText:
         "The ledger connects the Vale, Wren, and Finch names through old family branches. Kimmy underlines Mila Vale twice."
@@ -269,7 +269,7 @@
     mila: {
       name: "Mila Vale",
       role: "Pet Owner",
-      portrait: "./assets/npc-mila.png",
+      portrait: "./assets/npc-mila.jpg",
       line:
         "Please help me, Kimmy. Pickles is gone. I checked the picnic blankets and called her name and I am trying not to cry. I have five dollars if the Mystery Club can find her.",
       hint:
@@ -278,7 +278,7 @@
     poppy: {
       name: "Mrs. Poppy Vale",
       role: "Bakery Owner",
-      portrait: "./assets/npc-poppy.png",
+      portrait: "./assets/npc-poppy.jpg",
       line:
         "I found flour paw prints near the patio chair, dear. A little cream rabbit sniffed the carrot rolls, then hopped toward the park. For a second I almost called you Mara. Silly old habit.",
       hint:
@@ -287,7 +287,7 @@
     basil: {
       name: "Mr. Basil Green",
       role: "Community Gardener",
-      portrait: "./assets/npc-basil.png",
+      portrait: "./assets/npc-basil.jpg",
       line:
         "A rabbit would choose the lavender bench if the picnic felt too noisy. Move slowly, offer a carrot top, then let her hear her little bell.",
       hint:
@@ -296,7 +296,7 @@
     hexibald: {
       name: "Mr. Hexibald",
       role: "Briar Lane Caretaker",
-      portrait: "./assets/npc-hexibald.png",
+      portrait: "./assets/npc-hexibald.jpg",
       line:
         "That house is not for children, not for games, and certainly not for clubs with notebooks. I keep it locked because I promised I would.",
       hint:
@@ -305,7 +305,7 @@
     grandmother: {
       name: "Mrs. Wren",
       role: "Night Visitor",
-      portrait: "./assets/npc-grandmother.png",
+      portrait: "./assets/npc-grandmother.jpg",
       line:
         "I did not mean to frighten anyone. I come here to play the old lullaby and remember a family I loved very much.",
       hint:
@@ -314,7 +314,7 @@
     theo: {
       name: "Theo",
       role: "Moonwake Junior Keeper",
-      portrait: "./assets/theo-avatar.png",
+      portrait: "./assets/theo-avatar.jpg",
       line:
         "The dome flashed three times last night. I checked the logbook, and nobody signed in. That means either someone forgot, or the observatory is answering old stars.",
       hint:
@@ -325,133 +325,133 @@
   const INSPECTIONS = {
     caseBoard: {
       title: "Kimmy's Case Board",
-      image: "./assets/case-board-empty.png",
+      image: "./assets/case-board-empty.jpg",
       text:
         "The tree-fort board is ready for a case, but Kimmy has not pinned any Pickles clues yet."
     },
     familyPhoto: {
       title: "The Unlabeled Photograph",
-      image: "./assets/inspect-family-photo.png",
+      image: "./assets/inspect-family-photo.jpg",
       text:
         "The woman in the old photograph has Kimmy's eyes, Kimmy's thoughtful half-smile, and the same kind of crescent locket. No name, no date, no explanation."
     },
     briarClipping: {
       title: "Briar Lane File",
-      image: "./assets/case2-exterior.png",
+      image: "./assets/case2-exterior.jpg",
       text:
         "Kimmy writes the first Case 02 question: if no one lives in Briar Lane House, who keeps entering after dark, turning on lights, and playing the piano?"
     },
     case1ThankYou: {
       title: "Mila's Thank-You",
-      image: "./assets/case1-thank-you-mila.png",
+      image: "./assets/case1-thank-you-mila.jpg",
       text:
         "Mila hugs Kimmy and Pickles at the tree fort. Pickles' tiny bell rings between them like a new clue for the satchel."
     },
     observatoryHandoff: {
       title: "Mrs. Wren's Observatory Clue",
-      image: "./assets/case2-observatory-handoff.png",
+      image: "./assets/case2-observatory-handoff.jpg",
       text:
         "Mrs. Wren gives Kimmy a folded star chart and a brass crescent token. 'The observatory will make more sense to you than it ever did to me,' she says."
     },
     bakeryClues: {
       title: "Bakery Patio Clues",
-      image: "./assets/inspect-rabbit-clues.png",
+      image: "./assets/inspect-rabbit-clues.jpg",
       text:
         "Carrot crumbs, a mint ribbon, and flour paw prints make a neat little trail away from the bakery bench."
     },
     parkPrints: {
       title: "Fountain Paw Prints",
-      image: "./assets/inspect-fountain-paw-prints.png",
+      image: "./assets/inspect-fountain-paw-prints.jpg",
       text:
         "The prints are tiny and close together. Pickles was not running; she was exploring."
     },
     locket: {
       title: "Kimmy's Crescent Locket",
-      image: "./assets/inspect-kimmy-locket.png",
+      image: "./assets/inspect-kimmy-locket.jpg",
       text:
         "Kimmy's old locket rests beside the picnic envelope. The tiny stamp on the envelope has the same crescent-and-star curve, as if someone wanted her to notice it."
     },
     pickles: {
       title: "A Cozy Hiding Spot",
-      image: "./assets/pickles-rabbit.png",
+      image: "./assets/pickles-rabbit.jpg",
       text:
         "Something soft rustles near the lavender bench. A mint ribbon peeks out from the basket."
     },
     gardenRustle: {
       title: "Lavender Bench",
-      image: "./assets/case1-garden.png",
+      image: "./assets/case1-garden.jpg",
       text:
         "The lavender bench is quiet, shady, and full of little hiding places. Kimmy hears one soft rustle, then nothing. She needs the right rabbit approach before she searches closer."
     },
     hexibaldNotice: {
       title: "Mr. Hexibald's Warning",
-      image: "./assets/inspect-hexibald-warning.png",
+      image: "./assets/inspect-hexibald-warning.jpg",
       text:
         "A stiff card is wired to the gate. There are no clear words left after the weather, but the careful knots look like Mr. Hexibald's work."
     },
     briarWindow: {
       title: "Glowing Upper Window",
-      image: "./assets/case2-exterior.png",
+      image: "./assets/case2-exterior.jpg",
       text:
         "The upper window glows too warmly to be moonlight. Someone inside is using a lamp."
     },
     looseShutter: {
       title: "Loose Shutter",
-      image: "./assets/case2-exterior.png",
+      image: "./assets/case2-exterior.jpg",
       text:
         "A shutter taps the wall in a perfect knock-knock pause whenever the wind slides through the gate."
     },
     pianoMusic: {
       title: "Old Piano",
-      image: "./assets/case2-living-room.png",
+      image: "./assets/case2-living-room.jpg",
       text:
         "The piano keys are dusty except for the middle notes. Someone has played the same gentle tune more than once."
     },
     briarPortrait: {
       title: "Faded Portrait",
-      image: "./assets/inspect-mara-portrait.png",
+      image: "./assets/inspect-mara-portrait.jpg",
       text:
         "The portrait is too faded to prove anything. Still, the young woman has Kimmy's eyes, and a crescent locket rests at her collar."
     },
     heightMarks: {
       title: "Old Girls' Room",
-      image: "./assets/case2-nursery.png",
+      image: "./assets/case2-nursery.jpg",
       text:
         "The room has been kept gently, not cleaned. A rocking chair, a toy shelf, and tiny height marks suggest someone could not bear to let it disappear. One old pencil mark reads 17 inches, but a sliding toy panel covers the clearest view."
     },
     moonMazeToy: {
       title: "Moon-Maze Toy",
-      image: "./assets/mini-moon-maze.png",
+      image: "./assets/mini-moon-maze.jpg",
       text:
         "The toy is heavy for its size, carved with moon rails and tiny brass stars. The blue bead rests at the start of a maze, and the finish sits beside a hidden drawer seam."
     },
     observatoryGate: {
       title: "Moonwake Gate",
-      image: "./assets/exterior.png",
+      image: "./assets/exterior.jpg",
       text:
         "The gate lock has a crescent-shaped hollow. Mrs. Wren's brass token is the right size."
     },
     moonDials: {
       title: "Moon Phase Dials",
-      image: "./assets/inspect-dials.png",
+      image: "./assets/inspect-dials.jpg",
       text:
         "Three brass dials show new moon, half moon, and full moon. Below them, a tiny plate is scratched with old numbers: 5, 17, 3."
     },
     observatoryChart: {
       title: "Star Chart Alignment",
-      image: "./assets/case2-observatory-handoff.png",
+      image: "./assets/case2-observatory-handoff.jpg",
       text:
         "The chart does not show a route through town. It shows how moonlight should travel through the observatory floor rings."
     },
     prismSignal: {
       title: "Prism Signal",
-      image: "./assets/inspect-prism.png",
+      image: "./assets/inspect-prism.jpg",
       text:
         "When Kimmy lines up the chart, the prism turns moonlight into three clean flashes across the dome."
     },
     archiveLedger: {
       title: "Moonwake Family Ledger",
-      image: "./assets/inspect-archive.png",
+      image: "./assets/inspect-archive.jpg",
       text:
         "The ledger is old, careful, and full of family branches. Kimmy sees Vale near Finch, and Mila's name suddenly feels much less random."
     }
@@ -461,7 +461,7 @@
     clubhouse: {
       title: "Tree Fort HQ",
       subtitle: "Finch Street Maple",
-      image: "./assets/treefort-clubhouse.png",
+      image: "./assets/treefort-clubhouse.jpg",
       lead:
         "Kimmy opens the Finch Street Mystery Club from her tree-fort HQ, where books, maps, and old photographs wait for the next knock on the ladder.",
       hotspots: [
@@ -559,7 +559,7 @@
           action: () =>
             openActionMenu({
               title: "Moonwake Observatory File",
-              image: "./assets/exterior.png",
+              image: "./assets/exterior.jpg",
               text:
                 "Kimmy pins Mrs. Wren's star chart, the crescent token, Theo's flashing-light report, and one big question: why did this case need clues from the cases before it?",
               actions: [
@@ -624,7 +624,7 @@
     bakery: {
       title: "Poppy's Bakery",
       subtitle: "Town Picnic Street",
-      image: "./assets/case1-bakery.png",
+      image: "./assets/case1-bakery.jpg",
       unlockFlag: "clientInterview",
       lockedLead:
         "Kimmy needs to officially open the case with Mila before leaving the tree fort.",
@@ -729,7 +729,7 @@
           action: () =>
             openActionMenu({
               title: "Path Toward the Park",
-              image: "./assets/case1-bakery.png",
+              image: "./assets/case1-bakery.jpg",
               text:
                 "The flour marks fade near the sidewalk. A breeze points the carrot smell toward the park.",
               actions: [
@@ -755,7 +755,7 @@
     park: {
       title: "Picnic Park",
       subtitle: "Fountain Path",
-      image: "./assets/case1-park.png",
+      image: "./assets/case1-park.jpg",
       unlockFlag: "bakeryClue",
       lockedLead:
         "The park is not a real lead yet. Kimmy needs the bakery clues first.",
@@ -813,7 +813,7 @@
           action: () =>
             openActionMenu({
               title: "Garden Gate",
-              image: "./assets/case1-park.png",
+              image: "./assets/case1-park.jpg",
               text:
                 "The gate is open just wide enough for a rabbit. The picnic noise fades on the other side.",
               actions: [
@@ -842,7 +842,7 @@
           action: () =>
             openActionMenu({
               title: "Picnic Blankets",
-              image: "./assets/case1-park.png",
+              image: "./assets/case1-park.jpg",
               text:
                 "The picnic blankets are bright and noisy. If Pickles came through here, she probably did not stay.",
               actions: [
@@ -868,7 +868,7 @@
     garden: {
       title: "Community Garden",
       subtitle: "Lavender Beds",
-      image: "./assets/case1-garden.png",
+      image: "./assets/case1-garden.jpg",
       unlockFlag: "parkTrail",
       lockedLead:
         "The garden gate is still just a guess. Kimmy needs the park paw-print trail first.",
@@ -990,7 +990,7 @@
           action: () =>
             openActionMenu({
               title: "Fresh Carrot Tops",
-              image: "./assets/case1-garden.png",
+              image: "./assets/case1-garden.jpg",
               text:
                 "The carrot patch is neat except for one wiggly row. These tops smell exactly like the bakery crumbs.",
               actions: [
@@ -1025,7 +1025,7 @@
     briarExterior: {
       title: "Briar Lane House",
       subtitle: "Front Gate",
-      image: "./assets/case2-exterior.png",
+      image: "./assets/case2-exterior.jpg",
       showWhen: () => getFlag("case2Unlocked"),
       unlockFlag: "case2Unlocked",
       lockedLead:
@@ -1174,7 +1174,7 @@
           action: () =>
             openActionMenu({
               title: "Front Door",
-              image: "./assets/case2-exterior.png",
+              image: "./assets/case2-exterior.jpg",
               text:
                 "Kimmy can now explain three things: the warning is from a caretaker, the glow is lamplight, and the knocking is a loose shutter.",
               actions: [
@@ -1202,7 +1202,7 @@
     briarFoyer: {
       title: "Briar Lane Foyer",
       subtitle: "Inside the Empty House",
-      image: "./assets/case2-foyer.png",
+      image: "./assets/case2-foyer.jpg",
       showWhen: () => getFlag("case2Unlocked"),
       unlockFlag: "briarInside",
       lockedLead:
@@ -1218,7 +1218,7 @@
           action: () =>
             openActionMenu({
               title: "Hallway Portraits",
-              image: "./assets/case2-foyer.png",
+              image: "./assets/case2-foyer.jpg",
               text:
                 "Most portraits are too faded to identify. One frame has been recently dusted.",
               actions: [
@@ -1245,7 +1245,7 @@
           action: () =>
             openActionMenu({
               title: "Loose Floorboard",
-              image: "./assets/case2-foyer.png",
+              image: "./assets/case2-foyer.jpg",
               text:
                 "A board by the rug lifts slightly. Under it is a clean rectangle where something used to rest.",
               actions: [
@@ -1273,7 +1273,7 @@
           action: () =>
             openActionMenu({
               title: "Music Through the Archway",
-              image: "./assets/case2-foyer.png",
+              image: "./assets/case2-foyer.jpg",
               text:
                 "The piano notes are soft and careful, like someone playing from memory.",
               actions: [
@@ -1304,7 +1304,7 @@
           action: () =>
             openActionMenu({
               title: "Stairway to the Old Room",
-              image: "./assets/case2-foyer.png",
+              image: "./assets/case2-foyer.jpg",
               text:
                 "Mrs. Wren's small key fits the upstairs door. Mr. Hexibald watches, worried but quiet.",
               actions: [
@@ -1328,7 +1328,7 @@
     briarLiving: {
       title: "Piano Room",
       subtitle: "Briar Lane Living Room",
-      image: "./assets/case2-living-room.png",
+      image: "./assets/case2-living-room.jpg",
       showWhen: () => getFlag("case2Unlocked"),
       unlockFlag: "briarInside",
       lead:
@@ -1373,7 +1373,7 @@
           action: () =>
             openActionMenu({
               title: "Fresh Footprints",
-              image: "./assets/case2-living-room.png",
+              image: "./assets/case2-living-room.jpg",
               text:
                 "The footprints are too small for Mr. Hexibald's boots and too steady for kids running on a dare.",
               actions: [
@@ -1404,7 +1404,7 @@
           action: () =>
             openActionMenu({
               title: "Folded Shawl",
-              image: "./assets/case2-living-room.png",
+              image: "./assets/case2-living-room.jpg",
               text:
                 "A soft shawl rests on the couch. It smells faintly of lavender soap and piano dust.",
               actions: [
@@ -1474,7 +1474,7 @@
     briarNursery: {
       title: "Old Girls' Room",
       subtitle: "Upstairs at Briar Lane",
-      image: "./assets/case2-nursery.png",
+      image: "./assets/case2-nursery.jpg",
       showWhen: () => getFlag("case2Unlocked"),
       unlockFlag: "grandmotherMet",
       lockedLead:
@@ -1490,7 +1490,7 @@
           action: () =>
             openActionMenu({
               title: "Moon Mobile",
-              image: "./assets/case2-nursery.png",
+              image: "./assets/case2-nursery.jpg",
               text:
                 "The mobile turns above the little bed, chiming the first notes of the piano lullaby.",
               actions: [
@@ -1594,7 +1594,7 @@
           action: () =>
             openActionMenu({
               title: "Keepsake Box",
-              image: "./assets/case2-nursery.png",
+              image: "./assets/case2-nursery.jpg",
               text:
                 "The little box opens with a quiet click. Inside is an old portrait wrapped in lace.",
               actions: [
@@ -1627,7 +1627,7 @@
     observatoryExterior: {
       title: "Moonwake Observatory",
       subtitle: "Front Gate",
-      image: "./assets/exterior.png",
+      image: "./assets/exterior.jpg",
       showWhen: () => getFlag("case3Unlocked"),
       unlockFlag: "case3Unlocked",
       lockedLead:
@@ -1739,7 +1739,7 @@
     observatoryWorkshop: {
       title: "Moonwake Workshop",
       subtitle: "Signal Desk",
-      image: "./assets/workshop.png",
+      image: "./assets/workshop.jpg",
       showWhen: () => getFlag("case3Unlocked"),
       unlockFlag: "observatoryGate",
       lockedLead:
@@ -1786,7 +1786,7 @@
           action: () =>
             openActionMenu({
               title: "Signal Cord",
-              image: "./assets/workshop.png",
+              image: "./assets/workshop.jpg",
               text:
                 "The cord runs into the dome. Pulling it hard might move old machinery, but Kimmy needs a gentler test first.",
               actions: [
@@ -1852,7 +1852,7 @@
           action: () =>
             openActionMenu({
               title: "Numbered Archive Drawer",
-              image: "./assets/workshop.png",
+              image: "./assets/workshop.jpg",
               text:
                 "The drawer lock has three tiny windows. A plate underneath reads: club fee, first mark, moon count.",
               actions: [
@@ -1884,7 +1884,7 @@
     observatoryDome: {
       title: "Moonwake Dome",
       subtitle: "Telescope Floor",
-      image: "./assets/dome.png",
+      image: "./assets/dome.jpg",
       showWhen: () => getFlag("case3Unlocked"),
       unlockFlag: "observatoryGate",
       lockedLead:
@@ -1900,7 +1900,7 @@
           action: () =>
             openActionMenu({
               title: "Moonwake Telescope",
-              image: "./assets/dome.png",
+              image: "./assets/dome.jpg",
               text:
                 "The telescope can swing toward the moon, but the floor marks show it must be aligned with the chart first.",
               actions: [
@@ -1976,7 +1976,7 @@
     observatoryArchive: {
       title: "Moonwake Archive",
       subtitle: "Family Ledger",
-      image: "./assets/archive.png",
+      image: "./assets/archive.jpg",
       showWhen: () => getFlag("case3Unlocked"),
       unlockFlag: "archiveUnlocked",
       lockedLead:
@@ -2027,7 +2027,7 @@
           action: () =>
             openActionMenu({
               title: "Old Observatory Cases",
-              image: "./assets/archive.png",
+              image: "./assets/archive.jpg",
               text:
                 "The display cases hold badges from old Moonwake volunteers. One tarnished label reads Vale Family Night Watch.",
               actions: [
@@ -2071,7 +2071,7 @@
   const PUZZLES = {
     coaxPickles: {
       title: "Coax Pickles Out",
-      image: "./assets/pickles-rabbit.png",
+      image: "./assets/pickles-rabbit.jpg",
       intro:
         "Mr. Basil's clue is the order: make Pickles feel safe, offer a snack, then use the familiar bell. Choose three moves in order.",
       choices: ["Call loudly", "Walk quietly", "Reach into basket", "Offer carrot", "Ring ribbon bell"],
@@ -2725,7 +2725,7 @@
       const solved = getFlag("case3Solved");
       const detail = {
         title: solved ? "Case Board: Moonwake Archive" : "Case Board: Moonwake Observatory",
-        image: solved ? "./assets/inspect-archive.png" : "./assets/case2-observatory-handoff.png",
+        image: solved ? "./assets/inspect-archive.jpg" : "./assets/case2-observatory-handoff.jpg",
         text: solved
           ? "The board has shifted to the family ledger Kimmy found at Moonwake. This case is solved, but the long mystery just got louder."
           : "Mrs. Wren's star chart and crescent token are pinned as the current case file. The question is why Moonwake flashes after midnight.",
@@ -2764,7 +2764,7 @@
     if (getFlag("case2Unlocked")) {
       const detail = {
         title: "Case Board: Briar Lane House",
-        image: "./assets/case2-exterior.png",
+        image: "./assets/case2-exterior.jpg",
         text:
           "The board now shows Briar Lane House, not Pickles. Kimmy's current question is who keeps entering the empty house after dark.",
         inspectText:
@@ -2795,7 +2795,7 @@
     if (getFlag("caseSolved")) {
       const detail = {
         title: "Case Board: Pickles Found",
-        image: "./assets/case1-thank-you-mila.png",
+        image: "./assets/case1-thank-you-mila.jpg",
         text:
           "The Pickles board is complete. Kimmy solved the trail in order and earned the club's first five-dollar case fee.",
         inspectText:
@@ -2821,7 +2821,7 @@
       const milaPinned = hasClue("mila");
       const detail = {
         title: "Case Board: Mila and Pickles",
-        image: "./assets/npc-mila.png",
+        image: "./assets/npc-mila.jpg",
         text:
           "Mila's worried client card is pinned to the board. Kimmy knows Pickles is cream-colored, wears mint green, and loves carrot snacks.",
         inspectText:
@@ -3165,7 +3165,7 @@
 
     const hero = document.createElement("div");
     hero.className = "intro-hero";
-    hero.style.backgroundImage = 'url("./assets/intro-kimmy-family.png")';
+    hero.style.backgroundImage = 'url("./assets/intro-kimmy-triptych.jpg")';
 
     const story = document.createElement("div");
     story.className = "intro-copy";
@@ -3182,12 +3182,12 @@
     introGallery.className = "intro-gallery";
     introGallery.append(
       createIntroPanel(
-        "./assets/intro-kimmy-family.png",
+        "./assets/intro-kimmy-family.jpg",
         "The Finch Home",
         "Kimmy's parents give her the one thing every detective needs first: a place where questions are allowed."
       ),
       createIntroPanel(
-        "./assets/intro-kimmy-mila-bff.png",
+        "./assets/intro-kimmy-mila-bff.jpg",
         "Mila Vale",
         "Mila is Kimmy's best friend, club partner, and first person to say a mystery out loud when everyone else is guessing."
       )
@@ -3196,11 +3196,11 @@
     const cast = document.createElement("div");
     cast.className = "cast-grid";
     cast.append(
-      createCastCard("./assets/kimmy-avatar.png", "Kimmy Finch", "Founder, clue-spotter, keeper of the crescent locket."),
-      createCastCard("./assets/intro-kimmy-family.png", "The Finches", "Kimmy's adoptive parents love her fiercely and encourage her questions, even when they cannot answer all of them."),
-      createCastCard("./assets/intro-kimmy-mila-bff.png", "Mila Vale", "Kimmy's best friend, first club partner, and the person most likely to climb the tree-fort ladder with an urgent note."),
-      createCastCard("./assets/treefort-clubhouse.png", "Mystery Club HQ", "A tree-fort headquarters for maps, books, case files, and neighbor mysteries."),
-      createCastCard("./assets/inspect-family-photo.png", "The Private File", "Kimmy keeps the crescent locket and unlabeled photo separate from club business.")
+      createCastCard("./assets/kimmy-avatar.jpg", "Kimmy Finch", "Founder, clue-spotter, keeper of the crescent locket."),
+      createCastCard("./assets/intro-kimmy-family.jpg", "The Finches", "Kimmy's adoptive parents love her fiercely and encourage her questions, even when they cannot answer all of them."),
+      createCastCard("./assets/intro-kimmy-mila-bff.jpg", "Mila Vale", "Kimmy's best friend, first club partner, and the person most likely to climb the tree-fort ladder with an urgent note."),
+      createCastCard("./assets/treefort-clubhouse.jpg", "Mystery Club HQ", "A tree-fort headquarters for maps, books, case files, and neighbor mysteries."),
+      createCastCard("./assets/inspect-family-photo.jpg", "The Private File", "Kimmy keeps the crescent locket and unlabeled photo separate from club business.")
     );
 
     body.append(hero, story, introGallery, cast);
@@ -3383,7 +3383,7 @@
 
     const image = document.createElement("img");
     image.className = "inspection-image";
-    image.src = "./assets/case2-observatory-handoff.png";
+    image.src = "./assets/case2-observatory-handoff.jpg";
     image.alt = "Mrs. Wren gives Kimmy a star chart and crescent token";
 
     const summary = document.createElement("div");
@@ -3422,7 +3422,7 @@
 
     const image = document.createElement("img");
     image.className = "inspection-image";
-    image.src = "./assets/inspect-archive.png";
+    image.src = "./assets/inspect-archive.jpg";
     image.alt = "Moonwake archive ledger with family branches";
 
     const summary = document.createElement("div");
@@ -4061,7 +4061,7 @@
 
     const image = document.createElement("img");
     image.className = "inspection-image";
-    image.src = "./assets/case1-thank-you-mila.png";
+    image.src = "./assets/case1-thank-you-mila.jpg";
     image.alt = "Kimmy and Mila hug after Pickles is found";
 
     const summary = document.createElement("div");
