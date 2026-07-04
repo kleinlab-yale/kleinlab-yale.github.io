@@ -157,14 +157,15 @@ h1 {
 
 .game-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 22rem;
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
   padding: 1rem;
   align-items: start;
 }
 
 .stage-panel {
   min-width: 0;
+  width: 100%;
 }
 
 .scene-frame {
@@ -177,7 +178,7 @@ h1 {
 
 .scene-image {
   position: relative;
-  min-height: 32rem;
+  min-height: clamp(30rem, calc(100vh - 13rem), 54rem);
   aspect-ratio: 16 / 9;
   background-size: cover;
   background-position: center;
@@ -546,6 +547,10 @@ h1 {
   gap: 0.45rem;
 }
 
+.modal-list {
+  margin-top: 0.75rem;
+}
+
 .inventory-list li,
 .clue-list li {
   border: 1px solid rgba(39, 52, 47, 0.1);
@@ -591,6 +596,30 @@ h1 {
 
 .clue-list li {
   padding: 0.52rem 0.6rem;
+}
+
+.notebook-summary {
+  display: grid;
+  gap: 0.42rem;
+  padding: 0.82rem;
+  border: 1px solid rgba(56, 169, 154, 0.22);
+  border-radius: var(--radius);
+  background: rgba(56, 169, 154, 0.08);
+}
+
+.notebook-summary p {
+  margin: 0;
+}
+
+.notebook-summary .panel-label + p {
+  color: var(--ink);
+  font-family: var(--font-story);
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+
+.modal-section-label {
+  margin: 1rem 0 0;
 }
 
 .empty-note {
@@ -1171,11 +1200,6 @@ h1 {
   .game-layout {
     grid-template-columns: 1fr;
   }
-
-  .case-panel {
-    position: static;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 760px) {
@@ -1226,10 +1250,6 @@ h1 {
   .hotspot {
     width: 2.75rem;
     height: 2.75rem;
-  }
-
-  .case-panel {
-    grid-template-columns: 1fr;
   }
 
   .choice-grid,

@@ -13,11 +13,11 @@
       "text": "Kimmy Finch knows she was adopted, and her parents love her completely. Still, the first part of her story is a puzzle with only one clue: a tiny crescent locket. From her tree fort mystery club, Kimmy takes small cases around town. Today's case is bright, urgent, and very fluffy: find Pickles before the picnic begins."
     },
     {
-      "id": "lila",
-      "file": "assets/audio/lila.wav",
+      "id": "mila",
+      "file": "assets/audio/mila.wav",
       "localVoice": "Flo (English (US))",
       "rate": 198,
-      "voice": "Lila, bright young neighbor",
+      "voice": "Mila, bright young neighbor",
       "tone": "worried but hopeful",
       "text": "Pickles slipped out while we were setting up for the picnic. She has a mint ribbon with a tiny bell, and she will do anything for carrot snacks. Start where snacks smell strongest."
     },

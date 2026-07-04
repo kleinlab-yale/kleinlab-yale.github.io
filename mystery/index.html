@@ -9,7 +9,7 @@
       content="A playable point-and-click mystery series demo about Kimmy Finch, her neighborhood mystery club, a missing pet, and a not-so-haunted house."
     />
     <meta http-equiv="Cache-Control" content="no-cache" />
-    <link rel="stylesheet" href="./styles.css?v=20260704-board1" />
+    <link rel="stylesheet" href="./styles.css?v=20260704-shell1" />
   </head>
   <body>
     <div class="app-shell">
@@ -26,6 +26,9 @@
               <div id="progressFill" class="progress-fill"></div>
             </div>
           </div>
+          <button id="satchelButton" class="ghost-button" type="button">Satchel</button>
+          <button id="notebookButton" class="ghost-button" type="button">Notebook</button>
+          <button id="hintButton" class="ghost-button" type="button">Hint</button>
           <button id="voiceButton" class="ghost-button" type="button" hidden>Voice Casting</button>
           <button id="storyButton" class="ghost-button" type="button">Story</button>
           <button id="resetButton" class="ghost-button" type="button">Reset</button>
@@ -47,51 +50,12 @@
 
           <nav id="mapNav" class="map-nav" aria-label="Move to another room"></nav>
         </section>
-
-        <aside class="case-panel" aria-label="Detective notebook and inventory">
-          <section class="detective-panel">
-            <div class="detective-profile">
-              <img src="./assets/kimmy-avatar.png" alt="Kimmy Finch portrait" />
-              <div>
-                <p class="panel-label">Detective</p>
-                <h2>Kimmy Finch</h2>
-                <p>The clever founder of the Finch Street Mystery Club.</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="arc-panel">
-            <p class="panel-label">Long Mystery</p>
-            <p id="arcText"></p>
-          </section>
-
-          <section class="story-panel">
-            <p class="panel-label">Current Lead</p>
-            <p id="leadText"></p>
-          </section>
-
-          <section class="inventory-panel">
-            <div class="panel-heading">
-              <p class="panel-label">Satchel</p>
-              <span id="inventoryCount"></span>
-            </div>
-            <ul id="inventoryList" class="inventory-list"></ul>
-          </section>
-
-          <section class="notebook-panel">
-            <div class="panel-heading">
-              <p class="panel-label">Notebook</p>
-              <button id="hintButton" class="small-button" type="button">Hint</button>
-            </div>
-            <ul id="clueList" class="clue-list"></ul>
-          </section>
-        </aside>
       </main>
     </div>
 
     <div id="modalRoot" class="modal-root" aria-live="polite"></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script src="./game.js?v=20260704-board1"></script>
+    <script src="./game.js?v=20260704-shell1"></script>
   </body>
 </html>

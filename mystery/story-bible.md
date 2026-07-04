@@ -28,7 +28,7 @@ Recurring clue patterns:
 
 ## Case 01: The Picnic Pet
 
-Surface mystery: Lila's rabbit Pickles is missing before the town picnic.
+Surface mystery: Mila's rabbit Pickles is missing before the town picnic.
 
 Resolution: Pickles followed carrot smells from the bakery, crossed the park, and hid safely in the lavender basket at the community garden.
 
@@ -37,8 +37,8 @@ Long-arc clues:
 - Mrs. Poppy almost calls Kimmy "Mara."
 - The picnic envelope has a crescent-and-star mark like Kimmy's locket.
 - An old photograph in the tree-fort HQ shows a woman who looks like Kimmy.
-- Lila jokes during the thank-you hug that Mrs. Poppy says she and Kimmy have the same stubborn detective smile. Mrs. Poppy goes quiet, but this should feel like a small odd moment rather than proof. Lila should look distinct from Kimmy, not like a twin.
-- Lila gives Kimmy five dollars and Pickles' tiny bell. Both become useful satchel objects later.
+- Mila jokes during the thank-you hug that Mrs. Poppy says she and Kimmy have the same stubborn detective smile. Mrs. Poppy goes quiet, but this should feel like a small odd moment rather than proof. Mila should look distinct from Kimmy, not like a twin.
+- Mila gives Kimmy five dollars and Pickles' tiny bell. Both become useful satchel objects later.
 
 ## Case 02: The Briar Lane House
 
@@ -80,7 +80,7 @@ Puzzle continuity:
 - Case 02 gives Kimmy the 17-inch Briar Lane height-mark sketch through a moon-maze toy mini-game, plus Mrs. Wren's observatory handoff.
 - Case 03 uses those earlier clues to open an archive drawer with the code 5 - 17 - 3: five dollars, the old height mark, and three moon phases.
 
-Long-arc reveal: the archive ledger connects Vale, Wren, and Finch family branches. It does not fully explain Kimmy's identity, but it strongly suggests Lila Vale may be Kimmy's cousin. This turns Lila's earlier family-name and "detective smile" moments into real clues without making the whole family mystery obvious yet.
+Long-arc reveal: the archive ledger connects Vale, Wren, and Finch family branches. It does not fully explain Kimmy's identity, but it strongly suggests Mila Vale may be Kimmy's cousin. This turns Mila's earlier family-name and "detective smile" moments into real clues without making the whole family mystery obvious yet.
 
 Case 03 should feel more puzzle-heavy than Case 01 and Case 02 because the player has now learned how Kimmy's mystery club works. It should still stay cozy, wondrous, and emotionally safe.
 

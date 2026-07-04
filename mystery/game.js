@@ -1,6 +1,8 @@
 (function () {
-  const APP_BUILD_ID = "20260704-board1";
+  const APP_BUILD_ID = "20260704-shell1";
   const STORAGE_KEY = "kimmy-finch-mysteries-save";
+  const RESET_MARKER_KEY = "kimmy-finch-mysteries-reset-build";
+  const FORCE_RESET_ON_BUILD = "20260704-shell1";
   const LEGACY_STORAGE_KEYS = ["kimmy-finch-mysteries-v6"];
   const TOAST_DURATION_MS = 7800;
 
@@ -49,14 +51,14 @@
     mission:
       "What Kimmy does have is a crescent locket, a notebook full of careful observations, and a brain that notices what other people walk past. Her parents call it curiosity. Kimmy calls it evidence.",
     hook:
-      "She built the Finch Street Mystery Club in a tree fort with maps, books, a pulley basket for urgent notes, and one best friend who believes every case deserves a proper file: Lila Vale.",
+      "She built the Finch Street Mystery Club in a tree fort with maps, books, a pulley basket for urgent notes, and one best friend who believes every case deserves a proper file: Mila Vale.",
     seriesArc:
       "Neighbors bring Kimmy small mysteries because she is kind, sharp, and stubborn in exactly the right way. Most cases solve someone else's problem. Every so often, one also leaves a clue about Kimmy's own."
   };
 
   const AUDIO_CLIPS = {
     intro: "./assets/audio/intro.wav",
-    lila: "./assets/audio/lila.wav",
+    mila: "./assets/audio/mila.wav",
     poppy: "./assets/audio/poppy.wav",
     basil: "./assets/audio/basil.wav",
     caseBoard: "",
@@ -106,15 +108,15 @@
     },
     picklesBell: {
       label: "Pickles' Bell",
-      description: "Lila's thank-you gift from Pickles' mint ribbon.",
-      image: "./assets/case1-thank-you.png",
+      description: "Mila's thank-you gift from Pickles' mint ribbon.",
+      image: "./assets/case1-thank-you-mila.png",
       inspectTitle: "Pickles' Bell",
       inspectText:
-        "Lila tied the tiny bell to a spare mint ribbon and gave it to Kimmy. It rings softly enough to test delicate mechanisms without startling anyone."
+        "Mila tied the tiny bell to a spare mint ribbon and gave it to Kimmy. It rings softly enough to test delicate mechanisms without startling anyone."
     },
     fiveDollars: {
       label: "$5 Case Fee",
-      description: "Lila's crinkled thank-you payment for finding Pickles.",
+      description: "Mila's crinkled thank-you payment for finding Pickles.",
       image: "./assets/inspect-rabbit-clues.png",
       inspectTitle: "Five-Dollar Case Fee",
       inspectText:
@@ -126,7 +128,7 @@
       image: "./assets/case2-exterior.png",
       inspectTitle: "Briar Lane File",
       inspectText:
-        "Lila's warning, Mr. Hexibald's rule, glowing windows, and strange music all point to the same place: the empty old house on Briar Lane."
+        "Mila's warning, Mr. Hexibald's rule, glowing windows, and strange music all point to the same place: the empty old house on Briar Lane."
     },
     nurseryKey: {
       label: "Small Brass Key",
@@ -198,13 +200,13 @@
       image: "./assets/inspect-archive.png",
       inspectTitle: "Moonwake Ledger",
       inspectText:
-        "The ledger connects the Vale, Wren, and Finch names through old family branches. Kimmy underlines Lila Vale twice."
+        "The ledger connects the Vale, Wren, and Finch names through old family branches. Kimmy underlines Mila Vale twice."
     }
   };
 
   const CLUES = {
-    lila:
-      "Lila is frantic: Pickles wears a mint ribbon, loves carrots, and disappeared before the picnic. She can pay five dollars if Kimmy finds her.",
+    mila:
+      "Mila is frantic: Pickles wears a mint ribbon, loves carrots, and disappeared before the picnic. She can pay five dollars if Kimmy finds her.",
     bakery:
       "Bakery clue: carrot crumbs, flour paw prints, and a mint ribbon point away from the patio.",
     poppy:
@@ -213,10 +215,10 @@
       "Park clue: tiny paw prints curve around the fountain and continue through the garden gate.",
     basil:
       "Mr. Basil says nervous rabbits hide near lavender and come out for quiet voices, carrot tops, and familiar bells.",
-    lilaResemblance:
-      "Long mystery clue: in the thank-you hug, Lila jokes that Mrs. Poppy says they have the same stubborn detective smile. Mrs. Poppy hears it and goes very quiet.",
+    milaResemblance:
+      "Long mystery clue: in the thank-you hug, Mila jokes that Mrs. Poppy says they have the same stubborn detective smile. Mrs. Poppy hears it and goes very quiet.",
     briarLane:
-      "Case 02 lead: Lila feared Pickles had gone near the old Briar Lane house, where Mr. Hexibald warns kids away and someone may be sneaking in after dark.",
+      "Case 02 lead: Mila feared Pickles had gone near the old Briar Lane house, where Mr. Hexibald warns kids away and someone may be sneaking in after dark.",
     hexibaldWarning:
       "Mr. Hexibald is the caretaker. He keeps kids away because the house belonged to a family who left suddenly, and he promised to protect what remains.",
     briarWindow:
@@ -248,11 +250,11 @@
     prismSignal:
       "Case 03 answer: the mysterious flashes are moonlight bouncing through a prism signal system, not magic.",
     archiveCode:
-      "Moonwake code clue: the archive lock uses numbers from earlier cases: Lila's five dollars, the old height mark, and the three moon phases.",
+      "Moonwake code clue: the archive lock uses numbers from earlier cases: Mila's five dollars, the old height mark, and the three moon phases.",
     case3Solved:
       "Case solved: Kimmy opens the Moonwake archive and finds a ledger linking Vale, Wren, and Finch family branches.",
-    lilaCousin:
-      "Long mystery clue: the Moonwake ledger suggests Lila Vale is not only Kimmy's best friend. She may be Kimmy's cousin.",
+    milaCousin:
+      "Long mystery clue: the Moonwake ledger suggests Mila Vale is not only Kimmy's best friend. She may be Kimmy's cousin.",
     nameEcho:
       "Long mystery clue: Mrs. Poppy nearly called Kimmy 'Mara,' then quickly pretended she meant 'my dear.'",
     photo:
@@ -264,10 +266,10 @@
   };
 
   const NPCS = {
-    lila: {
-      name: "Lila Vale",
+    mila: {
+      name: "Mila Vale",
       role: "Pet Owner",
-      portrait: "./assets/npc-lila.png",
+      portrait: "./assets/npc-mila.png",
       line:
         "Please help me, Kimmy. Pickles is gone. I checked the picnic blankets and called her name and I am trying not to cry. I have five dollars if the Mystery Club can find her.",
       hint:
@@ -340,10 +342,10 @@
         "Kimmy writes the first Case 02 question: if no one lives in Briar Lane House, who keeps entering after dark, turning on lights, and playing the piano?"
     },
     case1ThankYou: {
-      title: "Lila's Thank-You",
-      image: "./assets/case1-thank-you.png",
+      title: "Mila's Thank-You",
+      image: "./assets/case1-thank-you-mila.png",
       text:
-        "Lila hugs Kimmy and Pickles at the tree fort. Pickles' tiny bell rings between them like a new clue for the satchel."
+        "Mila hugs Kimmy and Pickles at the tree fort. Pickles' tiny bell rings between them like a new clue for the satchel."
     },
     observatoryHandoff: {
       title: "Mrs. Wren's Observatory Clue",
@@ -451,7 +453,7 @@
       title: "Moonwake Family Ledger",
       image: "./assets/inspect-archive.png",
       text:
-        "The ledger is old, careful, and full of family branches. Kimmy sees Vale near Finch, and Lila's name suddenly feels much less random."
+        "The ledger is old, careful, and full of family branches. Kimmy sees Vale near Finch, and Mila's name suddenly feels much less random."
     }
   };
 
@@ -464,11 +466,11 @@
         "Kimmy opens the Finch Street Mystery Club from her tree-fort HQ, where books, maps, and old photographs wait for the next knock on the ladder.",
       hotspots: [
         {
-          id: "club-lila",
-          label: "Talk to Lila",
+          id: "club-mila",
+          label: "Talk to Mila",
           x: 22,
           y: 58,
-          action: openLilaHotspot
+          action: openMilaHotspot
         },
         {
           id: "club-board",
@@ -525,11 +527,11 @@
               title: "Briar Lane Case File",
               image: INSPECTIONS.briarClipping.image,
               text:
-                "Kimmy starts a new file after Lila mentions the house everyone avoids: someone entering after dark, lights in the windows, piano music, and Mr. Hexibald's warning at the gate.",
+                "Kimmy starts a new file after Mila mentions the house everyone avoids: someone entering after dark, lights in the windows, piano music, and Mr. Hexibald's warning at the gate.",
               actions: [
                 {
                   label: "Review Case 02",
-                  description: "Pin Lila's warning and the first question.",
+                  description: "Pin Mila's warning and the first question.",
                   primary: true,
                   onSelect: () =>
                     openInspection("briarClipping", {
@@ -543,7 +545,7 @@
                   label: "Check the fee",
                   description: "Remember the first paid case reward.",
                   onSelect: () =>
-                    speak("Kimmy has five dollars from Lila's case. She saves it in the club jar for future investigating.")
+                    speak("Kimmy has five dollars from Mila's case. She saves it in the club jar for future investigating.")
                 }
               ]
             })
@@ -575,7 +577,7 @@
                   label: "Check satchel keys",
                   description: "Remember which earlier items may matter.",
                   onSelect: () =>
-                    speak("Kimmy checks her satchel: Pickles' bell from Lila, the five-dollar fee, Mrs. Wren's chart, and the crescent token all feel useful.")
+                    speak("Kimmy checks her satchel: Pickles' bell from Mila, the five-dollar fee, Mrs. Wren's chart, and the crescent token all feel useful.")
                 }
               ]
             })
@@ -625,7 +627,7 @@
       image: "./assets/case1-bakery.png",
       unlockFlag: "clientInterview",
       lockedLead:
-        "Kimmy needs to officially open the case with Lila before leaving the tree fort.",
+        "Kimmy needs to officially open the case with Mila before leaving the tree fort.",
       lead:
         "The bakery patio smells like warm rolls and carrots. A perfect place for a hungry rabbit to visit.",
       hotspots: [
@@ -1027,7 +1029,7 @@
       showWhen: () => getFlag("case2Unlocked"),
       unlockFlag: "case2Unlocked",
       lockedLead:
-        "Briar Lane is not part of Kimmy's case file yet. Finish helping Lila first.",
+        "Briar Lane is not part of Kimmy's case file yet. Finish helping Mila first.",
       lead:
         "Briar Lane House stands empty behind roses and ironwork. Kimmy's question is simple: who keeps entering it after dark?",
       hotspots: [
@@ -1656,11 +1658,11 @@
                   }
                 },
                 {
-                  label: "Ask about Lila",
+                  label: "Ask about Mila",
                   description: "Follow the Vale family thread lightly.",
                   onSelect: () => {
-                    addClue("lilaResemblance");
-                    speak("Theo says Lila Vale's family used to help at Moonwake too. Kimmy writes that down beside Mrs. Poppy's quiet reaction.");
+                    addClue("milaResemblance");
+                    speak("Theo says Mila Vale's family used to help at Moonwake too. Kimmy writes that down beside Mrs. Poppy's quiet reaction.");
                   }
                 }
               ]
@@ -1792,7 +1794,7 @@
                   label: "Tie Pickles' bell",
                   description: "Use a Case 01 satchel item for a quiet test.",
                   requires: () => hasItem("picklesBell"),
-                  lockedMessage: "Kimmy needs Pickles' tiny bell from Lila's thank-you.",
+                  lockedMessage: "Kimmy needs Pickles' tiny bell from Mila's thank-you.",
                   primary: true,
                   onSelect: () => {
                     setFlag("bellTested");
@@ -1859,7 +1861,7 @@
                   description: "Use Case 01 money, Case 02 height mark, and Case 03 moons.",
                   requires: () => hasItem("fiveDollars") && hasItem("heightMarkSketch") && getFlag("moonDialClue"),
                   lockedMessage:
-                    "Kimmy needs Lila's five-dollar fee, the Briar Lane height mark, and the moon dial sketch.",
+                    "Kimmy needs Mila's five-dollar fee, the Briar Lane height mark, and the moon dial sketch.",
                   primary: true,
                   onSelect: () => {
                     setFlag("archiveUnlocked");
@@ -2004,7 +2006,7 @@
                     setFlag("case3Solved");
                     addItem("archiveLedger");
                     addClue("case3Solved");
-                    addClue("lilaCousin");
+                    addClue("milaCousin");
                     openCase3Closed();
                   }
                 },
@@ -2012,7 +2014,7 @@
                   label: "Read first line",
                   description: "Do not jump to the whole family tree yet.",
                   onSelect: () =>
-                    speak("Kimmy sees one familiar surname, then another. The answer is not simple, but Lila may be part of it.")
+                    speak("Kimmy sees one familiar surname, then another. The answer is not simple, but Mila may be part of it.")
                 }
               ]
             })
@@ -2030,12 +2032,12 @@
                 "The display cases hold badges from old Moonwake volunteers. One tarnished label reads Vale Family Night Watch.",
               actions: [
                 {
-                  label: "Look for Lila's family",
+                  label: "Look for Mila's family",
                   description: "Connect the Vale name to Moonwake.",
                   primary: true,
                   onSelect: () => {
-                    addClue("lilaResemblance");
-                    speak("Kimmy copies the Vale label. Lila's family name might not be just another name from town.");
+                    addClue("milaResemblance");
+                    speak("Kimmy copies the Vale label. Mila's family name might not be just another name from town.");
                   }
                 },
                 {
@@ -2078,7 +2080,7 @@
       solvedClue: "solved",
       reward: "pickles",
       success:
-        "Pickles hops out, safe and happy. Lila is going to be so relieved.",
+        "Pickles hops out, safe and happy. Mila is going to be so relieved.",
       already:
         "Pickles is already safe in Kimmy's arms."
     }
@@ -2120,14 +2122,11 @@
     locationSubtitle: document.getElementById("locationSubtitle"),
     hotspotLayer: document.getElementById("hotspotLayer"),
     mapNav: document.getElementById("mapNav"),
-    leadText: document.getElementById("leadText"),
-    arcText: document.getElementById("arcText"),
-    inventoryList: document.getElementById("inventoryList"),
-    inventoryCount: document.getElementById("inventoryCount"),
-    clueList: document.getElementById("clueList"),
     caseTitle: document.getElementById("caseTitle"),
     xpBadge: document.getElementById("xpBadge"),
     objectiveChip: document.getElementById("objectiveChip"),
+    satchelButton: document.getElementById("satchelButton"),
+    notebookButton: document.getElementById("notebookButton"),
     hintButton: document.getElementById("hintButton"),
     resetButton: document.getElementById("resetButton"),
     storyButton: document.getElementById("storyButton"),
@@ -2159,6 +2158,12 @@
   function loadState() {
     const fallback = defaultState();
     try {
+      if (localStorage.getItem(RESET_MARKER_KEY) !== FORCE_RESET_ON_BUILD) {
+        localStorage.removeItem(STORAGE_KEY);
+        LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+        localStorage.setItem(RESET_MARKER_KEY, FORCE_RESET_ON_BUILD);
+        return fallback;
+      }
       const saved = readSavedState(STORAGE_KEY) || LEGACY_STORAGE_KEYS.map(readSavedState).find(Boolean);
       if (!saved || !saved.flags) {
         return fallback;
@@ -2428,9 +2433,9 @@
   function getGuidance() {
     if (!getFlag("clientInterview")) {
       return {
-        text: "Talk to Lila at the tree fort and learn what Pickles likes.",
+        text: "Talk to Mila at the tree fort and learn what Pickles likes.",
         locationId: "clubhouse",
-        hotspotIds: ["club-lila"]
+        hotspotIds: ["club-mila"]
       };
     }
     if (!getFlag("poppyTalked")) {
@@ -2470,9 +2475,9 @@
     }
     if (!getFlag("case2Unlocked")) {
       return {
-        text: "Return Pickles to Lila at the clubhouse.",
+        text: "Return Pickles to Mila at the clubhouse.",
         locationId: "clubhouse",
-        hotspotIds: ["club-lila"]
+        hotspotIds: ["club-mila"]
       };
     }
     if (getFlag("case3Unlocked")) {
@@ -2614,7 +2619,7 @@
       return {
         text: "Take Mrs. Wren's observatory lead.",
         locationId: "clubhouse",
-        hotspotIds: ["club-lila"]
+        hotspotIds: ["club-mila"]
       };
     }
     return {
@@ -2643,45 +2648,48 @@
     if (els.objectiveChip) {
       els.objectiveChip.textContent = `Next lead: ${guidance.text}`;
     }
-    els.leadText.textContent = state.lead || location.lead;
-    if (getFlag("lilaCousin")) {
-      els.arcText.textContent =
-        "Moonwake's ledger connects Vale, Wren, and Finch branches. Kimmy is not ready to call Lila her cousin yet, but the clue is too strong to ignore.";
-    } else if (getFlag("case3Solved")) {
-      els.arcText.textContent =
-        "Kimmy solved Moonwake's strange lights and found a family ledger hiding under the surface mystery. Lila's last name may belong in Kimmy's private file.";
-    } else if (getFlag("prismAligned")) {
-      els.arcText.textContent =
-        "The observatory flashes are a prism signal, not magic. Now Kimmy needs to learn why someone wanted her to reach the archive.";
-    } else if (getFlag("case3Unlocked")) {
-      els.arcText.textContent =
-        "Mrs. Wren's star chart and crescent token point Kimmy toward Moonwake Observatory, where the same crescent shape keeps appearing.";
-    } else if (getFlag("briarPortraitClue")) {
-      els.arcText.textContent =
-        "Kimmy has found a Briar Lane portrait of a young woman with her eyes and a crescent locket. Mrs. Wren knows more than she is saying.";
-    } else if (getFlag("grandmotherMet")) {
-      els.arcText.textContent =
-        "Mrs. Wren solved the ghost rumor, but not the bigger question. She remembers the house like family and gave Kimmy a key without explaining why.";
-    } else if (getFlag("case2Unlocked")) {
-      els.arcText.textContent =
-        "Briar Lane is supposed to be empty, but Lila's warning opened a new lead: someone is visiting the old house after dark.";
-    } else if (getFlag("familyPhotoFound")) {
-      els.arcText.textContent =
-        "Kimmy has two personal clues now: a crescent mark like her locket and an old photograph of a woman who looks like her. Someone may be guiding her with cases.";
-    } else if (getFlag("identityClueFound")) {
-      els.arcText.textContent =
-        "Kimmy noticed a crescent-and-star mark like her locket on the picnic envelope. It is tiny, but it belongs in her personal case file.";
-    } else {
-      els.arcText.textContent =
-        "Kimmy's oldest clue is a crescent locket from before she was adopted. Most club cases are for neighbors, but some leave crumbs for Kimmy too.";
+    if (!state.lead) {
+      state.lead = location.lead;
+      saveState();
     }
     renderHotspots(location, guidance);
     renderMap(guidance);
-    renderInventory();
-    renderClues();
+    renderSatchelButton();
+    renderNotebookButton();
     renderXp();
     renderProgress();
     renderVoiceButton();
+  }
+
+  function getArcText() {
+    if (getFlag("milaCousin")) {
+      return "Moonwake's ledger connects Vale, Wren, and Finch branches. Kimmy is not ready to call Mila her cousin yet, but the clue is too strong to ignore.";
+    }
+    if (getFlag("case3Solved")) {
+      return "Kimmy solved Moonwake's strange lights and found a family ledger hiding under the surface mystery. Mila's last name may belong in Kimmy's private file.";
+    }
+    if (getFlag("prismAligned")) {
+      return "The observatory flashes are a prism signal, not magic. Now Kimmy needs to learn why someone wanted her to reach the archive.";
+    }
+    if (getFlag("case3Unlocked")) {
+      return "Mrs. Wren's star chart and crescent token point Kimmy toward Moonwake Observatory, where the same crescent shape keeps appearing.";
+    }
+    if (getFlag("briarPortraitClue")) {
+      return "Kimmy has found a Briar Lane portrait of a young woman with her eyes and a crescent locket. Mrs. Wren knows more than she is saying.";
+    }
+    if (getFlag("grandmotherMet")) {
+      return "Mrs. Wren solved the ghost rumor, but not the bigger question. She remembers the house like family and gave Kimmy a key without explaining why.";
+    }
+    if (getFlag("case2Unlocked")) {
+      return "Briar Lane is supposed to be empty, but Mila's warning opened a new lead: someone is visiting the old house after dark.";
+    }
+    if (getFlag("familyPhotoFound")) {
+      return "Kimmy has two personal clues now: a crescent mark like her locket and an old photograph of a woman who looks like her. Someone may be guiding her with cases.";
+    }
+    if (getFlag("identityClueFound")) {
+      return "Kimmy noticed a crescent-and-star mark like her locket on the picnic envelope. It is tiny, but it belongs in her personal case file.";
+    }
+    return "Kimmy's oldest clue is a crescent locket from before she was adopted. Most club cases are for neighbors, but some leave crumbs for Kimmy too.";
   }
 
   function renderXp() {
@@ -2722,7 +2730,7 @@
           ? "The board has shifted to the family ledger Kimmy found at Moonwake. This case is solved, but the long mystery just got louder."
           : "Mrs. Wren's star chart and crescent token are pinned as the current case file. The question is why Moonwake flashes after midnight.",
         inspectText: solved
-          ? "Kimmy marks the Moonwake case solved and circles the ledger branch connecting Vale, Wren, and Finch. Lila's name suddenly feels like evidence."
+          ? "Kimmy marks the Moonwake case solved and circles the ledger branch connecting Vale, Wren, and Finch. Mila's name suddenly feels like evidence."
           : "Current case: Moonwake Observatory. Kimmy pins Mrs. Wren's star chart, the crescent token, Theo's locked-gate report, and the question: what is making the dome flash?"
       };
       detail.actions = [
@@ -2745,8 +2753,8 @@
           onSelect: () =>
             speak(
               solved
-                ? "Kimmy files the ledger under her personal mystery: Vale, Wren, Finch. Maybe Lila has been family all along."
-                : "Kimmy checks her satchel: Lila's five dollars, the 17-inch height mark, and three moon phases might be more than souvenirs."
+                ? "Kimmy files the ledger under her personal mystery: Vale, Wren, Finch. Maybe Mila has been family all along."
+                : "Kimmy checks her satchel: Mila's five dollars, the 17-inch height mark, and three moon phases might be more than souvenirs."
             )
         }
       ];
@@ -2760,7 +2768,7 @@
         text:
           "The board now shows Briar Lane House, not Pickles. Kimmy's current question is who keeps entering the empty house after dark.",
         inspectText:
-          "Current case: Briar Lane House. Kimmy pins Lila's worry, Mr. Hexibald's warning, the glowing upstairs window, the shutter knock, and the old piano music."
+          "Current case: Briar Lane House. Kimmy pins Mila's worry, Mr. Hexibald's warning, the glowing upstairs window, the shutter knock, and the old piano music."
       };
       detail.actions = [
         {
@@ -2787,11 +2795,11 @@
     if (getFlag("caseSolved")) {
       const detail = {
         title: "Case Board: Pickles Found",
-        image: "./assets/case1-thank-you.png",
+        image: "./assets/case1-thank-you-mila.png",
         text:
           "The Pickles board is complete. Kimmy solved the trail in order and earned the club's first five-dollar case fee.",
         inspectText:
-          "Solved case: Lila's carrot clue led to Mrs. Poppy, the bakery trail led to the fountain, the fountain prints led to the garden, and Mr. Basil's order brought Pickles out safely."
+          "Solved case: Mila's carrot clue led to Mrs. Poppy, the bakery trail led to the fountain, the fountain prints led to the garden, and Mr. Basil's order brought Pickles out safely."
       };
       detail.actions = [
         {
@@ -2800,8 +2808,8 @@
           onSelect: () => openCurrentCaseBoardInspection(detail)
         },
         {
-          label: "Talk to Lila",
-          description: "Let Lila explain the next worry that points to Case 02.",
+          label: "Talk to Mila",
+          description: "Let Mila explain the next worry that points to Case 02.",
           primary: true,
           onSelect: openCase1Victory
         }
@@ -2810,14 +2818,14 @@
     }
 
     if (getFlag("clientInterview")) {
-      const lilaPinned = hasClue("lila");
+      const milaPinned = hasClue("mila");
       const detail = {
-        title: "Case Board: Lila and Pickles",
-        image: "./assets/npc-lila.png",
+        title: "Case Board: Mila and Pickles",
+        image: "./assets/npc-mila.png",
         text:
-          "Lila's worried client card is pinned to the board. Kimmy knows Pickles is cream-colored, wears mint green, and loves carrot snacks.",
+          "Mila's worried client card is pinned to the board. Kimmy knows Pickles is cream-colored, wears mint green, and loves carrot snacks.",
         inspectText:
-          "Current case: Lila's missing rabbit. Kimmy pins the witness facts, then asks the useful question: where would a hungry rabbit go first?"
+          "Current case: Mila's missing rabbit. Kimmy pins the witness facts, then asks the useful question: where would a hungry rabbit go first?"
       };
       detail.actions = [
         {
@@ -2826,15 +2834,15 @@
           onSelect: () => openCurrentCaseBoardInspection(detail)
         },
         {
-          label: lilaPinned ? "Review Lila's facts" : "Pin Lila's facts",
-          description: lilaPinned
+          label: milaPinned ? "Review Mila's facts" : "Pin Mila's facts",
+          description: milaPinned
             ? "Confirm the facts without changing the trail."
             : "Record the rabbit description so Kimmy knows what trail to follow.",
-          primary: !lilaPinned,
+          primary: !milaPinned,
           onSelect: () => {
-            addClue("lila");
+            addClue("mila");
             speak(
-              lilaPinned
+              milaPinned
                 ? "Kimmy checks the pinned facts again: cream rabbit, mint ribbon, carrot snacks. The bakery is still the strongest next lead."
                 : "Kimmy pins the useful facts: cream rabbit, mint ribbon, carrot snacks. Next lead: the bakery smells like carrots."
             );
@@ -2856,7 +2864,7 @@
       title: "Kimmy's Case Board",
       image: INSPECTIONS.caseBoard.image,
       text:
-        "The tree-fort board is ready, but the Pickles case has not started yet. Kimmy should hear Lila's whole story before pinning any clues.",
+        "The tree-fort board is ready, but the Pickles case has not started yet. Kimmy should hear Mila's whole story before pinning any clues.",
       inspectText:
         "No active case is pinned yet. Kimmy keeps blank cards, string, and thumbtacks ready for the next client."
     };
@@ -2867,10 +2875,10 @@
         onSelect: () => openCurrentCaseBoardInspection(detail)
       },
       {
-        label: "Talk to Lila",
+        label: "Talk to Mila",
         description: "Start the first case by hearing from the worried pet owner.",
         primary: true,
-        onSelect: openLilaHotspot
+        onSelect: openMilaHotspot
       },
       {
         label: "Pin a clue now",
@@ -2995,20 +3003,40 @@
     });
   }
 
-  function renderInventory() {
-    els.inventoryList.replaceChildren();
-    els.inventoryCount.textContent = `${state.inventory.length} item${state.inventory.length === 1 ? "" : "s"}`;
+  function renderSatchelButton() {
+    if (!els.satchelButton) {
+      return;
+    }
+    const count = state.inventory.length;
+    els.satchelButton.textContent = count ? `Satchel (${count})` : "Satchel";
+  }
+
+  function renderNotebookButton() {
+    if (!els.notebookButton) {
+      return;
+    }
+    const count = state.clues.length;
+    els.notebookButton.textContent = count ? `Notebook (${count})` : "Notebook";
+  }
+
+  function appendSatchelList(parent) {
+    const list = document.createElement("ul");
+    list.className = "inventory-list modal-list";
 
     if (!state.inventory.length) {
       const empty = document.createElement("li");
       empty.className = "empty-note";
-      empty.textContent = "No clues collected yet.";
-      els.inventoryList.append(empty);
+      empty.textContent = "No satchel items yet.";
+      list.append(empty);
+      parent.append(list);
       return;
     }
 
     state.inventory.forEach((itemId) => {
       const item = ITEMS[itemId];
+      if (!item) {
+        return;
+      }
       const li = document.createElement("li");
       const button = document.createElement("button");
       button.type = "button";
@@ -3023,26 +3051,85 @@
       text.textContent = item.label;
       button.append(chip, text);
       li.append(button);
-      els.inventoryList.append(li);
+      list.append(li);
     });
+
+    parent.append(list);
   }
 
-  function renderClues() {
-    els.clueList.replaceChildren();
+  function appendNotebookList(parent) {
+    const list = document.createElement("ul");
+    list.className = "clue-list modal-list";
 
     if (!state.clues.length) {
       const empty = document.createElement("li");
       empty.className = "empty-note";
       empty.textContent = "No notes recorded yet.";
-      els.clueList.append(empty);
+      list.append(empty);
+      parent.append(list);
       return;
     }
 
     state.clues.forEach((clueId) => {
       const li = document.createElement("li");
-      li.textContent = CLUES[clueId];
-      els.clueList.append(li);
+      li.textContent = CLUES[clueId] || clueId;
+      list.append(li);
     });
+
+    parent.append(list);
+  }
+
+  function openSatchel() {
+    const modal = createModal("Kimmy's Satchel");
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const intro = document.createElement("p");
+    intro.className = "action-menu-copy";
+    intro.textContent = "Objects Kimmy has collected. Tap an item to inspect it.";
+    body.append(intro);
+    appendSatchelList(body);
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "modal-button";
+    close.textContent = "Close";
+    close.addEventListener("click", closeModal);
+    actions.append(close);
+  }
+
+  function openNotebook() {
+    const modal = createModal("Kimmy's Notebook", { wide: true });
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const summary = document.createElement("div");
+    summary.className = "notebook-summary";
+    const leadLabel = document.createElement("p");
+    leadLabel.className = "panel-label";
+    leadLabel.textContent = "Current Lead";
+    const lead = document.createElement("p");
+    lead.textContent = state.lead || getGuidance().text;
+    const arcLabel = document.createElement("p");
+    arcLabel.className = "panel-label";
+    arcLabel.textContent = "Private File";
+    const arc = document.createElement("p");
+    arc.textContent = getArcText();
+    summary.append(leadLabel, lead, arcLabel, arc);
+    body.append(summary);
+
+    const cluesLabel = document.createElement("p");
+    cluesLabel.className = "panel-label modal-section-label";
+    cluesLabel.textContent = "Clues";
+    body.append(cluesLabel);
+    appendNotebookList(body);
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "modal-button";
+    close.textContent = "Close";
+    close.addEventListener("click", closeModal);
+    actions.append(close);
   }
 
   function renderProgress() {
@@ -3100,9 +3187,9 @@
         "Kimmy's parents give her the one thing every detective needs first: a place where questions are allowed."
       ),
       createIntroPanel(
-        "./assets/intro-kimmy-lila-bff.png",
-        "Lila Vale",
-        "Lila is Kimmy's best friend, club partner, and first person to say a mystery out loud when everyone else is guessing."
+        "./assets/intro-kimmy-mila-bff.png",
+        "Mila Vale",
+        "Mila is Kimmy's best friend, club partner, and first person to say a mystery out loud when everyone else is guessing."
       )
     );
 
@@ -3111,7 +3198,7 @@
     cast.append(
       createCastCard("./assets/kimmy-avatar.png", "Kimmy Finch", "Founder, clue-spotter, keeper of the crescent locket."),
       createCastCard("./assets/intro-kimmy-family.png", "The Finches", "Kimmy's adoptive parents love her fiercely and encourage her questions, even when they cannot answer all of them."),
-      createCastCard("./assets/intro-kimmy-lila-bff.png", "Lila Vale", "Kimmy's best friend, first club partner, and the person most likely to climb the tree-fort ladder with an urgent note."),
+      createCastCard("./assets/intro-kimmy-mila-bff.png", "Mila Vale", "Kimmy's best friend, first club partner, and the person most likely to climb the tree-fort ladder with an urgent note."),
       createCastCard("./assets/treefort-clubhouse.png", "Mystery Club HQ", "A tree-fort headquarters for maps, books, case files, and neighbor mysteries."),
       createCastCard("./assets/inspect-family-photo.png", "The Private File", "Kimmy keeps the crescent locket and unlabeled photo separate from club business.")
     );
@@ -3145,15 +3232,15 @@
   function openCase1Request() {
     openActionMenu({
       title: "Incoming Case: Pickles Is Missing",
-      image: NPCS.lila.portrait,
+      image: NPCS.mila.portrait,
       text:
-        "The tree-fort pulley basket rattles with an urgent note from Lila: Pickles is missing. Please help. I have five dollars.",
+        "The tree-fort pulley basket rattles with an urgent note from Mila: Pickles is missing. Please help. I have five dollars.",
       actions: [
         {
-          label: "Invite Lila in",
+          label: "Invite Mila in",
           description: "Start by listening to the worried client.",
           primary: true,
-          onSelect: openLilaCaseMenu
+          onSelect: openMilaCaseMenu
         },
         {
           label: "Check club rules",
@@ -3165,20 +3252,20 @@
     });
   }
 
-  function openLilaHotspot() {
+  function openMilaHotspot() {
     if (getFlag("caseSolved")) {
       openCase2Bridge();
       return;
     }
-    openLilaCaseMenu();
+    openMilaCaseMenu();
   }
 
-  function openLilaCaseMenu() {
+  function openMilaCaseMenu() {
     openActionMenu({
-      title: "Lila and the Empty Basket",
-      image: NPCS.lila.portrait,
+      title: "Mila and the Empty Basket",
+      image: NPCS.mila.portrait,
       text:
-        "Lila climbs into the tree fort with Pickles' travel basket hugged to her chest. The door is open, and she is blinking hard like she does not want to cry.",
+        "Mila climbs into the tree fort with Pickles' travel basket hugged to her chest. The door is open, and she is blinking hard like she does not want to cry.",
       actions: [
         {
           label: "Ask what happened",
@@ -3186,7 +3273,7 @@
           primary: true,
           onSelect: () => {
             setFlag("clientInterview");
-            addClue("lila");
+            addClue("mila");
             speak(
               "Kimmy takes the case for five dollars. Pickles has a mint ribbon, a tiny bell, and a serious carrot habit. Next lead: Poppy's Bakery."
             );
@@ -3194,9 +3281,9 @@
         },
         {
           label: "Examine basket",
-          description: "A small clue, but Lila still needs to tell the full story first.",
+          description: "A small clue, but Mila still needs to tell the full story first.",
           onSelect: () =>
-            speak("The basket smells like hay, carrots, and lavender. Helpful, but Kimmy still needs to ask Lila what happened.")
+            speak("The basket smells like hay, carrots, and lavender. Helpful, but Kimmy still needs to ask Mila what happened.")
         },
         {
           label: "Promise first",
@@ -3214,7 +3301,7 @@
     addItem("picklesBell");
     addItem("briarFile");
     addClue("briarLane");
-    addClue("lilaResemblance");
+    addClue("milaResemblance");
     speak(message);
   }
 
@@ -3257,14 +3344,14 @@
     }
 
     openActionMenu({
-      title: "Lila's Thank-You",
+      title: "Mila's Thank-You",
       image: INSPECTIONS.case1ThankYou.image,
       text:
-        "Lila hugs Kimmy and Pickles so tightly the little bell jingles. She jokes that Mrs. Poppy always says they have the same stubborn detective smile, then pays the promised five dollars and admits she was terrified Pickles had gone to Briar Lane House. No one goes there. Mr. Hexibald says to stay away.",
+        "Mila hugs Kimmy and Pickles so tightly the little bell jingles. She jokes that Mrs. Poppy always says they have the same stubborn detective smile, then pays the promised five dollars and admits she was terrified Pickles had gone to Briar Lane House. No one goes there. Mr. Hexibald says to stay away.",
       actions: [
         {
           label: "Ask about Briar Lane",
-          description: "Let Lila's fear become the next case.",
+          description: "Let Mila's fear become the next case.",
           primary: true,
           onSelect: () => {
             unlockCase2("Case 02 begins: if Briar Lane House is empty, who keeps entering it after dark?");
@@ -3275,7 +3362,7 @@
           label: "Ask about Mr. Hexibald",
           description: "Learn why the caretaker sounds suspicious.",
           onSelect: () =>
-            unlockCase2("Lila says Mr. Hexibald has guarded Briar Lane for years. Kimmy opens a new file: caretaker, lights, piano music, night visitor.")
+            unlockCase2("Mila says Mr. Hexibald has guarded Briar Lane for years. Kimmy opens a new file: caretaker, lights, piano music, night visitor.")
         },
         {
           label: "Put $5 in the club jar",
@@ -3343,7 +3430,7 @@
     summary.innerHTML = `
       <p class="panel-label">Solved</p>
       <p>The Moonwake flashes were not magic. They were an old prism signal system, reawakened by the telescope, the moon dials, and a careful signal-cord test with Pickles' bell.</p>
-      <p>The hidden archive needed clues from every case: Lila's five-dollar fee, the Briar Lane height mark, and the three moon phases. Inside, Kimmy finds a ledger connecting Vale, Wren, and Finch family branches. Lila might not just be her best friend. She might be family.</p>
+      <p>The hidden archive needed clues from every case: Mila's five-dollar fee, the Briar Lane height mark, and the three moon phases. Inside, Kimmy finds a ledger connecting Vale, Wren, and Finch family branches. Mila might not just be her best friend. She might be family.</p>
     `;
 
     body.append(image, summary);
@@ -3361,7 +3448,7 @@
     returnHome.addEventListener("click", () => {
       closeModal();
       navigate("clubhouse");
-      speak("Kimmy tapes the Moonwake ledger page into her private file. She is not ready to tell Lila yet, but tomorrow's club meeting will be different.");
+      speak("Kimmy tapes the Moonwake ledger page into her private file. She is not ready to tell Mila yet, but tomorrow's club meeting will be different.");
     });
 
     actions.append(review, returnHome);
@@ -3974,15 +4061,15 @@
 
     const image = document.createElement("img");
     image.className = "inspection-image";
-    image.src = "./assets/case1-thank-you.png";
-    image.alt = "Kimmy and Lila hug after Pickles is found";
+    image.src = "./assets/case1-thank-you-mila.png";
+    image.alt = "Kimmy and Mila hug after Pickles is found";
 
     const summary = document.createElement("div");
     summary.className = "case-closed-copy";
     summary.innerHTML = `
       <p class="panel-label">Solved</p>
-      <p>Kimmy did not just spot Pickles. She solved the path: Lila's carrot clue led to Mrs. Poppy, the bakery trail led to the park, the paw prints led to the garden, and Mr. Basil taught Kimmy how to coax a nervous rabbit safely.</p>
-      <p>Lila hugs Kimmy at the tree fort, pays the five-dollar case fee, and ties Pickles' tiny bell to a mint ribbon for Kimmy's satchel. She also admits why she panicked: she was afraid Pickles had gone near Briar Lane House, where no one is supposed to go.</p>
+      <p>Kimmy did not just spot Pickles. She solved the path: Mila's carrot clue led to Mrs. Poppy, the bakery trail led to the park, the paw prints led to the garden, and Mr. Basil taught Kimmy how to coax a nervous rabbit safely.</p>
+      <p>Mila hugs Kimmy at the tree fort, pays the five-dollar case fee, and ties Pickles' tiny bell to a mint ribbon for Kimmy's satchel. She also admits why she panicked: she was afraid Pickles had gone near Briar Lane House, where no one is supposed to go.</p>
     `;
 
     body.append(image, summary);
@@ -3993,17 +4080,17 @@
     stay.textContent = "Review clues";
     stay.addEventListener("click", closeModal);
 
-    const thankLila = document.createElement("button");
-    thankLila.type = "button";
-    thankLila.className = "modal-button primary";
-    thankLila.textContent = "Return Pickles to Lila";
-    thankLila.addEventListener("click", () => {
+    const thankMila = document.createElement("button");
+    thankMila.type = "button";
+    thankMila.className = "modal-button primary";
+    thankMila.textContent = "Return Pickles to Mila";
+    thankMila.addEventListener("click", () => {
       closeModal();
       navigate("clubhouse");
       openCase2Bridge();
     });
 
-    actions.append(stay, thankLila);
+    actions.append(stay, thankMila);
   }
 
   function arraysMatch(a, b) {
@@ -4062,7 +4149,7 @@
 
   function showHint() {
     if (!getFlag("clientInterview")) {
-      speak("Hint: talk to Lila at the clubhouse to learn what Pickles likes.");
+      speak("Hint: talk to Mila at the clubhouse to learn what Pickles likes.");
       return;
     }
     if (!getFlag("poppyTalked")) {
@@ -4086,7 +4173,7 @@
       return;
     }
     if (!getFlag("case2Unlocked")) {
-      speak("Hint: return Pickles to Lila at the clubhouse. Her thank-you points Kimmy toward the next mystery.");
+      speak("Hint: return Pickles to Mila at the clubhouse. Her thank-you points Kimmy toward the next mystery.");
       return;
     }
     if (getFlag("case3Unlocked")) {
@@ -4126,7 +4213,7 @@
         speak("Hint: read the Moonwake family ledger in the archive. The Vale, Wren, and Finch names are the real prize.");
         return;
       }
-      speak("Case 03 is solved: the flashes were a prism signal, and the ledger hints that Lila Vale may be Kimmy's cousin.");
+      speak("Case 03 is solved: the flashes were a prism signal, and the ledger hints that Mila Vale may be Kimmy's cousin.");
       return;
     }
     if (!getFlag("hexibaldWarning")) {
@@ -4182,6 +4269,8 @@
     speak("Case 02's opening mystery is solved: Briar Lane is not haunted. Mrs. Wren has memories there, and Kimmy has a new family clue.");
   }
 
+  els.satchelButton.addEventListener("click", openSatchel);
+  els.notebookButton.addEventListener("click", openNotebook);
   els.hintButton.addEventListener("click", showHint);
   els.storyButton.addEventListener("click", () => openIntro(false));
   els.voiceButton.addEventListener("click", toggleVoice);
@@ -4192,6 +4281,7 @@
     }
     localStorage.removeItem(STORAGE_KEY);
     LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    localStorage.setItem(RESET_MARKER_KEY, FORCE_RESET_ON_BUILD);
     Object.assign(state, defaultState());
     render();
     openIntro(true);
