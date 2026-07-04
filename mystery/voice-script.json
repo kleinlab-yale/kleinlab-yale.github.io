@@ -10,7 +10,7 @@
       "rate": 178,
       "voice": "warm adult narrator",
       "tone": "gentle, inviting, lightly suspenseful",
-      "text": "Kimmy Finch knows she was adopted, and her parents love her completely. Still, the first part of her story is a puzzle with only one clue: a tiny crescent locket. From her tree fort mystery club, Kimmy takes small cases around town. Today's case is bright, urgent, and very fluffy: find Pickles before the picnic begins."
+      "text": "Kayla Finch knows she was adopted, and her parents love her completely. Still, the first part of her story is a puzzle with only one clue: a tiny crescent locket. From her tree fort mystery club, Kayla takes small cases around town. Today's case is bright, urgent, and very fluffy: find Pickles before the picnic begins."
     },
     {
       "id": "mila",
@@ -26,7 +26,7 @@
       "file": "assets/audio/poppy.wav",
       "localVoice": "Grandma (English (US))",
       "rate": 172,
-      "voice": "Mrs. Poppy Vale, friendly baker",
+      "voice": "Mrs. Poppy Gale, friendly baker",
       "tone": "cozy, helpful, reassuring",
       "text": "I found flour paw prints near the patio chair, dear. A little cream rabbit sniffed the carrot rolls, then hopped toward the park. For a second I almost called you Mara. Silly old habit."
     },
@@ -44,7 +44,7 @@
       "file": "assets/audio/bakery-clues.wav",
       "localVoice": "Sandy (English (US))",
       "rate": 188,
-      "voice": "Kimmy Finch",
+      "voice": "Kayla Finch",
       "tone": "clever, focused, excited discovery",
       "text": "Carrot crumbs, a mint ribbon, and flour paw prints. Pickles was definitely here, and the trail points toward the park."
     },
@@ -53,7 +53,7 @@
       "file": "assets/audio/park-prints.wav",
       "localVoice": "Sandy (English (US))",
       "rate": 184,
-      "voice": "Kimmy Finch",
+      "voice": "Kayla Finch",
       "tone": "observant and pleased",
       "text": "These paw prints are tiny and close together. Pickles was not running. She was exploring."
     },
@@ -62,7 +62,7 @@
       "file": "assets/audio/coax-pickles.wav",
       "localVoice": "Sandy (English (US))",
       "rate": 176,
-      "voice": "Kimmy Finch",
+      "voice": "Kayla Finch",
       "tone": "soft, careful, encouraging",
       "text": "Quiet first, carrot second, bell last. We want Pickles to feel safe, not surprised."
     },
@@ -71,7 +71,7 @@
       "file": "assets/audio/locket.wav",
       "localVoice": "Sandy (English (US))",
       "rate": 170,
-      "voice": "Kimmy Finch",
+      "voice": "Kayla Finch",
       "tone": "quietly curious, hopeful",
       "text": "The picnic envelope has a crescent-and-star mark like my locket. It might be nothing. Or it might belong in my other case file."
     }
