@@ -6,6 +6,8 @@ Kimmy Finch is a clever adopted girl who runs the Finch Street Mystery Club from
 
 The long arc should feel like a mystery show for kids: every case has a complete answer, but one or two details quietly belong to a bigger story.
 
+The intro should establish that Kimmy's adoptive parents are loving and supportive. Kimmy's mystery is not about whether she belongs with them; she does. The mystery is about the missing first chapter of her life, the crescent locket, and why people around town seem to know more than they can say.
+
 ## Long Mystery
 
 Kimmy's birth family went into hiding under fake identities to keep her safe. The reason should stay vague for a long time: rumors of a dangerous ruler, a powerful family enemy, or an old conflict from outside town. The eventual follow-up game can reveal the larger threat.
@@ -19,6 +21,7 @@ Recurring clue patterns:
 - Helpful clients know oddly specific things about Kimmy's interests.
 - Crescent-and-star marks appear as quiet signals.
 - Case locations connect to Kimmy's family history without proving it too early.
+- Satchel objects from solved cases can become tools in later cases, so each chapter leaves both a story clue and a practical clue behind.
 
 ## Case 01: The Picnic Pet
 
@@ -31,6 +34,8 @@ Long-arc clues:
 - Mrs. Poppy almost calls Kimmy "Mara."
 - The picnic envelope has a crescent-and-star mark like Kimmy's locket.
 - An old photograph in the tree-fort HQ shows a woman who looks like Kimmy.
+- Lila jokes during the thank-you hug that Mrs. Poppy says she and Kimmy have the same stubborn detective smile. Mrs. Poppy goes quiet, but this should feel like a small odd moment rather than proof. Lila should look distinct from Kimmy, not like a twin.
+- Lila gives Kimmy five dollars and Pickles' tiny bell. Both become useful satchel objects later.
 
 ## Case 02: The Briar Lane House
 
@@ -58,11 +63,23 @@ Long-arc clues should be intriguing, not conclusive:
 
 The chapter should end with Kimmy solving the haunted-house case clearly, while the family clues remain questions for her personal file.
 
-## Case 03: The Observatory
+Bridge to Case 03: after Kimmy finds the portrait, Mrs. Wren gives her a folded star chart and a brass crescent token for Moonwake Observatory. Mrs. Wren does not explain why the observatory matters; she only says the lights have started again and Kimmy may understand them.
 
-Surface mystery: the old observatory or Moonwake setting can become a later, more advanced case.
+## Case 03: The Moonwake Observatory
 
-Use the existing Moonwake Observatory concept assets for this chapter, not for Case 02. Case 03 can be stranger and more puzzle-heavy after the player understands the mystery-club flow.
+Surface mystery: Moonwake Observatory flashes three times after midnight even when the gate is locked and the sign-in ledger is blank.
+
+True case answer: the flashes are caused by an old prism signal system. Kimmy uses Mrs. Wren's star chart, the crescent gate token, the moon phase dials, the telescope, and Pickles' bell as a gentle signal-cord test to turn the random-looking flashes into a solvable mechanism.
+
+Puzzle continuity:
+
+- Case 01 gives Kimmy Pickles' bell and the five-dollar fee.
+- Case 02 gives Kimmy the 17-inch Briar Lane height-mark sketch and Mrs. Wren's observatory handoff.
+- Case 03 uses those earlier clues to open an archive drawer with the code 5 - 17 - 3: five dollars, the old height mark, and three moon phases.
+
+Long-arc reveal: the archive ledger connects Vale, Wren, and Finch family branches. It does not fully explain Kimmy's identity, but it strongly suggests Lila Vale may be Kimmy's cousin. This turns Lila's earlier family-name and "detective smile" moments into real clues without making the whole family mystery obvious yet.
+
+Case 03 should feel more puzzle-heavy than Case 01 and Case 02 because the player has now learned how Kimmy's mystery club works. It should still stay cozy, wondrous, and emotionally safe.
 
 ## Tone Rules
 

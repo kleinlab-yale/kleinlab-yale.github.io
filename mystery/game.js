@@ -1,5 +1,6 @@
 (function () {
-  const STORAGE_KEY = "kimmy-finch-mysteries-v5";
+  const STORAGE_KEY = "kimmy-finch-mysteries-v6";
+  const TOAST_DURATION_MS = 7800;
 
   const CASE1_BEATS = [
     "clientInterview",
@@ -19,22 +20,35 @@
     "briarMusicClue",
     "briarVisitorTrail",
     "grandmotherMet",
-    "briarPortraitClue"
+    "briarPortraitClue",
+    "observatoryLead"
+  ];
+
+  const CASE3_BEATS = [
+    "case3Unlocked",
+    "observatoryGate",
+    "theoTalked",
+    "moonDialClue",
+    "starChartRead",
+    "prismAligned",
+    "archiveUnlocked",
+    "case3Solved"
   ];
 
   const STORY = {
     title: "Kimmy Finch Mysteries",
     case1Title: "Case 01: The Picnic Pet",
     case2Title: "Case 02: The Briar Lane House",
+    case3Title: "Case 03: The Moonwake Observatory",
     club: "Finch Street Mystery Club",
     intro:
-      "Kimmy Finch knows she was adopted, and her parents love her completely. Still, the first part of her story is a puzzle with only one clue: a tiny crescent locket she has had for as long as anyone can remember.",
+      "Kimmy Finch has always known two true things: she was adopted, and the Finches are her family completely. Her parents answer every question they can, but the first part of Kimmy's story still has blank spaces.",
     mission:
-      "Kimmy is also the best noticer in town. She built the Finch Street Mystery Club in a tree fort, where she reads case files, researches old town maps, and helps neighbors with small, important mysteries.",
+      "What Kimmy does have is a crescent locket, a notebook full of careful observations, and a brain that notices what other people walk past. Her parents call it curiosity. Kimmy calls it evidence.",
     hook:
-      "Most cases solve someone else's problem. Every so often, one also gives Kimmy a clue about her own.",
+      "She built the Finch Street Mystery Club in a tree fort with maps, books, a pulley basket for urgent notes, and one best friend who believes every case deserves a proper file: Lila Vale.",
     seriesArc:
-      "Kimmy keeps a private question in the back of her notebook: who were her first family, and why did they leave so few tracks?"
+      "Neighbors bring Kimmy small mysteries because she is kind, sharp, and stubborn in exactly the right way. Most cases solve someone else's problem. Every so often, one also leaves a clue about Kimmy's own."
   };
 
   const AUDIO_CLIPS = {
@@ -87,6 +101,14 @@
       inspectText:
         "Pickles is safe, cozy, and already nibbling a carrot top like nothing dramatic happened at all."
     },
+    picklesBell: {
+      label: "Pickles' Bell",
+      description: "Lila's thank-you gift from Pickles' mint ribbon.",
+      image: "./assets/case1-thank-you.png",
+      inspectTitle: "Pickles' Bell",
+      inspectText:
+        "Lila tied the tiny bell to a spare mint ribbon and gave it to Kimmy. It rings softly enough to test delicate mechanisms without startling anyone."
+    },
     fiveDollars: {
       label: "$5 Case Fee",
       description: "Lila's crinkled thank-you payment for finding Pickles.",
@@ -110,6 +132,62 @@
       inspectTitle: "Small Brass Key",
       inspectText:
         "The key is old, polished by years of careful use, and tied with a faded lavender ribbon."
+    },
+    heightMarkSketch: {
+      label: "Height Mark Sketch",
+      description: "Kimmy's copy of the old 17-inch mark in the girls' room.",
+      image: "./assets/case2-nursery.png",
+      inspectTitle: "Height Mark Sketch",
+      inspectText:
+        "Kimmy copied the little 17-inch mark from the nursery doorframe. It is too small for her now, but the number feels saved for a reason."
+    },
+    maraPortraitCopy: {
+      label: "Faded Portrait Copy",
+      description: "A copy of the portrait of a woman who looks like Kimmy.",
+      image: "./assets/inspect-mara-portrait.png",
+      inspectTitle: "Faded Portrait Copy",
+      inspectText:
+        "The young woman in the portrait has Kimmy's eyes and a crescent locket. Kimmy does not know the name Mara yet, but the satchel keeps the question safe."
+    },
+    starChart: {
+      label: "Mrs. Wren's Star Chart",
+      description: "A folded chart pointing toward Moonwake Observatory.",
+      image: "./assets/case2-observatory-handoff.png",
+      inspectTitle: "Mrs. Wren's Star Chart",
+      inspectText:
+        "The paper shows the Moonwake Observatory dome and three moon phases circled in old ink. Mrs. Wren would not say who drew it."
+    },
+    observatoryToken: {
+      label: "Crescent Observatory Token",
+      description: "A brass crescent token that fits an old observatory gate.",
+      image: "./assets/case2-observatory-handoff.png",
+      inspectTitle: "Crescent Observatory Token",
+      inspectText:
+        "The crescent shape matches Kimmy's locket almost too well. One edge is notched like it belongs in a lock."
+    },
+    moonDialSketch: {
+      label: "Moon Dial Sketch",
+      description: "Kimmy's sketch of the observatory's three moon dials.",
+      image: "./assets/inspect-dials.png",
+      inspectTitle: "Moon Dial Sketch",
+      inspectText:
+        "The dials show new moon, half moon, and full moon. Kimmy labels them as a three-step sequence."
+    },
+    prismNote: {
+      label: "Prism Note",
+      description: "A note about how the observatory creates flashing signals.",
+      image: "./assets/inspect-prism.png",
+      inspectTitle: "Prism Note",
+      inspectText:
+        "The prism splits moonlight into bright pulses. With the right chart, the flashes become a message instead of a mystery."
+    },
+    archiveLedger: {
+      label: "Moonwake Ledger",
+      description: "A copied page from the observatory family ledger.",
+      image: "./assets/inspect-archive.png",
+      inspectTitle: "Moonwake Ledger",
+      inspectText:
+        "The ledger connects the Vale, Wren, and Finch names through old family branches. Kimmy underlines Lila Vale twice."
     }
   };
 
@@ -124,6 +202,8 @@
       "Park clue: tiny paw prints curve around the fountain and continue through the garden gate.",
     basil:
       "Mr. Basil says nervous rabbits hide near lavender and come out for quiet voices, carrot tops, and familiar bells.",
+    lilaResemblance:
+      "Long mystery clue: in the thank-you hug, Lila jokes that Mrs. Poppy says they have the same stubborn detective smile. Mrs. Poppy hears it and goes very quiet.",
     briarLane:
       "Case 02 lead: Lila feared Pickles had gone near the old Briar Lane house, where Mr. Hexibald warns kids away and someone may be sneaking in after dark.",
     hexibaldWarning:
@@ -141,7 +221,25 @@
     briarPortrait:
       "Long mystery clue: a sun-faded portrait in Briar Lane House shows a young woman with Kimmy's eyes and a crescent locket.",
     briarHeight:
-      "Long mystery clue: the old girls' room has baby-height marks and a crescent pattern that feel strangely familiar.",
+      "Long mystery clue: the old girls' room has a 17-inch baby-height mark and a crescent pattern that feel strangely familiar.",
+    observatoryLead:
+      "Case 03 lead: Mrs. Wren gives Kimmy a star chart and crescent token for Moonwake Observatory, where strange lights have begun flashing again.",
+    observatoryGate:
+      "Moonwake clue: the crescent token opens the observatory gate. The same shape appears on Kimmy's locket.",
+    theo:
+      "Theo says the observatory flashes three times after midnight even when no one is supposed to be inside.",
+    moonDial:
+      "Moonwake clue: the old dials are set to new moon, half moon, and full moon. Kimmy sketches the order.",
+    starChart:
+      "Moonwake clue: Mrs. Wren's chart matches the telescope floor rings and points to the central prism.",
+    prismSignal:
+      "Case 03 answer: the mysterious flashes are moonlight bouncing through a prism signal system, not magic.",
+    archiveCode:
+      "Moonwake code clue: the archive lock uses numbers from earlier cases: Lila's five dollars, the old height mark, and the three moon phases.",
+    case3Solved:
+      "Case solved: Kimmy opens the Moonwake archive and finds a ledger linking Vale, Wren, and Finch family branches.",
+    lilaCousin:
+      "Long mystery clue: the Moonwake ledger suggests Lila Vale is not only Kimmy's best friend. She may be Kimmy's cousin.",
     nameEcho:
       "Long mystery clue: Mrs. Poppy nearly called Kimmy 'Mara,' then quickly pretended she meant 'my dear.'",
     photo:
@@ -154,7 +252,7 @@
 
   const NPCS = {
     lila: {
-      name: "Lila",
+      name: "Lila Vale",
       role: "Pet Owner",
       portrait: "./assets/npc-lila.png",
       line:
@@ -197,6 +295,15 @@
         "I did not mean to frighten anyone. I come here to play the old lullaby and remember a family I loved very much.",
       hint:
         "The house is not haunted. It is remembered."
+    },
+    theo: {
+      name: "Theo",
+      role: "Moonwake Junior Keeper",
+      portrait: "./assets/theo-avatar.png",
+      line:
+        "The dome flashed three times last night. I checked the logbook, and nobody signed in. That means either someone forgot, or the observatory is answering old stars.",
+      hint:
+        "Start with the gate token, then compare the chart to the moon dials."
     }
   };
 
@@ -218,6 +325,18 @@
       image: "./assets/case2-exterior.png",
       text:
         "Kimmy writes the first Case 02 question: if no one lives in Briar Lane House, who keeps entering after dark, turning on lights, and playing the piano?"
+    },
+    case1ThankYou: {
+      title: "Lila's Thank-You",
+      image: "./assets/case1-thank-you.png",
+      text:
+        "Lila hugs Kimmy and Pickles at the tree fort. Pickles' tiny bell rings between them like a new clue for the satchel."
+    },
+    observatoryHandoff: {
+      title: "Mrs. Wren's Observatory Clue",
+      image: "./assets/case2-observatory-handoff.png",
+      text:
+        "Mrs. Wren gives Kimmy a folded star chart and a brass crescent token. 'The observatory will make more sense to you than it ever did to me,' she says."
     },
     bakeryClues: {
       title: "Bakery Patio Clues",
@@ -283,7 +402,37 @@
       title: "Old Girls' Room",
       image: "./assets/case2-nursery.png",
       text:
-        "The room has been kept gently, not cleaned. A rocking chair, a toy shelf, and tiny height marks suggest someone could not bear to let it disappear."
+        "The room has been kept gently, not cleaned. A rocking chair, a toy shelf, and tiny height marks suggest someone could not bear to let it disappear. One old pencil mark reads 17 inches."
+    },
+    observatoryGate: {
+      title: "Moonwake Gate",
+      image: "./assets/exterior.png",
+      text:
+        "The gate lock has a crescent-shaped hollow. Mrs. Wren's brass token is the right size."
+    },
+    moonDials: {
+      title: "Moon Phase Dials",
+      image: "./assets/inspect-dials.png",
+      text:
+        "Three brass dials show new moon, half moon, and full moon. Below them, a tiny plate is scratched with old numbers: 5, 17, 3."
+    },
+    observatoryChart: {
+      title: "Star Chart Alignment",
+      image: "./assets/case2-observatory-handoff.png",
+      text:
+        "The chart does not show a route through town. It shows how moonlight should travel through the observatory floor rings."
+    },
+    prismSignal: {
+      title: "Prism Signal",
+      image: "./assets/inspect-prism.png",
+      text:
+        "When Kimmy lines up the chart, the prism turns moonlight into three clean flashes across the dome."
+    },
+    archiveLedger: {
+      title: "Moonwake Family Ledger",
+      image: "./assets/inspect-archive.png",
+      text:
+        "The ledger is old, careful, and full of family branches. Kimmy sees Vale near Finch, and Lila's name suddenly feels much less random."
     }
   };
 
@@ -406,6 +555,38 @@
                   description: "Remember the first paid case reward.",
                   onSelect: () =>
                     speak("Kimmy has five dollars from Lila's case. She saves it in the club jar for future investigating.")
+                }
+              ]
+            })
+        },
+        {
+          id: "club-observatory",
+          label: "Open Moonwake file",
+          showWhen: () => getFlag("case3Unlocked"),
+          x: 88,
+          y: 36,
+          action: () =>
+            openActionMenu({
+              title: "Moonwake Observatory File",
+              image: "./assets/exterior.png",
+              text:
+                "Kimmy pins Mrs. Wren's star chart, the crescent token, Theo's flashing-light report, and one big question: why did this case need clues from the cases before it?",
+              actions: [
+                {
+                  label: "Review Case 03",
+                  description: "Look at Mrs. Wren's observatory handoff.",
+                  primary: true,
+                  onSelect: () =>
+                    openInspection("observatoryHandoff", {
+                      actionLabel: "Go to Moonwake",
+                      onAction: () => navigate("observatoryExterior")
+                    })
+                },
+                {
+                  label: "Check satchel keys",
+                  description: "Remember which earlier items may matter.",
+                  onSelect: () =>
+                    speak("Kimmy checks her satchel: Pickles' bell from Lila, the five-dollar fee, Mrs. Wren's chart, and the crescent token all feel useful.")
                 }
               ]
             })
@@ -1335,8 +1516,9 @@
                   description: "A small clue, not proof.",
                   primary: true,
                   onSelect: () => {
+                    addItem("heightMarkSketch");
                     addClue("briarHeight");
-                    speak("Kimmy adds the height marks to her personal file. She cannot prove why they matter, but they do.");
+                    speak("Kimmy copies the 17-inch height mark into her personal file. She cannot prove why it matters, but the number feels worth saving.");
                   }
                 },
                 {
@@ -1373,8 +1555,9 @@
                       actionLabel: "Save portrait clue",
                       onAction: () => {
                         setFlag("briarPortraitClue");
+                        addItem("maraPortraitCopy");
                         addClue("briarPortrait");
-                        speak("Kimmy saves the portrait clue. She does not know the woman's name yet, but the face feels like a question written for her.");
+                        openCase2Closed();
                       }
                     })
                 },
@@ -1383,6 +1566,433 @@
                   description: "Leave the memory untouched.",
                   onSelect: () =>
                     speak("Kimmy closes the box carefully. Even mysteries deserve manners.")
+                }
+              ]
+            })
+        }
+      ]
+    },
+    observatoryExterior: {
+      title: "Moonwake Observatory",
+      subtitle: "Front Gate",
+      image: "./assets/exterior.png",
+      showWhen: () => getFlag("case3Unlocked"),
+      unlockFlag: "case3Unlocked",
+      lockedLead:
+        "Moonwake Observatory is not in Kimmy's case file yet. Finish the Briar Lane mystery first.",
+      lead:
+        "Moonwake Observatory glows on the hill above town. Theo swears the dome flashed three times after midnight, even though the gate was locked.",
+      hotspots: [
+        {
+          id: "observatory-theo",
+          label: "Talk to Theo",
+          x: 25,
+          y: 64,
+          action: () =>
+            openActionMenu({
+              title: "Theo at the Observatory Gate",
+              image: NPCS.theo.portrait,
+              text:
+                "Theo has a flashlight, a clipboard, and the tense expression of someone who really wants the weird explanation to be true.",
+              actions: [
+                {
+                  label: "Ask what flashed",
+                  description: "Interview the person who saw the lights.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("theoTalked");
+                    addClue("theo");
+                    speak("Theo saw the dome flash three times after midnight. The sign-in ledger was blank, so Kimmy marks it as a real mystery.");
+                  }
+                },
+                {
+                  label: "Ask about Lila",
+                  description: "Follow the Vale family thread lightly.",
+                  onSelect: () => {
+                    addClue("lilaResemblance");
+                    speak("Theo says Lila Vale's family used to help at Moonwake too. Kimmy writes that down beside Mrs. Poppy's quiet reaction.");
+                  }
+                }
+              ]
+            })
+        },
+        {
+          id: "observatory-gate",
+          label: "Inspect crescent gate",
+          x: 36,
+          y: 72,
+          action: () =>
+            openActionMenu({
+              title: "Crescent Gate Lock",
+              image: INSPECTIONS.observatoryGate.image,
+              text:
+                "The locked gate has a crescent-shaped hollow. Kimmy's locket seems to warm under her collar, but Mrs. Wren's token is the practical clue.",
+              actions: [
+                {
+                  label: "Look closer",
+                  description: "Zoom in on the gate lock.",
+                  onSelect: () => openInspection("observatoryGate")
+                },
+                {
+                  label: "Use crescent token",
+                  description: "Try the token Mrs. Wren gave Kimmy.",
+                  requires: () => hasItem("observatoryToken"),
+                  lockedMessage: "Kimmy needs Mrs. Wren's crescent token from the end of Case 02.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("observatoryGate");
+                    addClue("observatoryGate");
+                    speak("The crescent token clicks into the gate. Moonwake opens like it was waiting for Kimmy.");
+                    navigate("observatoryWorkshop");
+                  }
+                }
+              ]
+            })
+        },
+        {
+          id: "observatory-chart",
+          label: "Review Mrs. Wren's chart",
+          x: 58,
+          y: 76,
+          action: () =>
+            openActionMenu({
+              title: "Folded Star Chart",
+              image: INSPECTIONS.observatoryChart.image,
+              text:
+                "Mrs. Wren's chart is not a town map. It shows the dome, the telescope rings, and three moon phases circled in old ink.",
+              actions: [
+                {
+                  label: "Compare to dome",
+                  description: "Record what the chart is really for.",
+                  requires: () => hasItem("starChart"),
+                  lockedMessage: "Kimmy needs the star chart Mrs. Wren gives her after Case 02.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("starChartRead");
+                    addClue("starChart");
+                    speak("Kimmy realizes the chart maps a path for moonlight, not a path through town.");
+                  }
+                },
+                {
+                  label: "Fold it away",
+                  description: "Save the chart for inside.",
+                  onSelect: () =>
+                    speak("Kimmy keeps the star chart flat in her satchel. It feels too important to wrinkle.")
+                }
+              ]
+            })
+        }
+      ]
+    },
+    observatoryWorkshop: {
+      title: "Moonwake Workshop",
+      subtitle: "Signal Desk",
+      image: "./assets/workshop.png",
+      showWhen: () => getFlag("case3Unlocked"),
+      unlockFlag: "observatoryGate",
+      lockedLead:
+        "The workshop is behind the locked observatory gate. Use Mrs. Wren's token first.",
+      lead:
+        "The workshop is full of brass dials, dusty repair notes, and a signal cord that hangs beside a numbered drawer.",
+      hotspots: [
+        {
+          id: "workshop-dials",
+          label: "Inspect moon dials",
+          x: 47,
+          y: 63,
+          action: () =>
+            openActionMenu({
+              title: "Moon Phase Dials",
+              image: INSPECTIONS.moonDials.image,
+              text:
+                "Three old dials click between moon phases. Someone set them deliberately: new moon, half moon, full moon.",
+              actions: [
+                {
+                  label: "Look closer",
+                  description: "Zoom in before copying the sequence.",
+                  onSelect: () => openInspection("moonDials")
+                },
+                {
+                  label: "Sketch the order",
+                  description: "Add the sequence to the satchel.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("moonDialClue");
+                    addItem("moonDialSketch");
+                    addClue("moonDial");
+                    speak("Kimmy sketches the moon sequence: new, half, full. Three phases. That number may matter later.");
+                  }
+                }
+              ]
+            })
+        },
+        {
+          id: "workshop-bell",
+          label: "Test signal cord",
+          x: 31,
+          y: 74,
+          action: () =>
+            openActionMenu({
+              title: "Signal Cord",
+              image: "./assets/workshop.png",
+              text:
+                "The cord runs into the dome. Pulling it hard might move old machinery, but Kimmy needs a gentler test first.",
+              actions: [
+                {
+                  label: "Tie Pickles' bell",
+                  description: "Use a Case 01 satchel item for a quiet test.",
+                  requires: () => hasItem("picklesBell"),
+                  lockedMessage: "Kimmy needs Pickles' tiny bell from Lila's thank-you.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("bellTested");
+                    speak("Pickles' bell gives a tiny chime when the cord moves. Kimmy can test the signal without forcing the old gears.");
+                  }
+                },
+                {
+                  label: "Yank the cord",
+                  description: "A rough shortcut.",
+                  onSelect: () =>
+                    speak("The old cord groans. Kimmy stops before she breaks the very thing she is investigating.")
+                }
+              ]
+            })
+        },
+        {
+          id: "workshop-chart",
+          label: "Lay out star chart",
+          x: 67,
+          y: 72,
+          action: () =>
+            openActionMenu({
+              title: "Chart on the Workbench",
+              image: INSPECTIONS.observatoryChart.image,
+              text:
+                "The star chart fits the workbench scratches exactly. A telescope path, a prism mark, and three moon symbols line up.",
+              actions: [
+                {
+                  label: "Trace light path",
+                  description: "Use Mrs. Wren's chart to plan the dome test.",
+                  requires: () => hasItem("starChart"),
+                  lockedMessage: "Kimmy needs Mrs. Wren's star chart.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("starChartRead");
+                    addClue("starChart");
+                    speak("The chart shows moonlight should travel from telescope to floor rings to prism.");
+                  }
+                },
+                {
+                  label: "Go to dome",
+                  description: "Test the light path upstairs.",
+                  requires: () => getFlag("starChartRead"),
+                  lockedMessage: "Kimmy should trace the chart before testing the dome.",
+                  onSelect: () => navigate("observatoryDome")
+                }
+              ]
+            })
+        },
+        {
+          id: "workshop-lock",
+          label: "Open numbered drawer",
+          x: 50,
+          y: 86,
+          action: () =>
+            openActionMenu({
+              title: "Numbered Archive Drawer",
+              image: "./assets/workshop.png",
+              text:
+                "The drawer lock has three tiny windows. A plate underneath reads: club fee, first mark, moon count.",
+              actions: [
+                {
+                  label: "Try 5 - 17 - 3",
+                  description: "Use Case 01 money, Case 02 height mark, and Case 03 moons.",
+                  requires: () => hasItem("fiveDollars") && hasItem("heightMarkSketch") && getFlag("moonDialClue"),
+                  lockedMessage:
+                    "Kimmy needs Lila's five-dollar fee, the Briar Lane height mark, and the moon dial sketch.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("archiveUnlocked");
+                    addClue("archiveCode");
+                    speak("The drawer clicks open. Kimmy has used clues from three cases to unlock Moonwake's archive.");
+                    navigate("observatoryArchive");
+                  }
+                },
+                {
+                  label: "Try 1 - 2 - 3",
+                  description: "Guess without evidence.",
+                  onSelect: () =>
+                    speak("Nothing moves. Moonwake seems to prefer clues over guesses.")
+                }
+              ]
+            })
+        }
+      ]
+    },
+    observatoryDome: {
+      title: "Moonwake Dome",
+      subtitle: "Telescope Floor",
+      image: "./assets/dome.png",
+      showWhen: () => getFlag("case3Unlocked"),
+      unlockFlag: "observatoryGate",
+      lockedLead:
+        "The dome is past the observatory workshop. Open the gate first.",
+      lead:
+        "Moonlight pours across the dome floor. Brass rings circle a telescope, and a prism waits in the center like a glass question.",
+      hotspots: [
+        {
+          id: "dome-telescope",
+          label: "Align telescope",
+          x: 41,
+          y: 37,
+          action: () =>
+            openActionMenu({
+              title: "Moonwake Telescope",
+              image: "./assets/dome.png",
+              text:
+                "The telescope can swing toward the moon, but the floor marks show it must be aligned with the chart first.",
+              actions: [
+                {
+                  label: "Use star chart",
+                  description: "Line up the telescope with Mrs. Wren's chart.",
+                  requires: () => getFlag("starChartRead"),
+                  lockedMessage: "Kimmy should trace Mrs. Wren's star chart in the workshop first.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("telescopeAligned");
+                    speak("The telescope turns into place. A clean band of moonlight lands on the brass floor rings.");
+                  }
+                },
+                {
+                  label: "Aim at brightest star",
+                  description: "Try the obvious sky target.",
+                  onSelect: () =>
+                    speak("Pretty, but wrong. The chart is about moonlight, not the brightest star.")
+                }
+              ]
+            })
+        },
+        {
+          id: "dome-prism",
+          label: "Inspect floor prism",
+          x: 50,
+          y: 82,
+          action: () =>
+            openActionMenu({
+              title: "Central Prism",
+              image: INSPECTIONS.prismSignal.image,
+              text:
+                "The prism is scratched from years of careful use. If the telescope, dials, and signal cord work together, the flashes may stop being random.",
+              actions: [
+                {
+                  label: "Align prism signal",
+                  description: "Use the chart, dials, telescope, and bell test together.",
+                  requires: () => getFlag("telescopeAligned") && getFlag("moonDialClue") && getFlag("bellTested"),
+                  lockedMessage:
+                    "Kimmy needs the telescope aligned, the moon dial order, and Pickles' bell test before using the prism.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("prismAligned");
+                    addItem("prismNote");
+                    addClue("prismSignal");
+                    openInspection("prismSignal", {
+                      actionLabel: "Record signal answer",
+                      onAction: () => {
+                        speak("Case 03's surface mystery is clearer: Moonwake's flashes are an old prism signal system.");
+                      }
+                    });
+                  }
+                },
+                {
+                  label: "Cover the prism",
+                  description: "Stop the flash instead of explaining it.",
+                  onSelect: () =>
+                    speak("The dome gets darker, but Kimmy still has not explained why the flashes happened.")
+                }
+              ]
+            })
+        },
+        {
+          id: "dome-workshop",
+          label: "Return to workshop",
+          x: 88,
+          y: 78,
+          action: () => navigate("observatoryWorkshop")
+        }
+      ]
+    },
+    observatoryArchive: {
+      title: "Moonwake Archive",
+      subtitle: "Family Ledger",
+      image: "./assets/archive.png",
+      showWhen: () => getFlag("case3Unlocked"),
+      unlockFlag: "archiveUnlocked",
+      lockedLead:
+        "The archive is locked inside the numbered drawer. Use the clues from Kimmy's earlier cases.",
+      lead:
+        "The archive drawer holds old logbooks, maps, and a family ledger with names Kimmy has heard all over town.",
+      hotspots: [
+        {
+          id: "archive-ledger",
+          label: "Read family ledger",
+          x: 49,
+          y: 59,
+          action: () =>
+            openActionMenu({
+              title: "Moonwake Family Ledger",
+              image: INSPECTIONS.archiveLedger.image,
+              text:
+                "The ledger is not a full answer, but it is a door opening. Vale, Wren, and Finch names appear in the same old family branches.",
+              actions: [
+                {
+                  label: "Copy ledger page",
+                  description: "Record the big personal clue.",
+                  requires: () => getFlag("prismAligned"),
+                  lockedMessage: "Kimmy should solve the flashing signal before copying the hidden family ledger.",
+                  primary: true,
+                  onSelect: () => {
+                    setFlag("case3Solved");
+                    addItem("archiveLedger");
+                    addClue("case3Solved");
+                    addClue("lilaCousin");
+                    openCase3Closed();
+                  }
+                },
+                {
+                  label: "Read first line",
+                  description: "Do not jump to the whole family tree yet.",
+                  onSelect: () =>
+                    speak("Kimmy sees one familiar surname, then another. The answer is not simple, but Lila may be part of it.")
+                }
+              ]
+            })
+        },
+        {
+          id: "archive-display",
+          label: "Inspect glass cases",
+          x: 21,
+          y: 63,
+          action: () =>
+            openActionMenu({
+              title: "Old Observatory Cases",
+              image: "./assets/archive.png",
+              text:
+                "The display cases hold badges from old Moonwake volunteers. One tarnished label reads Vale Family Night Watch.",
+              actions: [
+                {
+                  label: "Look for Lila's family",
+                  description: "Connect the Vale name to Moonwake.",
+                  primary: true,
+                  onSelect: () => {
+                    addClue("lilaResemblance");
+                    speak("Kimmy copies the Vale label. Lila's family name might not be just another name from town.");
+                  }
+                },
+                {
+                  label: "Check telescope badges",
+                  description: "Stay on the observatory surface case.",
+                  onSelect: () =>
+                    speak("The badges prove Moonwake was run by town families, not by one official keeper.")
                 }
               ]
             })
@@ -1399,7 +2009,11 @@
     "briarExterior",
     "briarFoyer",
     "briarLiving",
-    "briarNursery"
+    "briarNursery",
+    "observatoryExterior",
+    "observatoryWorkshop",
+    "observatoryDome",
+    "observatoryArchive"
   ];
 
   const PUZZLES = {
@@ -1612,7 +2226,7 @@
     els.toast.classList.add("visible");
     toastTimer = setTimeout(() => {
       els.toast.classList.remove("visible");
-    }, 3400);
+    }, TOAST_DURATION_MS);
   }
 
   function navigate(locationId) {
@@ -1667,7 +2281,19 @@
       els.caseTitle.textContent = currentCase.title;
     }
     els.leadText.textContent = state.lead || location.lead;
-    if (getFlag("briarPortraitClue")) {
+    if (getFlag("lilaCousin")) {
+      els.arcText.textContent =
+        "Moonwake's ledger connects Vale, Wren, and Finch branches. Kimmy is not ready to call Lila her cousin yet, but the clue is too strong to ignore.";
+    } else if (getFlag("case3Solved")) {
+      els.arcText.textContent =
+        "Kimmy solved Moonwake's strange lights and found a family ledger hiding under the surface mystery. Lila's last name may belong in Kimmy's private file.";
+    } else if (getFlag("prismAligned")) {
+      els.arcText.textContent =
+        "The observatory flashes are a prism signal, not magic. Now Kimmy needs to learn why someone wanted her to reach the archive.";
+    } else if (getFlag("case3Unlocked")) {
+      els.arcText.textContent =
+        "Mrs. Wren's star chart and crescent token point Kimmy toward Moonwake Observatory, where the same crescent shape keeps appearing.";
+    } else if (getFlag("briarPortraitClue")) {
       els.arcText.textContent =
         "Kimmy has found a Briar Lane portrait of a young woman with her eyes and a crescent locket. Mrs. Wren knows more than she is saying.";
     } else if (getFlag("grandmotherMet")) {
@@ -1695,6 +2321,12 @@
   }
 
   function getCurrentCase() {
+    if (state.location && state.location.startsWith("observatory")) {
+      return { title: STORY.case3Title };
+    }
+    if (getFlag("case3Unlocked")) {
+      return { title: STORY.case3Title };
+    }
     if (state.location && state.location.startsWith("briar")) {
       return { title: STORY.case2Title };
     }
@@ -1834,10 +2466,19 @@
   }
 
   function renderProgress() {
+    if (getFlag("case3Unlocked")) {
+      const count = CASE3_BEATS.filter(getFlag).length;
+      els.progressText.textContent = getFlag("case3Solved")
+        ? "Case 3 solved"
+        : `Case 3: ${count} of ${CASE3_BEATS.length} leads`;
+      els.progressFill.style.width = `${(count / CASE3_BEATS.length) * 100}%`;
+      return;
+    }
+
     if (getFlag("case2Unlocked")) {
       const count = CASE2_BEATS.filter(getFlag).length;
       els.progressText.textContent = getFlag("briarPortraitClue")
-        ? "Case 2: first room solved"
+        ? "Case 2 solved: take Mrs. Wren's lead"
         : `Case 2: ${count} of ${CASE2_BEATS.length} leads`;
       els.progressFill.style.width = `${(count / CASE2_BEATS.length) * 100}%`;
       return;
@@ -1857,7 +2498,7 @@
 
     const hero = document.createElement("div");
     hero.className = "intro-hero";
-    hero.style.backgroundImage = 'url("./assets/treefort-clubhouse.png")';
+    hero.style.backgroundImage = 'url("./assets/intro-kimmy-family.png")';
 
     const story = document.createElement("div");
     story.className = "intro-copy";
@@ -1867,17 +2508,35 @@
       <p>${STORY.mission}</p>
       <p>${STORY.hook}</p>
       <p>${STORY.seriesArc}</p>
+      <p>At home, Kimmy is safe and loved. At the tree fort, she is brave and useful. In the private back pages of her notebook, she keeps the question no one can answer yet: who gave her the locket, and why did they disappear?</p>
     `;
+
+    const introGallery = document.createElement("div");
+    introGallery.className = "intro-gallery";
+    introGallery.append(
+      createIntroPanel(
+        "./assets/intro-kimmy-family.png",
+        "The Finch Home",
+        "Kimmy's parents give her the one thing every detective needs first: a place where questions are allowed."
+      ),
+      createIntroPanel(
+        "./assets/intro-kimmy-lila-bff.png",
+        "Lila Vale",
+        "Lila is Kimmy's best friend, club partner, and first person to say a mystery out loud when everyone else is guessing."
+      )
+    );
 
     const cast = document.createElement("div");
     cast.className = "cast-grid";
     cast.append(
       createCastCard("./assets/kimmy-avatar.png", "Kimmy Finch", "Founder, clue-spotter, keeper of the crescent locket."),
-      createCastCard("./assets/treefort-clubhouse.png", "Finch Street Mystery Club", "A tree-fort headquarters for maps, books, case files, and neighbor mysteries."),
+      createCastCard("./assets/intro-kimmy-family.png", "The Finches", "Kimmy's adoptive parents love her fiercely and encourage her questions, even when they cannot answer all of them."),
+      createCastCard("./assets/intro-kimmy-lila-bff.png", "Lila Vale", "Kimmy's best friend, first club partner, and the person most likely to climb the tree-fort ladder with an urgent note."),
+      createCastCard("./assets/treefort-clubhouse.png", "Mystery Club HQ", "A tree-fort headquarters for maps, books, case files, and neighbor mysteries."),
       createCastCard("./assets/inspect-family-photo.png", "The Private File", "Kimmy keeps the crescent locket and unlabeled photo separate from club business.")
     );
 
-    body.append(hero, story, cast);
+    body.append(hero, story, introGallery, cast);
 
     const start = document.createElement("button");
     start.type = "button";
@@ -1972,12 +2631,28 @@
   function unlockCase2(message) {
     setFlag("case2Unlocked");
     addItem("fiveDollars");
+    addItem("picklesBell");
     addItem("briarFile");
     addClue("briarLane");
+    addClue("lilaResemblance");
+    speak(message);
+  }
+
+  function unlockCase3(message) {
+    setFlag("observatoryLead");
+    setFlag("case3Unlocked");
+    addItem("starChart");
+    addItem("observatoryToken");
+    addClue("observatoryLead");
     speak(message);
   }
 
   function openCase2Bridge() {
+    if (getFlag("briarPortraitClue") && !getFlag("case3Unlocked")) {
+      openCase2Closed();
+      return;
+    }
+
     if (getFlag("case2Unlocked")) {
       openActionMenu({
         title: "Briar Lane Lead",
@@ -2003,9 +2678,9 @@
 
     openActionMenu({
       title: "Lila's Thank-You",
-      image: NPCS.lila.portrait,
+      image: INSPECTIONS.case1ThankYou.image,
       text:
-        "Lila hugs Pickles so tightly the little bell jingles. She pays the promised five dollars, then admits she was terrified Pickles had gone to Briar Lane House. No one goes there. Mr. Hexibald says to stay away.",
+        "Lila hugs Kimmy and Pickles so tightly the little bell jingles. She jokes that Mrs. Poppy always says they have the same stubborn detective smile, then pays the promised five dollars and admits she was terrified Pickles had gone to Briar Lane House. No one goes there. Mr. Hexibald says to stay away.",
       actions: [
         {
           label: "Ask about Briar Lane",
@@ -2032,6 +2707,100 @@
         }
       ]
     });
+  }
+
+  function openCase2Closed() {
+    const modal = createModal("Case Closed: Briar Lane House", { wide: true });
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const image = document.createElement("img");
+    image.className = "inspection-image";
+    image.src = "./assets/case2-observatory-handoff.png";
+    image.alt = "Mrs. Wren gives Kimmy a star chart and crescent token";
+
+    const summary = document.createElement("div");
+    summary.className = "case-closed-copy";
+    summary.innerHTML = `
+      <p class="panel-label">Solved</p>
+      <p>Briar Lane House was never haunted. The glowing window was a lamp, the knocking was a shutter, and the music was Mrs. Wren playing an old lullaby in a house she loved.</p>
+      <p>Then the case becomes personal. The old girls' room holds a portrait of a woman with Kimmy's eyes and a crescent locket. Mrs. Wren cannot tell Kimmy everything, but she can give her the next clue: a folded star chart and a brass crescent token for Moonwake Observatory.</p>
+    `;
+
+    body.append(image, summary);
+
+    const stay = document.createElement("button");
+    stay.type = "button";
+    stay.className = "modal-button";
+    stay.textContent = "Review Briar clues";
+    stay.addEventListener("click", closeModal);
+
+    const takeLead = document.createElement("button");
+    takeLead.type = "button";
+    takeLead.className = "modal-button primary";
+    takeLead.textContent = "Take observatory clue";
+    takeLead.addEventListener("click", () => {
+      closeModal();
+      unlockCase3("Case 03 begins: Moonwake Observatory is flashing impossible moon signals.");
+      navigate("observatoryExterior");
+    });
+
+    actions.append(stay, takeLead);
+  }
+
+  function openCase3Closed() {
+    const modal = createModal("Case Closed: Moonwake Signals", { wide: true });
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const image = document.createElement("img");
+    image.className = "inspection-image";
+    image.src = "./assets/inspect-archive.png";
+    image.alt = "Moonwake archive ledger with family branches";
+
+    const summary = document.createElement("div");
+    summary.className = "case-closed-copy";
+    summary.innerHTML = `
+      <p class="panel-label">Solved</p>
+      <p>The Moonwake flashes were not magic. They were an old prism signal system, reawakened by the telescope, the moon dials, and a careful signal-cord test with Pickles' bell.</p>
+      <p>The hidden archive needed clues from every case: Lila's five-dollar fee, the Briar Lane height mark, and the three moon phases. Inside, Kimmy finds a ledger connecting Vale, Wren, and Finch family branches. Lila might not just be her best friend. She might be family.</p>
+    `;
+
+    body.append(image, summary);
+
+    const review = document.createElement("button");
+    review.type = "button";
+    review.className = "modal-button";
+    review.textContent = "Review ledger";
+    review.addEventListener("click", closeModal);
+
+    const returnHome = document.createElement("button");
+    returnHome.type = "button";
+    returnHome.className = "modal-button primary";
+    returnHome.textContent = "Return to clubhouse";
+    returnHome.addEventListener("click", () => {
+      closeModal();
+      navigate("clubhouse");
+      speak("Kimmy tapes the Moonwake ledger page into her private file. She is not ready to tell Lila yet, but tomorrow's club meeting will be different.");
+    });
+
+    actions.append(review, returnHome);
+  }
+
+  function createIntroPanel(image, title, text) {
+    const card = document.createElement("article");
+    card.className = "intro-panel";
+    const img = document.createElement("img");
+    img.src = image;
+    img.alt = title;
+    const copy = document.createElement("div");
+    const heading = document.createElement("h4");
+    heading.textContent = title;
+    const paragraph = document.createElement("p");
+    paragraph.textContent = text;
+    copy.append(heading, paragraph);
+    card.append(img, copy);
+    return card;
   }
 
   function createCastCard(image, name, text) {
@@ -2357,15 +3126,15 @@
 
     const image = document.createElement("img");
     image.className = "inspection-image";
-    image.src = "./assets/pickles-rabbit.png";
-    image.alt = "Pickles the rabbit safe in the garden basket";
+    image.src = "./assets/case1-thank-you.png";
+    image.alt = "Kimmy and Lila hug after Pickles is found";
 
     const summary = document.createElement("div");
     summary.className = "case-closed-copy";
     summary.innerHTML = `
       <p class="panel-label">Solved</p>
       <p>Kimmy did not just spot Pickles. She solved the path: Lila's carrot clue led to Mrs. Poppy, the bakery trail led to the park, the paw prints led to the garden, and Mr. Basil taught Kimmy how to coax a nervous rabbit safely.</p>
-      <p>Pickles is safe before the picnic. Now Kimmy needs to return Pickles to Lila, collect the five-dollar case fee, and hear why Lila was afraid of the old house on Briar Lane.</p>
+      <p>Lila hugs Kimmy at the tree fort, pays the five-dollar case fee, and ties Pickles' tiny bell to a mint ribbon for Kimmy's satchel. She also admits why she panicked: she was afraid Pickles had gone near Briar Lane House, where no one is supposed to go.</p>
     `;
 
     body.append(image, summary);
@@ -2472,6 +3241,46 @@
       speak("Hint: return Pickles to Lila at the clubhouse. Her thank-you points Kimmy toward the next mystery.");
       return;
     }
+    if (getFlag("case3Unlocked")) {
+      if (!getFlag("theoTalked")) {
+        speak("Hint: at Moonwake Observatory, talk to Theo about the three flashes and the blank sign-in ledger.");
+        return;
+      }
+      if (!getFlag("observatoryGate")) {
+        speak("Hint: inspect Moonwake's crescent gate and use Mrs. Wren's brass token.");
+        return;
+      }
+      if (!getFlag("starChartRead")) {
+        speak("Hint: lay out Mrs. Wren's star chart and trace the moonlight path.");
+        return;
+      }
+      if (!getFlag("moonDialClue")) {
+        speak("Hint: inspect the moon dials in the workshop and sketch their new-half-full order.");
+        return;
+      }
+      if (!getFlag("bellTested")) {
+        speak("Hint: use Pickles' tiny bell on the signal cord. It is gentle enough to test the old mechanism.");
+        return;
+      }
+      if (!getFlag("telescopeAligned")) {
+        speak("Hint: go to the dome and align the telescope with Mrs. Wren's chart.");
+        return;
+      }
+      if (!getFlag("prismAligned")) {
+        speak("Hint: align the central prism after the telescope, moon dials, and bell test are ready.");
+        return;
+      }
+      if (!getFlag("archiveUnlocked")) {
+        speak("Hint: open the numbered drawer with 5 - 17 - 3. If 17 is missing, revisit the height marks in the Briar Lane girls' room.");
+        return;
+      }
+      if (!getFlag("case3Solved")) {
+        speak("Hint: read the Moonwake family ledger in the archive. The Vale, Wren, and Finch names are the real prize.");
+        return;
+      }
+      speak("Case 03 is solved: the flashes were a prism signal, and the ledger hints that Lila Vale may be Kimmy's cousin.");
+      return;
+    }
     if (!getFlag("hexibaldWarning")) {
       speak("Hint: at Briar Lane, ask Mr. Hexibald why he keeps everyone away.");
       return;
@@ -2502,6 +3311,10 @@
     }
     if (!getFlag("briarPortraitClue")) {
       speak("Hint: use Mrs. Wren's small key upstairs. The old girls' room has a keepsake box.");
+      return;
+    }
+    if (!getFlag("case3Unlocked")) {
+      speak("Hint: take Mrs. Wren's star chart and crescent token. They open the next case at Moonwake Observatory.");
       return;
     }
     if (!getFlag("identityClueFound")) {

@@ -8,14 +8,17 @@ Kimmy Finch is a clever adopted girl who founded the Finch Street Mystery Club. 
 
 - A cheerful Case 01 about finding Pickles, Lila's missing pet rabbit, before the town picnic.
 - A linear bridge from Case 01 into Case 02: Lila pays Kimmy five dollars, then mentions that she feared Pickles had gone near Briar Lane House.
-- The opening of Case 02, a not-so-haunted-house mystery about who is sneaking into an abandoned house at night.
-- Generated locations: tree-fort mystery HQ, bakery patio, picnic park, community garden, Briar Lane exterior, foyer, piano room, and old girls' room.
-- Kimmy portrait, NPC portraits, a cute Pickles close-up, Case 02 character art, and zoomed-in clue art.
+- Case 02, a not-so-haunted-house mystery about who is sneaking into an abandoned house at night.
+- A playable Case 03 slice at Moonwake Observatory, where Kimmy investigates impossible flashing lights and opens an archive with clues from earlier cases.
+- Generated locations: tree-fort mystery HQ, bakery patio, picnic park, community garden, Briar Lane exterior, foyer, piano room, old girls' room, Moonwake gate, workshop, dome, and archive.
+- Kimmy portrait, NPC portraits, a cute Pickles close-up, Case 02 character art, Case 03 observatory art, case-ending story images, and zoomed-in clue art.
+- A richer story intro with Kimmy at home with her adoptive parents, Kimmy and Lila in the tree-fort club, and a clearer explanation of Kimmy's background before the first case begins.
 - Friendly NPC dialogue written for future voice acting. The rejected local system-voice experiment is not exposed in the demo UI.
 - Zork-style action menus on hotspots: inspect, interview, collect, try a wrong move, or unlock a better option after finding the right clue.
 - A gated case flow: Lila opens the case, Mrs. Poppy unlocks the bakery evidence, the bakery trail unlocks the park, the park prints unlock the garden, and Mr. Basil unlocks the final rabbit-coaxing puzzle.
 - A notebook, clue bag, long-mystery panel, progress meter, story button, reset button, and map navigation.
-- Serialized clues: Kimmy notices a crescent-and-star mark like her locket, Mrs. Poppy nearly calls her Mara, an old photograph shows someone who looks like Kimmy, and Briar Lane holds a portrait and old room that feel personal without proving everything.
+- A satchel loop where objects from earlier cases matter later: Pickles' bell, Lila's five-dollar fee, the 17-inch Briar Lane height-mark sketch, Mrs. Wren's star chart, and the crescent observatory token all feed Case 03.
+- Serialized clues: Kimmy notices a crescent-and-star mark like her locket, Mrs. Poppy nearly calls her Mara, an old photograph shows someone who looks like Kimmy, Briar Lane holds a portrait and old room that feel personal, and Moonwake's ledger hints that Lila Vale may be Kimmy's cousin.
 - `voice-script.json` defines the character lines and target filenames for future proper voice assets.
 - `story-bible.md` captures the longer family-mystery arc and early chapter direction.
 
@@ -43,4 +46,4 @@ node mystery/tools/generate-voices.mjs --dry-run
 
 ## Asset notes
 
-The current Case 01 and Case 02 art are live in the demo. Earlier Moonwake Observatory concept art is preserved in `assets/` for Case 03, not the haunted-house chapter.
+The current Case 01, Case 02, and early Case 03 art are live in the demo. Moonwake Observatory uses the earlier observatory concept assets, while the haunted-house chapter uses separate Briar Lane assets.
