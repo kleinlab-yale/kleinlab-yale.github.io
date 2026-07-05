@@ -132,7 +132,7 @@
       image: "./assets/inspect-rabbit-clues.jpg",
       inspectTitle: "Five-Dollar Case Fee",
       inspectText:
-        "The Finch Street Mystery Club's first paid case earned five dollars. Kayla tucks it away; a future clue may need bus fare, a copy fee, or a very useful snack."
+        "The Finch Street Mystery Club's first paid case earned five dollars. Kayla tucks it in the club jar as a memory of helping Mila and Pickles."
     },
     briarFile: {
       label: "Briar Lane File",
@@ -310,7 +310,7 @@
     prismSignal:
       "Case 03 answer: the mysterious flashes are moonlight bouncing through a prism signal system, not magic.",
     archiveCode:
-      "Moonwake code clue: the archive lock uses numbers from earlier cases: Mila's five dollars, the old height mark, and the three moon phases.",
+      "Moonwake code clue: the archive lock uses numbers from old family clues: five locket stars, the 17-inch height mark, and the three moon phases.",
     case3Solved:
       "Case solved: Kayla opens the Moonwake archive and finds a ledger linking Gale, Wren, and Kline family branches.",
     milaCousin:
@@ -340,7 +340,7 @@
     photoBacking:
       "Long mystery clue: after Kayla restores the torn photograph, the back reveals a tiny crescent stamp and the initials M.K., as if someone wanted the picture found later.",
     identity:
-      "Long mystery clue: the picnic invitation stamp has a tiny crescent-and-star mark like Kayla's locket.",
+      "Long mystery clue: the picnic invitation stamp has a tiny crescent-and-star mark like Kayla's locket. Kayla counts five little stars around the crescent.",
     solved:
       "Case solved: Pickles was hiding safely in the community garden basket. Kayla found her by following every clue in order and earned the club's first five-dollar fee."
   };
@@ -458,7 +458,7 @@
       title: "Kayla's Crescent Locket",
       image: "./assets/inspect-kimmy-locket.jpg",
       text:
-        "Kayla's old locket rests beside the picnic envelope. The tiny stamp on the envelope has the same crescent-and-star curve, as if someone wanted her to notice it."
+        "Kayla's old locket rests beside the picnic envelope. The tiny stamp on the envelope has the same crescent curve and five little stars, as if someone wanted her to notice it years later."
     },
     pickles: {
       title: "A Cozy Hiding Spot",
@@ -666,7 +666,7 @@
                   label: "Check the fee",
                   description: "Remember the first paid case reward.",
                   onSelect: () =>
-                    speak("Kayla has five dollars from Mila's case. She saves it in the club jar for future investigating.")
+                    speak("Kayla has five dollars from Mila's case. She saves it in the club jar as proof the Mystery Club helped a neighbor.")
                 }
               ]
             })
@@ -698,7 +698,7 @@
                   label: "Check satchel keys",
                   description: "Remember which earlier items may matter.",
                   onSelect: () =>
-                    speak("Kayla checks her satchel: Pickles' bell from Mila, the five-dollar fee, Mrs. Wren's chart, and the crescent token all feel useful.")
+                    speak("Kayla checks her satchel: Pickles' bell from Mila, Mrs. Wren's chart, the crescent token, and her own locket clues all feel useful.")
                 }
               ]
             })
@@ -740,7 +740,7 @@
               title: "Kayla's Crescent Locket",
               image: INSPECTIONS.locket.image,
               text:
-                "The locket is Kayla's oldest clue. The picnic envelope beside it has a familiar tiny stamp.",
+                "The locket is Kayla's oldest clue. The picnic envelope beside it has a familiar tiny crescent-and-five-stars stamp.",
               actions: [
                 {
                   label: "Compare symbols",
@@ -753,7 +753,7 @@
                         setFlag("identityClueFound");
                         addClue("identity");
                         speak(
-                          "Kayla notices the picnic envelope has a crescent-and-star mark like her locket. Interesting, but Pickles comes first."
+                          "Kayla notices the picnic envelope has a crescent-and-five-stars mark like her locket. Five stars feels too deliberate to forget."
                         );
                       }
                     })
@@ -2002,21 +2002,27 @@
               title: "Numbered Archive Drawer",
               image: "./assets/workshop.jpg",
               text:
-                "The drawer lock has three tiny windows. A plate underneath reads: club fee, first mark, moon count.",
+                "The drawer lock has three tiny windows. A plate underneath reads: star count, first mark, moon count. Kayla translates it as locket stars, Briar Lane height mark, Moonwake phases.",
               actions: [
                 {
                   label: "Try 5 - 17 - 3",
-                  description: "Use Case 01 money, Case 02 height mark, and Case 03 moons.",
-                  requires: () => hasItem("fiveDollars") && hasItem("heightMarkSketch") && getFlag("moonDialClue"),
+                  description: "5 is the locket's star count, 17 is the Briar nursery mark, and 3 is the moon-dial count.",
+                  requires: () => getFlag("identityClueFound") && hasItem("heightMarkSketch") && getFlag("moonDialClue"),
                   lockedMessage:
-                    "Kayla needs Mila's five-dollar fee, the Briar Lane height mark, and the moon dial sketch.",
+                    "Kayla needs three lasting clues: five stars on the locket mark, the 17-inch mark in the Briar Lane nursery, and the moon-dial sketch from this workshop.",
                   primary: true,
                   onSelect: () => {
                     setFlag("archiveUnlocked");
                     addClue("archiveCode");
-                    speak("The drawer clicks open. Kayla has used clues from three cases to unlock Moonwake's archive.");
+                    speak("The drawer clicks open. Kayla has used old clues that could survive for years to unlock Moonwake's archive.");
                     navigate("observatoryArchive");
                   }
+                },
+                {
+                  label: "Review number clues",
+                  description: "Spell out the code before trying the drawer.",
+                  onSelect: () =>
+                    speak("Kayla writes the drawer code in her notebook: five stars on her locket mark, 17 from the Briar Lane nursery height mark, and 3 from the Moonwake dials.")
                 },
                 {
                   label: "Try 1 - 2 - 3",
@@ -3019,9 +3025,23 @@
           hotspotIds: ["dome-prism"]
         };
       }
+      if (!getFlag("identityClueFound")) {
+        return {
+          text: "Return to the tree fort and inspect Kayla's locket. Its five tiny stars are the first archive number.",
+          locationId: "clubhouse",
+          hotspotIds: ["club-locket"]
+        };
+      }
+      if (!hasItem("heightMarkSketch")) {
+        return {
+          text: "Revisit Briar Lane's old girls' room and copy the 17-inch height mark.",
+          locationId: "briarNursery",
+          hotspotIds: ["nursery-toy-drawer", "nursery-height"]
+        };
+      }
       if (!getFlag("archiveUnlocked")) {
         return {
-          text: "Open the workshop drawer with the numbers from Cases 1, 2, and 3.",
+          text: "Open the workshop drawer with 5 - 17 - 3: five locket stars, the 17-inch height mark, and three moon phases.",
           locationId: "observatoryWorkshop",
           hotspotIds: ["workshop-lock"]
         };
@@ -3295,7 +3315,7 @@
           onSelect: solved && !getFlag("case4Unlocked")
             ? openCase4Bridge
             : () =>
-                speak("Kayla checks her satchel: Mila's five dollars, the 17-inch height mark, and three moon phases might be more than souvenirs.")
+                speak("Kayla checks the old family clues: 5 stars on her locket mark, 17 on the Briar Lane height mark, and 3 moon phases on the Moonwake dials might open the archive drawer.")
         },
         {
           label: solved ? "Add to personal file" : "Review personal thread",
@@ -3982,10 +4002,10 @@
         },
         {
           label: "Put $5 in the club jar",
-          description: "Save the fee for a future investigation.",
+          description: "Save the first case reward.",
           onSelect: () => {
             addItem("fiveDollars");
-            speak("Kayla saves the five dollars in the club jar. A future case may need bus fare, a copy fee, or exactly one strategic snack.");
+            speak("Kayla saves the five dollars in the club jar. It is a memory of the club's first paid case, not part of her older family trail.");
           }
         }
       ]
@@ -4050,7 +4070,7 @@
     summary.innerHTML = `
       <p class="panel-label">Solved</p>
       <p>The Moonwake flashes were not magic. They were an old prism signal system, reawakened by the telescope, the moon dials, and a careful signal-cord test with Pickles' bell.</p>
-      <p>The hidden archive needed clues from every case: Mila's five-dollar fee, the Briar Lane height mark, and the three moon phases. Inside, Kayla finds a ledger connecting Gale, Wren, and Kline family branches. Mila might not just be her best friend. She might be family.</p>
+      <p>The hidden archive needed clues that could survive for years: the five stars on Kayla's locket mark, the Briar Lane height mark, and the three moon phases. Inside, Kayla finds a ledger connecting Gale, Wren, and Kline family branches. Mila might not just be her best friend. She might be family.</p>
       <div class="case-transition-card">
         <p class="panel-label">Next case unlocked</p>
         <h4>Case 04: The Vanishing Blue Book</h4>
@@ -5211,7 +5231,7 @@
         return;
       }
       if (!getFlag("archiveUnlocked")) {
-        speak("Hint: open the numbered drawer with 5 - 17 - 3. If 17 is missing, revisit the height marks in the Briar Lane girls' room.");
+        speak("Hint: open the numbered drawer with 5 - 17 - 3: five locket stars, the 17-inch Briar Lane height mark, and three Moonwake phases.");
         return;
       }
       if (!getFlag("case3Solved")) {

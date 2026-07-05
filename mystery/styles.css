@@ -699,6 +699,9 @@ h1 {
 
 .intro-modal .modal-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-flow: row;
+  align-items: start;
   gap: 1rem;
 }
 
@@ -718,7 +721,7 @@ h1 {
 }
 
 .intro-hero {
-  min-height: 0;
+  height: clamp(13rem, 54vw, 31rem);
   aspect-ratio: 16 / 9;
   background-size: cover;
   background-position: center;
@@ -727,6 +730,10 @@ h1 {
 .intro-copy {
   display: grid;
   gap: 0.55rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(39, 52, 47, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 250, 240, 0.88);
 }
 
 .intro-copy p {
@@ -1447,7 +1454,7 @@ h1 {
   }
 
   .intro-hero {
-    min-height: 0;
+    height: clamp(12rem, 56vw, 18rem);
   }
 
   .dialogue-card img {
