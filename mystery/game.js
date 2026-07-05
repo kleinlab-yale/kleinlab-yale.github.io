@@ -1,5 +1,5 @@
 (function () {
-  const APP_BUILD_ID = "20260704-case4-library1";
+  const APP_BUILD_ID = "20260705-assets2";
   const STORAGE_KEY = "kimmy-finch-mysteries-save";
   const RESET_MARKER_KEY = "kimmy-finch-mysteries-reset-build";
   const FORCE_RESET_ON_BUILD = "20260704-shell1";
@@ -31,10 +31,12 @@
 
   const CASE3_BEATS = [
     "case3Unlocked",
-    "observatoryGate",
     "theoTalked",
-    "moonDialClue",
+    "observatoryGate",
     "starChartRead",
+    "moonDialClue",
+    "bellTested",
+    "telescopeAligned",
     "prismAligned",
     "archiveUnlocked",
     "case3Solved"
@@ -128,11 +130,11 @@
     },
     fiveDollars: {
       label: "$5 Case Fee",
-      description: "Mila's crinkled thank-you payment for finding Pickles.",
+      description: "Mila's crinkled thank-you payment, saved in Kayla's satchel for a later purchase.",
       image: "./assets/inspect-rabbit-clues.jpg",
       inspectTitle: "Five-Dollar Case Fee",
       inspectText:
-        "The Finch Street Mystery Club's first paid case earned five dollars. Kayla tucks it in the club jar as a memory of helping Mila and Pickles."
+        "The Finch Street Mystery Club's first paid case earned five dollars. Kayla keeps it folded in her satchel in case a later clue needs a careful purchase."
     },
     briarFile: {
       label: "Briar Lane File",
@@ -161,7 +163,7 @@
     heightMarkSketch: {
       label: "Height Mark Sketch",
       description: "Kayla's copy of the old 17-inch mark in the girls' room.",
-      image: "./assets/mini-moon-maze.jpg",
+      image: "./assets/inspect-height-mark.jpg",
       inspectTitle: "Height Mark Sketch",
       inspectText:
         "Kayla copied the little 17-inch mark from the nursery doorframe. It is too small for her now, but the number feels saved for a reason."
@@ -177,7 +179,7 @@
     starChart: {
       label: "Mrs. Wren's Star Chart",
       description: "A folded chart pointing toward Moonwake Observatory.",
-      image: "./assets/case2-observatory-handoff.jpg",
+      image: "./assets/inspect-star-chart.jpg",
       inspectTitle: "Mrs. Wren's Star Chart",
       inspectText:
         "The paper shows the Moonwake Observatory dome and three moon phases circled in old ink. Mrs. Wren would not say who drew it."
@@ -209,7 +211,7 @@
     archiveLedger: {
       label: "Moonwake Ledger",
       description: "A copied page from the observatory family ledger.",
-      image: "./assets/inspect-archive.jpg",
+      image: "./assets/inspect-archive-ledger.jpg",
       inspectTitle: "Moonwake Ledger",
       inspectText:
         "The ledger connects the Gale, Wren, and Kline names through old family branches. Kayla underlines Mila Gale and the unfamiliar Kline branch twice."
@@ -456,7 +458,7 @@
     },
     locket: {
       title: "Kayla's Crescent Locket",
-      image: "./assets/inspect-kimmy-locket.jpg",
+      image: "./assets/inspect-kimmy-locket.jpg?v=20260705-stamp1",
       text:
         "Kayla's old locket rests beside the picnic envelope. The tiny stamp on the envelope has the same crescent curve and five little stars, as if someone wanted her to notice it years later."
     },
@@ -504,7 +506,7 @@
     },
     heightMarks: {
       title: "Old Girls' Room",
-      image: "./assets/case2-nursery.jpg",
+      image: "./assets/inspect-height-mark.jpg",
       text:
         "The room has been kept gently, not cleaned. A rocking chair, a toy shelf, and tiny height marks suggest someone could not bear to let it disappear. One old pencil mark reads 17 inches, but a sliding toy panel covers the clearest view."
     },
@@ -524,11 +526,11 @@
       title: "Moon Phase Dials",
       image: "./assets/inspect-dials.jpg",
       text:
-        "Three brass dials show new moon, half moon, and full moon. Below them, a tiny plate is scratched with old numbers: 5, 17, 3."
+        "Three brass dials show new moon, half moon, and full moon. Kayla counts the phases twice: three, in a deliberate order."
     },
     observatoryChart: {
       title: "Star Chart Alignment",
-      image: "./assets/case2-observatory-handoff.jpg",
+      image: "./assets/inspect-star-chart.jpg",
       text:
         "The chart does not show a route through town. It shows how moonlight should travel through the observatory floor rings."
     },
@@ -540,7 +542,7 @@
     },
     archiveLedger: {
       title: "Moonwake Family Ledger",
-      image: "./assets/inspect-archive.jpg",
+      image: "./assets/inspect-archive-ledger.jpg",
       text:
         "The ledger is old, careful, and full of family branches. Kayla sees Gale near Kline, and Mila's name suddenly feels much less random."
     },
@@ -666,7 +668,7 @@
                   label: "Check the fee",
                   description: "Remember the first paid case reward.",
                   onSelect: () =>
-                    speak("Kayla has five dollars from Mila's case. She saves it in the club jar as proof the Mystery Club helped a neighbor.")
+                    speak("Kayla has five dollars from Mila's case tucked in her satchel. It is proof the Mystery Club helped a neighbor, and it may buy something useful later.")
                 }
               ]
             })
@@ -1997,41 +1999,7 @@
           label: "Open numbered drawer",
           x: 50,
           y: 86,
-          action: () =>
-            openActionMenu({
-              title: "Numbered Archive Drawer",
-              image: "./assets/workshop.jpg",
-              text:
-                "The drawer lock has three tiny windows. A plate underneath reads: star count, first mark, moon count. Kayla translates it as locket stars, Briar Lane height mark, Moonwake phases.",
-              actions: [
-                {
-                  label: "Try 5 - 17 - 3",
-                  description: "5 is the locket's star count, 17 is the Briar nursery mark, and 3 is the moon-dial count.",
-                  requires: () => getFlag("identityClueFound") && hasItem("heightMarkSketch") && getFlag("moonDialClue"),
-                  lockedMessage:
-                    "Kayla needs three lasting clues: five stars on the locket mark, the 17-inch mark in the Briar Lane nursery, and the moon-dial sketch from this workshop.",
-                  primary: true,
-                  onSelect: () => {
-                    setFlag("archiveUnlocked");
-                    addClue("archiveCode");
-                    speak("The drawer clicks open. Kayla has used old clues that could survive for years to unlock Moonwake's archive.");
-                    navigate("observatoryArchive");
-                  }
-                },
-                {
-                  label: "Review number clues",
-                  description: "Spell out the code before trying the drawer.",
-                  onSelect: () =>
-                    speak("Kayla writes the drawer code in her notebook: five stars on her locket mark, 17 from the Briar Lane nursery height mark, and 3 from the Moonwake dials.")
-                },
-                {
-                  label: "Try 1 - 2 - 3",
-                  description: "Guess without evidence.",
-                  onSelect: () =>
-                    speak("Nothing moves. Moonwake seems to prefer clues over guesses.")
-                }
-              ]
-            })
+          action: openArchiveDrawerLock
         }
       ]
     },
@@ -2134,7 +2102,7 @@
       showWhen: () => getFlag("case3Unlocked"),
       unlockFlag: "archiveUnlocked",
       lockedLead:
-        "The archive is locked inside the numbered drawer. Use the clues from Kayla's earlier cases.",
+        "The archive is locked inside the numbered drawer. Use the lasting family clues: locket stars, first height mark, and moon phases.",
       lead:
         "The archive drawer holds old logbooks, maps, and a family ledger with names Kayla has heard all over town.",
       hotspots: [
@@ -2538,6 +2506,16 @@
     start: "GRAEF"
   };
 
+  const ARCHIVE_LOCK = {
+    answer: [5, 17, 3],
+    start: [0, 0, 0],
+    dials: [
+      { label: "Locket stars", min: 0, max: 9 },
+      { label: "First mark", min: 0, max: 30 },
+      { label: "Moon phases", min: 0, max: 9 }
+    ]
+  };
+
   const state = loadState();
   let toastTimer = null;
   let activeAudio = null;
@@ -2662,6 +2640,68 @@
 
   function hasClue(clueId) {
     return state.clues.includes(clueId);
+  }
+
+  function getArchiveCodeMissingParts() {
+    const missing = [];
+    if (!getFlag("identityClueFound")) {
+      missing.push("the five-star locket mark at the tree fort");
+    }
+    if (!hasItem("heightMarkSketch")) {
+      missing.push("the 17-inch height mark in Briar Lane's old girls' room");
+    }
+    if (!getFlag("moonDialClue")) {
+      missing.push("the three moon phases in the Moonwake workshop");
+    }
+    return missing;
+  }
+
+  function isArchiveCodeReady() {
+    return getArchiveCodeMissingParts().length === 0;
+  }
+
+  function isArchiveDrawerReady() {
+    return getFlag("prismAligned") && isArchiveCodeReady();
+  }
+
+  function getArchiveDrawerActionDescription() {
+    if (isArchiveDrawerReady()) {
+      return "Set the wheels in order: locket stars, first height mark, moon phases. Use Review clues if Kayla needs to double-check.";
+    }
+    if (!getFlag("prismAligned")) {
+      return "Solve the flashing signal in the dome first, then use the lasting family numbers.";
+    }
+    return "Use the star count, first mark, and moon count. Kayla needs all three before trying.";
+  }
+
+  function getArchiveCodeReviewText() {
+    const known = [];
+    if (getFlag("identityClueFound")) {
+      known.push("5 stars on Kayla's locket mark");
+    }
+    if (hasItem("heightMarkSketch")) {
+      known.push("17 inches on the Briar Lane height mark");
+    }
+    if (getFlag("moonDialClue")) {
+      known.push("3 phases on the Moonwake dials");
+    }
+    const missing = getArchiveCodeMissingParts();
+    if (missing.length > 0) {
+      return `Kayla checks the archive pattern: star count, first mark, moon count. She has ${known.length ? known.join(", ") : "none of the numbers yet"}. Still missing: ${missing.join("; ")}.`;
+    }
+    if (!getFlag("prismAligned")) {
+      return "Kayla has all three old family numbers: 5 stars on her locket mark, 17 inches on the Briar Lane height mark, and 3 Moonwake phases. The drawer can wait until she solves the flashing signal.";
+    }
+    return "Kayla checks the archive pattern: star count, first mark, moon count. Her old clues make 5 - 17 - 3.";
+  }
+
+  function getArchiveDrawerLockedMessage() {
+    const missing = [];
+    if (!getFlag("prismAligned")) {
+      missing.push("the solved prism signal in the dome");
+    }
+    missing.push(...getArchiveCodeMissingParts());
+    return `Kayla cannot try the archive code yet. Missing: ${missing.join("; ")}.`;
   }
 
   function getFlag(flag) {
@@ -3286,7 +3326,7 @@
       const solved = getFlag("case3Solved");
       const detail = {
         title: solved ? "Case Board: Moonwake Archive" : "Case Board: Moonwake Observatory",
-        image: solved ? "./assets/inspect-archive.jpg" : "./assets/case2-observatory-handoff.jpg",
+        image: solved ? "./assets/inspect-archive-ledger.jpg" : "./assets/case2-observatory-handoff.jpg",
         text: solved
           ? "The board has shifted to the family ledger Kayla found at Moonwake. This case is solved, and the Kline branch points to Rowan Library."
           : "Mrs. Wren's star chart and crescent token are pinned as the current case file. The question is why Moonwake flashes after midnight.",
@@ -3314,8 +3354,7 @@
           primary: solved && !getFlag("case4Unlocked"),
           onSelect: solved && !getFlag("case4Unlocked")
             ? openCase4Bridge
-            : () =>
-                speak("Kayla checks the old family clues: 5 stars on her locket mark, 17 on the Briar Lane height mark, and 3 moon phases on the Moonwake dials might open the archive drawer.")
+            : () => speak(getArchiveCodeReviewText())
         },
         {
           label: solved ? "Add to personal file" : "Review personal thread",
@@ -4001,11 +4040,11 @@
           }
         },
         {
-          label: "Put $5 in the club jar",
-          description: "Save the first case reward.",
+          label: "Pack $5 in satchel",
+          description: "Save the first case reward for a later purchase.",
           onSelect: () => {
             addItem("fiveDollars");
-            speak("Kayla saves the five dollars in the club jar. It is a memory of the club's first paid case, not part of her older family trail.");
+            speak("Kayla folds the five dollars into her satchel. It is not part of the archive code, but it may matter when a case needs a purchase.");
           }
         }
       ]
@@ -4062,7 +4101,7 @@
 
     const image = document.createElement("img");
     image.className = "inspection-image";
-    image.src = "./assets/inspect-archive.jpg";
+    image.src = "./assets/inspect-archive-ledger.jpg";
     image.alt = "Moonwake archive ledger with family branches";
 
     const summary = document.createElement("div");
@@ -4220,8 +4259,12 @@
 
       button.addEventListener("click", () => {
         if (!isAvailable) {
+          const lockedMessage =
+            typeof menuAction.lockedMessage === "function"
+              ? menuAction.lockedMessage()
+              : menuAction.lockedMessage;
           feedback.hidden = false;
-          feedback.textContent = menuAction.lockedMessage || "Kayla needs another clue first.";
+          feedback.textContent = lockedMessage || "Kayla needs another clue first.";
           showToast(feedback.textContent);
           return;
         }
@@ -4899,6 +4942,173 @@
     modal.focus();
   }
 
+  function openArchiveDrawerLock() {
+    const modal = createModal("Numbered Archive Drawer", { wide: true });
+    modal.classList.add("mini-game-modal", "archive-lock-modal");
+    modal.tabIndex = -1;
+
+    const body = modal.querySelector(".modal-body");
+    const actions = modal.querySelector(".modal-actions");
+
+    const intro = document.createElement("div");
+    intro.className = "mini-game-intro";
+    intro.innerHTML = `
+      <p class="panel-label">Combination Lock</p>
+      <p>The drawer has three rotating number wheels. The plate underneath reads: star count, first mark, moon count.</p>
+    `;
+
+    const board = document.createElement("div");
+    board.className = "archive-lock-board";
+    board.setAttribute("role", "application");
+    board.setAttribute("aria-label", "Archive drawer number dials");
+
+    const feedback = document.createElement("p");
+    feedback.className = "mini-game-status";
+
+    let values = getFlag("archiveUnlocked")
+      ? [...ARCHIVE_LOCK.answer]
+      : [...ARCHIVE_LOCK.start];
+    let solved = getFlag("archiveUnlocked");
+
+    function formatArchiveValue(value, index) {
+      return index === 1 ? String(value).padStart(2, "0") : String(value);
+    }
+
+    function cycleArchiveDial(index, delta) {
+      if (solved) {
+        return;
+      }
+      const dial = ARCHIVE_LOCK.dials[index];
+      const span = dial.max - dial.min + 1;
+      values[index] = ((values[index] - dial.min + delta + span) % span) + dial.min;
+      renderArchiveLock();
+    }
+
+    function bumpArchiveLock() {
+      board.classList.remove("bump");
+      requestAnimationFrame(() => {
+        board.classList.add("bump");
+        setTimeout(() => board.classList.remove("bump"), 220);
+      });
+    }
+
+    function renderArchiveLock() {
+      board.replaceChildren();
+      values.forEach((value, index) => {
+        const dialConfig = ARCHIVE_LOCK.dials[index];
+        const dial = document.createElement("div");
+        dial.className = "archive-dial";
+
+        const label = document.createElement("span");
+        label.className = "archive-dial-label";
+        label.textContent = dialConfig.label;
+
+        const up = document.createElement("button");
+        up.type = "button";
+        up.className = "archive-step";
+        up.textContent = "+";
+        up.setAttribute("aria-label", `Increase ${dialConfig.label} dial`);
+        up.addEventListener("click", () => cycleArchiveDial(index, 1));
+
+        const display = document.createElement("button");
+        display.type = "button";
+        display.className = "archive-number";
+        display.textContent = formatArchiveValue(value, index);
+        display.setAttribute("aria-label", `${dialConfig.label} dial: ${value}`);
+        display.addEventListener("click", () => cycleArchiveDial(index, 1));
+
+        const down = document.createElement("button");
+        down.type = "button";
+        down.className = "archive-step";
+        down.textContent = "-";
+        down.setAttribute("aria-label", `Decrease ${dialConfig.label} dial`);
+        down.addEventListener("click", () => cycleArchiveDial(index, -1));
+
+        dial.append(label, up, display, down);
+        board.append(dial);
+      });
+      board.classList.toggle("solved", solved);
+      feedback.textContent = solved
+        ? "The archive drawer is open. Kayla can read the family ledger inside."
+        : getArchiveDrawerActionDescription();
+      enterArchive.hidden = !solved;
+    }
+
+    function submitArchiveLock() {
+      if (!isArchiveDrawerReady()) {
+        feedback.textContent = getArchiveDrawerLockedMessage();
+        showToast(feedback.textContent);
+        bumpArchiveLock();
+        return;
+      }
+      if (!arraysMatch(values, ARCHIVE_LOCK.answer)) {
+        changeXp(-2, "XP -2: the archive wheels need the exact family numbers.");
+        feedback.textContent = "The drawer clicks once, then stays shut. Set the wheels in order: stars, first mark, moon phases.";
+        showToast(`${feedback.textContent} ${pendingXpMessage || ""}`.trim());
+        pendingXpMessage = "";
+        bumpArchiveLock();
+        return;
+      }
+      if (!solved) {
+        solved = true;
+        setFlag("archiveUnlocked");
+        addClue("archiveCode");
+        changeXp(10, "XP +10: solved the archive combination lock.", { once: "mini:archiveLock" });
+      }
+      closeModal();
+      speak("The three dials settle on 5 - 17 - 3. The drawer clicks open, using old clues that could survive for years.");
+      navigate("observatoryArchive");
+    }
+
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "modal-button";
+    reset.textContent = "Reset Dials";
+    reset.addEventListener("click", () => {
+      if (solved) {
+        speak("The archive drawer is already open. Kayla leaves the 5 - 17 - 3 setting in her notes.");
+        return;
+      }
+      values = [...ARCHIVE_LOCK.start];
+      renderArchiveLock();
+    });
+
+    const review = document.createElement("button");
+    review.type = "button";
+    review.className = "modal-button";
+    review.textContent = "Review clues";
+    review.addEventListener("click", () => {
+      feedback.textContent = getArchiveCodeReviewText();
+      showToast(feedback.textContent);
+    });
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "modal-button";
+    close.textContent = "Close";
+    close.addEventListener("click", closeModal);
+
+    const submit = document.createElement("button");
+    submit.type = "button";
+    submit.className = "modal-button primary";
+    submit.textContent = "Try lock";
+    submit.addEventListener("click", submitArchiveLock);
+
+    const enterArchive = document.createElement("button");
+    enterArchive.type = "button";
+    enterArchive.className = "modal-button primary";
+    enterArchive.textContent = "Enter archive";
+    enterArchive.addEventListener("click", () => {
+      closeModal();
+      navigate("observatoryArchive");
+    });
+
+    body.append(intro, board, feedback);
+    actions.append(reset, review, close, submit, enterArchive);
+    renderArchiveLock();
+    modal.focus();
+  }
+
   function openSequencePuzzle(puzzleId) {
     const puzzle = PUZZLES[puzzleId];
     if (!puzzle) {
@@ -5228,6 +5438,14 @@
       }
       if (!getFlag("prismAligned")) {
         speak("Hint: align the central prism after the telescope, moon dials, and bell test are ready.");
+        return;
+      }
+      if (!getFlag("identityClueFound")) {
+        speak("Hint: return to the tree fort and inspect Kayla's locket. Count the five little stars around the crescent mark.");
+        return;
+      }
+      if (!hasItem("heightMarkSketch")) {
+        speak("Hint: revisit Briar Lane's old girls' room and copy the 17-inch height mark behind the moon-maze latch.");
         return;
       }
       if (!getFlag("archiveUnlocked")) {
