@@ -1,2 +1,4 @@
 # Local scratch voice exports are not shipped until the clips meet the quality bar.
 *.wav
+!briar-piano-random.wav
+!briar-piano-tune.wav

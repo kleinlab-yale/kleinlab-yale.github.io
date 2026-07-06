@@ -1,5 +1,5 @@
 (function () {
-  const APP_BUILD_ID = "20260705-assets2";
+  const APP_BUILD_ID = "20260706-piano-audio1";
   const STORAGE_KEY = "kimmy-finch-mysteries-save";
   const RESET_MARKER_KEY = "kimmy-finch-mysteries-reset-build";
   const FORCE_RESET_ON_BUILD = "20260704-shell1";
@@ -81,6 +81,11 @@
     locket: "./assets/audio/locket.wav",
     pickles: "",
     coaxPickles: "./assets/audio/coax-pickles.wav"
+  };
+
+  const SOUND_CLIPS = {
+    briarPianoTune: "./assets/audio/briar-piano-tune.wav",
+    briarPianoRandom: "./assets/audio/briar-piano-random.wav"
   };
 
   const AUDIO_MISSING_MESSAGE =
@@ -1501,16 +1506,19 @@
                   description: "Find the source of the ghost music.",
                   primary: true,
                   onSelect: () => {
+                    playSoundClip("briarPianoTune");
                     setFlag("briarMusicClue");
                     addClue("briarMusic");
                     speak("The haunted music is a piano lullaby. Kayla almost knows it, which bothers her more than the rumor did.");
                   }
                 },
                 {
-                  label: "Press random keys",
+                  label: "Play random keys",
                   description: "Make noise before thinking.",
-                  onSelect: () =>
+                  onSelect: () => {
+                    playSoundClip("briarPianoRandom");
                     speak("The notes wobble through the room. Kayla decides the house has enough rumors already.")
+                  }
                 }
               ]
             })
@@ -2831,6 +2839,20 @@
     activeAudio.play().catch(() => {
       showToast("Could not play this voice clip.");
     });
+  }
+
+  function playSoundClip(clipId) {
+    const src = SOUND_CLIPS[clipId];
+    if (!src) {
+      return;
+    }
+    if (activeAudio) {
+      activeAudio.pause();
+      activeAudio.currentTime = 0;
+    }
+    activeAudio = new Audio(src);
+    activeAudio.volume = 0.82;
+    activeAudio.play().catch(() => {});
   }
 
   async function toggleVoice() {
