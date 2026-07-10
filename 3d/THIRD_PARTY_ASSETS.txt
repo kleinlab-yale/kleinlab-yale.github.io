@@ -1,0 +1,32 @@
+WILLOWMERE VILLAGE — THIRD-PARTY ASSETS
+
+The game code and interface are original to this project. The following 3D
+model packs are distributed under Creative Commons Zero (CC0 1.0) and are
+bundled locally so the game makes no runtime API calls.
+
+KayKit Character Pack: Adventurers
+https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0
+Used for the animated player base model.
+
+Kenney Cube Pets
+https://kenney.nl/assets/cube-pets
+Used for the cat, dog, and bunny companion models.
+
+Kenney City Kit: Suburban
+https://kenney.nl/assets/city-kit-suburban
+Used for village building models.
+
+Kenney Nature Kit
+https://kenney.nl/assets/nature-kit
+Used for trees, flowers, grasses, bushes, mushrooms, and stones.
+
+Kenney Fantasy Town Kit
+https://kenney.nl/assets/fantasy-town-kit
+Used for village props including the fountain, market stall, lanterns, cart,
+fence, and hedges.
+
+Kenney Furniture Kit
+https://kenney.nl/assets/furniture-kit
+Used for collectible and placeable cottage furniture.
+
+Copies of each source pack's license are included in the licenses directory.

@@ -1,0 +1,12 @@
+{
+  "name": "Willowmere Village",
+  "short_name": "Willowmere",
+  "description": "A cozy 3D village adventure with decorating, dress-up, treasures, and pets.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef3df",
+  "theme_color": "#7f9470",
+  "icons": []
+}
