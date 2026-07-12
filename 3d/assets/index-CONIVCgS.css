@@ -699,6 +699,7 @@ input:focus-visible {
 }
 
 .mini-brand,
+.xp-monitor,
 .treasure-count,
 .town-center-button,
 .round-hud-button,
@@ -761,6 +762,57 @@ input:focus-visible {
   display: flex;
   align-items: center;
   gap: 9px;
+}
+
+.xp-monitor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 7px 11px;
+  border-radius: 17px;
+  color: #5d555c;
+}
+
+.xp-monitor > span {
+  font-size: 19px;
+  filter: drop-shadow(0 2px 5px rgba(215, 169, 61, 0.28));
+}
+
+.xp-monitor > div {
+  display: grid;
+  min-width: 86px;
+}
+
+.xp-monitor b {
+  font-size: 11px;
+  line-height: 1.1;
+}
+
+.xp-monitor small {
+  color: #84797f;
+  font-size: 7px;
+  font-weight: 760;
+}
+
+.xp-monitor i {
+  width: 100%;
+  height: 4px;
+  margin: 3px 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(91, 80, 87, 0.12);
+}
+
+.xp-monitor em {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #efbd55, #d891b7, #9b8fd2);
+}
+
+.xp-monitor.has-key {
+  background: rgba(255, 244, 196, 0.92);
 }
 
 .treasure-count {
@@ -2219,9 +2271,7 @@ kbd {
   }
 
   .treasure-count {
-    min-height: 44px;
-    padding: 9px 11px;
-    border-radius: 15px;
+    display: none;
   }
 
   .treasure-count > span {
@@ -2231,6 +2281,15 @@ kbd {
   .treasure-count b {
     font-size: 14px;
   }
+
+  .xp-monitor {
+    min-height: 44px;
+    padding: 6px 9px;
+    border-radius: 15px;
+  }
+
+  .xp-monitor > div { min-width: 68px; }
+  .xp-monitor small { font-size: 6px; }
 
   .round-hud-button {
     width: 44px;
