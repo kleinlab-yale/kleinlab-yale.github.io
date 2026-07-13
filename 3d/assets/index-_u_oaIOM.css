@@ -1961,11 +1961,32 @@ kbd {
   grid-template-columns: 56px minmax(0, 1fr);
   align-items: center;
   gap: 11px;
-  min-height: 88px;
+  min-height: 106px;
   padding: 12px;
   border: 1px solid rgba(80, 70, 75, 0.07);
   border-radius: 19px;
   background: rgba(255, 255, 255, 0.58);
+}
+
+.building-grid article > div > small {
+  display: block;
+  margin-top: 5px;
+  color: #8a7f85;
+  font-size: 8px;
+  font-weight: 760;
+}
+
+.building-grid article > button {
+  grid-column: 2;
+  justify-self: start;
+  min-width: 72px;
+  margin-top: -3px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  color: #fff;
+  background: #78658d;
+  font-size: 9px;
+  font-weight: 800;
 }
 
 .building-grid article > span {
