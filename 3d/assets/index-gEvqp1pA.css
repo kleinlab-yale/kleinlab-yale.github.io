@@ -2646,6 +2646,62 @@ kbd {
   }
 }
 
+.sky-fair-ticket {
+  position: absolute;
+  top: 150px;
+  right: 22px;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: min(310px, calc(100% - 44px));
+  padding: 13px 14px;
+  overflow: hidden;
+  color: #29495c;
+  background: linear-gradient(135deg, #fff8d9, #ffe0a8 58%, #f7bdca);
+  border: 2px solid rgba(255, 255, 255, .92);
+  border-radius: 18px;
+  box-shadow: 0 18px 46px rgba(51, 68, 78, .24), inset 0 0 0 2px rgba(56, 85, 107, .12);
+  pointer-events: none;
+  animation: sky-ticket-print 520ms cubic-bezier(.2, .9, .25, 1.18) both;
+}
+
+.sky-fair-ticket::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px dashed rgba(56, 85, 107, .35);
+  border-radius: 12px;
+}
+
+.sky-fair-ticket > span { font-size: 34px; z-index: 1; }
+.sky-fair-ticket > div { display: grid; gap: 1px; z-index: 1; }
+.sky-fair-ticket small { font: 800 8px/1.1 system-ui, sans-serif; letter-spacing: .13em; }
+.sky-fair-ticket strong { font: 950 18px/1 system-ui, sans-serif; letter-spacing: -.03em; }
+.sky-fair-ticket b { font: 850 9px/1.2 system-ui, sans-serif; letter-spacing: .08em; color: #a25d75; }
+.sky-fair-ticket em {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #fff;
+  background: #38556b;
+  font: 900 18px/1 system-ui, sans-serif;
+  font-style: normal;
+}
+
+@keyframes sky-ticket-print {
+  from { opacity: 0; transform: translateY(-22px) rotate(2deg) scale(.82); }
+  to { opacity: 1; transform: translateY(0) rotate(-1deg) scale(1); }
+}
+
+@media (max-width: 700px) {
+  .sky-fair-ticket { top: 138px; right: 12px; width: min(280px, calc(100% - 24px)); }
+}
+
 /* 2026 dollhouse art-direction pass */
 .welcome-screen {
   overflow: hidden;
