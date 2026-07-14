@@ -2667,6 +2667,61 @@ kbd {
   animation: sky-ticket-print 520ms cubic-bezier(.2, .9, .25, 1.18) both;
 }
 
+.glider-altimeter {
+  position: absolute;
+  top: 150px;
+  right: 22px;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: auto 1fr 12px;
+  align-items: center;
+  gap: 11px;
+  min-width: 192px;
+  padding: 12px 13px;
+  color: #f9fbf4;
+  background: linear-gradient(145deg, rgba(42, 72, 83, .94), rgba(55, 95, 94, .92));
+  border: 2px solid rgba(255, 255, 255, .84);
+  border-radius: 18px;
+  box-shadow: 0 16px 38px rgba(31, 55, 66, .28), inset 0 0 0 2px rgba(165, 225, 218, .16);
+  pointer-events: none;
+}
+
+.glider-altimeter-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  color: #fff3bf;
+  background: rgba(255, 255, 255, .12);
+  border-radius: 50%;
+  font: 900 25px/1 system-ui, sans-serif;
+}
+
+.glider-altimeter > div:nth-child(2) { display: grid; gap: 1px; }
+.glider-altimeter small { font: 850 8px/1.1 system-ui, sans-serif; letter-spacing: .18em; color: #bce8df; }
+.glider-altimeter strong { font: 950 24px/1 system-ui, sans-serif; letter-spacing: -.04em; }
+.glider-altimeter em { font: 750 9px/1.2 system-ui, sans-serif; font-style: normal; color: #d9ebe6; }
+
+.glider-altimeter-gauge {
+  position: relative;
+  align-self: stretch;
+  min-height: 48px;
+  overflow: hidden;
+  background: rgba(12, 36, 43, .52);
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 999px;
+}
+
+.glider-altimeter-gauge > span {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  left: 2px;
+  border-radius: 999px;
+  background: linear-gradient(to top, #f5c45e, #8ee0d2);
+  transition: height 100ms linear;
+}
+
 .sky-fair-ticket::after {
   content: "";
   position: absolute;
@@ -2700,6 +2755,7 @@ kbd {
 
 @media (max-width: 700px) {
   .sky-fair-ticket { top: 138px; right: 12px; width: min(280px, calc(100% - 24px)); }
+  .glider-altimeter { top: 138px; right: 12px; min-width: 172px; padding: 10px 11px; }
 }
 
 /* 2026 dollhouse art-direction pass */
