@@ -842,6 +842,21 @@ input:focus-visible {
   font-weight: 720;
 }
 
+.pet-coin-count {
+  background: linear-gradient(145deg, rgba(255, 249, 218, 0.94), rgba(255, 239, 177, 0.9));
+  border-color: rgba(255, 255, 255, 0.88);
+}
+
+.pet-coin-count > span {
+  filter: drop-shadow(0 2px 5px rgba(175, 119, 22, 0.3));
+}
+
+.pet-coin-count b {
+  color: #73551d;
+  min-width: 1ch;
+  font-variant-numeric: tabular-nums;
+}
+
 .round-hud-button {
   display: grid;
   place-items: center;
