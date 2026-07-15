@@ -1073,6 +1073,11 @@ kbd {
   background: linear-gradient(145deg, rgba(240, 194, 151, 0.2), rgba(218, 153, 144, 0.13)) !important;
 }
 
+.pet-dock-button > b {
+  color: #55451f !important;
+  background: #f0ca5d !important;
+}
+
 .game-toast {
   position: absolute;
   top: max(20px, env(safe-area-inset-top));
@@ -1803,6 +1808,28 @@ kbd {
   min-height: 130px;
 }
 
+.pet-grid > button.is-locked {
+  background: rgba(235, 231, 226, 0.68);
+}
+
+.pet-power-rating {
+  width: fit-content;
+  margin-top: 8px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #654e17;
+  background: rgba(240, 202, 93, 0.3);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pet-grid > button.is-locked .pet-power-rating {
+  color: #6e6870;
+  background: rgba(112, 104, 116, 0.12);
+}
+
 .pet-portrait {
   position: relative;
   width: 96px;
@@ -1838,6 +1865,11 @@ kbd {
   border: 1px solid rgba(160, 122, 76, 0.1);
   border-radius: 18px;
   background: rgba(245, 222, 188, 0.35);
+}
+
+.pet-shop-nudge {
+  border-color: rgba(199, 158, 65, 0.22);
+  background: linear-gradient(135deg, rgba(250, 230, 167, 0.5), rgba(220, 239, 225, 0.52));
 }
 
 .pet-care-card > span {
