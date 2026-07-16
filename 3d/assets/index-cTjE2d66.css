@@ -314,6 +314,16 @@ input:focus-visible {
   background: linear-gradient(145deg, #e78562, #c95f69);
 }
 
+.hand-actions > button.put-down-hand-action {
+  color: #566451;
+  background: #e8eee4;
+  box-shadow: inset 0 0 0 1px rgba(91, 112, 82, 0.08);
+}
+
+.hand-actions > button.put-down-hand-action:hover {
+  background: #dfe9da;
+}
+
 .driving-actions {
   gap: 12px;
   padding: 10px 11px 10px 14px;
@@ -2988,7 +2998,7 @@ kbd {
   .glider-altimeter { top: 138px; right: 12px; min-width: 172px; padding: 10px 11px; }
 }
 
-/* 2026 dollhouse art-direction pass */
+/* Taylor Town gameplay welcome art */
 .welcome-screen {
   overflow: hidden;
   background: #f6ddcf;
@@ -3572,11 +3582,14 @@ kbd {
 }
 
 .inventory-card-copy > b {
+  display: -webkit-box;
   overflow: hidden;
   color: #504844;
   font-size: 13px;
   font-weight: 880;
   line-height: 1.18;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   text-overflow: ellipsis;
 }
 
@@ -3598,14 +3611,22 @@ kbd {
 }
 
 .inventory-card-meta small {
+  display: flex;
   overflow: hidden;
+  align-items: center;
+  gap: 4px;
   color: #a0766e;
-  font-size: 7px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.025em;
   text-overflow: ellipsis;
-  text-transform: uppercase;
   white-space: nowrap;
+}
+
+.inventory-card-meta small > span {
+  flex: 0 0 auto;
+  font-size: 10px;
+  line-height: 1;
 }
 
 .inventory-card-meta strong {

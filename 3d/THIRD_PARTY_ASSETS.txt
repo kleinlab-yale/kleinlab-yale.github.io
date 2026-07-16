@@ -1,4 +1,4 @@
-WILLOWMERE VILLAGE — THIRD-PARTY ASSETS
+TAYLOR TOWN LIFE — THIRD-PARTY ASSETS
 
 The game code and interface are original to this project. The following 3D
 model packs are distributed under Creative Commons Zero (CC0 1.0) and are
@@ -30,3 +30,6 @@ https://kenney.nl/assets/furniture-kit
 Used for collectible and placeable cottage furniture.
 
 Copies of each source pack's license are included in the licenses directory.
+
+The welcome-screen artwork and television channel artwork in public/art were
+generated specifically for Taylor Town Life and are not third-party assets.
