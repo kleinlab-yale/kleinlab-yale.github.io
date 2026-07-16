@@ -1375,6 +1375,73 @@ kbd {
   font-size: 32px;
 }
 
+.asset-thumbnail {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.asset-thumbnail > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  object-fit: contain;
+  box-sizing: border-box;
+  pointer-events: none;
+  filter: drop-shadow(0 7px 7px rgba(66, 48, 53, 0.18));
+}
+
+.asset-thumbnail-fallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+.pocket-item-preview {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #fff2e5, #efd9e2);
+}
+
+.pet-portrait {
+  overflow: hidden;
+}
+
+.pet-asset-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.pet-portrait > i {
+  z-index: 2;
+}
+
+.pet-dock-preview {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+}
+
+.lookbook-asset-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.lookbook-asset-preview > img {
+  padding: 5px;
+  filter: drop-shadow(0 14px 12px rgba(91, 58, 74, 0.2));
+}
+
+.held-item-preview > img,
+.room-editor-icon > img {
+  padding: 3px;
+}
+
 .item-card h3,
 .choice-grid b,
 .building-grid h3 {
