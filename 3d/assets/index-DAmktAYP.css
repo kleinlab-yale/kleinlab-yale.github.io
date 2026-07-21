@@ -307,14 +307,12 @@ input:focus-visible {
   background: linear-gradient(145deg, #ffe4cd, #f3c7d0);
 }
 
-.held-item-chip div,
-.driving-actions div {
+.held-item-chip div {
   display: grid;
   gap: 2px;
 }
 
-.held-item-chip small,
-.driving-actions small {
+.held-item-chip small {
   color: #9b6e6e;
   font-size: 9px;
   font-weight: 800;
@@ -322,8 +320,7 @@ input:focus-visible {
   text-transform: uppercase;
 }
 
-.held-item-chip b,
-.driving-actions b {
+.held-item-chip b {
   font-size: 13px;
   white-space: nowrap;
 }
@@ -361,17 +358,28 @@ input:focus-visible {
   background: #dfe9da;
 }
 
-.driving-actions {
-  gap: 12px;
-  padding: 10px 11px 10px 14px;
-  color: #f8f4ec;
-  background: rgba(48, 67, 59, 0.94);
+.driving-actions.driving-exit-only {
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
-.driving-actions > span { font-size: 30px; }
-.driving-actions small { color: #bad4c8; }
-.driving-actions button { display: flex; color: #34493f; background: #eef4ec; }
-.driving-actions kbd { margin-left: 5px; }
+.driving-actions button.vehicle-exit-button {
+  display: grid;
+  min-width: 112px;
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 16px;
+  color: #fff;
+  background: rgba(48, 67, 59, 0.94);
+  box-shadow: 0 12px 30px rgba(48, 57, 52, 0.28);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
 
 .pocket-shelf {
   margin-bottom: 16px;
