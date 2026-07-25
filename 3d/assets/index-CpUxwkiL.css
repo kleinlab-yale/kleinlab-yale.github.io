@@ -77,48 +77,105 @@ input:focus-visible {
 
 .multiplayer-lobby {
   display: grid;
-  grid-template-columns: 1.25fr 1fr auto auto;
-  gap: 7px;
-  margin-top: 12px;
-  padding: 11px;
-  border: 1px solid rgba(94, 73, 82, 0.12);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.56);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 6px;
 }
 
-.multiplayer-lobby > div {
+.player-name-field {
   display: grid;
   grid-column: 1 / -1;
-  gap: 1px;
+  gap: 6px;
   text-align: left;
 }
 
-.multiplayer-lobby > div b { font-size: 13px; }
-.multiplayer-lobby > div small { color: var(--muted); font-size: 10px; }
+.player-name-field > span,
+.join-private-server label > span {
+  color: #664f4e;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .multiplayer-lobby input {
   min-width: 0;
-  padding: 9px 10px;
-  border: 1px solid rgba(94, 73, 82, 0.16);
-  border-radius: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 13px;
+  border: 2px solid rgba(141, 91, 94, 0.18);
+  border-radius: 14px;
   color: var(--ink);
-  background: rgba(255,255,255,.9);
-  font-size: 11px;
-  font-weight: 750;
+  background: rgba(255, 255, 255, 0.94);
+  font-size: 13px;
+  font-weight: 800;
 }
-.multiplayer-lobby button {
-  padding: 9px 11px;
+
+.multiplayer-lobby .primary-play {
+  grid-column: 1 / -1;
+  min-height: 58px;
+}
+
+.private-server-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 10px 12px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 16px;
+  color: #fff;
+  box-shadow: 0 9px 20px rgba(91, 69, 98, 0.17);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.private-server-button span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.create-server-button {
+  background: linear-gradient(135deg, #a6709d, #7c6a9b);
+}
+
+.join-server-button {
+  background: linear-gradient(135deg, #6c8fa3, #617889);
+}
+
+.join-private-server {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  padding: 11px;
+  border: 1px solid rgba(113, 91, 113, 0.14);
+  border-radius: 17px;
+  background: rgba(246, 241, 250, 0.84);
+}
+
+.join-private-server label {
+  display: grid;
+  gap: 5px;
+}
+
+.join-private-server > button {
+  min-height: 46px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 13px;
   color: #fff;
   background: #765f88;
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 11px;
+  font-weight: 900;
 }
+
 .multiplayer-lobby p {
   grid-column: 1 / -1;
-  margin: 1px 2px 0;
+  margin: 2px 2px 0;
   color: #9a6d60;
-  font-size: 9px;
+  font-size: 10px;
+  font-weight: 700;
   text-align: left;
 }
 .multiplayer-lobby p.is-online { color: #4e7c62; }
@@ -129,6 +186,7 @@ input:focus-visible {
   gap: 5px;
   min-height: 40px;
   padding: 0 11px;
+  border: 0;
   border-radius: 15px;
   color: #3e6852;
   background: rgba(235, 250, 239, 0.9);
@@ -142,6 +200,106 @@ input:focus-visible {
   box-shadow: 0 0 0 4px rgba(79,189,120,.14);
 }
 .multiplayer-pill small { font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+
+.private-server-invite {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(43, 34, 43, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.private-server-invite > section {
+  width: min(440px, 100%);
+  padding: 28px;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  border-radius: 30px;
+  color: #674d57;
+  background:
+    radial-gradient(circle at 92% 3%, rgba(245, 190, 208, 0.45), transparent 35%),
+    #fffaf6;
+  box-shadow: 0 28px 90px rgba(47, 31, 44, 0.35);
+  text-align: center;
+  animation: panel-up 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.private-server-invite-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 18px;
+  background: #f7e4ef;
+  font-size: 26px;
+}
+
+.private-server-invite > section > small {
+  color: #a46b80;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.private-server-invite h2 {
+  margin: 5px 0 18px;
+  font-size: 23px;
+  line-height: 1.15;
+}
+
+.private-server-code {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  padding: 17px;
+  border: 2px dashed rgba(173, 98, 129, 0.42);
+  border-radius: 20px;
+  color: #765168;
+  background: rgba(255, 237, 246, 0.72);
+}
+
+.private-server-code strong {
+  font-size: clamp(30px, 9vw, 44px);
+  letter-spacing: 0.15em;
+  line-height: 1;
+}
+
+.private-server-code span {
+  color: #987786;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.private-server-invite-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.private-server-invite-actions button {
+  min-height: 47px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.private-server-invite-actions button:first-child {
+  color: #fff;
+  background: linear-gradient(135deg, #d97088, #a86c9d);
+}
+
+.private-server-invite-actions button:last-child {
+  color: #684f59;
+  background: #eee4e3;
+}
 
 .hide-and-seek-card {
   display: flex;
@@ -507,8 +665,11 @@ input:focus-visible {
 .welcome-card {
   position: relative;
   width: min(610px, 47vw);
+  max-height: calc(100dvh - 36px);
   padding: clamp(30px, 4vw, 58px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
   pointer-events: auto;
   border: 1px solid rgba(255, 255, 255, 0.74);
   border-radius: 40px;
