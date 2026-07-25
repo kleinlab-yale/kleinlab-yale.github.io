@@ -301,6 +301,205 @@ input:focus-visible {
   background: #eee4e3;
 }
 
+.pet-trade-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 42;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(38, 34, 48, 0.42);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.pet-trade-dialog {
+  width: min(520px, 100%);
+  padding: 25px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 29px;
+  color: #594b63;
+  background:
+    radial-gradient(circle at 95% 3%, rgba(183, 230, 211, 0.54), transparent 34%),
+    radial-gradient(circle at 3% 96%, rgba(231, 199, 244, 0.48), transparent 35%),
+    #fffaf7;
+  box-shadow: 0 28px 90px rgba(40, 30, 48, 0.36);
+  text-align: center;
+  animation: panel-up 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pet-trade-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 54px;
+  margin: 0 auto 10px;
+  border-radius: 18px;
+  background: rgba(226, 244, 235, 0.88);
+  font-size: 22px;
+}
+
+.pet-trade-dialog > small {
+  color: #8e729c;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.pet-trade-dialog h2 {
+  margin: 4px 0 16px;
+  font-size: 22px;
+}
+
+.pet-trade-dialog > p {
+  margin: 13px 0 0;
+  color: #817585;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.pet-trade-offers {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.pet-trade-offers > i {
+  color: #9676a8;
+  font-size: 21px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.pet-trade-offers article {
+  display: grid;
+  gap: 3px;
+  min-height: 142px;
+  align-content: center;
+  padding: 13px 9px;
+  border: 1px solid rgba(111, 87, 125, 0.13);
+  border-radius: 21px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.pet-trade-offers article > span {
+  font-size: 39px;
+}
+
+.pet-trade-offers article > small,
+.pet-trade-request small {
+  color: #99899e;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pet-trade-offers article > b {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.pet-trade-offers article > em {
+  width: fit-content;
+  margin: 4px auto 0;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #5d806d;
+  background: rgba(183, 224, 203, 0.35);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pet-trade-offers article.is-waiting {
+  opacity: 0.7;
+}
+
+.pet-trade-request {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 19px;
+  background: rgba(236, 226, 245, 0.65);
+  text-align: left;
+}
+
+.pet-trade-request > span {
+  font-size: 42px;
+}
+
+.pet-trade-request > div {
+  display: grid;
+  gap: 3px;
+}
+
+.pet-trade-request b {
+  font-size: 13px;
+}
+
+.pet-trade-select {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.pet-trade-select span,
+.pet-trade-launch-controls label > span {
+  color: #77687c;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pet-trade-select select,
+.pet-trade-launch-controls select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid rgba(100, 80, 113, 0.16);
+  border-radius: 12px;
+  color: #5f5066;
+  background: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.pet-trade-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.pet-trade-actions button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #7da989, #8175ad);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.pet-trade-actions button.is-secondary {
+  color: #685b6d;
+  background: #eee7ea;
+}
+
+.pet-trade-actions button:disabled {
+  color: #918993;
+  background: #e6e1e4;
+}
+
 .hide-and-seek-card {
   display: flex;
   align-items: center;
@@ -2151,6 +2350,74 @@ kbd {
   background: linear-gradient(135deg, rgba(250, 230, 167, 0.5), rgba(220, 239, 225, 0.52));
 }
 
+.pet-trade-launch {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 12px;
+  margin: 18px 30px 0;
+  padding: 15px;
+  border: 1px solid rgba(115, 91, 139, 0.16);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(235, 224, 247, 0.6), rgba(218, 241, 231, 0.58));
+}
+
+.pet-trade-launch-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pet-trade-launch-heading > span {
+  display: grid;
+  place-items: center;
+  min-width: 58px;
+  height: 48px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 19px;
+}
+
+.pet-trade-launch-heading b {
+  color: #5f5069;
+  font-size: 11px;
+}
+
+.pet-trade-launch-heading p,
+.pet-trade-offline {
+  margin: 3px 0 0;
+  color: #827489;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.pet-trade-launch-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.2fr) auto;
+  align-items: end;
+  gap: 9px;
+}
+
+.pet-trade-launch-controls label {
+  display: grid;
+  gap: 5px;
+}
+
+.pet-trade-launch-controls button {
+  min-height: 42px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #806ca3, #6c9d83);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.pet-trade-launch-controls button:disabled {
+  color: #978e9a;
+  background: #e3dde4;
+}
+
 .pet-care-card > span {
   display: grid;
   place-items: center;
@@ -2634,6 +2901,18 @@ kbd {
   .hide-and-seek-card > div { display: none; }
   .hide-and-seek-card > span { font-size: 18px; }
   .hide-and-seek-card button { min-height: 32px; padding: 0 8px; font-size: 8px; }
+
+  .pet-trade-overlay { padding: 10px; }
+  .pet-trade-dialog { max-height: calc(100dvh - 20px); padding: 18px; overflow-y: auto; border-radius: 23px; }
+  .pet-trade-icon { width: 62px; height: 44px; margin-bottom: 7px; font-size: 18px; }
+  .pet-trade-dialog h2 { margin-bottom: 12px; font-size: 18px; }
+  .pet-trade-offers article { min-height: 120px; padding: 9px 6px; }
+  .pet-trade-offers article > span { font-size: 31px; }
+  .pet-trade-offers article > b { font-size: 9px; }
+  .pet-trade-actions button { min-height: 42px; }
+  .pet-trade-launch { margin-inline: 18px; }
+  .pet-trade-launch-controls { grid-template-columns: 1fr; }
+  .pet-trade-launch-controls button { min-height: 42px; }
 
   .bottom-dock {
     left: 9px;
