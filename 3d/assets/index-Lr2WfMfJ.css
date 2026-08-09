@@ -2997,6 +2997,22 @@ kbd {
   background: #f0ca5d !important;
 }
 
+.pet-dock-button.is-empty {
+  background: rgba(241, 237, 235, 0.9) !important;
+}
+
+.pet-dock-empty {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px dashed rgba(103, 92, 98, 0.24);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.68);
+  font-size: 18px;
+  filter: grayscale(0.35);
+}
+
 .game-toast {
   position: absolute;
   top: max(20px, env(safe-area-inset-top));
@@ -4161,14 +4177,33 @@ kbd {
 
 .pet-copy-card {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
-  gap: 10px;
+  gap: 7px;
   min-width: 0;
   padding: 10px;
   border: 2px solid rgba(255, 255, 255, 0.92);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.7);
   box-shadow: 0 8px 22px rgba(95, 71, 86, 0.08);
+}
+
+.pet-copy-select {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pet-copy-select:focus-visible {
+  outline: 3px solid rgba(78, 143, 95, 0.42);
+  outline-offset: 4px;
+  border-radius: 14px;
 }
 
 .pet-copy-card.tier-golden {
@@ -4180,8 +4215,9 @@ kbd {
 }
 
 .pet-copy-card.is-equipped {
-  border-color: rgba(91, 153, 105, 0.58);
-  box-shadow: 0 8px 24px rgba(70, 139, 91, 0.17);
+  border-color: rgba(64, 151, 88, 0.82);
+  background: linear-gradient(145deg, rgba(226, 250, 231, 0.97), rgba(255, 255, 255, 0.84));
+  box-shadow: 0 8px 24px rgba(70, 139, 91, 0.22), inset 0 0 0 2px rgba(118, 197, 137, 0.12);
 }
 
 .pet-copy-art {
@@ -4240,9 +4276,8 @@ kbd {
 }
 
 .pet-copy-actions {
-  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 5px;
 }
 
@@ -4287,6 +4322,10 @@ kbd {
 
 .dual-pet-card.is-locked {
   background: linear-gradient(135deg, rgba(240, 237, 231, 0.78), rgba(231, 226, 239, 0.7));
+}
+
+.dual-pet-card.is-unlocked {
+  grid-template-columns: 1fr;
 }
 
 .dual-pet-heading {
@@ -6784,6 +6823,10 @@ kbd {
   }
 
   .pet-copy-card {
+    grid-template-columns: 1fr;
+  }
+
+  .pet-copy-select {
     grid-template-columns: 84px minmax(0, 1fr);
   }
 
