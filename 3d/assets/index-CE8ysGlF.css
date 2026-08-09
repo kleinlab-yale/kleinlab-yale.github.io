@@ -4229,6 +4229,10 @@ kbd {
   box-shadow: 0 8px 24px rgba(70, 139, 91, 0.22), inset 0 0 0 2px rgba(118, 197, 137, 0.12);
 }
 
+.pet-copy-card.is-huge {
+  box-shadow: 0 8px 24px rgba(140, 93, 178, 0.2), inset 0 0 0 2px rgba(184, 129, 223, 0.22);
+}
+
 .pet-copy-art {
   position: relative;
   display: grid;
@@ -4253,6 +4257,19 @@ kbd {
   border-radius: 999px;
   color: #fff;
   background: #5d9b6f;
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.pet-copy-art > em {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #8d64bd, #d278ad);
   font-size: 7px;
   font-style: normal;
   font-weight: 950;
@@ -4286,7 +4303,7 @@ kbd {
 
 .pet-copy-actions {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 5px;
 }
 
@@ -4309,6 +4326,11 @@ kbd {
 .pet-copy-actions button.is-trade-selected {
   color: #fff;
   background: #806ca3;
+}
+
+.pet-copy-actions button.is-huge {
+  color: #fff;
+  background: linear-gradient(135deg, #8d64bd, #d278ad);
 }
 
 .pet-copy-actions button:disabled {
