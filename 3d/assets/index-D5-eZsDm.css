@@ -707,6 +707,15 @@ input:focus-visible {
   box-shadow: none;
 }
 
+.hide-seek-invite-actions button:disabled,
+.laser-tag-invite-actions button:disabled,
+.car-race-invite-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  filter: saturate(0.35);
+  box-shadow: none;
+}
+
 .laser-tag-start-card {
   display: flex;
   align-items: center;
