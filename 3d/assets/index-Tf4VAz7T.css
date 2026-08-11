@@ -2748,7 +2748,10 @@ input:focus-visible {
 .hud-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 9px;
+  max-width: 100%;
 }
 
 .xp-monitor {
@@ -2889,6 +2892,21 @@ input:focus-visible {
 .pet-gem-count b {
   min-width: 1ch;
   color: #276d69;
+  font-variant-numeric: tabular-nums;
+}
+
+.shell-coin-count {
+  border-color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(145deg, rgba(255, 239, 226, 0.96), rgba(243, 188, 164, 0.91));
+}
+
+.shell-coin-count > span {
+  filter: drop-shadow(0 2px 6px rgba(158, 76, 79, 0.3));
+}
+
+.shell-coin-count b {
+  min-width: 1ch;
+  color: #8b4a4c;
   font-variant-numeric: tabular-nums;
 }
 
