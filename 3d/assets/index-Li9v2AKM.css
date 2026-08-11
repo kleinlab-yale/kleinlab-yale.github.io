@@ -5292,6 +5292,225 @@ kbd {
   }
 }
 
+/* Minimal play HUD: icons and live values without card-shaped signage. */
+.hud-actions {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hud-mode-button,
+.luck-boost-pill,
+.treasure-count,
+.town-center-button,
+.round-hud-button {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.hud-mode-button {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border-radius: 50%;
+  font: 900 10px/1 system-ui, sans-serif;
+  filter: drop-shadow(0 3px 7px rgba(39, 35, 37, 0.25));
+}
+
+.hud-mode-button > span {
+  font-size: 25px;
+  line-height: 1;
+}
+
+.hud-mode-button > b {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  min-width: 16px;
+  color: #fff;
+  font-size: 10px;
+  text-shadow: 0 1px 4px rgba(30, 27, 28, 0.85);
+}
+
+.hud-mode-button:disabled {
+  opacity: 0.38;
+  filter: grayscale(0.65) drop-shadow(0 2px 4px rgba(39, 35, 37, 0.16));
+}
+
+.luck-boost-pill {
+  min-height: 44px;
+  padding: 2px 4px;
+  gap: 2px;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(23, 68, 42, 0.88);
+}
+
+.luck-boost-pill.fishing-outfit-pill {
+  min-width: 38px;
+  color: #fff;
+  background: transparent;
+  box-shadow: none;
+}
+
+.luck-boost-pill > span {
+  font-size: 24px;
+}
+
+.luck-boost-pill small {
+  margin: 0;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.treasure-count {
+  min-height: 44px;
+  padding: 3px 5px;
+  gap: 2px;
+  border-radius: 0;
+  background: transparent;
+}
+
+.treasure-count > span {
+  margin: 0;
+  font-size: 22px;
+  filter: drop-shadow(0 2px 5px rgba(33, 29, 31, 0.34));
+}
+
+.treasure-count b,
+.pet-coin-count b,
+.pet-gem-count b,
+.shell-coin-count b {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 950;
+  text-shadow: 0 2px 6px rgba(31, 28, 30, 0.82);
+}
+
+.treasure-count output {
+  top: calc(100% - 2px);
+  right: 0;
+  min-width: 0;
+  padding: 0;
+  color: #fff;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+  text-shadow: 0 2px 5px rgba(24, 79, 48, 0.9);
+}
+
+.town-center-button,
+.round-hud-button {
+  display: grid;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  place-items: center;
+  border-radius: 50%;
+  filter: drop-shadow(0 3px 7px rgba(39, 35, 37, 0.26));
+}
+
+.town-center-button span,
+.round-hud-button {
+  font-size: 23px;
+}
+
+.bottom-dock {
+  grid-template-columns: repeat(5, 52px);
+  gap: 12px;
+}
+
+.bottom-dock button,
+.bottom-dock button:hover {
+  width: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent !important;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  filter: drop-shadow(0 4px 8px rgba(42, 35, 38, 0.3));
+}
+
+.bottom-dock button:hover {
+  transform: translateY(-2px) scale(1.06);
+}
+
+.bottom-dock button > span {
+  font-size: 29px;
+}
+
+.bottom-dock button small {
+  display: none;
+}
+
+.bottom-dock button > b,
+.pet-dock-button > b {
+  top: auto;
+  right: -2px;
+  bottom: 0;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  color: #fff !important;
+  background: transparent !important;
+  font-size: 10px;
+  text-shadow: 0 2px 5px rgba(35, 30, 31, 0.9);
+}
+
+.pet-dock-empty {
+  border: 0;
+  background: transparent;
+}
+
+@media (max-width: 680px) {
+  .hud-actions {
+    gap: 4px;
+  }
+
+  .hud-mode-button,
+  .town-center-button,
+  .round-hud-button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+  }
+
+  .treasure-count,
+  .luck-boost-pill {
+    min-height: 40px;
+    padding: 2px 3px;
+  }
+
+  .bottom-dock {
+    left: 50%;
+    right: auto;
+    grid-template-columns: repeat(5, 48px);
+    gap: 7px;
+    transform: translateX(-50%);
+  }
+
+  .bottom-dock button,
+  .bottom-dock button:hover {
+    width: 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
 @keyframes panel-mobile-up {
   from { opacity: 0; transform: translateY(100%); }
   to { opacity: 1; transform: translateY(0); }
@@ -5518,19 +5737,6 @@ kbd {
 }
 
 .welcome-tip { display: none; }
-
-.bottom-dock button {
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 19px;
-  background: rgba(255, 250, 245, 0.92);
-  box-shadow: 0 12px 32px rgba(104, 61, 53, 0.16), inset 0 1px #fff;
-  transition: transform 150ms ease, background 150ms ease;
-}
-
-.bottom-dock button:hover {
-  background: #fff0ea;
-  transform: translateY(-3px) rotate(-1deg);
-}
 
 .game-panel {
   border: 2px solid rgba(255,255,255,.84);
