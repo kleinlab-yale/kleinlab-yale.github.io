@@ -2644,6 +2644,16 @@ input:focus-visible {
   animation: lucky-clover-pulse 1.6s ease-in-out infinite;
 }
 
+.luck-boost-pill.fishing-outfit-pill {
+  color: #205d60;
+  background: linear-gradient(145deg, rgba(226, 250, 244, 0.96), rgba(154, 218, 199, 0.92));
+  box-shadow: 0 10px 28px rgba(35, 104, 96, 0.2), inset 0 1px rgba(255, 255, 255, 0.84);
+}
+
+.luck-boost-pill.fishing-outfit-pill > span {
+  filter: drop-shadow(0 3px 5px rgba(27, 91, 87, 0.22));
+}
+
 @keyframes lucky-clover-pulse {
   0%, 100% { transform: scale(1) rotate(-4deg); }
   50% { transform: scale(1.14) rotate(5deg); }
@@ -3649,6 +3659,29 @@ kbd {
   color: #776970;
   font-size: 10px;
   line-height: 1.5;
+}
+
+.everyday-outfit-button {
+  width: 100%;
+  margin-top: 11px;
+  padding: 9px 12px;
+  border: 1px solid rgba(94, 74, 83, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #66545d;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.035em;
+  cursor: pointer;
+}
+
+.everyday-outfit-button:hover,
+.everyday-outfit-button:focus-visible {
+  border-color: rgba(172, 91, 125, 0.42);
+  background: #fff;
+  color: #9e4168;
+  outline: none;
 }
 
 .avatar-controls {
