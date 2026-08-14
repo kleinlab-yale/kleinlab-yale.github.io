@@ -4284,6 +4284,20 @@ kbd {
   box-shadow: 0 8px 24px rgba(140, 93, 178, 0.2), inset 0 0 0 2px rgba(184, 129, 223, 0.22);
 }
 
+.pet-copy-card.is-storm-lost {
+  border-color: rgba(65, 126, 151, 0.72);
+  background: linear-gradient(145deg, rgba(208, 226, 232, 0.94), rgba(243, 248, 249, 0.82));
+  box-shadow: 0 8px 24px rgba(46, 91, 112, 0.2), inset 0 0 0 2px rgba(102, 179, 196, 0.18);
+}
+
+.pet-copy-card.is-storm-lost .pet-copy-select {
+  cursor: default;
+}
+
+.pet-copy-card.is-storm-lost .pet-copy-art > i {
+  background: #416f82;
+}
+
 .pet-copy-art {
   position: relative;
   display: grid;
