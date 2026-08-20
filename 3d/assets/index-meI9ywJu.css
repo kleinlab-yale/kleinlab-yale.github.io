@@ -2985,6 +2985,13 @@ kbd {
   transform: translateY(-2px);
 }
 
+.bottom-dock button.is-active {
+  color: #1f5f91;
+  background: linear-gradient(145deg, rgba(220, 241, 255, 0.98), rgba(177, 219, 249, 0.95));
+  box-shadow: 0 15px 38px rgba(50, 125, 178, 0.3), inset 0 1px #fff;
+  transform: translateY(-3px);
+}
+
 .bottom-dock button > span {
   font-size: 23px;
   line-height: 1;
@@ -3171,6 +3178,59 @@ kbd {
   border-color: rgba(89, 122, 84, 0.14);
   color: #fff;
   background: #718a69;
+}
+
+.decor-mode-banner {
+  position: absolute;
+  left: 50%;
+  bottom: max(96px, calc(env(safe-area-inset-bottom) + 88px));
+  z-index: 52;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: min(570px, calc(100vw - 32px));
+  min-height: 68px;
+  padding: 10px 12px 10px 17px;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 23px;
+  color: #334f63;
+  background: linear-gradient(145deg, rgba(242, 250, 255, 0.98), rgba(220, 239, 252, 0.95));
+  box-shadow: 0 20px 58px rgba(31, 75, 105, 0.25), inset 0 1px #fff;
+  backdrop-filter: blur(20px) saturate(1.1);
+  transform: translateX(-50%);
+}
+
+.decor-mode-banner > div {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.decor-mode-banner small {
+  color: #3d89bb;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.decor-mode-banner b { font-size: 12px; }
+.decor-mode-banner span { color: #688091; font-size: 9px; }
+
+.decor-mode-banner button {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 13px;
+  color: #38657f;
+  background: rgba(255, 255, 255, .78);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.decor-mode-banner button.is-done {
+  color: #fff;
+  background: #4f7f9d;
 }
 
 /* Panels */
@@ -3457,6 +3517,48 @@ kbd {
   color: #91898d;
   background: rgba(83, 76, 80, 0.08);
   cursor: not-allowed;
+}
+
+.decor-grid .item-card.is-locked {
+  border-color: rgba(74, 111, 134, .12);
+  background: rgba(241, 246, 249, .64);
+}
+
+.decor-grid .item-card.is-locked .item-art {
+  opacity: .68;
+  filter: saturate(.58);
+}
+
+.decor-access-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 3px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: #347650;
+  background: rgba(214, 240, 221, .9);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.decor-access-badge.is-locked {
+  color: #68747c;
+  background: rgba(221, 230, 235, .9);
+}
+
+.decor-access-detail {
+  display: block;
+  margin-top: 5px;
+  color: #567284;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.item-card > button.decor-purchase-button {
+  background: linear-gradient(135deg, #4e91bb, #3976a1);
 }
 
 .empty-state {
@@ -4548,7 +4650,7 @@ kbd {
 .decor-toolbar {
   flex: 0 0 auto;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   padding: 17px 30px 0;
 }
@@ -4563,8 +4665,20 @@ kbd {
 }
 
 .decor-toolbar small {
+  flex: 1;
   color: #8c8488;
   font-size: 9px;
+}
+
+.decor-toolbar > button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 11px;
+  color: #fff;
+  background: #4f7f9d;
+  font-size: 9px;
+  font-weight: 850;
 }
 
 .scrapbook-progress {
@@ -5150,6 +5264,19 @@ kbd {
   .room-editor button.is-danger {
     display: none;
   }
+
+  .decor-mode-banner {
+    bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px));
+    gap: 6px;
+    width: calc(100vw - 18px);
+    min-height: 62px;
+    padding: 8px 8px 8px 12px;
+    border-radius: 20px;
+  }
+
+  .decor-mode-banner span { display: none; }
+  .decor-mode-banner b { font-size: 10px; }
+  .decor-mode-banner button { min-height: 37px; padding: 0 9px; font-size: 8px; }
 
   .panel-scrim {
     align-items: end;
