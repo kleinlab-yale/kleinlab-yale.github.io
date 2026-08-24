@@ -1,0 +1,403 @@
+:root {
+  font-family: Inter, ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  color: #f5fbff;
+  background: #030713;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+button {
+  color: inherit;
+  font: inherit;
+}
+
+.moon-base-app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #030713;
+}
+
+.moon-base-app > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.moon-base-app > canvas:active {
+  cursor: grabbing;
+}
+
+.moon-world-heading {
+  position: absolute;
+  z-index: 10;
+  top: max(20px, env(safe-area-inset-top));
+  right: clamp(18px, 3vw, 38px);
+  left: clamp(18px, 3vw, 38px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 22px rgba(0, 0, 0, .48));
+}
+
+.moon-world-heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.moon-world-heading span,
+.moon-mission-panel > span,
+.moon-arrival-card > span,
+.moon-access-eyebrow {
+  color: #6fe7ff;
+  font: 900 10px/1.1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .18em;
+}
+
+.moon-world-heading h1 {
+  margin: 0;
+  font-size: clamp(31px, 4vw, 56px);
+  font-weight: 950;
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+.moon-world-heading p {
+  margin: 5px 0 0;
+  color: #d5f3fb;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.moon-world-heading button,
+.moon-access-card button,
+.moon-arrival-card button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid rgba(114, 230, 255, .48);
+  border-radius: 15px;
+  color: #f6fcff;
+  background: linear-gradient(180deg, rgba(32, 72, 99, .92), rgba(12, 31, 49, .94));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 255, 255, .12);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+  pointer-events: auto;
+  backdrop-filter: blur(12px);
+}
+
+.moon-world-heading button:hover,
+.moon-access-card button:hover,
+.moon-arrival-card button:hover {
+  border-color: #78eaff;
+  background: linear-gradient(180deg, rgba(40, 93, 124, .98), rgba(15, 42, 63, .98));
+}
+
+.moon-mission-panel {
+  position: absolute;
+  z-index: 10;
+  top: clamp(118px, 18vh, 160px);
+  left: clamp(18px, 3vw, 38px);
+  width: min(310px, calc(100vw - 36px));
+  padding: 17px 18px 16px;
+  border: 1px solid rgba(126, 216, 239, .26);
+  border-radius: 21px;
+  background: linear-gradient(145deg, rgba(9, 22, 37, .91), rgba(6, 13, 25, .78));
+  box-shadow: 0 22px 58px rgba(0, 0, 0, .32), inset 0 1px rgba(255, 255, 255, .08);
+  backdrop-filter: blur(15px);
+}
+
+.moon-mission-panel h2 {
+  margin: 6px 0 4px;
+  font-size: 20px;
+  line-height: 1.05;
+}
+
+.moon-mission-panel > p {
+  margin: 0 0 11px;
+  color: #b9ccd6;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.moon-mission-panel ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.moon-mission-panel li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 5px 7px;
+  border: 1px solid rgba(255, 255, 255, .06);
+  border-radius: 11px;
+  color: #d8e5eb;
+  background: rgba(255, 255, 255, .035);
+}
+
+.moon-mission-panel li.complete {
+  border-color: rgba(92, 226, 255, .25);
+  color: #eefcff;
+  background: rgba(58, 184, 213, .11);
+}
+
+.moon-mission-panel li > i {
+  color: #65e4ff;
+  font-size: 16px;
+  font-style: normal;
+  text-align: center;
+}
+
+.moon-mission-panel li > span {
+  display: grid;
+}
+
+.moon-mission-panel li b {
+  font-size: 11px;
+}
+
+.moon-mission-panel li small {
+  overflow: hidden;
+  color: #8fa8b5;
+  font-size: 8px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moon-mission-panel > strong {
+  display: block;
+  margin-top: 11px;
+  color: #75e8ff;
+  font: 900 9px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .08em;
+}
+
+.moon-touch-pad {
+  position: absolute;
+  z-index: 12;
+  bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
+  left: clamp(18px, 3vw, 38px);
+  display: none;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(2, 48px);
+  gap: 5px;
+}
+
+.moon-touch-pad button,
+.moon-jump-button {
+  border: 1px solid rgba(135, 228, 250, .38);
+  color: #eafaff;
+  background: rgba(13, 35, 53, .84);
+  box-shadow: 0 9px 24px rgba(0, 0, 0, .3), inset 0 1px rgba(255, 255, 255, .1);
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: none;
+  backdrop-filter: blur(10px);
+  user-select: none;
+}
+
+.moon-touch-pad button {
+  border-radius: 14px;
+}
+
+.moon-touch-pad button:first-child {
+  grid-column: 2;
+}
+
+.moon-touch-pad button:nth-child(2) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.moon-touch-pad button:nth-child(3) {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.moon-touch-pad button:nth-child(4) {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.moon-jump-button {
+  position: absolute;
+  z-index: 12;
+  right: clamp(18px, 3vw, 38px);
+  bottom: max(30px, calc(env(safe-area-inset-bottom) + 20px));
+  display: grid;
+  place-content: center;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  color: #08131d;
+  background: linear-gradient(145deg, #eefcff, #5de4ff);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .35), 0 0 24px rgba(93, 228, 255, .22), inset 0 2px rgba(255, 255, 255, .7);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.moon-jump-button span {
+  margin-bottom: 3px;
+  color: #1e6d84;
+  font-size: 8px;
+  letter-spacing: .12em;
+}
+
+.moon-control-hint {
+  position: absolute;
+  z-index: 9;
+  right: 130px;
+  bottom: max(32px, calc(env(safe-area-inset-bottom) + 24px));
+  left: 130px;
+  color: rgba(220, 245, 252, .7);
+  font: 800 9px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .11em;
+  text-align: center;
+  text-shadow: 0 2px 12px #000;
+  pointer-events: none;
+}
+
+.moon-arrival-card,
+.moon-access-card {
+  display: grid;
+  justify-items: center;
+  width: min(560px, calc(100vw - 36px));
+  padding: clamp(26px, 5vw, 50px);
+  border: 1px solid rgba(114, 230, 255, .34);
+  border-radius: 30px;
+  color: #f3fbff;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(84, 221, 255, .22), transparent 58%),
+    linear-gradient(145deg, rgba(13, 31, 50, .97), rgba(4, 10, 21, .97));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .6), inset 0 1px rgba(255, 255, 255, .1);
+}
+
+.moon-arrival-card {
+  position: absolute;
+  z-index: 50;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(22px);
+}
+
+.moon-arrival-card::before,
+.moon-access-card::before {
+  content: "☾";
+  display: grid;
+  place-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(116, 230, 255, .4);
+  border-radius: 50%;
+  color: #7cecff;
+  background: rgba(61, 180, 211, .1);
+  box-shadow: 0 0 38px rgba(80, 225, 255, .18);
+  font-size: 38px;
+}
+
+.moon-arrival-card h2,
+.moon-access-card h1 {
+  margin: 8px 0 7px;
+  font-size: clamp(31px, 5vw, 50px);
+  line-height: 1;
+  letter-spacing: -.045em;
+}
+
+.moon-arrival-card p,
+.moon-access-card p {
+  max-width: 430px;
+  margin: 0 0 20px;
+  color: #bfd4de;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.moon-access-page {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 16% 15%, rgba(80, 219, 255, .12), transparent 30%),
+    radial-gradient(circle at 80% 75%, rgba(183, 125, 255, .12), transparent 32%),
+    #030713;
+}
+
+@media (pointer: coarse), (max-width: 760px) {
+  .moon-touch-pad {
+    display: grid;
+  }
+
+  .moon-control-hint {
+    display: none;
+  }
+
+  .moon-mission-panel {
+    top: 106px;
+    width: min(250px, calc(100vw - 36px));
+    padding: 12px;
+  }
+
+  .moon-mission-panel h2 {
+    font-size: 16px;
+  }
+
+  .moon-mission-panel > p,
+  .moon-mission-panel li small {
+    display: none;
+  }
+
+  .moon-mission-panel li {
+    min-height: 29px;
+    padding: 3px 5px;
+  }
+
+  .moon-world-heading h1 {
+    font-size: 30px;
+  }
+
+  .moon-world-heading button {
+    min-height: 38px;
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+}
+
+@media (max-height: 660px) and (pointer: coarse) {
+  .moon-mission-panel {
+    display: none;
+  }
+}

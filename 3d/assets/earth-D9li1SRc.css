@@ -7590,3 +7590,91 @@ kbd {
     padding: 12px;
   }
 }
+/* Starlight One keeps the flight cinematic readable without covering the view. */
+.rocket-journey-overlay {
+  position: absolute;
+  z-index: 90;
+  inset: 0;
+  overflow: hidden;
+  color: #f4fbff;
+  pointer-events: auto;
+  background:
+    linear-gradient(180deg, rgba(2, 7, 16, .9) 0, rgba(2, 7, 16, .28) 14%, transparent 31%),
+    linear-gradient(0deg, rgba(2, 7, 16, .94) 0, rgba(2, 7, 16, .24) 25%, transparent 43%);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .8);
+}
+
+.rocket-journey-mission {
+  position: absolute;
+  top: clamp(18px, 4vh, 42px);
+  left: clamp(20px, 4vw, 54px);
+  display: grid;
+  gap: 4px;
+  letter-spacing: .18em;
+}
+
+.rocket-journey-mission span {
+  color: #77e8ff;
+  font: 800 clamp(10px, 1.1vw, 13px)/1.1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.rocket-journey-mission strong {
+  font: 900 clamp(13px, 1.6vw, 20px)/1.1 system-ui, sans-serif;
+}
+
+.rocket-journey-caption {
+  position: absolute;
+  right: clamp(22px, 6vw, 82px);
+  bottom: clamp(24px, 6vh, 64px);
+  left: clamp(22px, 6vw, 82px);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.rocket-journey-caption small {
+  color: #75e8ff;
+  font: 900 clamp(9px, 1vw, 12px)/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.rocket-journey-caption h2 {
+  margin: 5px 0 2px;
+  color: #fff;
+  font: 950 clamp(25px, 4.5vw, 58px)/.98 system-ui, sans-serif;
+  letter-spacing: .08em;
+}
+
+.rocket-journey-caption p {
+  margin: 4px 0 13px;
+  color: #d9f6ff;
+  font: 750 clamp(11px, 1.5vw, 16px)/1.25 system-ui, sans-serif;
+}
+
+.rocket-journey-progress {
+  width: min(470px, 72vw);
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .18);
+  box-shadow: 0 0 18px rgba(70, 217, 255, .2);
+}
+
+.rocket-journey-progress i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5ee8ff, #fff, #ffbd55);
+  box-shadow: 0 0 14px #64e8ff;
+  transform-origin: left center;
+  transition: transform 180ms linear;
+}
+
+html[data-rocket-journey="true"] .top-hud,
+html[data-rocket-journey="true"] .bottom-dock {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
