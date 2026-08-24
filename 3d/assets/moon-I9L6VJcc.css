@@ -1,0 +1,64 @@
+:root {
+  color: #f5fbff;
+  background: #030713;
+}
+
+.moon-access-page {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(56, 120, 177, 0.34), transparent 36%),
+    #030713;
+}
+
+.moon-access-card {
+  width: min(520px, calc(100vw - 34px));
+  padding: clamp(24px, 5vw, 42px);
+  border: 1px solid rgba(117, 230, 255, 0.42);
+  border-radius: 30px;
+  color: #f5fbff;
+  background:
+    radial-gradient(circle at 84% 10%, rgba(91, 223, 255, 0.2), transparent 34%),
+    linear-gradient(145deg, rgba(13, 34, 55, 0.97), rgba(5, 13, 26, 0.98));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.58),
+    inset 0 1px rgba(255, 255, 255, 0.13);
+  text-align: center;
+  backdrop-filter: blur(18px);
+}
+
+.moon-access-eyebrow {
+  color: #6fe7ff;
+  font: 900 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.16em;
+}
+
+.moon-access-card h1 {
+  margin: 12px 0 8px;
+  font-size: clamp(27px, 5vw, 42px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.moon-access-card p {
+  margin: 0 auto 20px;
+  color: #c8dce7;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.moon-access-card button {
+  min-height: 46px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 15px;
+  color: #062033;
+  background: linear-gradient(180deg, #98eeff, #58cfe9);
+  box-shadow: 0 12px 28px rgba(22, 141, 173, 0.27);
+  font-weight: 900;
+  cursor: pointer;
+}
