@@ -2918,6 +2918,16 @@ input:focus-visible {
   filter: drop-shadow(0 3px 5px rgba(27, 91, 87, 0.22));
 }
 
+.luck-boost-pill.abyssal-bait-pill {
+  color: #f6eaff;
+  background: linear-gradient(145deg, rgba(47, 55, 92, 0.96), rgba(119, 72, 145, 0.94));
+  box-shadow: 0 10px 28px rgba(42, 36, 86, 0.24), inset 0 1px rgba(255, 255, 255, 0.32);
+}
+
+.luck-boost-pill.abyssal-bait-pill > span {
+  filter: drop-shadow(0 3px 5px rgba(111, 230, 244, 0.42));
+}
+
 @keyframes lucky-clover-pulse {
   0%, 100% { transform: scale(1) rotate(-4deg); }
   50% { transform: scale(1.14) rotate(5deg); }
@@ -5798,6 +5808,13 @@ kbd {
   color: #fff;
   background: transparent;
   box-shadow: none;
+}
+
+.luck-boost-pill.abyssal-bait-pill {
+  min-width: 42px;
+  background: transparent;
+  box-shadow: none;
+  text-shadow: 0 1px 5px rgba(45, 25, 80, 0.96);
 }
 
 .luck-boost-pill > span {
