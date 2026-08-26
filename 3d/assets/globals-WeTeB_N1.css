@@ -6113,6 +6113,59 @@ kbd {
   transition: height 100ms linear;
 }
 
+.jet-pack-fuel-meter {
+  position: absolute;
+  top: 238px;
+  right: 22px;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px 11px;
+  min-width: 224px;
+  padding: 11px 13px 12px;
+  color: #f7fbff;
+  background: linear-gradient(145deg, rgba(29, 55, 92, .95), rgba(54, 72, 126, .92));
+  border: 2px solid rgba(183, 238, 255, .82);
+  border-radius: 18px;
+  box-shadow: 0 16px 38px rgba(13, 27, 57, .34), inset 0 0 0 2px rgba(104, 224, 255, .12);
+  pointer-events: none;
+}
+
+.jet-pack-fuel-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 30%, #fff3b8, #ff9068 46%, #4a72bc 74%);
+  box-shadow: 0 0 18px rgba(92, 222, 255, .38);
+  font-size: 21px;
+}
+
+.jet-pack-fuel-meter > div:nth-child(2) { display: grid; gap: 1px; }
+.jet-pack-fuel-meter small { color: #8fe8ff; font: 900 8px/1.1 system-ui, sans-serif; letter-spacing: .17em; }
+.jet-pack-fuel-meter strong { font: 950 22px/1 system-ui, sans-serif; letter-spacing: -.035em; }
+.jet-pack-fuel-meter em { color: #d8eaff; font: 750 8px/1.25 system-ui, sans-serif; font-style: normal; }
+
+.jet-pack-fuel-gauge {
+  grid-column: 1 / -1;
+  height: 9px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .32);
+  border-radius: 999px;
+  background: rgba(8, 21, 50, .58);
+}
+
+.jet-pack-fuel-gauge > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff8065, #ffe170 42%, #72e7ff);
+  box-shadow: 0 0 12px rgba(103, 227, 255, .65);
+  transition: width 100ms linear;
+}
+
 .sky-fair-ticket::after {
   content: "";
   position: absolute;
@@ -6147,6 +6200,7 @@ kbd {
 @media (max-width: 700px) {
   .sky-fair-ticket { top: 138px; right: 12px; width: min(280px, calc(100% - 24px)); }
   .glider-altimeter { top: 138px; right: 12px; min-width: 172px; padding: 10px 11px; }
+  .jet-pack-fuel-meter { top: 224px; right: 12px; min-width: 196px; max-width: calc(100% - 24px); padding: 9px 11px 10px; }
 }
 
 /* Taylor Town gameplay welcome art */
