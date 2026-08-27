@@ -991,7 +991,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 &lt;div id=&quot;erbb-v6-explorer&quot;&gt;
   &lt;div class=&quot;ev6-heading&quot;&gt;
     &lt;h1&gt;ErbB v6 steady-state model&lt;/h1&gt;
-    &lt;div class=&quot;text-muted&quot;&gt;Preassembled/no-search, two-ligand monomer search, ligand-independent partner, and bivalent ligand&lt;/div&gt;
+    &lt;div class=&quot;text-muted&quot;&gt;Invertebrate preformed-dimer reference, vertebrate monomer search, ligand-independent HER2, and bivalent ligand&lt;/div&gt;
   &lt;/div&gt;
 
   &lt;div class=&quot;viz-controls&quot; aria-label=&quot;Model parameters&quot;&gt;
@@ -1003,7 +1003,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;label class=&quot;form-label&quot; for=&quot;ev6-alpha&quot;&gt;
       &lt;span&gt;Association strength, α = k&lt;sub&gt;+&lt;/sub&gt;R&lt;sub&gt;T&lt;/sub&gt;/k&lt;sub&gt;d&lt;/sub&gt;&lt;/span&gt;
       &lt;output id=&quot;ev6-alpha-out&quot; class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;
-      &lt;input id=&quot;ev6-alpha&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-3&quot; max=&quot;3&quot; step=&quot;0.01&quot; value=&quot;1&quot;&gt;
+      &lt;input id=&quot;ev6-alpha&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-3&quot; max=&quot;6&quot; step=&quot;0.01&quot; value=&quot;1&quot;&gt;
     &lt;/label&gt;
     &lt;label class=&quot;form-label&quot; for=&quot;ev6-delta&quot;&gt;
       &lt;span&gt;Ligand loss / dimer dissociation, δ = k&lt;sub&gt;off&lt;/sub&gt;/k&lt;sub&gt;d&lt;/sub&gt;&lt;/span&gt;
@@ -1014,13 +1014,6 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;span&gt;Selected ligand dose, ℓ = L/K&lt;sub&gt;D&lt;/sub&gt;&lt;/span&gt;
       &lt;output id=&quot;ev6-dose-out&quot; class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;
       &lt;input id=&quot;ev6-dose&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-4&quot; max=&quot;3&quot; step=&quot;0.01&quot; value=&quot;0&quot;&gt;
-    &lt;/label&gt;
-    &lt;label class=&quot;form-label&quot; for=&quot;ev6-output&quot;&gt;
-      &lt;span&gt;Plotted output&lt;/span&gt;
-      &lt;select id=&quot;ev6-output&quot; class=&quot;form-select&quot;&gt;
-        &lt;option value=&quot;unique&quot;&gt;v6 unique dimers, D = p + q&lt;/option&gt;
-        &lt;option value=&quot;participation&quot;&gt;Ligand-engaged receptors, Y = p + 2q&lt;/option&gt;
-      &lt;/select&gt;
     &lt;/label&gt;
     &lt;button id=&quot;ev6-reset&quot; class=&quot;btn btn-ghost&quot; type=&quot;button&quot;&gt;Reset v6 defaults&lt;/button&gt;
   &lt;/div&gt;
@@ -1033,19 +1026,23 @@ html&gt;body{padding:0}&lt;/style&gt;
     occupancy f = &lt;span id=&quot;ev6-f&quot;&gt;&lt;/span&gt;
   &lt;/div&gt;
 
+  &lt;div class=&quot;ev6-metric-note text-small&quot;&gt;
+    &lt;strong&gt;Common observable:&lt;/strong&gt; Y = p + 2q, the fraction of ligand-binding primary receptors that are both ligand-bound and productively dimerized. Y = 1 means 100 engaged receptor protomers; for a pure self-homodimer system, that is 50 physical dimers—not 100.
+  &lt;/div&gt;
+
   &lt;div class=&quot;viz-grid ev6-stats&quot; aria-live=&quot;polite&quot;&gt;
     &lt;div class=&quot;card viz-stat&quot;&gt;
-      &lt;div class=&quot;text-muted&quot;&gt;Current partner-assisted output&lt;/div&gt;
+      &lt;div class=&quot;text-muted&quot;&gt;Current ligand-bound receptor participation, Y&lt;/div&gt;
       &lt;div id=&quot;ev6-current-value&quot; class=&quot;viz-stat-value tabular-nums&quot;&gt;&lt;/div&gt;
       &lt;div id=&quot;ev6-current-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
     &lt;/div&gt;
     &lt;div class=&quot;card viz-stat&quot;&gt;
-      &lt;div class=&quot;text-muted&quot;&gt;HER2 / partner increment&lt;/div&gt;
+      &lt;div class=&quot;text-muted&quot;&gt;HER2 increment in Y&lt;/div&gt;
       &lt;div id=&quot;ev6-gain-value&quot; class=&quot;viz-stat-value tabular-nums&quot;&gt;&lt;/div&gt;
       &lt;div id=&quot;ev6-gain-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
     &lt;/div&gt;
     &lt;div class=&quot;card viz-stat&quot;&gt;
-      &lt;div class=&quot;text-muted&quot;&gt;Bivalent ligand output&lt;/div&gt;
+      &lt;div class=&quot;text-muted&quot;&gt;Bivalent-ligand participation&lt;/div&gt;
       &lt;div id=&quot;ev6-biv-value&quot; class=&quot;viz-stat-value tabular-nums&quot;&gt;&lt;/div&gt;
       &lt;div id=&quot;ev6-biv-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
     &lt;/div&gt;
@@ -1055,9 +1052,9 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;section class=&quot;ev6-plot-section&quot; aria-labelledby=&quot;ev6-dose-title&quot;&gt;
       &lt;h2 id=&quot;ev6-dose-title&quot;&gt;Dose response&lt;/h2&gt;
       &lt;div class=&quot;ev6-legend&quot; aria-label=&quot;Dose-response series&quot;&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;Preassembled / no-search&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-mono&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Monomer, φ = 0&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-current&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Current φ&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;Invertebrate preformed dimer: Y = f&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-mono&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Monomer search, no HER2: Y = 2q&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-current&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Current HER2 ratio: Y = p + 2q&lt;/button&gt;
         &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-biv&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-biv&quot;&gt;&lt;/span&gt;Bivalent ligand&lt;/button&gt;
       &lt;/div&gt;
       &lt;div id=&quot;ev6-dose-chart&quot; class=&quot;ev6-chart&quot;&gt;&lt;/div&gt;
@@ -1066,10 +1063,10 @@ html&gt;body{padding:0}&lt;/style&gt;
     &lt;section class=&quot;ev6-plot-section&quot; aria-labelledby=&quot;ev6-titration-title&quot;&gt;
       &lt;h2 id=&quot;ev6-titration-title&quot;&gt;Partner titration at the selected dose&lt;/h2&gt;
       &lt;div class=&quot;ev6-legend&quot; aria-label=&quot;Partner-titration series&quot;&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-total&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Total output&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-hetero&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-hetero&quot;&gt;&lt;/span&gt;Heterodimer contribution&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-homo&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Homodimer contribution&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;No-search ceiling&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-total&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Total participation: p + 2q&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-hetero&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-hetero&quot;&gt;&lt;/span&gt;HER2 heterodimer participation: p&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-homo&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Self-homodimer participation: 2q&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;Invertebrate preformed-dimer ceiling: f&lt;/button&gt;
       &lt;/div&gt;
       &lt;div id=&quot;ev6-titration-chart&quot; class=&quot;ev6-chart&quot;&gt;&lt;/div&gt;
     &lt;/section&gt;
@@ -1151,6 +1148,13 @@ html&gt;body{padding:0}&lt;/style&gt;
     gap: 0.6rem;
     flex-wrap: wrap;
     margin: 0.75rem 0;
+  }
+
+  #erbb-v6-explorer .ev6-metric-note {
+    margin: 0 0 0.9rem;
+    padding: 0.65rem 0.75rem;
+    border-left: 3px solid var(--viz-series-1);
+    background: color-mix(in srgb, var(--foreground) 4%, transparent);
   }
 
   #erbb-v6-explorer .ev6-stats {
@@ -1346,7 +1350,6 @@ html&gt;body{padding:0}&lt;/style&gt;
     alpha: byId(&#x27;ev6-alpha&#x27;),
     delta: byId(&#x27;ev6-delta&#x27;),
     dose: byId(&#x27;ev6-dose&#x27;),
-    output: byId(&#x27;ev6-output&#x27;),
     heatOccupancy: byId(&#x27;ev6-heat-occupancy&#x27;)
   };
   const visible = {
@@ -1388,8 +1391,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       phi: Math.pow(10, Number(controls.phi.value)) - 1,
       alpha: Math.pow(10, Number(controls.alpha.value)),
       delta: Math.pow(10, Number(controls.delta.value)),
-      dose: Math.pow(10, Number(controls.dose.value)),
-      output: controls.output.value
+      dose: Math.pow(10, Number(controls.dose.value))
     };
   }
 
@@ -1420,7 +1422,6 @@ html&gt;body{padding:0}&lt;/style&gt;
       c,
       p,
       q,
-      unique: p + q,
       participation: p + 2 * q
     };
   }
@@ -1441,14 +1442,12 @@ html&gt;body{padding:0}&lt;/style&gt;
     return {r, c, d};
   }
 
-  function outputValue(model, state) {
-    return state.output === &#x27;participation&#x27; ? model.participation : model.unique;
+  function outputValue(model) {
+    return model.participation;
   }
 
-  function outputLabel(state) {
-    return state.output === &#x27;participation&#x27;
-      ? &#x27;ligand-engaged receptors in dimers per primary receptor, Y&#x27;
-      : &#x27;unique dimers per primary receptor, D&#x27;;
+  function outputLabel() {
+    return &#x27;fraction of primary receptors ligand-bound and dimer-engaged, Y = p + 2q&#x27;;
   }
 
   function updateReadouts(state) {
@@ -1456,8 +1455,8 @@ html&gt;body{padding:0}&lt;/style&gt;
     const model = mainState(state.dose, state);
     const baseline = mainState(state.dose, state, 0);
     const biv = bivalentState(state.dose, state);
-    const current = outputValue(model, state);
-    const base = outputValue(baseline, state);
+    const current = outputValue(model);
+    const base = outputValue(baseline);
     const gain = current - base;
 
     byId(&#x27;ev6-phi-out&#x27;).textContent = formatNumber(state.phi);
@@ -1469,11 +1468,11 @@ html&gt;body{padding:0}&lt;/style&gt;
     byId(&#x27;ev6-f&#x27;).textContent = formatNumber(model.f);
 
     byId(&#x27;ev6-current-value&#x27;).textContent = formatNumber(current);
-    byId(&#x27;ev6-current-note&#x27;).textContent = `${formatNumber(100 * current / Math.max(model.f, 1e-15))}% of the no-search ceiling; p=${formatNumber(model.p)}, q=${formatNumber(model.q)}`;
+    byId(&#x27;ev6-current-note&#x27;).textContent = `${formatNumber(100 * current / Math.max(model.f, 1e-15))}% of the preformed-dimer ceiling. Per 100 primary receptors: ${formatNumber(100 * model.p)} HER2 heterodimers + ${formatNumber(100 * model.q)} self-homodimers; ${formatNumber(100 * model.c)} ligand-bound monomers remain.`;
     byId(&#x27;ev6-gain-value&#x27;).textContent = `${gain &gt;= 0 ? &#x27;+&#x27; : &#x27;&#x27;}${formatNumber(gain)}`;
-    byId(&#x27;ev6-gain-note&#x27;).textContent = `${formatNumber(100 * gain)} additional per 100 primary receptors; φ=0 baseline ${formatNumber(base)}`;
+    byId(&#x27;ev6-gain-note&#x27;).textContent = `${formatNumber(100 * gain)} additional ligand-bound receptors dimerized per 100 primary receptors; no-HER2 Y₀=${formatNumber(base)}, corresponding to ${formatNumber(100 * baseline.q)} physical self-homodimers.`;
     byId(&#x27;ev6-biv-value&#x27;).textContent = formatNumber(biv.d);
-    byId(&#x27;ev6-biv-note&#x27;).textContent = `${formatNumber(100 * biv.d / Math.max(model.f, 1e-15))}% of the no-search ceiling`;
+    byId(&#x27;ev6-biv-note&#x27;).textContent = `${formatNumber(100 * biv.d / Math.max(model.f, 1e-15))}% of the preformed-dimer ceiling`;
   }
 
   function makeScales(width, height, xMin, xMax) {
@@ -1547,17 +1546,17 @@ html&gt;body{padding:0}&lt;/style&gt;
     const width = Math.max(320, Math.floor(host.getBoundingClientRect().width || 620));
     const height = width &lt; 500 ? 350 : 390;
     host.replaceChildren();
-    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Dose response for preassembled, no-HER2 monomer, partner-assisted, and bivalent architectures&#x27;});
+    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Ligand-bound receptor participation for the invertebrate preformed-dimer reference, no-HER2 monomer search, HER2-assisted search, and bivalent ligand&#x27;});
     svg.appendChild(svgEl(&#x27;title&#x27;, {}, &#x27;ErbB v6 dose response&#x27;));
     svg.appendChild(svgEl(&#x27;desc&#x27;, {}, &#x27;Absolute model output as a function of dimensionless ligand concentration.&#x27;));
     host.appendChild(svg);
     const scales = makeScales(width, height, -4, 3);
-    addAxes(svg, scales, width, height, [-4, -2, 0, 2, 3], value =&gt; `10${value === 0 ? &#x27;⁰&#x27; : value === 2 ? &#x27;²&#x27; : value === 3 ? &#x27;³&#x27; : value === -2 ? &#x27;⁻²&#x27; : &#x27;⁻⁴&#x27;}`, &#x27;dimensionless ligand, ℓ = L/KD&#x27;, outputLabel(state));
+    addAxes(svg, scales, width, height, [-4, -2, 0, 2, 3], value =&gt; `10${value === 0 ? &#x27;⁰&#x27; : value === 2 ? &#x27;²&#x27; : value === 3 ? &#x27;³&#x27; : value === -2 ? &#x27;⁻²&#x27; : &#x27;⁻⁴&#x27;}`, &#x27;dimensionless ligand, ℓ = L/KD&#x27;, outputLabel());
 
     const definitions = [
       {key: &#x27;dose-pre&#x27;, color: &#x27;var(--foreground)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; ell / (1 + ell)},
-      {key: &#x27;dose-mono&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;8 5&#x27;, fn: ell =&gt; outputValue(mainState(ell, state, 0), state)},
-      {key: &#x27;dose-current&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; outputValue(mainState(ell, state), state)},
+      {key: &#x27;dose-mono&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;8 5&#x27;, fn: ell =&gt; outputValue(mainState(ell, state, 0))},
+      {key: &#x27;dose-current&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; outputValue(mainState(ell, state))},
       {key: &#x27;dose-biv&#x27;, color: &#x27;var(--viz-series-3)&#x27;, dash: &#x27;3 4&#x27;, fn: ell =&gt; bivalentState(ell, state).d}
     ];
     const samples = Array.from({length: 281}, (_, i) =&gt; -4 + 7 * i / 280);
@@ -1597,7 +1596,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         marker.setAttribute(&#x27;cx&#x27;, xx);
         marker.setAttribute(&#x27;cy&#x27;, scales.y(value));
         marker.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
-        const labels = {&#x27;dose-pre&#x27;: &#x27;No-search&#x27;, &#x27;dose-mono&#x27;: &#x27;Monomer φ=0&#x27;, &#x27;dose-current&#x27;: `Current φ=${formatNumber(state.phi)}`, &#x27;dose-biv&#x27;: &#x27;Bivalent&#x27;};
+        const labels = {&#x27;dose-pre&#x27;: &#x27;Invertebrate preformed dimer&#x27;, &#x27;dose-mono&#x27;: &#x27;Monomer search, no HER2&#x27;, &#x27;dose-current&#x27;: `Current HER2 ratio φ=${formatNumber(state.phi)}`, &#x27;dose-biv&#x27;: &#x27;Bivalent ligand&#x27;};
         rows.push([labels[def.key], formatNumber(value)]);
       });
       tooltip.innerHTML = tooltipTable(`ℓ = ${formatNumber(ell)}`, rows);
@@ -1625,12 +1624,11 @@ html&gt;body{padding:0}&lt;/style&gt;
     const scales = makeScales(width, height, 0, xMax);
     const tickPhi = [0, 1, 10, 100, 1000];
     const xTicks = tickPhi.map(phi =&gt; Math.log10(1 + phi));
-    addAxes(svg, scales, width, height, xTicks, value =&gt; String(tickPhi[xTicks.indexOf(value)]), &#x27;HER2 / partner ratio, φ (log spacing in 1 + φ)&#x27;, outputLabel(state));
-    const weightQ = state.output === &#x27;participation&#x27; ? 2 : 1;
+    addAxes(svg, scales, width, height, xTicks, value =&gt; String(tickPhi[xTicks.indexOf(value)]), &#x27;HER2 / partner ratio, φ (log spacing in 1 + φ)&#x27;, outputLabel());
     const definitions = [
-      {key: &#x27;tit-total&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: phi =&gt; outputValue(mainState(state.dose, state, phi), state)},
+      {key: &#x27;tit-total&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: phi =&gt; outputValue(mainState(state.dose, state, phi))},
       {key: &#x27;tit-hetero&#x27;, color: &#x27;var(--viz-series-4)&#x27;, dash: &#x27;7 4&#x27;, fn: phi =&gt; mainState(state.dose, state, phi).p},
-      {key: &#x27;tit-homo&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;3 4&#x27;, fn: phi =&gt; weightQ * mainState(state.dose, state, phi).q},
+      {key: &#x27;tit-homo&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;3 4&#x27;, fn: phi =&gt; 2 * mainState(state.dose, state, phi).q},
       {key: &#x27;tit-pre&#x27;, color: &#x27;var(--foreground)&#x27;, dash: &#x27;&#x27;, fn: () =&gt; state.dose / (1 + state.dose)}
     ];
     const samples = Array.from({length: 281}, (_, i) =&gt; xMax * i / 280);
@@ -1670,7 +1668,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         marker.setAttribute(&#x27;cx&#x27;, xx);
         marker.setAttribute(&#x27;cy&#x27;, scales.y(value));
         marker.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
-        const labels = {&#x27;tit-total&#x27;: &#x27;Total&#x27;, &#x27;tit-hetero&#x27;: &#x27;Heterodimer&#x27;, &#x27;tit-homo&#x27;: &#x27;Homodimer&#x27;, &#x27;tit-pre&#x27;: &#x27;No-search&#x27;};
+        const labels = {&#x27;tit-total&#x27;: &#x27;Total Y=p+2q&#x27;, &#x27;tit-hetero&#x27;: &#x27;HER2 contribution p&#x27;, &#x27;tit-homo&#x27;: &#x27;Self-homodimer contribution 2q&#x27;, &#x27;tit-pre&#x27;: &#x27;Invertebrate preformed-dimer Y=f&#x27;};
         rows.push([labels[def.key], formatNumber(value)]);
       });
       tooltip.innerHTML = tooltipTable(`φ = ${formatNumber(phi)}`, rows);
@@ -1693,7 +1691,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 
   function heatValues(eta, phi, occupancy, state) {
     const ell = occupancy / Math.max(1 - occupancy, 1e-12);
-    const heatState = {...state, alpha: eta * state.delta, output: &#x27;participation&#x27;};
+    const heatState = {...state, alpha: eta * state.delta};
     const baseline = mainState(ell, heatState, 0).participation;
     const assisted = mainState(ell, heatState, phi).participation;
     const increment = Math.max(0, assisted - baseline);
@@ -1968,7 +1966,6 @@ html&gt;body{padding:0}&lt;/style&gt;
     controls.alpha.value = &#x27;1&#x27;;
     controls.delta.value = &#x27;1&#x27;;
     controls.dose.value = &#x27;0&#x27;;
-    controls.output.value = &#x27;unique&#x27;;
     controls.heatOccupancy.value = &#x27;0.1&#x27;;
     Object.keys(visible).forEach(key =&gt; { visible[key] = true; });
     root.querySelectorAll(&#x27;.ev6-series-toggle&#x27;).forEach(button =&gt; button.setAttribute(&#x27;aria-pressed&#x27;, &#x27;true&#x27;));
