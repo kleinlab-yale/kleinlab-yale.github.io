@@ -1,1 +1,0 @@
-import{a as e,n as t,o as n,t as r}from"./globals-CvIoo1GL.js";var i=n(),a=e(),o=t();(0,a.createRoot)(document.getElementById(`root`)).render((0,o.jsx)(i.StrictMode,{children:(0,o.jsx)(r,{})}));
