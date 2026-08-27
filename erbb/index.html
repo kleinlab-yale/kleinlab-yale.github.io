@@ -1,0 +1,2287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Erbb V6 Model Explorer</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Erbb V6 Model Explorer" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Erbb V6 Model Explorer&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: var(--border-radius-lg, 12.5px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress {
+  display: flex;
+  height: 6px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 6px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;erbb-v6-explorer&quot;&gt;
+  &lt;div class=&quot;ev6-heading&quot;&gt;
+    &lt;h1&gt;ErbB v6 steady-state model&lt;/h1&gt;
+    &lt;div class=&quot;text-muted&quot;&gt;Preassembled/no-search, two-ligand monomer search, ligand-independent partner, and bivalent ligand&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;viz-controls&quot; aria-label=&quot;Model parameters&quot;&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ev6-phi&quot;&gt;
+      &lt;span&gt;HER2 / partner ratio, φ = H&lt;sub&gt;T&lt;/sub&gt;/R&lt;sub&gt;T&lt;/sub&gt;&lt;/span&gt;
+      &lt;output id=&quot;ev6-phi-out&quot; class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;
+      &lt;input id=&quot;ev6-phi&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;3.0004&quot; step=&quot;0.002&quot; value=&quot;0.30103&quot;&gt;
+    &lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ev6-alpha&quot;&gt;
+      &lt;span&gt;Association strength, α = k&lt;sub&gt;+&lt;/sub&gt;R&lt;sub&gt;T&lt;/sub&gt;/k&lt;sub&gt;d&lt;/sub&gt;&lt;/span&gt;
+      &lt;output id=&quot;ev6-alpha-out&quot; class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;
+      &lt;input id=&quot;ev6-alpha&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-3&quot; max=&quot;3&quot; step=&quot;0.01&quot; value=&quot;1&quot;&gt;
+    &lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ev6-delta&quot;&gt;
+      &lt;span&gt;Ligand loss / dimer dissociation, δ = k&lt;sub&gt;off&lt;/sub&gt;/k&lt;sub&gt;d&lt;/sub&gt;&lt;/span&gt;
+      &lt;output id=&quot;ev6-delta-out&quot; class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;
+      &lt;input id=&quot;ev6-delta&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-3&quot; max=&quot;3&quot; step=&quot;0.01&quot; value=&quot;1&quot;&gt;
+    &lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ev6-dose&quot;&gt;
+      &lt;span&gt;Selected ligand dose, ℓ = L/K&lt;sub&gt;D&lt;/sub&gt;&lt;/span&gt;
+      &lt;output id=&quot;ev6-dose-out&quot; class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;
+      &lt;input id=&quot;ev6-dose&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-4&quot; max=&quot;3&quot; step=&quot;0.01&quot; value=&quot;0&quot;&gt;
+    &lt;/label&gt;
+    &lt;label class=&quot;form-label&quot; for=&quot;ev6-output&quot;&gt;
+      &lt;span&gt;Plotted output&lt;/span&gt;
+      &lt;select id=&quot;ev6-output&quot; class=&quot;form-select&quot;&gt;
+        &lt;option value=&quot;unique&quot;&gt;v6 unique dimers, D = p + q&lt;/option&gt;
+        &lt;option value=&quot;participation&quot;&gt;Ligand-engaged receptors, Y = p + 2q&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+    &lt;button id=&quot;ev6-reset&quot; class=&quot;btn btn-ghost&quot; type=&quot;button&quot;&gt;Reset v6 defaults&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;ev6-derived text-small text-muted tabular-nums&quot; aria-live=&quot;polite&quot;&gt;
+    Γ&lt;sub&gt;1&lt;/sub&gt; = &lt;span id=&quot;ev6-g1&quot;&gt;&lt;/span&gt;
+    &lt;span aria-hidden=&quot;true&quot;&gt;·&lt;/span&gt;
+    Γ&lt;sub&gt;2&lt;/sub&gt; = &lt;span id=&quot;ev6-g2&quot;&gt;&lt;/span&gt;
+    &lt;span aria-hidden=&quot;true&quot;&gt;·&lt;/span&gt;
+    occupancy f = &lt;span id=&quot;ev6-f&quot;&gt;&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;viz-grid ev6-stats&quot; aria-live=&quot;polite&quot;&gt;
+    &lt;div class=&quot;card viz-stat&quot;&gt;
+      &lt;div class=&quot;text-muted&quot;&gt;Current partner-assisted output&lt;/div&gt;
+      &lt;div id=&quot;ev6-current-value&quot; class=&quot;viz-stat-value tabular-nums&quot;&gt;&lt;/div&gt;
+      &lt;div id=&quot;ev6-current-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card viz-stat&quot;&gt;
+      &lt;div class=&quot;text-muted&quot;&gt;HER2 / partner increment&lt;/div&gt;
+      &lt;div id=&quot;ev6-gain-value&quot; class=&quot;viz-stat-value tabular-nums&quot;&gt;&lt;/div&gt;
+      &lt;div id=&quot;ev6-gain-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card viz-stat&quot;&gt;
+      &lt;div class=&quot;text-muted&quot;&gt;Bivalent ligand output&lt;/div&gt;
+      &lt;div id=&quot;ev6-biv-value&quot; class=&quot;viz-stat-value tabular-nums&quot;&gt;&lt;/div&gt;
+      &lt;div id=&quot;ev6-biv-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;ev6-plots&quot;&gt;
+    &lt;section class=&quot;ev6-plot-section&quot; aria-labelledby=&quot;ev6-dose-title&quot;&gt;
+      &lt;h2 id=&quot;ev6-dose-title&quot;&gt;Dose response&lt;/h2&gt;
+      &lt;div class=&quot;ev6-legend&quot; aria-label=&quot;Dose-response series&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;Preassembled / no-search&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-mono&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Monomer, φ = 0&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-current&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Current φ&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-biv&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-biv&quot;&gt;&lt;/span&gt;Bivalent ligand&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;ev6-dose-chart&quot; class=&quot;ev6-chart&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;ev6-plot-section&quot; aria-labelledby=&quot;ev6-titration-title&quot;&gt;
+      &lt;h2 id=&quot;ev6-titration-title&quot;&gt;Partner titration at the selected dose&lt;/h2&gt;
+      &lt;div class=&quot;ev6-legend&quot; aria-label=&quot;Partner-titration series&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-total&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Total output&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-hetero&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-hetero&quot;&gt;&lt;/span&gt;Heterodimer contribution&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-homo&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Homodimer contribution&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;No-search ceiling&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;ev6-titration-chart&quot; class=&quot;ev6-chart&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;ev6-plot-section ev6-heat-section&quot; aria-labelledby=&quot;ev6-heat-title&quot;&gt;
+      &lt;div class=&quot;ev6-heat-heading&quot;&gt;
+        &lt;div&gt;
+          &lt;h2 id=&quot;ev6-heat-title&quot;&gt;Where does HER2 add the most?&lt;/h2&gt;
+          &lt;div class=&quot;text-small text-muted&quot;&gt;v6 search-opportunity view: η = α/δ = k&lt;sub&gt;+&lt;/sub&gt;R&lt;sub&gt;T&lt;/sub&gt;/k&lt;sub&gt;off&lt;/sub&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;label class=&quot;form-label ev6-heat-control&quot; for=&quot;ev6-heat-occupancy&quot;&gt;
+          &lt;span&gt;Heat-map ligand occupancy&lt;/span&gt;
+          &lt;select id=&quot;ev6-heat-occupancy&quot; class=&quot;form-select&quot;&gt;
+            &lt;option value=&quot;current&quot;&gt;Follow selected dose&lt;/option&gt;
+            &lt;option value=&quot;0.01&quot;&gt;f = 0.01&lt;/option&gt;
+            &lt;option value=&quot;0.1&quot; selected&gt;f = 0.10 (old Figure D)&lt;/option&gt;
+            &lt;option value=&quot;0.5&quot;&gt;f = 0.50&lt;/option&gt;
+            &lt;option value=&quot;0.9&quot;&gt;f = 0.90&lt;/option&gt;
+          &lt;/select&gt;
+        &lt;/label&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;ev6-heat-note&quot; class=&quot;text-small text-muted tabular-nums&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+      &lt;div id=&quot;ev6-heat-chart&quot; class=&quot;ev6-chart ev6-heat-chart&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;ev6-heat-key&quot; aria-label=&quot;Heat-map color scale&quot;&gt;
+        &lt;span&gt;0&lt;/span&gt;
+        &lt;span class=&quot;ev6-heat-gradient&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;
+        &lt;span&gt;100&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;additional successful pairings per 100 ligand-bound receptors&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;text-small text-muted&quot;&gt;White contours: 10, 25, 50, and 75. Dashed guides mark the currently selected η and HER2 ratio.&lt;/div&gt;
+    &lt;/section&gt;
+  &lt;/div&gt;
+
+  &lt;div id=&quot;ev6-tooltip&quot; class=&quot;tooltip ev6-tooltip&quot; role=&quot;tooltip&quot; hidden&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+  #erbb-v6-explorer {
+    position: relative;
+    width: 100%;
+    color: var(--foreground);
+  }
+
+  #erbb-v6-explorer .ev6-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  #erbb-v6-explorer .ev6-heading h1,
+  #erbb-v6-explorer .ev6-plot-section h2 {
+    margin: 0;
+  }
+
+  #erbb-v6-explorer .viz-controls {
+    align-items: end;
+  }
+
+  #erbb-v6-explorer .viz-controls &gt; .form-label {
+    flex: 1 1 205px;
+    min-width: 0;
+  }
+
+  #erbb-v6-explorer .form-label &gt; span:first-child {
+    display: block;
+  }
+
+  #erbb-v6-explorer .form-label output {
+    display: block;
+    margin: 0.2rem 0;
+    color: var(--foreground);
+  }
+
+  #erbb-v6-explorer .ev6-derived {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0.75rem 0;
+  }
+
+  #erbb-v6-explorer .ev6-stats {
+    margin-bottom: 1.2rem;
+  }
+
+  #erbb-v6-explorer .ev6-plots {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  #erbb-v6-explorer .ev6-plot-section {
+    min-width: 0;
+  }
+
+  #erbb-v6-explorer .ev6-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.1rem 0.35rem;
+    margin: 0.35rem 0 0.2rem;
+  }
+
+  #erbb-v6-explorer .ev6-series-toggle,
+  #erbb-v6-explorer .ev6-series-toggle:hover,
+  #erbb-v6-explorer .ev6-series-toggle:focus,
+  #erbb-v6-explorer .ev6-series-toggle:active {
+    appearance: none;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: var(--foreground) !important;
+    padding: 0.25rem 0.35rem;
+  }
+
+  #erbb-v6-explorer .ev6-series-toggle[aria-pressed=&quot;false&quot;] {
+    opacity: 0.45;
+  }
+
+  #erbb-v6-explorer .ev6-swatch {
+    display: inline-block;
+    width: 1.35rem;
+    height: 0;
+    margin-right: 0.35rem;
+    border-top: 0.16rem solid currentColor;
+    vertical-align: middle;
+  }
+
+  #erbb-v6-explorer .ev6-pre { color: var(--foreground); }
+  #erbb-v6-explorer .ev6-mono { color: var(--viz-series-2); }
+  #erbb-v6-explorer .ev6-current { color: var(--viz-series-1); }
+  #erbb-v6-explorer .ev6-biv { color: var(--viz-series-3); }
+  #erbb-v6-explorer .ev6-hetero { color: var(--viz-series-4); }
+
+  #erbb-v6-explorer .ev6-heat-section {
+    grid-column: 1 / -1;
+    margin-top: 0.35rem;
+  }
+
+  #erbb-v6-explorer .ev6-heat-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  #erbb-v6-explorer .ev6-heat-control {
+    width: min(310px, 100%);
+    margin: 0;
+  }
+
+  #erbb-v6-explorer .ev6-heat-chart {
+    min-height: 430px;
+    margin-top: 0.25rem;
+  }
+
+  #erbb-v6-explorer .ev6-heat-chart canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    touch-action: none;
+  }
+
+  #erbb-v6-explorer .ev6-heat-key {
+    display: grid;
+    grid-template-columns: auto minmax(110px, 240px) auto minmax(180px, 1fr);
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.25rem;
+  }
+
+  #erbb-v6-explorer .ev6-heat-gradient {
+    height: 0.75rem;
+    border: 1px solid var(--border);
+    background: linear-gradient(90deg, #072f5f 0%, #334f78 25%, #7f7f7f 50%, #c7b65f 75%, #fee33b 100%);
+  }
+
+  #erbb-v6-explorer .ev6-chart {
+    width: 100%;
+    min-height: 360px;
+  }
+
+  #erbb-v6-explorer .ev6-chart svg {
+    display: block;
+    width: 100%;
+  }
+
+  #erbb-v6-explorer .ev6-chart text {
+    fill: var(--foreground);
+    font-size: 12px;
+  }
+
+  #erbb-v6-explorer .ev6-chart .ev6-muted-text {
+    fill: var(--muted-foreground);
+  }
+
+  #erbb-v6-explorer .ev6-chart .ev6-grid {
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+
+  #erbb-v6-explorer .ev6-chart .ev6-frame {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+
+  #erbb-v6-explorer .ev6-chart .ev6-guide {
+    stroke: var(--muted-foreground);
+    stroke-width: 1;
+    pointer-events: none;
+  }
+
+  #erbb-v6-explorer .ev6-chart .ev6-marker {
+    stroke: var(--background);
+    stroke-width: 1.5;
+    pointer-events: none;
+  }
+
+  #erbb-v6-explorer .ev6-tooltip {
+    position: absolute;
+    z-index: 10;
+    max-width: 270px;
+    pointer-events: none;
+  }
+
+  #erbb-v6-explorer .ev6-tooltip table {
+    border-collapse: collapse;
+  }
+
+  #erbb-v6-explorer .ev6-tooltip td:last-child {
+    padding-left: 0.8rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 760px) {
+    #erbb-v6-explorer .ev6-plots {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #erbb-v6-explorer .ev6-chart {
+      min-height: 340px;
+    }
+
+    #erbb-v6-explorer .ev6-heat-chart {
+      min-height: 390px;
+    }
+
+    #erbb-v6-explorer .ev6-heat-key {
+      grid-template-columns: auto minmax(80px, 1fr) auto;
+    }
+
+    #erbb-v6-explorer .ev6-heat-key .text-small {
+      grid-column: 1 / -1;
+    }
+  }
+&lt;/style&gt;
+
+&lt;script&gt;
+(() =&gt; {
+  const root = document.getElementById(&#x27;erbb-v6-explorer&#x27;);
+  if (!root || root.dataset.ready === &#x27;true&#x27;) return;
+  root.dataset.ready = &#x27;true&#x27;;
+
+  const ns = &#x27;http://www.w3.org/2000/svg&#x27;;
+  const byId = id =&gt; document.getElementById(id);
+  const controls = {
+    phi: byId(&#x27;ev6-phi&#x27;),
+    alpha: byId(&#x27;ev6-alpha&#x27;),
+    delta: byId(&#x27;ev6-delta&#x27;),
+    dose: byId(&#x27;ev6-dose&#x27;),
+    output: byId(&#x27;ev6-output&#x27;),
+    heatOccupancy: byId(&#x27;ev6-heat-occupancy&#x27;)
+  };
+  const visible = {
+    &#x27;dose-pre&#x27;: true,
+    &#x27;dose-mono&#x27;: true,
+    &#x27;dose-current&#x27;: true,
+    &#x27;dose-biv&#x27;: true,
+    &#x27;tit-total&#x27;: true,
+    &#x27;tit-hetero&#x27;: true,
+    &#x27;tit-homo&#x27;: true,
+    &#x27;tit-pre&#x27;: true
+  };
+  const tooltip = byId(&#x27;ev6-tooltip&#x27;);
+  let currentState = null;
+
+  function svgEl(name, attrs = {}, textValue = &#x27;&#x27;) {
+    const node = document.createElementNS(ns, name);
+    Object.entries(attrs).forEach(([key, value]) =&gt; node.setAttribute(key, String(value)));
+    if (textValue !== &#x27;&#x27;) node.textContent = textValue;
+    return node;
+  }
+
+  function clamp(value, lo, hi) {
+    return Math.max(lo, Math.min(hi, value));
+  }
+
+  function formatNumber(value) {
+    if (!Number.isFinite(value)) return &#x27;—&#x27;;
+    const abs = Math.abs(value);
+    if (abs === 0) return &#x27;0&#x27;;
+    if (abs &lt; 0.001 || abs &gt;= 1000) return value.toExponential(2);
+    if (abs &lt; 0.1) return value.toFixed(3);
+    if (abs &lt; 10) return value.toFixed(2);
+    return value.toFixed(1);
+  }
+
+  function readState() {
+    return {
+      phi: Math.pow(10, Number(controls.phi.value)) - 1,
+      alpha: Math.pow(10, Number(controls.alpha.value)),
+      delta: Math.pow(10, Number(controls.delta.value)),
+      dose: Math.pow(10, Number(controls.dose.value)),
+      output: controls.output.value
+    };
+  }
+
+  function gammas(state) {
+    return {
+      gamma1: state.alpha / (1 + state.delta),
+      gamma2: state.alpha / (1 + 2 * state.delta)
+    };
+  }
+
+  function mainState(ell, state, phi = state.phi) {
+    const {gamma1, gamma2} = gammas(state);
+    const f = ell / (1 + ell);
+    let lo = 0;
+    let hi = f;
+    for (let i = 0; i &lt; 90; i += 1) {
+      const c = 0.5 * (lo + hi);
+      const p = gamma1 * phi * c / (1 + gamma1 * c);
+      const q = gamma2 * c * c;
+      if (c + p + 2 * q &gt; f) hi = c;
+      else lo = c;
+    }
+    const c = 0.5 * (lo + hi);
+    const p = gamma1 * phi * c / (1 + gamma1 * c);
+    const q = gamma2 * c * c;
+    return {
+      f,
+      c,
+      p,
+      q,
+      unique: p + q,
+      participation: p + 2 * q
+    };
+  }
+
+  function bivalentState(ell, state) {
+    const {gamma1} = gammas(state);
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i &lt; 90; i += 1) {
+      const r = 0.5 * (lo + hi);
+      const residual = gamma1 * (1 + 2 * ell) * r * r + (1 + ell - gamma1) * r - 1;
+      if (residual &gt; 0) hi = r;
+      else lo = r;
+    }
+    const r = 0.5 * (lo + hi);
+    const c = ell * r / (1 + gamma1 * r);
+    const d = gamma1 * c * r;
+    return {r, c, d};
+  }
+
+  function outputValue(model, state) {
+    return state.output === &#x27;participation&#x27; ? model.participation : model.unique;
+  }
+
+  function outputLabel(state) {
+    return state.output === &#x27;participation&#x27;
+      ? &#x27;ligand-engaged receptors in dimers per primary receptor, Y&#x27;
+      : &#x27;unique dimers per primary receptor, D&#x27;;
+  }
+
+  function updateReadouts(state) {
+    const {gamma1, gamma2} = gammas(state);
+    const model = mainState(state.dose, state);
+    const baseline = mainState(state.dose, state, 0);
+    const biv = bivalentState(state.dose, state);
+    const current = outputValue(model, state);
+    const base = outputValue(baseline, state);
+    const gain = current - base;
+
+    byId(&#x27;ev6-phi-out&#x27;).textContent = formatNumber(state.phi);
+    byId(&#x27;ev6-alpha-out&#x27;).textContent = formatNumber(state.alpha);
+    byId(&#x27;ev6-delta-out&#x27;).textContent = formatNumber(state.delta);
+    byId(&#x27;ev6-dose-out&#x27;).textContent = formatNumber(state.dose);
+    byId(&#x27;ev6-g1&#x27;).textContent = formatNumber(gamma1);
+    byId(&#x27;ev6-g2&#x27;).textContent = formatNumber(gamma2);
+    byId(&#x27;ev6-f&#x27;).textContent = formatNumber(model.f);
+
+    byId(&#x27;ev6-current-value&#x27;).textContent = formatNumber(current);
+    byId(&#x27;ev6-current-note&#x27;).textContent = `${formatNumber(100 * current / Math.max(model.f, 1e-15))}% of the no-search ceiling; p=${formatNumber(model.p)}, q=${formatNumber(model.q)}`;
+    byId(&#x27;ev6-gain-value&#x27;).textContent = `${gain &gt;= 0 ? &#x27;+&#x27; : &#x27;&#x27;}${formatNumber(gain)}`;
+    byId(&#x27;ev6-gain-note&#x27;).textContent = `${formatNumber(100 * gain)} additional per 100 primary receptors; φ=0 baseline ${formatNumber(base)}`;
+    byId(&#x27;ev6-biv-value&#x27;).textContent = formatNumber(biv.d);
+    byId(&#x27;ev6-biv-note&#x27;).textContent = `${formatNumber(100 * biv.d / Math.max(model.f, 1e-15))}% of the no-search ceiling`;
+  }
+
+  function makeScales(width, height, xMin, xMax) {
+    const narrow = width &lt; 500;
+    const margin = {top: 16, right: 16, bottom: 66, left: narrow ? 62 : 72};
+    const innerW = Math.max(80, width - margin.left - margin.right);
+    const innerH = Math.max(120, height - margin.top - margin.bottom);
+    return {
+      margin,
+      innerW,
+      innerH,
+      x: value =&gt; margin.left + (value - xMin) / (xMax - xMin) * innerW,
+      y: value =&gt; margin.top + innerH - value / 1.02 * innerH,
+      invertX: px =&gt; xMin + (px - margin.left) / innerW * (xMax - xMin)
+    };
+  }
+
+  function addAxes(svg, scales, width, height, xTicks, xFormatter, xTitle, yTitle) {
+    const {margin, innerW, innerH, x, y} = scales;
+    const yTicks = [0, 0.25, 0.5, 0.75, 1];
+    yTicks.forEach(value =&gt; {
+      const yy = y(value);
+      svg.appendChild(svgEl(&#x27;line&#x27;, {x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: &#x27;ev6-grid&#x27;}));
+      svg.appendChild(svgEl(&#x27;text&#x27;, {x: margin.left - 9, y: yy + 4, &#x27;text-anchor&#x27;: &#x27;end&#x27;, class: &#x27;ev6-muted-text&#x27;}, value.toFixed(value === 0 || value === 1 ? 1 : 2)));
+    });
+    xTicks.forEach(value =&gt; {
+      const xx = x(value);
+      svg.appendChild(svgEl(&#x27;line&#x27;, {x1: xx, x2: xx, y1: margin.top, y2: margin.top + innerH, class: &#x27;ev6-grid&#x27;}));
+      svg.appendChild(svgEl(&#x27;text&#x27;, {x: xx, y: margin.top + innerH + 22, &#x27;text-anchor&#x27;: &#x27;middle&#x27;, class: &#x27;ev6-muted-text&#x27;}, xFormatter(value)));
+    });
+    svg.appendChild(svgEl(&#x27;rect&#x27;, {x: margin.left, y: margin.top, width: innerW, height: innerH, class: &#x27;ev6-frame&#x27;, &#x27;data-chart-frame&#x27;: &#x27;true&#x27;}));
+    svg.appendChild(svgEl(&#x27;text&#x27;, {x: margin.left + innerW / 2, y: height - 14, &#x27;text-anchor&#x27;: &#x27;middle&#x27;, class: &#x27;axis-title&#x27;, &#x27;data-axis&#x27;: &#x27;x&#x27;}, xTitle));
+    const yText = svgEl(&#x27;text&#x27;, {x: 16, y: margin.top + innerH / 2, &#x27;text-anchor&#x27;: &#x27;middle&#x27;, transform: `rotate(-90 16 ${margin.top + innerH / 2})`, class: &#x27;axis-title&#x27;, &#x27;data-axis&#x27;: &#x27;y&#x27;}, yTitle);
+    svg.appendChild(yText);
+  }
+
+  function linePath(points, scales) {
+    return points.map((point, index) =&gt; `${index === 0 ? &#x27;M&#x27; : &#x27;L&#x27;}${scales.x(point.x).toFixed(2)},${scales.y(point.y).toFixed(2)}`).join(&#x27; &#x27;);
+  }
+
+  function seriesPath(svg, points, scales, color, dash = &#x27;&#x27;, width = 2.2) {
+    const path = svgEl(&#x27;path&#x27;, {
+      d: linePath(points, scales),
+      fill: &#x27;none&#x27;,
+      stroke: color,
+      &#x27;stroke-width&#x27;: width,
+      &#x27;stroke-dasharray&#x27;: dash,
+      &#x27;vector-effect&#x27;: &#x27;non-scaling-stroke&#x27;
+    });
+    svg.appendChild(path);
+    return path;
+  }
+
+  function tooltipTable(title, rows) {
+    return `&lt;strong&gt;${title}&lt;/strong&gt;&lt;table&gt;${rows.map(row =&gt; `&lt;tr&gt;&lt;td&gt;${row[0]}&lt;/td&gt;&lt;td&gt;${row[1]}&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/table&gt;`;
+  }
+
+  function placeTooltip(event) {
+    const rootRect = root.getBoundingClientRect();
+    const tipRect = tooltip.getBoundingClientRect();
+    let left = event.clientX - rootRect.left + 14;
+    let top = event.clientY - rootRect.top + 14;
+    left = clamp(left, 4, Math.max(4, rootRect.width - tipRect.width - 4));
+    top = clamp(top, 4, Math.max(4, rootRect.height - tipRect.height - 4));
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+  }
+
+  function drawDoseChart(state) {
+    const host = byId(&#x27;ev6-dose-chart&#x27;);
+    const width = Math.max(320, Math.floor(host.getBoundingClientRect().width || 620));
+    const height = width &lt; 500 ? 350 : 390;
+    host.replaceChildren();
+    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Dose response for preassembled, no-HER2 monomer, partner-assisted, and bivalent architectures&#x27;});
+    svg.appendChild(svgEl(&#x27;title&#x27;, {}, &#x27;ErbB v6 dose response&#x27;));
+    svg.appendChild(svgEl(&#x27;desc&#x27;, {}, &#x27;Absolute model output as a function of dimensionless ligand concentration.&#x27;));
+    host.appendChild(svg);
+    const scales = makeScales(width, height, -4, 3);
+    addAxes(svg, scales, width, height, [-4, -2, 0, 2, 3], value =&gt; `10${value === 0 ? &#x27;⁰&#x27; : value === 2 ? &#x27;²&#x27; : value === 3 ? &#x27;³&#x27; : value === -2 ? &#x27;⁻²&#x27; : &#x27;⁻⁴&#x27;}`, &#x27;dimensionless ligand, ℓ = L/KD&#x27;, outputLabel(state));
+
+    const definitions = [
+      {key: &#x27;dose-pre&#x27;, color: &#x27;var(--foreground)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; ell / (1 + ell)},
+      {key: &#x27;dose-mono&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;8 5&#x27;, fn: ell =&gt; outputValue(mainState(ell, state, 0), state)},
+      {key: &#x27;dose-current&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; outputValue(mainState(ell, state), state)},
+      {key: &#x27;dose-biv&#x27;, color: &#x27;var(--viz-series-3)&#x27;, dash: &#x27;3 4&#x27;, fn: ell =&gt; bivalentState(ell, state).d}
+    ];
+    const samples = Array.from({length: 281}, (_, i) =&gt; -4 + 7 * i / 280);
+    definitions.forEach(def =&gt; {
+      if (!visible[def.key]) return;
+      const points = samples.map(logEll =&gt; ({x: logEll, y: def.fn(Math.pow(10, logEll))}));
+      seriesPath(svg, points, scales, def.color, def.dash, def.key === &#x27;dose-current&#x27; ? 2.8 : 2.1);
+    });
+
+    const selectedX = scales.x(Math.log10(state.dose));
+    svg.appendChild(svgEl(&#x27;line&#x27;, {x1: selectedX, x2: selectedX, y1: scales.margin.top, y2: scales.margin.top + scales.innerH, class: &#x27;ev6-guide&#x27;, &#x27;stroke-dasharray&#x27;: &#x27;3 4&#x27;}));
+    const hoverGuide = svgEl(&#x27;line&#x27;, {x1: selectedX, x2: selectedX, y1: scales.margin.top, y2: scales.margin.top + scales.innerH, class: &#x27;ev6-guide&#x27;, opacity: 0, &#x27;data-chart-hover-guide&#x27;: &#x27;true&#x27;});
+    svg.appendChild(hoverGuide);
+    const markers = definitions.map(def =&gt; {
+      const marker = svgEl(&#x27;circle&#x27;, {r: 4, fill: def.color, class: &#x27;ev6-marker&#x27;, opacity: 0, &#x27;data-chart-hover-marker&#x27;: def.key});
+      svg.appendChild(marker);
+      return {def, marker};
+    });
+    const overlay = svgEl(&#x27;rect&#x27;, {x: scales.margin.left, y: scales.margin.top, width: scales.innerW, height: scales.innerH, fill: &#x27;transparent&#x27;, &#x27;data-chart-hit&#x27;: &#x27;true&#x27;, &#x27;data-chart-hover-overlay&#x27;: &#x27;cross-series&#x27;});
+    overlay.addEventListener(&#x27;pointermove&#x27;, event =&gt; {
+      const rect = svg.getBoundingClientRect();
+      const scaleFactor = width / rect.width;
+      const px = (event.clientX - rect.left) * scaleFactor;
+      const logEll = clamp(scales.invertX(px), -4, 3);
+      const ell = Math.pow(10, logEll);
+      const xx = scales.x(logEll);
+      hoverGuide.setAttribute(&#x27;x1&#x27;, xx);
+      hoverGuide.setAttribute(&#x27;x2&#x27;, xx);
+      hoverGuide.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
+      const rows = [];
+      markers.forEach(({def, marker}) =&gt; {
+        if (!visible[def.key]) {
+          marker.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;);
+          return;
+        }
+        const value = def.fn(ell);
+        marker.setAttribute(&#x27;cx&#x27;, xx);
+        marker.setAttribute(&#x27;cy&#x27;, scales.y(value));
+        marker.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
+        const labels = {&#x27;dose-pre&#x27;: &#x27;No-search&#x27;, &#x27;dose-mono&#x27;: &#x27;Monomer φ=0&#x27;, &#x27;dose-current&#x27;: `Current φ=${formatNumber(state.phi)}`, &#x27;dose-biv&#x27;: &#x27;Bivalent&#x27;};
+        rows.push([labels[def.key], formatNumber(value)]);
+      });
+      tooltip.innerHTML = tooltipTable(`ℓ = ${formatNumber(ell)}`, rows);
+      tooltip.hidden = false;
+      placeTooltip(event);
+    });
+    overlay.addEventListener(&#x27;pointerleave&#x27;, () =&gt; {
+      hoverGuide.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;);
+      markers.forEach(({marker}) =&gt; marker.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;));
+      tooltip.hidden = true;
+    });
+    svg.appendChild(overlay);
+  }
+
+  function drawTitrationChart(state) {
+    const host = byId(&#x27;ev6-titration-chart&#x27;);
+    const width = Math.max(320, Math.floor(host.getBoundingClientRect().width || 520));
+    const height = width &lt; 500 ? 350 : 390;
+    host.replaceChildren();
+    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Partner titration showing total, heterodimer, and homodimer contributions&#x27;});
+    svg.appendChild(svgEl(&#x27;title&#x27;, {}, &#x27;Partner titration&#x27;));
+    svg.appendChild(svgEl(&#x27;desc&#x27;, {}, &#x27;Model output and pathway contributions as HER2 or partner abundance increases.&#x27;));
+    host.appendChild(svg);
+    const xMax = Math.log10(1001);
+    const scales = makeScales(width, height, 0, xMax);
+    const tickPhi = [0, 1, 10, 100, 1000];
+    const xTicks = tickPhi.map(phi =&gt; Math.log10(1 + phi));
+    addAxes(svg, scales, width, height, xTicks, value =&gt; String(tickPhi[xTicks.indexOf(value)]), &#x27;HER2 / partner ratio, φ (log spacing in 1 + φ)&#x27;, outputLabel(state));
+    const weightQ = state.output === &#x27;participation&#x27; ? 2 : 1;
+    const definitions = [
+      {key: &#x27;tit-total&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: phi =&gt; outputValue(mainState(state.dose, state, phi), state)},
+      {key: &#x27;tit-hetero&#x27;, color: &#x27;var(--viz-series-4)&#x27;, dash: &#x27;7 4&#x27;, fn: phi =&gt; mainState(state.dose, state, phi).p},
+      {key: &#x27;tit-homo&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;3 4&#x27;, fn: phi =&gt; weightQ * mainState(state.dose, state, phi).q},
+      {key: &#x27;tit-pre&#x27;, color: &#x27;var(--foreground)&#x27;, dash: &#x27;&#x27;, fn: () =&gt; state.dose / (1 + state.dose)}
+    ];
+    const samples = Array.from({length: 281}, (_, i) =&gt; xMax * i / 280);
+    definitions.forEach(def =&gt; {
+      if (!visible[def.key]) return;
+      const points = samples.map(logOnePlusPhi =&gt; ({x: logOnePlusPhi, y: def.fn(Math.pow(10, logOnePlusPhi) - 1)}));
+      seriesPath(svg, points, scales, def.color, def.dash, def.key === &#x27;tit-total&#x27; ? 2.8 : 2.1);
+    });
+
+    const currentX = scales.x(Math.log10(1 + state.phi));
+    svg.appendChild(svgEl(&#x27;line&#x27;, {x1: currentX, x2: currentX, y1: scales.margin.top, y2: scales.margin.top + scales.innerH, class: &#x27;ev6-guide&#x27;, &#x27;stroke-dasharray&#x27;: &#x27;3 4&#x27;}));
+    const hoverGuide = svgEl(&#x27;line&#x27;, {x1: currentX, x2: currentX, y1: scales.margin.top, y2: scales.margin.top + scales.innerH, class: &#x27;ev6-guide&#x27;, opacity: 0, &#x27;data-chart-hover-guide&#x27;: &#x27;true&#x27;});
+    svg.appendChild(hoverGuide);
+    const markers = definitions.map(def =&gt; {
+      const marker = svgEl(&#x27;circle&#x27;, {r: 4, fill: def.color, class: &#x27;ev6-marker&#x27;, opacity: 0, &#x27;data-chart-hover-marker&#x27;: def.key});
+      svg.appendChild(marker);
+      return {def, marker};
+    });
+    const overlay = svgEl(&#x27;rect&#x27;, {x: scales.margin.left, y: scales.margin.top, width: scales.innerW, height: scales.innerH, fill: &#x27;transparent&#x27;, &#x27;data-chart-hit&#x27;: &#x27;true&#x27;, &#x27;data-chart-hover-overlay&#x27;: &#x27;cross-series&#x27;});
+    overlay.addEventListener(&#x27;pointermove&#x27;, event =&gt; {
+      const rect = svg.getBoundingClientRect();
+      const scaleFactor = width / rect.width;
+      const px = (event.clientX - rect.left) * scaleFactor;
+      const xValue = clamp(scales.invertX(px), 0, xMax);
+      const phi = Math.pow(10, xValue) - 1;
+      const xx = scales.x(xValue);
+      hoverGuide.setAttribute(&#x27;x1&#x27;, xx);
+      hoverGuide.setAttribute(&#x27;x2&#x27;, xx);
+      hoverGuide.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
+      const rows = [];
+      markers.forEach(({def, marker}) =&gt; {
+        if (!visible[def.key]) {
+          marker.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;);
+          return;
+        }
+        const value = def.fn(phi);
+        marker.setAttribute(&#x27;cx&#x27;, xx);
+        marker.setAttribute(&#x27;cy&#x27;, scales.y(value));
+        marker.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
+        const labels = {&#x27;tit-total&#x27;: &#x27;Total&#x27;, &#x27;tit-hetero&#x27;: &#x27;Heterodimer&#x27;, &#x27;tit-homo&#x27;: &#x27;Homodimer&#x27;, &#x27;tit-pre&#x27;: &#x27;No-search&#x27;};
+        rows.push([labels[def.key], formatNumber(value)]);
+      });
+      tooltip.innerHTML = tooltipTable(`φ = ${formatNumber(phi)}`, rows);
+      tooltip.hidden = false;
+      placeTooltip(event);
+    });
+    overlay.addEventListener(&#x27;pointerleave&#x27;, () =&gt; {
+      hoverGuide.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;);
+      markers.forEach(({marker}) =&gt; marker.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;));
+      tooltip.hidden = true;
+    });
+    svg.appendChild(overlay);
+  }
+
+  function heatOccupancy(state) {
+    return controls.heatOccupancy.value === &#x27;current&#x27;
+      ? state.dose / (1 + state.dose)
+      : Number(controls.heatOccupancy.value);
+  }
+
+  function heatValues(eta, phi, occupancy, state) {
+    const ell = occupancy / Math.max(1 - occupancy, 1e-12);
+    const heatState = {...state, alpha: eta * state.delta, output: &#x27;participation&#x27;};
+    const baseline = mainState(ell, heatState, 0).participation;
+    const assisted = mainState(ell, heatState, phi).participation;
+    const increment = Math.max(0, assisted - baseline);
+    return {
+      baseline,
+      assisted,
+      increment,
+      perHundredBound: 100 * increment / Math.max(occupancy, 1e-12)
+    };
+  }
+
+  function interpolateHeatColor(value) {
+    const stops = [
+      [0, [7, 47, 95]],
+      [25, [51, 79, 120]],
+      [50, [127, 127, 127]],
+      [75, [199, 182, 95]],
+      [100, [254, 227, 59]]
+    ];
+    const v = clamp(value, 0, 100);
+    let lower = stops[0];
+    let upper = stops[stops.length - 1];
+    for (let i = 1; i &lt; stops.length; i += 1) {
+      if (v &lt;= stops[i][0]) {
+        lower = stops[i - 1];
+        upper = stops[i];
+        break;
+      }
+    }
+    const t = (v - lower[0]) / Math.max(upper[0] - lower[0], 1e-12);
+    const rgb = lower[1].map((channel, i) =&gt; Math.round(channel + t * (upper[1][i] - channel)));
+    return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+  }
+
+  function contourSegments(values, nx, ny, threshold) {
+    const segments = [];
+    const at = (i, j) =&gt; values[j * (nx + 1) + i];
+    const interp = (a, b) =&gt; {
+      if (Math.abs(b - a) &lt; 1e-12) return 0.5;
+      return clamp((threshold - a) / (b - a), 0, 1);
+    };
+    for (let j = 0; j &lt; ny; j += 1) {
+      for (let i = 0; i &lt; nx; i += 1) {
+        const v00 = at(i, j);
+        const v10 = at(i + 1, j);
+        const v11 = at(i + 1, j + 1);
+        const v01 = at(i, j + 1);
+        const code = (v00 &gt;= threshold ? 1 : 0)
+          | (v10 &gt;= threshold ? 2 : 0)
+          | (v11 &gt;= threshold ? 4 : 0)
+          | (v01 &gt;= threshold ? 8 : 0);
+        if (code === 0 || code === 15) continue;
+        const edge = {
+          bottom: [i + interp(v00, v10), j],
+          right: [i + 1, j + interp(v10, v11)],
+          top: [i + interp(v01, v11), j + 1],
+          left: [i, j + interp(v00, v01)]
+        };
+        const add = (a, b) =&gt; segments.push([edge[a], edge[b]]);
+        const cases = {
+          1: [[&#x27;bottom&#x27;, &#x27;left&#x27;]], 2: [[&#x27;bottom&#x27;, &#x27;right&#x27;]], 3: [[&#x27;left&#x27;, &#x27;right&#x27;]],
+          4: [[&#x27;right&#x27;, &#x27;top&#x27;]], 5: [[&#x27;bottom&#x27;, &#x27;right&#x27;], [&#x27;left&#x27;, &#x27;top&#x27;]],
+          6: [[&#x27;bottom&#x27;, &#x27;top&#x27;]], 7: [[&#x27;left&#x27;, &#x27;top&#x27;]], 8: [[&#x27;top&#x27;, &#x27;left&#x27;]],
+          9: [[&#x27;bottom&#x27;, &#x27;top&#x27;]], 10: [[&#x27;bottom&#x27;, &#x27;left&#x27;], [&#x27;right&#x27;, &#x27;top&#x27;]],
+          11: [[&#x27;right&#x27;, &#x27;top&#x27;]], 12: [[&#x27;left&#x27;, &#x27;right&#x27;]], 13: [[&#x27;bottom&#x27;, &#x27;right&#x27;]],
+          14: [[&#x27;bottom&#x27;, &#x27;left&#x27;]]
+        };
+        (cases[code] || []).forEach(pair =&gt; add(pair[0], pair[1]));
+      }
+    }
+    return segments;
+  }
+
+  function drawHeatmap(state) {
+    const host = byId(&#x27;ev6-heat-chart&#x27;);
+    const width = Math.max(280, Math.floor(host.getBoundingClientRect().width || 900));
+    const height = width &lt; 500 ? 390 : 470;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const canvas = document.createElement(&#x27;canvas&#x27;);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    canvas.setAttribute(&#x27;role&#x27;, &#x27;img&#x27;);
+    canvas.setAttribute(&#x27;aria-label&#x27;, &#x27;Heat map of the HER2 benefit across monomer-search opportunities and HER2 abundance&#x27;);
+    host.replaceChildren(canvas);
+
+    const ctx = canvas.getContext(&#x27;2d&#x27;);
+    ctx.scale(dpr, dpr);
+    const narrow = width &lt; 500;
+    const margin = {top: 16, right: 18, bottom: 78, left: narrow ? 68 : 84};
+    const plotW = width - margin.left - margin.right;
+    const plotH = height - margin.top - margin.bottom;
+    const xMin = -3;
+    const xMax = 3;
+    const yMin = 0;
+    const yMax = Math.log10(1001);
+    const xPx = logEta =&gt; margin.left + (logEta - xMin) / (xMax - xMin) * plotW;
+    const yPx = logOnePlusPhi =&gt; margin.top + plotH - (logOnePlusPhi - yMin) / (yMax - yMin) * plotH;
+    const occupancy = heatOccupancy(state);
+    const nx = narrow ? 72 : 112;
+    const ny = narrow ? 60 : 78;
+    const values = new Array((nx + 1) * (ny + 1));
+
+    for (let i = 0; i &lt;= nx; i += 1) {
+      const logEta = xMin + (xMax - xMin) * i / nx;
+      const eta = Math.pow(10, logEta);
+      for (let j = 0; j &lt;= ny; j += 1) {
+        const logOnePlusPhi = yMin + (yMax - yMin) * j / ny;
+        const phi = Math.pow(10, logOnePlusPhi) - 1;
+        values[j * (nx + 1) + i] = heatValues(eta, phi, occupancy, state).perHundredBound;
+      }
+    }
+
+    for (let i = 0; i &lt; nx; i += 1) {
+      for (let j = 0; j &lt; ny; j += 1) {
+        const v00 = values[j * (nx + 1) + i];
+        const v10 = values[j * (nx + 1) + i + 1];
+        const v01 = values[(j + 1) * (nx + 1) + i];
+        const v11 = values[(j + 1) * (nx + 1) + i + 1];
+        ctx.fillStyle = interpolateHeatColor(0.25 * (v00 + v10 + v01 + v11));
+        const left = margin.left + plotW * i / nx;
+        const right = margin.left + plotW * (i + 1) / nx;
+        const bottom = margin.top + plotH - plotH * j / ny;
+        const top = margin.top + plotH - plotH * (j + 1) / ny;
+        ctx.fillRect(left, top, Math.ceil(right - left) + 0.5, Math.ceil(bottom - top) + 0.5);
+      }
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(margin.left, margin.top, plotW, plotH);
+    ctx.clip();
+    [10, 25, 50, 75].forEach(threshold =&gt; {
+      const segments = contourSegments(values, nx, ny, threshold);
+      ctx.beginPath();
+      segments.forEach(segment =&gt; {
+        const ax = margin.left + plotW * segment[0][0] / nx;
+        const ay = margin.top + plotH - plotH * segment[0][1] / ny;
+        const bx = margin.left + plotW * segment[1][0] / nx;
+        const by = margin.top + plotH - plotH * segment[1][1] / ny;
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(bx, by);
+      });
+      ctx.strokeStyle = &#x27;rgba(255,255,255,0.92)&#x27;;
+      ctx.lineWidth = threshold === 50 ? 2 : 1.25;
+      ctx.stroke();
+    });
+
+    const selectedEta = clamp(state.alpha / Math.max(state.delta, 1e-15), Math.pow(10, xMin), Math.pow(10, xMax));
+    const selectedPhi = clamp(state.phi, 0, 1000);
+    const selectedX = xPx(Math.log10(selectedEta));
+    const selectedY = yPx(Math.log10(1 + selectedPhi));
+    const guide = (color, lineWidth) =&gt; {
+      ctx.beginPath();
+      ctx.moveTo(selectedX, margin.top);
+      ctx.lineTo(selectedX, margin.top + plotH);
+      ctx.moveTo(margin.left, selectedY);
+      ctx.lineTo(margin.left + plotW, selectedY);
+      ctx.setLineDash([7, 5]);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    };
+    guide(&#x27;rgba(0,0,0,0.65)&#x27;, 3.5);
+    guide(&#x27;rgba(255,255,255,0.95)&#x27;, 1.4);
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(selectedX, selectedY, 4.5, 0, 2 * Math.PI);
+    ctx.fillStyle = &#x27;#ffffff&#x27;;
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = &#x27;#111111&#x27;;
+    ctx.stroke();
+    ctx.restore();
+
+    const foreground = getComputedStyle(root).color || &#x27;#1a1c1f&#x27;;
+    ctx.strokeStyle = foreground;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(margin.left + 0.5, margin.top + 0.5, plotW - 1, plotH - 1);
+    ctx.fillStyle = foreground;
+    ctx.font = &#x27;12px system-ui, -apple-system, BlinkMacSystemFont, sans-serif&#x27;;
+    ctx.textBaseline = &#x27;middle&#x27;;
+    ctx.textAlign = &#x27;center&#x27;;
+
+    const exponentLabels = {&#x27;-3&#x27;: &#x27;10⁻³&#x27;, &#x27;-2&#x27;: &#x27;10⁻²&#x27;, &#x27;-1&#x27;: &#x27;10⁻¹&#x27;, &#x27;0&#x27;: &#x27;10⁰&#x27;, &#x27;1&#x27;: &#x27;10¹&#x27;, &#x27;2&#x27;: &#x27;10²&#x27;, &#x27;3&#x27;: &#x27;10³&#x27;};
+    [-3, -2, -1, 0, 1, 2, 3].forEach(value =&gt; {
+      const xx = xPx(value);
+      ctx.beginPath();
+      ctx.moveTo(xx, margin.top + plotH);
+      ctx.lineTo(xx, margin.top + plotH + 5);
+      ctx.stroke();
+      ctx.fillText(exponentLabels[String(value)], xx, margin.top + plotH + 18);
+    });
+
+    const phiTicks = [0, 1, 10, 100, 1000];
+    ctx.textAlign = &#x27;right&#x27;;
+    phiTicks.forEach(phi =&gt; {
+      const yy = yPx(Math.log10(1 + phi));
+      ctx.beginPath();
+      ctx.moveTo(margin.left - 5, yy);
+      ctx.lineTo(margin.left, yy);
+      ctx.stroke();
+      ctx.fillText(String(phi), margin.left - 9, yy);
+    });
+
+    ctx.textAlign = &#x27;center&#x27;;
+    ctx.fillText(&#x27;monomer-search opportunities per ligand-bound lifetime&#x27;, margin.left + plotW / 2, height - 32);
+    ctx.fillText(&#x27;η = α/δ = k₊Rₜ/koff&#x27;, margin.left + plotW / 2, height - 14);
+    ctx.save();
+    ctx.translate(16, margin.top + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(&#x27;HER2 abundance, φ = Hₜ/Rₜ (log spacing in 1 + φ)&#x27;, 0, 0);
+    ctx.restore();
+
+    const selected = heatValues(state.alpha / Math.max(state.delta, 1e-15), state.phi, occupancy, state);
+    byId(&#x27;ev6-heat-note&#x27;).textContent = `f = ${formatNumber(occupancy)} · δ = ${formatNumber(state.delta)} · selected η = ${formatNumber(state.alpha / Math.max(state.delta, 1e-15))} · selected HER2 benefit = ${formatNumber(selected.perHundredBound)} per 100 ligand-bound receptors`;
+
+    const showTooltip = event =&gt; {
+      const rect = canvas.getBoundingClientRect();
+      const px = (event.clientX - rect.left) * width / rect.width;
+      const py = (event.clientY - rect.top) * height / rect.height;
+      if (px &lt; margin.left || px &gt; margin.left + plotW || py &lt; margin.top || py &gt; margin.top + plotH) {
+        tooltip.hidden = true;
+        return;
+      }
+      const logEta = xMin + (px - margin.left) / plotW * (xMax - xMin);
+      const logOnePlusPhi = yMin + (margin.top + plotH - py) / plotH * (yMax - yMin);
+      const eta = Math.pow(10, logEta);
+      const phi = Math.pow(10, logOnePlusPhi) - 1;
+      const point = heatValues(eta, phi, occupancy, state);
+      tooltip.innerHTML = tooltipTable(`η = ${formatNumber(eta)}; φ = ${formatNumber(phi)}`, [
+        [&#x27;Ligand occupancy, f&#x27;, formatNumber(occupancy)],
+        [&#x27;Monomer baseline, Y₀&#x27;, formatNumber(point.baseline)],
+        [&#x27;With HER2, Y&#x27;, formatNumber(point.assisted)],
+        [&#x27;HER2 benefit / 100 bound&#x27;, formatNumber(point.perHundredBound)]
+      ]);
+      tooltip.hidden = false;
+      placeTooltip(event);
+    };
+    canvas.addEventListener(&#x27;pointermove&#x27;, showTooltip);
+    canvas.addEventListener(&#x27;pointerdown&#x27;, showTooltip);
+    canvas.addEventListener(&#x27;pointerleave&#x27;, event =&gt; {
+      if (event.pointerType !== &#x27;touch&#x27;) tooltip.hidden = true;
+    });
+  }
+
+  function render() {
+    currentState = readState();
+    updateReadouts(currentState);
+    drawDoseChart(currentState);
+    drawTitrationChart(currentState);
+    drawHeatmap(currentState);
+  }
+
+  Object.values(controls).forEach(control =&gt; {
+    control.addEventListener(&#x27;input&#x27;, render);
+    control.addEventListener(&#x27;change&#x27;, render);
+  });
+
+  root.querySelectorAll(&#x27;.ev6-series-toggle&#x27;).forEach(button =&gt; {
+    button.addEventListener(&#x27;click&#x27;, () =&gt; {
+      const key = button.dataset.series;
+      visible[key] = !visible[key];
+      button.setAttribute(&#x27;aria-pressed&#x27;, String(visible[key]));
+      render();
+    });
+  });
+
+  byId(&#x27;ev6-reset&#x27;).addEventListener(&#x27;click&#x27;, () =&gt; {
+    controls.phi.value = &#x27;0.30103&#x27;;
+    controls.alpha.value = &#x27;1&#x27;;
+    controls.delta.value = &#x27;1&#x27;;
+    controls.dose.value = &#x27;0&#x27;;
+    controls.output.value = &#x27;unique&#x27;;
+    controls.heatOccupancy.value = &#x27;0.1&#x27;;
+    Object.keys(visible).forEach(key =&gt; { visible[key] = true; });
+    root.querySelectorAll(&#x27;.ev6-series-toggle&#x27;).forEach(button =&gt; button.setAttribute(&#x27;aria-pressed&#x27;, &#x27;true&#x27;));
+    render();
+  });
+
+  let lastDoseWidth = 0;
+  let lastTitrationWidth = 0;
+  let lastHeatWidth = 0;
+  const observer = new ResizeObserver(() =&gt; {
+    const doseWidth = Math.round(byId(&#x27;ev6-dose-chart&#x27;).getBoundingClientRect().width);
+    const titrationWidth = Math.round(byId(&#x27;ev6-titration-chart&#x27;).getBoundingClientRect().width);
+    const heatWidth = Math.round(byId(&#x27;ev6-heat-chart&#x27;).getBoundingClientRect().width);
+    if (Math.abs(doseWidth - lastDoseWidth) &lt; 2
+      &amp;&amp; Math.abs(titrationWidth - lastTitrationWidth) &lt; 2
+      &amp;&amp; Math.abs(heatWidth - lastHeatWidth) &lt; 2) return;
+    lastDoseWidth = doseWidth;
+    lastTitrationWidth = titrationWidth;
+    lastHeatWidth = heatWidth;
+    render();
+  });
+  observer.observe(byId(&#x27;ev6-dose-chart&#x27;));
+  observer.observe(byId(&#x27;ev6-titration-chart&#x27;));
+  observer.observe(byId(&#x27;ev6-heat-chart&#x27;));
+  render();
+})();
+&lt;/script&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerdown&quot;, handlePointer);
+    document.removeEventListener(&quot;pointercancel&quot;, handlePointer);
+    document.removeEventListener(&quot;click&quot;, handleTouchClick);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerdown&quot;, handlePointer);
+  document.addEventListener(&quot;pointercancel&quot;, handlePointer);
+  document.addEventListener(&quot;click&quot;, handleTouchClick);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
