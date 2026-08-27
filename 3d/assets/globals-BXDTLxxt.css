@@ -3380,6 +3380,28 @@ kbd {
     drop-shadow(0 5px 1px rgba(24, 32, 45, 0.52));
 }
 
+.egg-rarity-reveal.is-shiny {
+  color: #fff8c7;
+  background-image: linear-gradient(105deg, #fff5a5 3%, #ffffff 24%, #9eeeff 46%, #ffffff 66%, #ffd878 92%);
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter:
+    drop-shadow(0 0 9px rgba(255, 255, 226, 1))
+    drop-shadow(0 0 25px rgba(132, 225, 255, 0.92))
+    drop-shadow(0 0 48px rgba(255, 221, 111, 0.76))
+    drop-shadow(0 5px 1px rgba(29, 34, 50, 0.55));
+  animation:
+    egg-rarity-word 2.35s cubic-bezier(.16, .9, .24, 1) forwards,
+    shiny-word-sweep 0.75s linear infinite;
+}
+
+@keyframes shiny-word-sweep {
+  from { background-position: 100% 50%; }
+  to { background-position: -120% 50%; }
+}
+
 @keyframes egg-rarity-word {
   0% {
     opacity: 0;
@@ -4743,6 +4765,14 @@ kbd {
   box-shadow: 0 8px 24px rgba(140, 93, 178, 0.2), inset 0 0 0 2px rgba(184, 129, 223, 0.22);
 }
 
+.pet-copy-card.is-shiny {
+  border-color: rgba(255, 244, 160, 0.96);
+  box-shadow:
+    0 0 16px rgba(157, 231, 255, 0.62),
+    0 0 30px rgba(255, 221, 104, 0.42),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.72);
+}
+
 .pet-copy-card.is-storm-lost {
   border-color: rgba(65, 126, 151, 0.72);
   background: linear-gradient(145deg, rgba(208, 226, 232, 0.94), rgba(243, 248, 249, 0.82));
@@ -4797,6 +4827,131 @@ kbd {
   font-size: 7px;
   font-style: normal;
   font-weight: 950;
+}
+
+.pet-copy-art > mark.pet-copy-shiny-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  color: #4b4354;
+  background: linear-gradient(105deg, #ffe985, #fff, #a9efff, #fff1a4);
+  box-shadow: 0 0 10px rgba(255, 255, 221, 0.96);
+  font-size: 7px;
+  font-weight: 1000;
+}
+
+.pet-converter-picker {
+  position: absolute;
+  top: max(82px, calc(env(safe-area-inset-top) + 68px));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 8;
+  width: min(238px, calc(48vw - 14px));
+  max-height: min(52vh, 410px);
+  padding: 10px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  color: #403942;
+  box-shadow: 0 12px 32px rgba(34, 31, 45, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.pet-converter-picker.is-golden {
+  background: linear-gradient(145deg, rgba(255, 252, 230, 0.9), rgba(247, 211, 109, 0.88));
+}
+
+.pet-converter-picker.is-rainbow {
+  background: linear-gradient(145deg, rgba(249, 241, 255, 0.9), rgba(143, 224, 214, 0.88));
+}
+
+.pet-converter-picker > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.pet-converter-picker > header div {
+  display: grid;
+  gap: 2px;
+}
+
+.pet-converter-picker > header small {
+  font: 900 7px/1 system-ui, sans-serif;
+  letter-spacing: 0.14em;
+}
+
+.pet-converter-picker > header b {
+  font: 950 15px/1 system-ui, sans-serif;
+}
+
+.pet-converter-picker > header > span {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  font: 950 8px/1 system-ui, sans-serif;
+}
+
+.pet-converter-picker > header > span.is-lucky {
+  color: #245e4b;
+  box-shadow: 0 0 12px rgba(109, 227, 175, 0.62);
+}
+
+.pet-converter-picker > p {
+  margin: 6px 0 8px;
+  font: 750 8px/1.25 system-ui, sans-serif;
+}
+
+.pet-converter-choice-list {
+  display: grid;
+  gap: 5px;
+}
+
+.pet-converter-choice-list > button {
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 5px 7px;
+  border: 1px solid rgba(75, 75, 75, 0.16);
+  border-radius: 12px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.74);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pet-converter-choice-list > button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.pet-converter-choice-list > button > span:first-child {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.pet-converter-choice-list > button > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.pet-converter-choice-list b { font: 900 10px/1 system-ui, sans-serif; }
+.pet-converter-choice-list small { font: 800 7px/1 system-ui, sans-serif; }
+.pet-converter-choice-list strong { font: 950 8px/1 system-ui, sans-serif; }
+
+.pet-converter-empty {
+  padding: 9px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.56);
+  font: 850 9px/1.2 system-ui, sans-serif;
+  text-align: center;
 }
 
 .pet-copy-details {
