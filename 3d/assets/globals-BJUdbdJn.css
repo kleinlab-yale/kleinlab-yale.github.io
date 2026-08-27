@@ -3334,6 +3334,71 @@ kbd {
   filter: grayscale(0.35);
 }
 
+.egg-rarity-reveal {
+  position: absolute;
+  top: 31%;
+  left: 50%;
+  z-index: 14;
+  max-width: calc(100% - 32px);
+  color: #8be3ad;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  font: 1000 clamp(46px, 10vw, 112px) / 0.9 system-ui, sans-serif;
+  letter-spacing: 0.035em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.62);
+  opacity: 0;
+  filter: drop-shadow(0 4px 1px rgba(18, 26, 34, 0.48));
+  animation: egg-rarity-word 2.35s cubic-bezier(.16, .9, .24, 1) forwards;
+}
+
+.egg-rarity-reveal.is-rare {
+  color: #8dceff;
+}
+
+.egg-rarity-reveal.is-ultra-rare {
+  color: #d5a1ff;
+}
+
+.egg-rarity-reveal.is-legendary {
+  color: #ffe27e;
+}
+
+.egg-rarity-reveal.is-mythical {
+  color: #e8edf5;
+  background-image: linear-gradient(105deg, #aeb9c7 4%, #ffffff 30%, #c4cfdd 55%, #f7ffff 75%, #aab5c4 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter:
+    drop-shadow(0 0 10px rgba(231, 244, 255, 0.92))
+    drop-shadow(0 0 28px rgba(175, 205, 235, 0.72))
+    drop-shadow(0 5px 1px rgba(24, 32, 45, 0.52));
+}
+
+@keyframes egg-rarity-word {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.62);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+  24%, 72% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -58%) scale(1.04);
+  }
+}
+
 .game-toast {
   position: absolute;
   top: max(20px, env(safe-area-inset-top));
