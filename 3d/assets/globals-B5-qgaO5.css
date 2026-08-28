@@ -3164,6 +3164,18 @@ input:focus-visible {
   filter: drop-shadow(0 3px 5px rgba(111, 230, 244, 0.42));
 }
 
+.luck-boost-pill.catch-bait-pill {
+  color: #123f4d;
+  background: linear-gradient(145deg, rgba(218, 255, 247, 0.97), rgba(103, 226, 207, 0.93));
+  box-shadow: 0 10px 28px rgba(24, 109, 103, 0.24), inset 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.luck-boost-pill.secret-catch-bait-pill {
+  color: #3d2a07;
+  background: linear-gradient(145deg, rgba(255, 247, 178, 0.98), rgba(255, 181, 72, 0.94));
+  box-shadow: 0 10px 28px rgba(153, 92, 17, 0.26), inset 0 1px rgba(255, 255, 255, 0.82);
+}
+
 @keyframes lucky-clover-pulse {
   0%, 100% { transform: scale(1) rotate(-4deg); }
   50% { transform: scale(1.14) rotate(5deg); }
