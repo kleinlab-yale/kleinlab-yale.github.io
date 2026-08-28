@@ -991,7 +991,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 &lt;div id=&quot;erbb-v6-explorer&quot;&gt;
   &lt;div class=&quot;ev6-heading&quot;&gt;
     &lt;h1&gt;ErbB v6 steady-state model&lt;/h1&gt;
-    &lt;div class=&quot;text-muted&quot;&gt;Invertebrate preformed-dimer reference, vertebrate monomer search, ligand-independent HER2, and bivalent ligand&lt;/div&gt;
+    &lt;div class=&quot;text-muted&quot;&gt;Primary-receptor search rescue, matched search efficiency, and a fixed-receptor-budget sensitivity analysis&lt;/div&gt;
   &lt;/div&gt;
 
   &lt;div class=&quot;viz-controls&quot; aria-label=&quot;Model parameters&quot;&gt;
@@ -1001,7 +1001,7 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;input id=&quot;ev6-phi&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;3.0004&quot; step=&quot;0.002&quot; value=&quot;0.30103&quot;&gt;
     &lt;/label&gt;
     &lt;label class=&quot;form-label&quot; for=&quot;ev6-alpha&quot;&gt;
-      &lt;span&gt;Association strength, α = k&lt;sub&gt;+&lt;/sub&gt;R&lt;sub&gt;T&lt;/sub&gt;/k&lt;sub&gt;d&lt;/sub&gt;&lt;/span&gt;
+      &lt;span&gt;Association strength, α = k&lt;sub&gt;+&lt;/sub&gt;R&lt;sub&gt;T&lt;/sub&gt;/k&lt;sub&gt;d&lt;/sub&gt; (A, B, D)&lt;/span&gt;
       &lt;output id=&quot;ev6-alpha-out&quot; class=&quot;tabular-nums&quot;&gt;&lt;/output&gt;
       &lt;input id=&quot;ev6-alpha&quot; class=&quot;form-range&quot; type=&quot;range&quot; min=&quot;-3&quot; max=&quot;6&quot; step=&quot;0.01&quot; value=&quot;1&quot;&gt;
     &lt;/label&gt;
@@ -1027,7 +1027,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   &lt;/div&gt;
 
   &lt;div class=&quot;ev6-metric-note text-small&quot;&gt;
-    &lt;strong&gt;Common observable:&lt;/strong&gt; Y = p + 2q, the fraction of ligand-binding primary receptors that are both ligand-bound and productively dimerized. Y = 1 means 100 engaged receptor protomers; for a pure self-homodimer system, that is 50 physical dimers—not 100.
+    &lt;strong&gt;Primary observable:&lt;/strong&gt; Y = p + 2q, the fraction of ligand-binding primary receptors that are both ligand-bound and productively dimerized. Y = 1 means 100 engaged receptor protomers; for a pure self-homodimer system, that is 50 physical dimers—not 100. Panel C deliberately uses a different observable: physical signaling complexes per total receptor budget.
   &lt;/div&gt;
 
   &lt;div class=&quot;viz-grid ev6-stats&quot; aria-live=&quot;polite&quot;&gt;
@@ -1042,39 +1042,51 @@ html&gt;body{padding:0}&lt;/style&gt;
       &lt;div id=&quot;ev6-gain-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
     &lt;/div&gt;
     &lt;div class=&quot;card viz-stat&quot;&gt;
-      &lt;div class=&quot;text-muted&quot;&gt;Bivalent-ligand participation&lt;/div&gt;
-      &lt;div id=&quot;ev6-biv-value&quot; class=&quot;viz-stat-value tabular-nums&quot;&gt;&lt;/div&gt;
-      &lt;div id=&quot;ev6-biv-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;text-muted&quot;&gt;Current search efficiency, E = Y/f&lt;/div&gt;
+      &lt;div id=&quot;ev6-eff-value&quot; class=&quot;viz-stat-value tabular-nums&quot;&gt;&lt;/div&gt;
+      &lt;div id=&quot;ev6-eff-note&quot; class=&quot;text-small&quot;&gt;&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 
   &lt;div class=&quot;ev6-plots&quot;&gt;
     &lt;section class=&quot;ev6-plot-section&quot; aria-labelledby=&quot;ev6-dose-title&quot;&gt;
-      &lt;h2 id=&quot;ev6-dose-title&quot;&gt;Dose response&lt;/h2&gt;
+      &lt;h2 id=&quot;ev6-dose-title&quot;&gt;A. Primary analysis: search rescue at fixed R&lt;sub&gt;T&lt;/sub&gt;&lt;/h2&gt;
       &lt;div class=&quot;ev6-legend&quot; aria-label=&quot;Dose-response series&quot;&gt;
         &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;Invertebrate preformed dimer: Y = f&lt;/button&gt;
         &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-mono&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Monomer search, no HER2: Y = 2q&lt;/button&gt;
         &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-current&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Current HER2 ratio: Y = p + 2q&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;dose-biv&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-biv&quot;&gt;&lt;/span&gt;Bivalent ligand&lt;/button&gt;
       &lt;/div&gt;
       &lt;div id=&quot;ev6-dose-chart&quot; class=&quot;ev6-chart&quot;&gt;&lt;/div&gt;
     &lt;/section&gt;
 
-    &lt;section class=&quot;ev6-plot-section&quot; aria-labelledby=&quot;ev6-titration-title&quot;&gt;
-      &lt;h2 id=&quot;ev6-titration-title&quot;&gt;Partner titration at the selected dose&lt;/h2&gt;
-      &lt;div class=&quot;ev6-legend&quot; aria-label=&quot;Partner-titration series&quot;&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-total&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Total participation: p + 2q&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-hetero&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-hetero&quot;&gt;&lt;/span&gt;HER2 heterodimer participation: p&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-homo&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Self-homodimer participation: 2q&lt;/button&gt;
-        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;tit-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;Invertebrate preformed-dimer ceiling: f&lt;/button&gt;
+    &lt;section class=&quot;ev6-plot-section&quot; aria-labelledby=&quot;ev6-eff-title&quot;&gt;
+      &lt;h2 id=&quot;ev6-eff-title&quot;&gt;B. Search efficiency among ligand-bound receptors&lt;/h2&gt;
+      &lt;div class=&quot;ev6-legend&quot; aria-label=&quot;Search-efficiency series&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;eff-pre&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-pre&quot;&gt;&lt;/span&gt;No-search limit: E = 1&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;eff-mono&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Monomer search, no HER2: E = 2q/f&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;eff-current&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Current HER2 ratio: E = (p + 2q)/f&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;eff-biv&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-biv&quot;&gt;&lt;/span&gt;Bivalent ligand: E&lt;sub&gt;B&lt;/sub&gt; = 2d/(c + 2d)&lt;/button&gt;
       &lt;/div&gt;
-      &lt;div id=&quot;ev6-titration-chart&quot; class=&quot;ev6-chart&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;text-small text-muted&quot;&gt;The bivalent curve counts both receptors in each bridge and uses the same receptor-binding-site dose as the monovalent systems; therefore its molecular ligand concentration is ℓ/2. All efficiency curves are bounded by the no-search limit.&lt;/div&gt;
+      &lt;div id=&quot;ev6-eff-chart&quot; class=&quot;ev6-chart&quot;&gt;&lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;ev6-plot-section ev6-budget-section&quot; aria-labelledby=&quot;ev6-budget-title&quot;&gt;
+      &lt;h2 id=&quot;ev6-budget-title&quot;&gt;C. Secondary analysis: signaling complexes under a fixed receptor budget&lt;/h2&gt;
+      &lt;div class=&quot;ev6-legend&quot; aria-label=&quot;Fixed-receptor-budget series&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;budget-total&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-current&quot;&gt;&lt;/span&gt;Total signaling complexes: S&lt;sub&gt;N&lt;/sub&gt; = (p + q)/(1 + φ)&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;budget-hetero&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-hetero&quot;&gt;&lt;/span&gt;HER2 heterodimers: p/(1 + φ)&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;budget-homo&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-mono&quot;&gt;&lt;/span&gt;Self-homodimers: q/(1 + φ)&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost ev6-series-toggle&quot; type=&quot;button&quot; data-series=&quot;budget-capacity&quot; aria-pressed=&quot;true&quot;&gt;&lt;span class=&quot;ev6-swatch ev6-capacity&quot;&gt;&lt;/span&gt;Physical-dimer capacity: 0.5&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;text-small text-muted&quot;&gt;Here N = R&lt;sub&gt;T&lt;/sub&gt; + H&lt;sub&gt;T&lt;/sub&gt; is fixed, h = H&lt;sub&gt;T&lt;/sub&gt;/N, and α&lt;sub&gt;N&lt;/sub&gt; = k&lt;sub&gt;+&lt;/sub&gt;N/k&lt;sub&gt;d&lt;/sub&gt; uses the association-strength slider. Thus R&lt;sub&gt;T&lt;/sub&gt; = N(1 − h), H&lt;sub&gt;T&lt;/sub&gt; = Nh, and the primary-receptor association strength becomes α&lt;sub&gt;R&lt;/sub&gt; = α&lt;sub&gt;N&lt;/sub&gt;(1 − h). Homo- and heterodimers are counted as one signaling complex each.&lt;/div&gt;
+      &lt;div id=&quot;ev6-budget-chart&quot; class=&quot;ev6-chart&quot;&gt;&lt;/div&gt;
     &lt;/section&gt;
 
     &lt;section class=&quot;ev6-plot-section ev6-heat-section&quot; aria-labelledby=&quot;ev6-heat-title&quot;&gt;
       &lt;div class=&quot;ev6-heat-heading&quot;&gt;
         &lt;div&gt;
-          &lt;h2 id=&quot;ev6-heat-title&quot;&gt;Where does HER2 add the most?&lt;/h2&gt;
+          &lt;h2 id=&quot;ev6-heat-title&quot;&gt;D. Where does HER2 add the most?&lt;/h2&gt;
           &lt;div class=&quot;text-small text-muted&quot;&gt;v6 search-opportunity view: η = α/δ = k&lt;sub&gt;+&lt;/sub&gt;R&lt;sub&gt;T&lt;/sub&gt;/k&lt;sub&gt;off&lt;/sub&gt;&lt;/div&gt;
         &lt;/div&gt;
         &lt;label class=&quot;form-label ev6-heat-control&quot; for=&quot;ev6-heat-occupancy&quot;&gt;
@@ -1163,7 +1175,7 @@ html&gt;body{padding:0}&lt;/style&gt;
 
   #erbb-v6-explorer .ev6-plots {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.5rem;
     align-items: start;
   }
@@ -1210,7 +1222,9 @@ html&gt;body{padding:0}&lt;/style&gt;
   #erbb-v6-explorer .ev6-current { color: var(--viz-series-1); }
   #erbb-v6-explorer .ev6-biv { color: var(--viz-series-3); }
   #erbb-v6-explorer .ev6-hetero { color: var(--viz-series-4); }
+  #erbb-v6-explorer .ev6-capacity { color: var(--muted-foreground); }
 
+  #erbb-v6-explorer .ev6-budget-section,
   #erbb-v6-explorer .ev6-heat-section {
     grid-column: 1 / -1;
     margin-top: 0.35rem;
@@ -1356,11 +1370,14 @@ html&gt;body{padding:0}&lt;/style&gt;
     &#x27;dose-pre&#x27;: true,
     &#x27;dose-mono&#x27;: true,
     &#x27;dose-current&#x27;: true,
-    &#x27;dose-biv&#x27;: true,
-    &#x27;tit-total&#x27;: true,
-    &#x27;tit-hetero&#x27;: true,
-    &#x27;tit-homo&#x27;: true,
-    &#x27;tit-pre&#x27;: true
+    &#x27;eff-pre&#x27;: true,
+    &#x27;eff-mono&#x27;: true,
+    &#x27;eff-current&#x27;: true,
+    &#x27;eff-biv&#x27;: true,
+    &#x27;budget-total&#x27;: true,
+    &#x27;budget-hetero&#x27;: true,
+    &#x27;budget-homo&#x27;: true,
+    &#x27;budget-capacity&#x27;: true
   };
   const tooltip = byId(&#x27;ev6-tooltip&#x27;);
   let currentState = null;
@@ -1426,20 +1443,48 @@ html&gt;body{padding:0}&lt;/style&gt;
     };
   }
 
-  function bivalentState(ell, state) {
+  function bivalentState(ellMolecule, state) {
     const {gamma1} = gammas(state);
     let lo = 0;
     let hi = 1;
     for (let i = 0; i &lt; 90; i += 1) {
       const r = 0.5 * (lo + hi);
-      const residual = gamma1 * (1 + 2 * ell) * r * r + (1 + ell - gamma1) * r - 1;
+      const residual = gamma1 * (1 + 2 * ellMolecule) * r * r + (1 + ellMolecule - gamma1) * r - 1;
       if (residual &gt; 0) hi = r;
       else lo = r;
     }
     const r = 0.5 * (lo + hi);
-    const c = ell * r / (1 + gamma1 * r);
+    const c = ellMolecule * r / (1 + gamma1 * r);
     const d = gamma1 * c * r;
-    return {r, c, d};
+    const boundProtomers = c + 2 * d;
+    return {
+      r,
+      c,
+      d,
+      boundProtomers,
+      participation: 2 * d,
+      efficiency: boundProtomers &gt; 0 ? 2 * d / boundProtomers : 0
+    };
+  }
+
+  function searchEfficiency(model) {
+    return model.f &gt; 0 ? model.participation / model.f : 0;
+  }
+
+  function budgetState(h, state) {
+    const safeH = clamp(h, 0, 0.999999);
+    const primaryFraction = 1 - safeH;
+    const phi = safeH / primaryFraction;
+    const budgetModelState = {...state, alpha: state.alpha * primaryFraction};
+    const model = mainState(state.dose, budgetModelState, phi);
+    return {
+      h: safeH,
+      phi,
+      alphaR: budgetModelState.alpha,
+      total: primaryFraction * (model.p + model.q),
+      hetero: primaryFraction * model.p,
+      homo: primaryFraction * model.q
+    };
   }
 
   function outputValue(model) {
@@ -1454,10 +1499,10 @@ html&gt;body{padding:0}&lt;/style&gt;
     const {gamma1, gamma2} = gammas(state);
     const model = mainState(state.dose, state);
     const baseline = mainState(state.dose, state, 0);
-    const biv = bivalentState(state.dose, state);
     const current = outputValue(model);
     const base = outputValue(baseline);
     const gain = current - base;
+    const efficiency = searchEfficiency(model);
 
     byId(&#x27;ev6-phi-out&#x27;).textContent = formatNumber(state.phi);
     byId(&#x27;ev6-alpha-out&#x27;).textContent = formatNumber(state.alpha);
@@ -1471,11 +1516,11 @@ html&gt;body{padding:0}&lt;/style&gt;
     byId(&#x27;ev6-current-note&#x27;).textContent = `${formatNumber(100 * current / Math.max(model.f, 1e-15))}% of the preformed-dimer ceiling. Per 100 primary receptors: ${formatNumber(100 * model.p)} HER2 heterodimers + ${formatNumber(100 * model.q)} self-homodimers; ${formatNumber(100 * model.c)} ligand-bound monomers remain.`;
     byId(&#x27;ev6-gain-value&#x27;).textContent = `${gain &gt;= 0 ? &#x27;+&#x27; : &#x27;&#x27;}${formatNumber(gain)}`;
     byId(&#x27;ev6-gain-note&#x27;).textContent = `${formatNumber(100 * gain)} additional ligand-bound receptors dimerized per 100 primary receptors; no-HER2 Y₀=${formatNumber(base)}, corresponding to ${formatNumber(100 * baseline.q)} physical self-homodimers.`;
-    byId(&#x27;ev6-biv-value&#x27;).textContent = formatNumber(biv.d);
-    byId(&#x27;ev6-biv-note&#x27;).textContent = `${formatNumber(100 * biv.d / Math.max(model.f, 1e-15))}% of the preformed-dimer ceiling`;
+    byId(&#x27;ev6-eff-value&#x27;).textContent = formatNumber(efficiency);
+    byId(&#x27;ev6-eff-note&#x27;).textContent = `${formatNumber(100 * efficiency)} of every 100 ligand-bound primary receptors are productively dimer-engaged at the selected dose.`;
   }
 
-  function makeScales(width, height, xMin, xMax) {
+  function makeScales(width, height, xMin, xMax, yMax = 1.02) {
     const narrow = width &lt; 500;
     const margin = {top: 16, right: 16, bottom: 66, left: narrow ? 62 : 72};
     const innerW = Math.max(80, width - margin.left - margin.right);
@@ -1485,18 +1530,18 @@ html&gt;body{padding:0}&lt;/style&gt;
       innerW,
       innerH,
       x: value =&gt; margin.left + (value - xMin) / (xMax - xMin) * innerW,
-      y: value =&gt; margin.top + innerH - value / 1.02 * innerH,
+      y: value =&gt; margin.top + innerH - value / yMax * innerH,
       invertX: px =&gt; xMin + (px - margin.left) / innerW * (xMax - xMin)
     };
   }
 
-  function addAxes(svg, scales, width, height, xTicks, xFormatter, xTitle, yTitle) {
+  function addAxes(svg, scales, width, height, xTicks, xFormatter, xTitle, yTitle, yTicks = [0, 0.25, 0.5, 0.75, 1]) {
     const {margin, innerW, innerH, x, y} = scales;
-    const yTicks = [0, 0.25, 0.5, 0.75, 1];
     yTicks.forEach(value =&gt; {
       const yy = y(value);
       svg.appendChild(svgEl(&#x27;line&#x27;, {x1: margin.left, x2: margin.left + innerW, y1: yy, y2: yy, class: &#x27;ev6-grid&#x27;}));
-      svg.appendChild(svgEl(&#x27;text&#x27;, {x: margin.left - 9, y: yy + 4, &#x27;text-anchor&#x27;: &#x27;end&#x27;, class: &#x27;ev6-muted-text&#x27;}, value.toFixed(value === 0 || value === 1 ? 1 : 2)));
+      const precision = value === 0 || value === 1 ? 1 : (value &lt; 0.1 ? 2 : 2);
+      svg.appendChild(svgEl(&#x27;text&#x27;, {x: margin.left - 9, y: yy + 4, &#x27;text-anchor&#x27;: &#x27;end&#x27;, class: &#x27;ev6-muted-text&#x27;}, value.toFixed(precision)));
     });
     xTicks.forEach(value =&gt; {
       const xx = x(value);
@@ -1546,7 +1591,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     const width = Math.max(320, Math.floor(host.getBoundingClientRect().width || 620));
     const height = width &lt; 500 ? 350 : 390;
     host.replaceChildren();
-    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Ligand-bound receptor participation for the invertebrate preformed-dimer reference, no-HER2 monomer search, HER2-assisted search, and bivalent ligand&#x27;});
+    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Ligand-bound receptor participation for the invertebrate preformed-dimer reference, no-HER2 monomer search, and HER2-assisted search&#x27;});
     svg.appendChild(svgEl(&#x27;title&#x27;, {}, &#x27;ErbB v6 dose response&#x27;));
     svg.appendChild(svgEl(&#x27;desc&#x27;, {}, &#x27;Absolute model output as a function of dimensionless ligand concentration.&#x27;));
     host.appendChild(svg);
@@ -1556,8 +1601,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     const definitions = [
       {key: &#x27;dose-pre&#x27;, color: &#x27;var(--foreground)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; ell / (1 + ell)},
       {key: &#x27;dose-mono&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;8 5&#x27;, fn: ell =&gt; outputValue(mainState(ell, state, 0))},
-      {key: &#x27;dose-current&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; outputValue(mainState(ell, state))},
-      {key: &#x27;dose-biv&#x27;, color: &#x27;var(--viz-series-3)&#x27;, dash: &#x27;3 4&#x27;, fn: ell =&gt; bivalentState(ell, state).d}
+      {key: &#x27;dose-current&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; outputValue(mainState(ell, state))}
     ];
     const samples = Array.from({length: 281}, (_, i) =&gt; -4 + 7 * i / 280);
     definitions.forEach(def =&gt; {
@@ -1596,7 +1640,7 @@ html&gt;body{padding:0}&lt;/style&gt;
         marker.setAttribute(&#x27;cx&#x27;, xx);
         marker.setAttribute(&#x27;cy&#x27;, scales.y(value));
         marker.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
-        const labels = {&#x27;dose-pre&#x27;: &#x27;Invertebrate preformed dimer&#x27;, &#x27;dose-mono&#x27;: &#x27;Monomer search, no HER2&#x27;, &#x27;dose-current&#x27;: `Current HER2 ratio φ=${formatNumber(state.phi)}`, &#x27;dose-biv&#x27;: &#x27;Bivalent ligand&#x27;};
+        const labels = {&#x27;dose-pre&#x27;: &#x27;Invertebrate preformed dimer&#x27;, &#x27;dose-mono&#x27;: &#x27;Monomer search, no HER2&#x27;, &#x27;dose-current&#x27;: `Current HER2 ratio φ=${formatNumber(state.phi)}`};
         rows.push([labels[def.key], formatNumber(value)]);
       });
       tooltip.innerHTML = tooltipTable(`ℓ = ${formatNumber(ell)}`, rows);
@@ -1611,34 +1655,105 @@ html&gt;body{padding:0}&lt;/style&gt;
     svg.appendChild(overlay);
   }
 
-  function drawTitrationChart(state) {
-    const host = byId(&#x27;ev6-titration-chart&#x27;);
-    const width = Math.max(320, Math.floor(host.getBoundingClientRect().width || 520));
+  function drawEfficiencyChart(state) {
+    const host = byId(&#x27;ev6-eff-chart&#x27;);
+    const width = Math.max(320, Math.floor(host.getBoundingClientRect().width || 620));
     const height = width &lt; 500 ? 350 : 390;
     host.replaceChildren();
-    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Partner titration showing total, heterodimer, and homodimer contributions&#x27;});
-    svg.appendChild(svgEl(&#x27;title&#x27;, {}, &#x27;Partner titration&#x27;));
-    svg.appendChild(svgEl(&#x27;desc&#x27;, {}, &#x27;Model output and pathway contributions as HER2 or partner abundance increases.&#x27;));
+    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Conditional search efficiency for no-search, monomer-only, HER2-assisted, and bivalent-ligand systems&#x27;});
+    svg.appendChild(svgEl(&#x27;title&#x27;, {}, &#x27;Search efficiency among ligand-bound receptors&#x27;));
+    svg.appendChild(svgEl(&#x27;desc&#x27;, {}, &#x27;The fraction of each architecture\&#x27;s ligand-bound receptor protomers that are productively dimer-engaged.&#x27;));
     host.appendChild(svg);
-    const xMax = Math.log10(1001);
-    const scales = makeScales(width, height, 0, xMax);
-    const tickPhi = [0, 1, 10, 100, 1000];
-    const xTicks = tickPhi.map(phi =&gt; Math.log10(1 + phi));
-    addAxes(svg, scales, width, height, xTicks, value =&gt; String(tickPhi[xTicks.indexOf(value)]), &#x27;HER2 / partner ratio, φ (log spacing in 1 + φ)&#x27;, outputLabel());
+    const scales = makeScales(width, height, -4, 3);
+    addAxes(svg, scales, width, height, [-4, -2, 0, 2, 3], value =&gt; `10${value === 0 ? &#x27;⁰&#x27; : value === 2 ? &#x27;²&#x27; : value === 3 ? &#x27;³&#x27; : value === -2 ? &#x27;⁻²&#x27; : &#x27;⁻⁴&#x27;}`, &#x27;binding-site-equivalent ligand dose, ℓ&#x27;, &#x27;conditional search efficiency, E&#x27;);
+
     const definitions = [
-      {key: &#x27;tit-total&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: phi =&gt; outputValue(mainState(state.dose, state, phi))},
-      {key: &#x27;tit-hetero&#x27;, color: &#x27;var(--viz-series-4)&#x27;, dash: &#x27;7 4&#x27;, fn: phi =&gt; mainState(state.dose, state, phi).p},
-      {key: &#x27;tit-homo&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;3 4&#x27;, fn: phi =&gt; 2 * mainState(state.dose, state, phi).q},
-      {key: &#x27;tit-pre&#x27;, color: &#x27;var(--foreground)&#x27;, dash: &#x27;&#x27;, fn: () =&gt; state.dose / (1 + state.dose)}
+      {key: &#x27;eff-pre&#x27;, color: &#x27;var(--foreground)&#x27;, dash: &#x27;&#x27;, fn: () =&gt; 1},
+      {key: &#x27;eff-mono&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;8 5&#x27;, fn: ell =&gt; searchEfficiency(mainState(ell, state, 0))},
+      {key: &#x27;eff-current&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: ell =&gt; searchEfficiency(mainState(ell, state))},
+      {key: &#x27;eff-biv&#x27;, color: &#x27;var(--viz-series-3)&#x27;, dash: &#x27;3 4&#x27;, fn: ell =&gt; bivalentState(0.5 * ell, state).efficiency}
     ];
-    const samples = Array.from({length: 281}, (_, i) =&gt; xMax * i / 280);
+    const samples = Array.from({length: 281}, (_, i) =&gt; -4 + 7 * i / 280);
     definitions.forEach(def =&gt; {
       if (!visible[def.key]) return;
-      const points = samples.map(logOnePlusPhi =&gt; ({x: logOnePlusPhi, y: def.fn(Math.pow(10, logOnePlusPhi) - 1)}));
-      seriesPath(svg, points, scales, def.color, def.dash, def.key === &#x27;tit-total&#x27; ? 2.8 : 2.1);
+      const points = samples.map(logEll =&gt; ({x: logEll, y: def.fn(Math.pow(10, logEll))}));
+      seriesPath(svg, points, scales, def.color, def.dash, def.key === &#x27;eff-current&#x27; ? 2.8 : 2.1);
     });
 
-    const currentX = scales.x(Math.log10(1 + state.phi));
+    const selectedX = scales.x(Math.log10(state.dose));
+    svg.appendChild(svgEl(&#x27;line&#x27;, {x1: selectedX, x2: selectedX, y1: scales.margin.top, y2: scales.margin.top + scales.innerH, class: &#x27;ev6-guide&#x27;, &#x27;stroke-dasharray&#x27;: &#x27;3 4&#x27;}));
+    const hoverGuide = svgEl(&#x27;line&#x27;, {x1: selectedX, x2: selectedX, y1: scales.margin.top, y2: scales.margin.top + scales.innerH, class: &#x27;ev6-guide&#x27;, opacity: 0, &#x27;data-chart-hover-guide&#x27;: &#x27;true&#x27;});
+    svg.appendChild(hoverGuide);
+    const markers = definitions.map(def =&gt; {
+      const marker = svgEl(&#x27;circle&#x27;, {r: 4, fill: def.color, class: &#x27;ev6-marker&#x27;, opacity: 0, &#x27;data-chart-hover-marker&#x27;: def.key});
+      svg.appendChild(marker);
+      return {def, marker};
+    });
+    const overlay = svgEl(&#x27;rect&#x27;, {x: scales.margin.left, y: scales.margin.top, width: scales.innerW, height: scales.innerH, fill: &#x27;transparent&#x27;, &#x27;data-chart-hit&#x27;: &#x27;true&#x27;, &#x27;data-chart-hover-overlay&#x27;: &#x27;cross-series&#x27;});
+    overlay.addEventListener(&#x27;pointermove&#x27;, event =&gt; {
+      const rect = svg.getBoundingClientRect();
+      const scaleFactor = width / rect.width;
+      const px = (event.clientX - rect.left) * scaleFactor;
+      const logEll = clamp(scales.invertX(px), -4, 3);
+      const ell = Math.pow(10, logEll);
+      const xx = scales.x(logEll);
+      hoverGuide.setAttribute(&#x27;x1&#x27;, xx);
+      hoverGuide.setAttribute(&#x27;x2&#x27;, xx);
+      hoverGuide.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
+      const rows = [];
+      markers.forEach(({def, marker}) =&gt; {
+        if (!visible[def.key]) {
+          marker.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;);
+          return;
+        }
+        const value = def.fn(ell);
+        marker.setAttribute(&#x27;cx&#x27;, xx);
+        marker.setAttribute(&#x27;cy&#x27;, scales.y(value));
+        marker.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
+        const labels = {&#x27;eff-pre&#x27;: &#x27;No-search limit&#x27;, &#x27;eff-mono&#x27;: &#x27;Monomer search, no HER2&#x27;, &#x27;eff-current&#x27;: `Current HER2 ratio φ=${formatNumber(state.phi)}`, &#x27;eff-biv&#x27;: &#x27;Bivalent ligand&#x27;};
+        rows.push([labels[def.key], formatNumber(value)]);
+      });
+      tooltip.innerHTML = tooltipTable(`binding-site dose ℓ = ${formatNumber(ell)}`, rows);
+      tooltip.hidden = false;
+      placeTooltip(event);
+    });
+    overlay.addEventListener(&#x27;pointerleave&#x27;, () =&gt; {
+      hoverGuide.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;);
+      markers.forEach(({marker}) =&gt; marker.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;));
+      tooltip.hidden = true;
+    });
+    svg.appendChild(overlay);
+  }
+
+  function drawBudgetChart(state) {
+    const host = byId(&#x27;ev6-budget-chart&#x27;);
+    const width = Math.max(320, Math.floor(host.getBoundingClientRect().width || 900));
+    const height = width &lt; 500 ? 370 : 420;
+    host.replaceChildren();
+    const svg = svgEl(&#x27;svg&#x27;, {viewBox: `0 0 ${width} ${height}`, role: &#x27;img&#x27;, &#x27;aria-label&#x27;: &#x27;Physical signaling complexes while a fixed total receptor budget is reallocated between primary receptor and HER2&#x27;});
+    svg.appendChild(svgEl(&#x27;title&#x27;, {}, &#x27;Signaling complexes under a fixed receptor budget&#x27;));
+    svg.appendChild(svgEl(&#x27;desc&#x27;, {}, &#x27;Total, heterodimer, and homodimer signaling complexes per total receptor as the HER2 share of the receptor budget changes.&#x27;));
+    host.appendChild(svg);
+    const xMax = 0.999;
+    const scales = makeScales(width, height, 0, xMax, 0.51);
+    const xTicks = [0, 0.25, 0.5, 0.75, 0.9, 0.99];
+    const yTicks = [0, 0.1, 0.2, 0.3, 0.4, 0.5];
+    addAxes(svg, scales, width, height, xTicks, value =&gt; `${Math.round(100 * value)}%`, &#x27;HER2 share of fixed receptor budget, h = Hₜ/N&#x27;, &#x27;signaling complexes per total receptor, Sₙ&#x27;, yTicks);
+    const definitions = [
+      {key: &#x27;budget-total&#x27;, color: &#x27;var(--viz-series-1)&#x27;, dash: &#x27;&#x27;, fn: h =&gt; budgetState(h, state).total},
+      {key: &#x27;budget-hetero&#x27;, color: &#x27;var(--viz-series-4)&#x27;, dash: &#x27;7 4&#x27;, fn: h =&gt; budgetState(h, state).hetero},
+      {key: &#x27;budget-homo&#x27;, color: &#x27;var(--viz-series-2)&#x27;, dash: &#x27;3 4&#x27;, fn: h =&gt; budgetState(h, state).homo},
+      {key: &#x27;budget-capacity&#x27;, color: &#x27;var(--muted-foreground)&#x27;, dash: &#x27;2 5&#x27;, fn: () =&gt; 0.5}
+    ];
+    const samples = Array.from({length: 301}, (_, i) =&gt; xMax * i / 300);
+    definitions.forEach(def =&gt; {
+      if (!visible[def.key]) return;
+      const points = samples.map(h =&gt; ({x: h, y: def.fn(h)}));
+      seriesPath(svg, points, scales, def.color, def.dash, def.key === &#x27;budget-total&#x27; ? 2.8 : 2.1);
+    });
+
+    const currentH = clamp(state.phi / (1 + state.phi), 0, xMax);
+    const currentX = scales.x(currentH);
     svg.appendChild(svgEl(&#x27;line&#x27;, {x1: currentX, x2: currentX, y1: scales.margin.top, y2: scales.margin.top + scales.innerH, class: &#x27;ev6-guide&#x27;, &#x27;stroke-dasharray&#x27;: &#x27;3 4&#x27;}));
     const hoverGuide = svgEl(&#x27;line&#x27;, {x1: currentX, x2: currentX, y1: scales.margin.top, y2: scales.margin.top + scales.innerH, class: &#x27;ev6-guide&#x27;, opacity: 0, &#x27;data-chart-hover-guide&#x27;: &#x27;true&#x27;});
     svg.appendChild(hoverGuide);
@@ -1652,9 +1767,9 @@ html&gt;body{padding:0}&lt;/style&gt;
       const rect = svg.getBoundingClientRect();
       const scaleFactor = width / rect.width;
       const px = (event.clientX - rect.left) * scaleFactor;
-      const xValue = clamp(scales.invertX(px), 0, xMax);
-      const phi = Math.pow(10, xValue) - 1;
-      const xx = scales.x(xValue);
+      const h = clamp(scales.invertX(px), 0, xMax);
+      const point = budgetState(h, state);
+      const xx = scales.x(h);
       hoverGuide.setAttribute(&#x27;x1&#x27;, xx);
       hoverGuide.setAttribute(&#x27;x2&#x27;, xx);
       hoverGuide.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
@@ -1664,14 +1779,16 @@ html&gt;body{padding:0}&lt;/style&gt;
           marker.setAttribute(&#x27;opacity&#x27;, &#x27;0&#x27;);
           return;
         }
-        const value = def.fn(phi);
+        const value = def.fn(h);
         marker.setAttribute(&#x27;cx&#x27;, xx);
         marker.setAttribute(&#x27;cy&#x27;, scales.y(value));
         marker.setAttribute(&#x27;opacity&#x27;, &#x27;1&#x27;);
-        const labels = {&#x27;tit-total&#x27;: &#x27;Total Y=p+2q&#x27;, &#x27;tit-hetero&#x27;: &#x27;HER2 contribution p&#x27;, &#x27;tit-homo&#x27;: &#x27;Self-homodimer contribution 2q&#x27;, &#x27;tit-pre&#x27;: &#x27;Invertebrate preformed-dimer Y=f&#x27;};
+        const labels = {&#x27;budget-total&#x27;: &#x27;Total complexes / total receptor&#x27;, &#x27;budget-hetero&#x27;: &#x27;HER2 heterodimers / total receptor&#x27;, &#x27;budget-homo&#x27;: &#x27;Self-homodimers / total receptor&#x27;, &#x27;budget-capacity&#x27;: &#x27;Physical-dimer capacity&#x27;};
         rows.push([labels[def.key], formatNumber(value)]);
       });
-      tooltip.innerHTML = tooltipTable(`φ = ${formatNumber(phi)}`, rows);
+      rows.push([&#x27;Total complexes / 100 receptors&#x27;, formatNumber(100 * point.total)]);
+      rows.push([&#x27;Primary-receptor association αᴿ&#x27;, formatNumber(point.alphaR)]);
+      tooltip.innerHTML = tooltipTable(`HER2 budget h = ${formatNumber(100 * h)}%; φ = ${formatNumber(point.phi)}`, rows);
       tooltip.hidden = false;
       placeTooltip(event);
     });
@@ -1943,7 +2060,8 @@ html&gt;body{padding:0}&lt;/style&gt;
     currentState = readState();
     updateReadouts(currentState);
     drawDoseChart(currentState);
-    drawTitrationChart(currentState);
+    drawEfficiencyChart(currentState);
+    drawBudgetChart(currentState);
     drawHeatmap(currentState);
   }
 
@@ -1973,22 +2091,27 @@ html&gt;body{padding:0}&lt;/style&gt;
   });
 
   let lastDoseWidth = 0;
-  let lastTitrationWidth = 0;
+  let lastEfficiencyWidth = 0;
+  let lastBudgetWidth = 0;
   let lastHeatWidth = 0;
   const observer = new ResizeObserver(() =&gt; {
     const doseWidth = Math.round(byId(&#x27;ev6-dose-chart&#x27;).getBoundingClientRect().width);
-    const titrationWidth = Math.round(byId(&#x27;ev6-titration-chart&#x27;).getBoundingClientRect().width);
+    const efficiencyWidth = Math.round(byId(&#x27;ev6-eff-chart&#x27;).getBoundingClientRect().width);
+    const budgetWidth = Math.round(byId(&#x27;ev6-budget-chart&#x27;).getBoundingClientRect().width);
     const heatWidth = Math.round(byId(&#x27;ev6-heat-chart&#x27;).getBoundingClientRect().width);
     if (Math.abs(doseWidth - lastDoseWidth) &lt; 2
-      &amp;&amp; Math.abs(titrationWidth - lastTitrationWidth) &lt; 2
+      &amp;&amp; Math.abs(efficiencyWidth - lastEfficiencyWidth) &lt; 2
+      &amp;&amp; Math.abs(budgetWidth - lastBudgetWidth) &lt; 2
       &amp;&amp; Math.abs(heatWidth - lastHeatWidth) &lt; 2) return;
     lastDoseWidth = doseWidth;
-    lastTitrationWidth = titrationWidth;
+    lastEfficiencyWidth = efficiencyWidth;
+    lastBudgetWidth = budgetWidth;
     lastHeatWidth = heatWidth;
     render();
   });
   observer.observe(byId(&#x27;ev6-dose-chart&#x27;));
-  observer.observe(byId(&#x27;ev6-titration-chart&#x27;));
+  observer.observe(byId(&#x27;ev6-eff-chart&#x27;));
+  observer.observe(byId(&#x27;ev6-budget-chart&#x27;));
   observer.observe(byId(&#x27;ev6-heat-chart&#x27;));
   render();
 })();
