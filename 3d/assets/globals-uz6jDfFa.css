@@ -3417,6 +3417,22 @@ input:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+.ai-token-count {
+  border-color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(145deg, rgba(239, 228, 255, 0.96), rgba(181, 145, 244, 0.92));
+}
+
+.ai-token-count > span {
+  color: #7950c9;
+  filter: drop-shadow(0 2px 6px rgba(90, 48, 170, 0.38));
+}
+
+.ai-token-count b {
+  min-width: 1ch;
+  color: #55308f;
+  font-variant-numeric: tabular-nums;
+}
+
 .shell-coin-count {
   border-color: rgba(255, 255, 255, 0.9);
   background: linear-gradient(145deg, rgba(255, 239, 226, 0.96), rgba(243, 188, 164, 0.91));
@@ -6397,6 +6413,7 @@ kbd {
 .treasure-count b,
 .pet-coin-count b,
 .pet-gem-count b,
+.ai-token-count b,
 .shell-coin-count b {
   color: #fff;
   font-size: 16px;
