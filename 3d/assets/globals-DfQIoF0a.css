@@ -2741,6 +2741,54 @@ input:focus-visible {
   letter-spacing: 0.01em;
 }
 
+.ufo-flight-controls {
+  position: absolute;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(176px, calc(env(safe-area-inset-bottom) + 160px));
+  z-index: 9;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(66px, 1fr));
+  gap: 8px;
+  width: min(236px, calc(100% - 36px));
+  padding: 9px;
+  border: 1px solid rgba(180, 255, 219, 0.48);
+  border-radius: 21px;
+  background: rgba(13, 43, 50, 0.86);
+  box-shadow: 0 16px 42px rgba(4, 22, 29, 0.35), inset 0 1px rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px);
+}
+
+.ufo-flight-controls button {
+  display: grid;
+  min-height: 54px;
+  place-items: center;
+  gap: 2px;
+  padding: 7px 8px;
+  border: 1px solid rgba(199, 255, 229, 0.62);
+  border-radius: 14px;
+  color: #edfff6;
+  background: linear-gradient(145deg, rgba(54, 159, 134, 0.96), rgba(43, 93, 122, 0.96));
+  font: 850 10px/1.05 system-ui, sans-serif;
+  touch-action: none;
+}
+
+.ufo-flight-controls button > span { font-size: 18px; }
+.ufo-flight-controls button > kbd { font: 800 7px/1 system-ui, sans-serif; opacity: 0.72; }
+.ufo-flight-controls button:last-child {
+  grid-column: 1 / -1;
+  color: #173d33;
+  background: linear-gradient(145deg, #b6ffd3, #6aebb4);
+}
+.ufo-flight-controls button:last-child.is-active {
+  color: #fff;
+  background: linear-gradient(145deg, #7dffb7, #35ba88);
+  animation: ufo-beam-pulse 0.65s ease-in-out infinite alternate;
+}
+
+@keyframes ufo-beam-pulse {
+  to { box-shadow: 0 0 22px rgba(113, 255, 185, 0.72); }
+}
+
 .pocket-shelf {
   margin-bottom: 16px;
   padding: 14px;
@@ -5169,6 +5217,23 @@ kbd {
   background: linear-gradient(145deg, rgba(249, 241, 255, 0.9), rgba(143, 224, 214, 0.88));
 }
 
+.pet-converter-picker.is-huge-machine {
+  border-color: rgba(179, 135, 255, 0.78);
+  background: linear-gradient(155deg, rgba(31, 29, 65, 0.97), rgba(50, 31, 88, 0.97));
+  box-shadow: 0 22px 60px rgba(35, 20, 76, 0.42), inset 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.pet-converter-picker.is-huge-machine > header > span {
+  color: #fff4b0;
+  background: rgba(132, 84, 211, 0.42);
+}
+
+.huge-machine-note {
+  margin-top: 8px;
+  color: rgba(235, 225, 255, 0.78);
+  font: 750 8px/1.35 system-ui, sans-serif;
+}
+
 .pet-converter-picker > header {
   display: flex;
   align-items: center;
@@ -6405,19 +6470,17 @@ kbd {
 }
 
 .hud-mode-button.world-switch-button {
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: rgba(22, 42, 85, 0.5);
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.12),
-    0 4px 12px rgba(14, 24, 52, 0.24);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .hud-mode-button.world-switch-button.is-earth {
-  background: rgba(34, 108, 138, 0.58);
+  background: transparent;
 }
 
 .hud-mode-button.world-switch-button.is-moon {
-  background: rgba(54, 49, 111, 0.58);
+  background: transparent;
 }
 
 .luck-boost-pill {
