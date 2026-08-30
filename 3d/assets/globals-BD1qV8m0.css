@@ -2789,6 +2789,108 @@ input:focus-visible {
   to { box-shadow: 0 0 22px rgba(113, 255, 185, 0.72); }
 }
 
+.ufo-mission-list {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  z-index: 8;
+  display: grid;
+  gap: 7px;
+  width: 178px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  color: #eafff5;
+  background: linear-gradient(145deg, rgba(10, 48, 52, 0.84), rgba(35, 44, 80, 0.78));
+  box-shadow: 0 12px 32px rgba(5, 22, 31, 0.28);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: none !important;
+}
+
+.ufo-mission-list > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ufo-mission-list > header > span {
+  font-size: 23px;
+  filter: drop-shadow(0 0 8px rgba(108, 255, 188, 0.58));
+}
+
+.ufo-mission-list > header > div {
+  display: grid;
+  gap: 1px;
+}
+
+.ufo-mission-list small {
+  color: #9bf4ca;
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+}
+
+.ufo-mission-list b {
+  font-size: 10px;
+  letter-spacing: 0.015em;
+}
+
+.ufo-mission-list > div {
+  display: grid;
+  gap: 3px;
+}
+
+.ufo-mission-list > div > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(235, 249, 255, 0.78);
+  font-size: 9px;
+  font-weight: 780;
+}
+
+.ufo-mission-list > div > span.is-done {
+  color: #9ff4c9;
+}
+
+.ufo-mission-list i {
+  width: 11px;
+  color: #7ff1ba;
+  font-style: normal;
+  font-weight: 1000;
+}
+
+.ufo-mission-list > footer {
+  padding-top: 5px;
+  border-top: 1px solid rgba(176, 255, 220, 0.18);
+  color: #fff0a5;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.ufo-mission-list.is-complete {
+  width: 164px;
+  color: #173f35;
+  background: linear-gradient(145deg, rgba(180, 255, 211, 0.92), rgba(131, 231, 216, 0.9));
+}
+
+.ufo-mission-list.is-complete small,
+.ufo-mission-list.is-complete > footer {
+  color: #246450;
+}
+
+@media (max-width: 680px) {
+  .ufo-mission-list {
+    top: max(58px, calc(env(safe-area-inset-top) + 49px));
+    left: max(9px, env(safe-area-inset-left));
+    width: 156px;
+    padding: 8px 10px;
+  }
+
+  .ufo-mission-list > header > span { font-size: 19px; }
+  .ufo-mission-list > div > span { font-size: 8px; }
+}
+
 .pocket-shelf {
   margin-bottom: 16px;
   padding: 14px;
