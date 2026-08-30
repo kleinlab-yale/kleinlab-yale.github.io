@@ -5755,6 +5755,59 @@ kbd {
   background: rgba(235, 203, 196, 0.24);
 }
 
+.recovery-code-zone {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(145px, 0.8fr) auto;
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 14px 15px;
+  border: 1px solid rgba(111, 94, 184, 0.18);
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(236, 232, 255, 0.7), rgba(224, 249, 255, 0.68));
+}
+
+.recovery-code-zone > div {
+  display: grid;
+  gap: 2px;
+}
+
+.recovery-code-zone b { font-size: 10px; }
+.recovery-code-zone small { color: #746f8c; font-size: 8px; }
+
+.recovery-code-zone input,
+.recovery-code-zone button {
+  min-height: 36px;
+  border-radius: 11px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.recovery-code-zone input {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(97, 81, 167, 0.2);
+  color: #51466f;
+  background: rgba(255, 255, 255, 0.82);
+  text-transform: uppercase;
+}
+
+.recovery-code-zone button {
+  padding: 8px 12px;
+  border: 0;
+  color: #fff;
+  background: #6f5eac;
+}
+
+.recovery-code-zone button:disabled {
+  opacity: 0.48;
+}
+
+.multiplayer-luck-pill {
+  border-color: rgba(92, 167, 211, 0.55) !important;
+  background: linear-gradient(145deg, rgba(229, 250, 255, 0.96), rgba(230, 238, 255, 0.94)) !important;
+}
+
 .parent-zone > div {
   display: grid;
   gap: 2px;
@@ -6276,6 +6329,10 @@ kbd {
   .parent-zone {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .recovery-code-zone {
+    grid-template-columns: 1fr;
   }
 
   .game-toast {
