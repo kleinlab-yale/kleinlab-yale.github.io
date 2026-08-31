@@ -2741,52 +2741,115 @@ input:focus-visible {
   letter-spacing: 0.01em;
 }
 
-.ufo-flight-controls {
+.ufo-alien-console {
   position: absolute;
-  right: max(18px, env(safe-area-inset-right));
-  bottom: max(176px, calc(env(safe-area-inset-bottom) + 160px));
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(88px, calc(env(safe-area-inset-bottom) + 72px));
   z-index: 9;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(66px, 1fr));
-  gap: 8px;
-  width: min(236px, calc(100% - 36px));
-  padding: 9px;
-  border: 1px solid rgba(180, 255, 219, 0.48);
-  border-radius: 21px;
-  background: rgba(13, 43, 50, 0.86);
-  box-shadow: 0 16px 42px rgba(4, 22, 29, 0.35), inset 0 1px rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(171, 255, 232, 0.48);
+  border-radius: 30px 18px 30px 18px;
+  background:
+    radial-gradient(circle at 28% 38%, rgba(99, 255, 220, 0.16), transparent 38%),
+    linear-gradient(145deg, rgba(15, 28, 58, 0.9), rgba(38, 15, 70, 0.88));
+  box-shadow:
+    0 16px 42px rgba(4, 10, 35, 0.42),
+    inset 0 0 28px rgba(105, 255, 221, 0.1),
+    inset 0 1px rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  touch-action: none;
+  user-select: none;
 }
 
-.ufo-flight-controls button {
+.ufo-alien-steering {
   display: grid;
-  min-height: 54px;
+  grid-template: repeat(3, 43px) / repeat(3, 43px);
+  gap: 3px;
+}
+
+.ufo-alien-systems {
+  display: grid;
+  grid-template-columns: repeat(2, 46px);
+  gap: 5px;
+}
+
+.ufo-alien-console button {
+  display: grid;
   place-items: center;
-  gap: 2px;
-  padding: 7px 8px;
-  border: 1px solid rgba(199, 255, 229, 0.62);
-  border-radius: 14px;
-  color: #edfff6;
-  background: linear-gradient(145deg, rgba(54, 159, 134, 0.96), rgba(43, 93, 122, 0.96));
-  font: 850 10px/1.05 system-ui, sans-serif;
+  min-width: 43px;
+  min-height: 43px;
+  padding: 0;
+  border: 1px solid rgba(183, 255, 234, 0.58);
+  border-radius: 14px 8px 14px 8px;
+  color: #c9fff0;
+  background: linear-gradient(145deg, rgba(48, 143, 137, 0.86), rgba(69, 39, 128, 0.92));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.27), 0 3px 12px rgba(5, 8, 34, 0.4);
   touch-action: none;
 }
 
-.ufo-flight-controls button > span { font-size: 18px; }
-.ufo-flight-controls button > kbd { font: 800 7px/1 system-ui, sans-serif; opacity: 0.72; }
-.ufo-flight-controls button:last-child {
-  grid-column: 1 / -1;
-  color: #173d33;
-  background: linear-gradient(145deg, #b6ffd3, #6aebb4);
-}
-.ufo-flight-controls button:last-child.is-active {
+.ufo-alien-console button:active,
+.ufo-alien-console button.is-active {
   color: #fff;
-  background: linear-gradient(145deg, #7dffb7, #35ba88);
+  background: linear-gradient(145deg, rgba(96, 255, 208, 0.96), rgba(133, 74, 225, 0.98));
+  transform: scale(0.94);
+  box-shadow: 0 0 22px rgba(105, 255, 222, 0.66);
+}
+
+.ufo-alien-console button > span {
+  font: 900 24px/1 "Arial Unicode MS", "Noto Sans Symbols 2", sans-serif;
+  filter: drop-shadow(0 0 5px rgba(134, 255, 229, 0.85));
+}
+
+.ufo-alien-core {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  place-items: center;
+  color: #c393ff;
+  font-size: 25px;
+  filter: drop-shadow(0 0 8px rgba(185, 117, 255, 0.9));
+  animation: ufo-core-orbit 2.4s linear infinite;
+}
+
+.ufo-alien-systems button {
+  min-width: 46px;
+  min-height: 54px;
+}
+
+.ufo-alien-systems .ufo-alien-beam {
+  grid-column: 1 / -1;
+  color: #baffdb;
+  background: linear-gradient(145deg, rgba(27, 174, 123, 0.94), rgba(55, 91, 143, 0.96));
+}
+
+.ufo-alien-systems .ufo-alien-land {
+  grid-column: 1 / -1;
+  min-height: 38px;
+  color: #dfcbff;
+  background: linear-gradient(145deg, rgba(87, 51, 142, 0.94), rgba(31, 71, 102, 0.96));
+}
+
+.ufo-alien-systems .ufo-alien-beam.is-active {
   animation: ufo-beam-pulse 0.65s ease-in-out infinite alternate;
 }
 
 @keyframes ufo-beam-pulse {
   to { box-shadow: 0 0 22px rgba(113, 255, 185, 0.72); }
+}
+
+@keyframes ufo-core-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 680px) {
+  .ufo-alien-console {
+    transform: scale(0.9);
+    transform-origin: left bottom;
+  }
 }
 
 .ufo-mission-list {
