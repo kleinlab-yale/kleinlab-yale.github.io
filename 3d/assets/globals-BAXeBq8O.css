@@ -8773,8 +8773,33 @@ kbd {
 }
 
 html[data-rocket-journey="true"] .top-hud,
-html[data-rocket-journey="true"] .bottom-dock {
+html[data-rocket-journey="true"] .bottom-dock,
+html[data-warp-journey="true"] .top-hud,
+html[data-warp-journey="true"] .bottom-dock {
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
+}
+
+.warp-journey-overlay {
+  background:
+    radial-gradient(circle at 50% 46%, transparent 0 42%, rgba(13, 5, 35, .22) 72%, rgba(1, 2, 10, .78) 100%),
+    linear-gradient(180deg, rgba(1, 3, 13, .88) 0, rgba(1, 3, 13, .16) 17%, transparent 34%),
+    linear-gradient(0deg, rgba(1, 3, 13, .88) 0, rgba(1, 3, 13, .12) 24%, transparent 40%);
+}
+
+.warp-journey-overlay .rocket-journey-mission span,
+.warp-journey-overlay .rocket-journey-caption small {
+  color: #dca8ff;
+}
+
+.warp-journey-overlay .rocket-journey-progress i {
+  background: linear-gradient(90deg, #75ecff, #d195ff 55%, #fff5bf);
+  box-shadow: 0 0 18px rgba(190, 131, 255, .9);
+}
+
+.warp-journey-overlay[data-warp-phase="alien-system"] {
+  background:
+    linear-gradient(180deg, rgba(2, 3, 16, .62) 0, transparent 24%),
+    linear-gradient(0deg, rgba(2, 3, 16, .82) 0, transparent 35%);
 }
