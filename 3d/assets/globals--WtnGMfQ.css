@@ -2765,6 +2765,116 @@ input:focus-visible {
   user-select: none;
 }
 
+.ufo-monolith-gps {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 152px;
+  padding: 7px 12px 7px 8px;
+  border: 1px solid rgba(210, 151, 255, 0.62);
+  border-radius: 999px;
+  color: #f7eaff;
+  background: linear-gradient(145deg, rgba(17, 15, 42, 0.91), rgba(67, 25, 91, 0.88));
+  box-shadow: 0 9px 28px rgba(15, 4, 35, 0.42), inset 0 0 18px rgba(199, 103, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.ufo-monolith-gps > span:last-child {
+  display: grid;
+  gap: 1px;
+}
+
+.ufo-monolith-gps small {
+  color: #d9afff;
+  font: 800 9px/1.1 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+}
+
+.ufo-monolith-gps strong {
+  font: 900 15px/1.1 system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.ufo-monolith-gps em {
+  color: #9ceef6;
+  font: 800 8px/1.15 system-ui, sans-serif;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.ufo-monolith-gps.is-warpomium {
+  border-color: rgba(92, 238, 255, 0.7);
+  color: #e7fdff;
+  background: linear-gradient(145deg, rgba(6, 28, 48, 0.94), rgba(61, 20, 87, 0.91));
+  box-shadow: 0 9px 28px rgba(2, 18, 37, 0.5), inset 0 0 22px rgba(63, 224, 255, 0.15);
+}
+
+.ufo-monolith-gps.is-warpomium small,
+.ufo-monolith-gps.is-warpomium .ufo-monolith-radar b {
+  color: #7af5ff;
+}
+
+.ufo-monolith-gps.is-warpomium.is-charged {
+  border-color: rgba(238, 250, 255, 0.92);
+  box-shadow: 0 0 28px rgba(102, 238, 255, 0.5), inset 0 0 24px rgba(171, 126, 255, 0.22);
+}
+
+.ufo-monolith-radar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  overflow: hidden;
+  border: 1px solid rgba(218, 167, 255, 0.68);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 31%, rgba(207, 137, 255, 0.25) 32% 34%, transparent 35% 62%, rgba(207, 137, 255, 0.22) 63% 65%, transparent 66%),
+    linear-gradient(rgba(207, 137, 255, 0.16) 0 0) 50% / 1px 100% no-repeat,
+    linear-gradient(90deg, rgba(207, 137, 255, 0.16) 0 0) 50% / 100% 1px no-repeat,
+    rgba(12, 13, 38, 0.88);
+}
+
+.ufo-monolith-radar i {
+  position: absolute;
+  inset: -35%;
+  background: conic-gradient(from 0deg, transparent 0 79%, rgba(210, 128, 255, 0.42) 88%, transparent 96%);
+  animation: ufo-gps-sweep 2.1s linear infinite;
+}
+
+.ufo-monolith-radar b {
+  position: relative;
+  z-index: 1;
+  color: #e8b8ff;
+  font: 900 19px/1 system-ui, sans-serif;
+  transform-origin: center;
+  filter: drop-shadow(0 0 6px rgba(215, 129, 255, 0.95));
+  transition: transform 0.12s linear;
+}
+
+.ufo-monolith-gps.is-arrived {
+  border-color: rgba(124, 255, 218, 0.78);
+  color: #d8fff3;
+  background: linear-gradient(145deg, rgba(12, 47, 51, 0.92), rgba(43, 45, 88, 0.9));
+}
+
+.ufo-monolith-gps.is-arrived small,
+.ufo-monolith-gps.is-arrived .ufo-monolith-radar b {
+  color: #8ffff0;
+}
+
+@keyframes ufo-gps-sweep {
+  to { transform: rotate(360deg); }
+}
+
 .ufo-alien-steering {
   display: grid;
   grid-template: repeat(3, 43px) / repeat(3, 43px);
@@ -2824,6 +2934,19 @@ input:focus-visible {
   grid-column: 1 / -1;
   color: #baffdb;
   background: linear-gradient(145deg, rgba(27, 174, 123, 0.94), rgba(55, 91, 143, 0.96));
+}
+
+.ufo-alien-systems .ufo-alien-warp {
+  grid-column: 1 / -1;
+  color: #7c8799;
+  background: linear-gradient(145deg, rgba(40, 47, 63, 0.96), rgba(43, 29, 61, 0.96));
+}
+
+.ufo-alien-systems .ufo-alien-warp.is-charged {
+  color: #efffff;
+  background: linear-gradient(145deg, rgba(42, 204, 215, 0.96), rgba(124, 53, 190, 0.98));
+  box-shadow: 0 0 24px rgba(90, 237, 255, 0.58), inset 0 1px rgba(255, 255, 255, 0.42);
+  animation: ufo-beam-pulse 0.8s ease-in-out infinite alternate;
 }
 
 .ufo-alien-systems .ufo-alien-land {
