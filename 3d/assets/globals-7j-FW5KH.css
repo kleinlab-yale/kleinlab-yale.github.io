@@ -8788,6 +8788,85 @@ html[data-warp-journey="true"] .bottom-dock {
     linear-gradient(0deg, rgba(1, 3, 13, .88) 0, rgba(1, 3, 13, .12) 24%, transparent 40%);
 }
 
+.warp-star-ribbon-field {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 280ms ease;
+  transform-origin: 50% 46%;
+}
+
+.warp-star-ribbon-field::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 46%;
+  left: 50%;
+  width: clamp(52px, 7vw, 92px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, #000 0 20%, rgba(0, 0, 4, .96) 38%, rgba(1, 2, 10, .64) 58%, transparent 76%);
+  transform: translate(-50%, -50%);
+}
+
+.warp-journey-overlay[data-warp-phase="cockpit-warp"] .warp-star-ribbon-field,
+.warp-journey-overlay[data-warp-phase="warp-dropout"] .warp-star-ribbon-field {
+  opacity: 1;
+}
+
+.warp-star-ray {
+  --warp-angle: 0deg;
+  --warp-delay: 0s;
+  --warp-duration: 1.4s;
+  --warp-hue: 190;
+  --warp-length: 28vw;
+  --warp-width: 2px;
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: clamp(110px, var(--warp-length), 520px);
+  height: var(--warp-width);
+  border-radius: 999px;
+  color: hsl(var(--warp-hue) 82% 84%);
+  background: linear-gradient(90deg, transparent 0 5%, currentColor 46%, #fff 100%);
+  box-shadow: 0 0 5px currentColor, 0 0 12px currentColor;
+  opacity: 0;
+  transform-origin: left center;
+  will-change: transform, opacity, filter;
+  animation: warp-star-flight var(--warp-duration) cubic-bezier(.12, .48, .2, 1) var(--warp-delay) infinite;
+}
+
+@keyframes warp-star-flight {
+  0% {
+    opacity: 0;
+    filter: hue-rotate(0deg) brightness(.7);
+    transform: rotate(var(--warp-angle)) scaleX(.006);
+  }
+  7% {
+    opacity: .55;
+  }
+  28% {
+    opacity: 1;
+    filter: hue-rotate(85deg) brightness(1.35);
+  }
+  84% {
+    opacity: .95;
+  }
+  100% {
+    opacity: 0;
+    filter: hue-rotate(235deg) brightness(1.8);
+    transform: rotate(calc(var(--warp-angle) + 12deg)) scaleX(2.45);
+  }
+}
+
+.warp-journey-overlay .rocket-journey-mission,
+.warp-journey-overlay .rocket-journey-caption {
+  z-index: 2;
+}
+
 .warp-journey-overlay .rocket-journey-mission span,
 .warp-journey-overlay .rocket-journey-caption small {
   color: #dca8ff;
@@ -8802,4 +8881,8 @@ html[data-warp-journey="true"] .bottom-dock {
   background:
     linear-gradient(180deg, rgba(2, 3, 16, .62) 0, transparent 24%),
     linear-gradient(0deg, rgba(2, 3, 16, .82) 0, transparent 35%);
+}
+
+.warp-journey-overlay[data-warp-phase="alien-system"] .warp-star-ribbon-field {
+  display: none;
 }
