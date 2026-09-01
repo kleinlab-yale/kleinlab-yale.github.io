@@ -2786,6 +2786,41 @@ input:focus-visible {
   pointer-events: none;
 }
 
+.ufo-navigation-reticle {
+  position: absolute;
+  top: max(92px, calc(env(safe-area-inset-top) + 76px));
+  z-index: 8;
+  display: grid;
+  justify-items: center;
+  color: #edc5ff;
+  text-shadow: 0 0 7px #bd5dff, 0 2px 5px rgba(8, 3, 25, 0.9);
+  transform: translateX(-50%);
+  transition: left 0.12s linear;
+  pointer-events: none;
+}
+
+.ufo-navigation-reticle > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid currentColor;
+  font: 900 28px/1 system-ui, sans-serif;
+  clip-path: polygon(0 0, 34% 0, 34% 6%, 66% 6%, 66% 0, 100% 0, 100% 34%, 94% 34%, 94% 66%, 100% 66%, 100% 100%, 66% 100%, 66% 94%, 34% 94%, 34% 100%, 0 100%, 0 66%, 6% 66%, 6% 34%, 0 34%);
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.ufo-navigation-reticle > small {
+  margin-top: 3px;
+  font: 900 8px/1 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+}
+
+.ufo-navigation-reticle.is-warpomium {
+  color: #70f5ff;
+  text-shadow: 0 0 7px #21cfe5, 0 2px 5px rgba(2, 18, 28, 0.92);
+}
+
 .ufo-monolith-gps > span:last-child {
   display: grid;
   gap: 1px;
@@ -6769,6 +6804,23 @@ kbd {
 
 .hud-mode-button.world-switch-button.is-moon {
   background: transparent;
+}
+
+.hud-mode-button.lunar-converter-shortcut {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hud-mode-button.lunar-converter-shortcut .rainbow-star-glyph {
+  color: transparent;
+  background: linear-gradient(135deg, #ff6f91 5%, #ffd75e 30%, #79f0be 52%, #6cddff 70%, #c892ff 94%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-size: 31px;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.92))
+    drop-shadow(0 3px 6px rgba(31, 34, 66, 0.5));
 }
 
 .luck-boost-pill {
