@@ -8805,10 +8805,11 @@ html[data-warp-journey="true"] .bottom-dock {
   z-index: 2;
   top: 46%;
   left: 50%;
-  width: clamp(52px, 7vw, 92px);
+  width: 3px;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, #000 0 20%, rgba(0, 0, 4, .96) 38%, rgba(1, 2, 10, .64) 58%, transparent 76%);
+  background: #eefcff;
+  box-shadow: 0 0 5px #fff, 0 0 12px #8cecff;
   transform: translate(-50%, -50%);
 }
 
@@ -8822,43 +8823,103 @@ html[data-warp-journey="true"] .bottom-dock {
   --warp-delay: 0s;
   --warp-duration: 1.4s;
   --warp-hue: 190;
-  --warp-length: 28vw;
+  --warp-length: 14vmax;
+  --warp-travel: 90vmax;
   --warp-width: 2px;
   position: absolute;
   top: 46%;
   left: 50%;
-  width: clamp(110px, var(--warp-length), 520px);
+  width: 0;
+  height: 0;
+  color: hsl(var(--warp-hue) 78% 84%);
+  transform: rotate(var(--warp-angle));
+  transform-origin: center;
+}
+
+.warp-star-ray b {
+  position: absolute;
+  top: calc(var(--warp-width) * -.5);
+  left: 0;
+  display: block;
+  width: var(--warp-length);
   height: var(--warp-width);
   border-radius: 999px;
-  color: hsl(var(--warp-hue) 82% 84%);
-  background: linear-gradient(90deg, transparent 0 5%, currentColor 46%, #fff 100%);
+  background: linear-gradient(90deg, transparent 0, currentColor 58%, #fff 100%);
   box-shadow: 0 0 5px currentColor, 0 0 12px currentColor;
   opacity: 0;
   transform-origin: left center;
   will-change: transform, opacity, filter;
-  animation: warp-star-flight var(--warp-duration) cubic-bezier(.12, .48, .2, 1) var(--warp-delay) infinite;
+  animation: warp-star-flight var(--warp-duration) linear var(--warp-delay) infinite;
+}
+
+.warp-star-ray::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 4px currentColor;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+  animation: warp-star-point-flight var(--warp-duration) linear var(--warp-delay) infinite;
+}
+
+@keyframes warp-star-point-flight {
+  0% {
+    opacity: 0;
+    transform: translateX(0) scale(.25);
+  }
+  7% {
+    opacity: .8;
+    transform: translateX(.3vmax) scale(.7);
+  }
+  24% {
+    opacity: .92;
+    transform: translateX(4vmax) scale(1);
+  }
+  38% {
+    opacity: .35;
+    filter: hue-rotate(90deg) brightness(1.5);
+    transform: translateX(11vmax) scale(1.35);
+  }
+  46%,
+  100% {
+    opacity: 0;
+    transform: translateX(17vmax) scale(1.5);
+  }
 }
 
 @keyframes warp-star-flight {
   0% {
     opacity: 0;
     filter: hue-rotate(0deg) brightness(.7);
-    transform: rotate(var(--warp-angle)) scaleX(.006);
+    transform: translateX(0) scaleX(.006);
   }
-  7% {
+  22% {
+    opacity: 0;
+    transform: translateX(3vmax) scaleX(.02);
+  }
+  34% {
     opacity: .55;
-  }
-  28% {
-    opacity: 1;
     filter: hue-rotate(85deg) brightness(1.35);
+    transform: translateX(10vmax) scaleX(.18);
   }
-  84% {
+  55% {
+    opacity: 1;
+    transform: translateX(24vmax) scaleX(.58);
+  }
+  78% {
     opacity: .95;
+    filter: hue-rotate(155deg) brightness(1.55);
+    transform: translateX(48vmax) scaleX(1.05);
   }
   100% {
     opacity: 0;
     filter: hue-rotate(235deg) brightness(1.8);
-    transform: rotate(calc(var(--warp-angle) + 12deg)) scaleX(2.45);
+    transform: translateX(var(--warp-travel)) scaleX(1.7);
   }
 }
 
