@@ -6806,13 +6806,13 @@ kbd {
   background: transparent;
 }
 
-.hud-mode-button.lunar-converter-shortcut {
+.hud-mode-button.converter-shortcut {
   border: 0;
   background: transparent;
   box-shadow: none;
 }
 
-.hud-mode-button.lunar-converter-shortcut .rainbow-star-glyph {
+.hud-mode-button.converter-shortcut .rainbow-star-glyph {
   color: transparent;
   background: linear-gradient(135deg, #ff6f91 5%, #ffd75e 30%, #79f0be 52%, #6cddff 70%, #c892ff 94%);
   background-clip: text;
