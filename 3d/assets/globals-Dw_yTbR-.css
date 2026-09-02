@@ -8947,19 +8947,78 @@ html[data-warp-journey="true"] .bottom-dock {
   }
 }
 
-.warp-journey-overlay .rocket-journey-mission,
-.warp-journey-overlay .rocket-journey-caption {
-  z-index: 2;
+.warp-speed-panel {
+  position: absolute;
+  z-index: 3;
+  top: clamp(18px, 4vh, 42px);
+  right: clamp(18px, 4vw, 54px);
+  width: clamp(128px, 18vw, 194px);
+  padding: clamp(10px, 1.4vw, 15px);
+  border: 1px solid rgba(157, 239, 255, .66);
+  border-radius: 8px;
+  color: #ecfdff;
+  background:
+    linear-gradient(135deg, rgba(21, 68, 92, .78), rgba(22, 8, 55, .82)),
+    rgba(2, 9, 22, .9);
+  box-shadow:
+    inset 0 0 18px rgba(93, 227, 255, .14),
+    0 0 22px rgba(89, 213, 255, .2);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 4px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-shadow: 0 0 12px rgba(126, 238, 255, .9);
+  transition: opacity 500ms ease, transform 500ms ease;
 }
 
-.warp-journey-overlay .rocket-journey-mission span,
-.warp-journey-overlay .rocket-journey-caption small {
-  color: #dca8ff;
+.warp-speed-panel span {
+  align-self: center;
+  color: #9df3ff;
+  font-size: clamp(11px, 1.1vw, 14px);
+  font-weight: 900;
+  letter-spacing: .2em;
 }
 
-.warp-journey-overlay .rocket-journey-progress i {
-  background: linear-gradient(90deg, #75ecff, #d195ff 55%, #fff5bf);
-  box-shadow: 0 0 18px rgba(190, 131, 255, .9);
+.warp-speed-panel output {
+  color: #fff;
+  font-size: clamp(32px, 4.8vw, 58px);
+  font-weight: 950;
+  line-height: .8;
+  font-variant-numeric: tabular-nums;
+}
+
+.warp-speed-gauge {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+  height: 7px;
+  margin-top: 5px;
+}
+
+.warp-speed-gauge i {
+  border-radius: 1px;
+  background: rgba(146, 221, 255, .13);
+  box-shadow: inset 0 0 0 1px rgba(157, 239, 255, .18);
+  transition: background 120ms linear, box-shadow 120ms linear;
+}
+
+.warp-speed-gauge i.is-active {
+  background: linear-gradient(180deg, #fff, #79edff 48%, #bb7dff);
+  box-shadow: 0 0 7px rgba(119, 237, 255, .86);
+}
+
+.warp-journey-overlay[data-warp-phase="warp-dropout"] .warp-speed-panel {
+  border-color: rgba(255, 208, 136, .72);
+  box-shadow:
+    inset 0 0 18px rgba(255, 185, 105, .12),
+    0 0 22px rgba(255, 179, 94, .18);
+}
+
+.warp-journey-overlay[data-warp-phase="alien-system"] .warp-speed-panel {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 .warp-journey-overlay[data-warp-phase="alien-system"] {
