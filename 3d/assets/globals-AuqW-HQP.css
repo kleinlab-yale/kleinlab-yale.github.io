@@ -3189,6 +3189,30 @@ input:focus-visible {
   background: linear-gradient(180deg, #bcd9df 0%, #e9eed6 57%, #9eb58b 100%);
 }
 
+/* Keep touch play from triggering browser selection, callouts, or blue tap flashes. */
+.game-shell,
+.game-shell * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Room codes, recovery codes, and other text fields must remain editable. */
+.game-shell input,
+.game-shell textarea,
+.game-shell select,
+.game-shell [contenteditable="true"] {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.game-shell img,
+.game-shell canvas {
+  -webkit-user-drag: none;
+}
+
 .village-world {
   position: absolute !important;
   inset: 0;
