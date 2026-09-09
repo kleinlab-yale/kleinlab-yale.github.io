@@ -1,0 +1,1 @@
+import{a as e,c as t,s as n,t as r}from"./globals-D3Li0lgo.js";var i=t(),a=n(),o=e();(0,a.createRoot)(document.getElementById(`root`)).render((0,o.jsx)(i.StrictMode,{children:(0,o.jsx)(r,{})}));
