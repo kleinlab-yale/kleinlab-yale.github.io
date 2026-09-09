@@ -23,6 +23,7 @@
 .planet-gate-controls span{display:inline-block;font-size:26px;width:36px}.planet-gate-controls p{font-size:12px;line-height:1.5;margin:5px 0}.planet-gate-controls button{pointer-events:auto;color:inherit;background:none;border:0;cursor:pointer;text-shadow:inherit;min-height:44px;padding:8px 15px;font:600 15px system-ui;touch-action:manipulation}.planet-gate-controls button:focus-visible{outline:2px solid #a5f2e3;outline-offset:2px}.planet-gate-actions{display:flex;justify-content:center;gap:12px}@media(max-height:500px){.planet-gate-controls p{display:none}.planet-gate-controls{bottom:4px}.planet-gate-controls span{font-size:20px}}
 .planet-obby-hud{position:absolute;top:120px;left:50%;transform:translateX(-50%);z-index:35;text-align:center;width:min(540px,85%);color:#f0ffed;text-shadow:0 2px 5px #102519;font:13px system-ui;pointer-events:none}.planet-obby-hud strong{font-size:18px}.planet-obby-hud p{margin:7px 0;line-height:1.5}.planet-obby-hud small{display:block;margin:4px}.planet-obby-hud button{pointer-events:auto;border:0;background:none;color:inherit;font:600 14px system-ui;min-height:44px;padding:8px 14px;cursor:pointer;text-shadow:inherit;touch-action:manipulation}.planet-obby-hud button:focus-visible{outline:2px solid #c1ffc5;outline-offset:2px}@media(max-width:650px){.planet-obby-hud{top:132px;font-size:11px}.planet-obby-hud strong{font-size:15px}}@media(max-height:550px){.planet-obby-hud{top:80px;width:min(470px,65%)}.planet-obby-hud p{font-size:11px;margin:3px 0}.planet-obby-hud strong{font-size:14px}}
 .planet-obby-hud .planet-race-countdown{font-size:60px;font-weight:800;margin:8px}.planet-race-progress{display:flex;justify-content:center;gap:20px;flex-wrap:wrap}.planet-race-progress label{display:flex;align-items:center;gap:7px}.planet-race-progress progress{width:85px;height:10px;accent-color:#acf0ae}.planet-race-progress label+label progress{accent-color:#84d9ec}.planet-obby-hud button:disabled{opacity:.6;cursor:default}
+.planet-obby-hud.is-running{width:auto}.planet-obby-hud.is-running>p{margin:0;font-size:16px;font-weight:750;letter-spacing:.4px}
 .planet-cinema-frame{position:absolute;inset:0;z-index:66;pointer-events:none;border-block:6vh solid #06090d}.planet-cinema-frame button{position:absolute;right:20px;bottom:-4.5vh;pointer-events:auto;border:0;background:none;color:white;cursor:pointer}
 .planet-hazard-hint{position:absolute;top:164px;left:50%;transform:translateX(-50%);color:#ffe3b4;font-size:13px;text-shadow:0 2px 5px #000;pointer-events:none;z-index:24;max-width:58%;text-align:center}@media(max-width:650px){.planet-hazard-hint{top:185px;max-width:56%;font-size:11px}}
 :root {
@@ -4081,6 +4082,64 @@ kbd {
   animation:
     egg-rarity-word 2.35s cubic-bezier(.16, .9, .24, 1) forwards,
     shiny-word-sweep 0.75s linear infinite;
+}
+
+.egg-rarity-reveal.is-stellar-exclusive,
+.egg-rarity-reveal.is-stellar-golden,
+.egg-rarity-reveal.is-stellar-rainbow,
+.egg-rarity-reveal.is-stellar-huge,
+.egg-rarity-reveal.is-stellar-glow {
+  top: 27%;
+  z-index: 78;
+  width: min(980px, calc(100% - 32px));
+  font-size: clamp(34px, 7vw, 86px);
+  line-height: .94;
+  white-space: normal;
+  text-wrap: balance;
+  -webkit-text-stroke: 1px rgba(15, 20, 38, .34);
+}
+
+.egg-rarity-reveal.is-stellar-exclusive {
+  color: #bfffe9;
+  background-image: linear-gradient(105deg, #7dfad3 5%, #f1ffff 36%, #9fc6ff 62%, #d9a8ff 96%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(102, 255, 220, .95)) drop-shadow(0 0 34px rgba(124, 145, 255, .82)) drop-shadow(0 5px 1px rgba(16, 24, 48, .65));
+}
+
+.egg-rarity-reveal.is-stellar-golden,
+.egg-rarity-reveal.is-stellar-huge {
+  color: #fff0a5;
+  background-image: linear-gradient(105deg, #dc9b31 2%, #fff5ac 28%, #fff 48%, #ffd45d 70%, #f4a735 100%);
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 11px rgba(255, 224, 113, .98)) drop-shadow(0 0 38px rgba(255, 157, 61, .78)) drop-shadow(0 6px 1px rgba(54, 30, 17, .65));
+  animation: egg-rarity-word 2.35s cubic-bezier(.16, .9, .24, 1) forwards, shiny-word-sweep .85s linear infinite;
+}
+
+.egg-rarity-reveal.is-stellar-rainbow {
+  color: #fff;
+  background-image: linear-gradient(100deg, #ff6c9f, #ffd75d, #7dffc2, #77d9ff, #b998ff, #ff6c9f);
+  background-size: 240% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, .95)) drop-shadow(0 0 34px rgba(164, 123, 255, .8)) drop-shadow(0 5px 1px rgba(30, 27, 63, .65));
+  animation: egg-rarity-word 2.35s cubic-bezier(.16, .9, .24, 1) forwards, shiny-word-sweep .7s linear infinite;
+}
+
+.egg-rarity-reveal.is-stellar-glow {
+  color: #d9fff5;
+  background-image: linear-gradient(105deg, #72ffc9 5%, #fff 38%, #87f6ff 62%, #b4ff99 96%);
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(190, 255, 229, 1)) drop-shadow(0 0 30px rgba(54, 255, 203, .94)) drop-shadow(0 0 60px rgba(93, 213, 255, .76)) drop-shadow(0 5px 1px rgba(18, 42, 47, .65));
+  animation: egg-rarity-word 2.35s cubic-bezier(.16, .9, .24, 1) forwards, shiny-word-sweep .8s linear infinite;
 }
 
 @keyframes shiny-word-sweep {
