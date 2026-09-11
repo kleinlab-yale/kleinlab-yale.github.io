@@ -5536,11 +5536,15 @@ kbd {
 }
 
 .pet-copy-card.tier-golden {
-  background: linear-gradient(145deg, rgba(255, 248, 207, 0.92), rgba(255, 255, 255, 0.76));
+  border-color:#d79d18;
+  background: linear-gradient(145deg, rgba(255, 224, 103, 0.96), rgba(255, 251, 215, 0.9));
+  box-shadow:0 8px 24px rgba(190,126,15,.24),inset 0 0 0 2px rgba(255,255,255,.48);
 }
 
 .pet-copy-card.tier-rainbow {
-  background: linear-gradient(135deg, rgba(255, 222, 231, 0.9), rgba(219, 246, 238, 0.9), rgba(229, 220, 255, 0.9));
+  border-color:#c15bc9;
+  background: linear-gradient(125deg, rgba(255, 173, 198, 0.96), rgba(255, 237, 147, 0.94), rgba(156, 241, 213, 0.95), rgba(179, 181, 255, 0.96));
+  box-shadow:0 8px 26px rgba(129,79,190,.28),inset 0 0 0 2px rgba(255,255,255,.55);
 }
 
 .pet-copy-card.is-equipped {
@@ -5548,6 +5552,7 @@ kbd {
   background: linear-gradient(145deg, rgba(226, 250, 231, 0.97), rgba(255, 255, 255, 0.84));
   box-shadow: 0 8px 24px rgba(70, 139, 91, 0.22), inset 0 0 0 2px rgba(118, 197, 137, 0.12);
 }
+.pet-copy-card.tier-golden.is-equipped{background:linear-gradient(145deg,#ffe066,#fff7c7);border-color:#4f9f63}.pet-copy-card.tier-rainbow.is-equipped{background:linear-gradient(125deg,#ffaaca,#ffed8f,#96efd5,#b2b5ff);border-color:#4f9f63}
 
 .pet-copy-card.is-huge {
   box-shadow: 0 8px 24px rgba(140, 93, 178, 0.2), inset 0 0 0 2px rgba(184, 129, 223, 0.22);
@@ -5616,6 +5621,8 @@ kbd {
   font-style: normal;
   font-weight: 950;
 }
+
+.pet-copy-art > mark.pet-copy-tier-badge{position:absolute;left:5px;bottom:5px;padding:4px 7px;border-radius:999px;color:#fff;background:#59616e;box-shadow:0 1px 5px rgba(0,0,0,.25);font-size:7px;font-weight:1000;letter-spacing:.06em;text-transform:uppercase}.pet-copy-art > mark.pet-copy-tier-badge.tier-golden{color:#493000;background:linear-gradient(135deg,#fff2a7,#e9aa21)}.pet-copy-art > mark.pet-copy-tier-badge.tier-rainbow{color:#fff;background:linear-gradient(100deg,#e9508d,#d89428,#2baf92,#6e6ccc);text-shadow:0 1px 2px rgba(0,0,0,.35)}
 
 .pet-copy-art > mark.pet-copy-shiny-badge {
   position: absolute;
@@ -9121,3 +9128,7 @@ html[data-warp-journey="true"] .bottom-dock {
 .warp-journey-overlay[data-warp-phase="alien-system"] .warp-star-ribbon-field {
   display: none;
 }
+.daily-dragon-egg-card{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:16px;align-items:center;margin:14px 0;padding:15px 17px;border:1px solid rgba(142,238,255,.45);border-radius:20px;background:linear-gradient(125deg,rgba(22,38,72,.94),rgba(72,33,92,.9));box-shadow:inset 0 1px rgba(255,255,255,.16),0 12px 30px rgba(21,10,54,.24)}
+.daily-dragon-egg-card>div:nth-child(2){display:grid;gap:3px}.daily-dragon-egg-card small{color:#9ef5ff;font-weight:900;letter-spacing:.09em}.daily-dragon-egg-card b{font-size:1.2rem;color:#fff}.daily-dragon-egg-card p{margin:0;color:rgba(255,255,255,.78);line-height:1.35}.daily-dragon-egg-card>button{min-height:44px;padding:0 15px;border:0;border-radius:14px;background:linear-gradient(135deg,#9cf8ee,#e8b1ff);color:#17213b;font-weight:950;cursor:pointer}.daily-dragon-egg-card>button:disabled{opacity:.55;cursor:not-allowed}
+.daily-dragon-egg-art{position:relative;width:70px;height:82px;display:grid;place-items:center}.daily-dragon-egg-art i{width:55px;height:70px;border-radius:50% 50% 46% 46%/62% 62% 38% 38%;background:radial-gradient(circle at 34% 24%,#fff 0 7%,transparent 8%),radial-gradient(circle at 62% 48%,#f3bcff 0 8%,transparent 9%),linear-gradient(145deg,#92f7ee,#777eea 48%,#e983da);box-shadow:0 0 22px #8dedff,0 0 38px rgba(220,125,255,.5);transform:rotate(-4deg)}.daily-dragon-egg-art span{position:absolute;right:0;top:4px;color:#fff4a8;font-size:1.45rem;text-shadow:0 0 10px #fff}
+@media(max-width:650px){.daily-dragon-egg-card{grid-template-columns:64px 1fr}.daily-dragon-egg-card>button{grid-column:1/-1}.daily-dragon-egg-art{width:58px;height:70px}.daily-dragon-egg-art i{width:47px;height:60px}}
