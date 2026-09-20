@@ -4090,7 +4090,8 @@ kbd {
 .egg-rarity-reveal.is-stellar-golden,
 .egg-rarity-reveal.is-stellar-rainbow,
 .egg-rarity-reveal.is-stellar-huge,
-.egg-rarity-reveal.is-stellar-glow {
+.egg-rarity-reveal.is-stellar-glow,
+.egg-rarity-reveal.is-stellar-relic {
   top: 27%;
   z-index: 78;
   width: min(980px, calc(100% - 32px));
@@ -4142,6 +4143,17 @@ kbd {
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 10px rgba(190, 255, 229, 1)) drop-shadow(0 0 30px rgba(54, 255, 203, .94)) drop-shadow(0 0 60px rgba(93, 213, 255, .76)) drop-shadow(0 5px 1px rgba(18, 42, 47, .65));
   animation: egg-rarity-word 2.35s cubic-bezier(.16, .9, .24, 1) forwards, shiny-word-sweep .8s linear infinite;
+}
+
+.egg-rarity-reveal.is-stellar-relic {
+  color: #ffd1dc;
+  background-image: linear-gradient(105deg, #ff466f 4%, #fff1f7 36%, #ff9ac6 65%, #ff466f 98%);
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 12px rgba(255, 54, 95, 1)) drop-shadow(0 0 34px rgba(255, 103, 170, .9)) drop-shadow(0 5px 1px rgba(54, 14, 28, .7));
+  animation: egg-rarity-word 2.35s cubic-bezier(.16, .9, .24, 1) forwards, shiny-word-sweep .65s linear infinite;
 }
 
 @keyframes shiny-word-sweep {
