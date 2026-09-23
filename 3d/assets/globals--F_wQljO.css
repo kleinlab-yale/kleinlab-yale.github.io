@@ -6265,6 +6265,50 @@ kbd {
   font-size: 10px;
 }
 
+.local-backup-zone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 14px 15px;
+  border: 1px solid rgba(91, 129, 142, 0.18);
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(231, 246, 247, 0.72), rgba(240, 235, 255, 0.62));
+}
+
+.local-backup-zone > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.local-backup-zone b { font-size: 10px; }
+.local-backup-zone small { color: #6f7d82; font-size: 8px; line-height: 1.35; }
+
+.local-backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.local-backup-actions button {
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 11px;
+  color: #fff;
+  background: #587b81;
+  font-size: 8px;
+  font-weight: 830;
+}
+
+.local-backup-actions button:last-child {
+  color: #42636a;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(74, 111, 119, 0.18);
+}
+
 .parent-zone {
   display: flex;
   align-items: center;
@@ -6846,6 +6890,18 @@ kbd {
 
   .setting-row {
     min-height: 66px;
+  }
+
+  .local-backup-zone {
+    grid-template-columns: 1fr;
+  }
+
+  .local-backup-actions {
+    justify-content: stretch;
+  }
+
+  .local-backup-actions button {
+    flex: 1;
   }
 
   .parent-zone {
