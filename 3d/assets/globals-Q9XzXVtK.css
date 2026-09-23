@@ -1193,8 +1193,8 @@ input:focus-visible {
   border: 1px solid rgba(115, 239, 255, 0.52);
   border-radius: 19px;
   color: #f5fdff;
-  background: linear-gradient(135deg, rgba(13, 20, 53, 0.9), rgba(45, 22, 66, 0.9));
-  box-shadow: 0 10px 34px rgba(3, 7, 25, 0.44), inset 0 0 24px rgba(67, 226, 255, 0.07);
+  background: linear-gradient(135deg, rgba(25, 75, 88, 0.88), rgba(91, 48, 77, 0.86));
+  box-shadow: 0 10px 34px rgba(3, 7, 25, 0.34), inset 0 0 24px rgba(126, 244, 255, 0.12);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   transform: translateX(-50%);
