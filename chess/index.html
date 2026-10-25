@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcane Chess — 3D Wizard's Chess & Online Arena</title>
+  <meta name="description" content="Play 3D Enchanted Wizard's Chess or Standard 2D Chess online. Create your character, unlock seasonal costumes from Victory Chests, challenge AI personalities, or play multiplayer by room name." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css" />
+
+  <!-- PeerJS for Zero-Config WebRTC Room Multiplayer on GitHub Pages -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+
+  <!-- Three.js ES Module Import Map for Super Wizard Chess 3D -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ==================== TOP NAVIGATION BAR ==================== -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-emblem" aria-hidden="true">♛</div>
+        <div class="brand-text">
+          <h1 class="brand-title">ARCANE CHESS</h1>
+          <span class="brand-subtitle">3D Wizard's Hall &amp; Rated Arena</span>
+        </div>
+      </div>
+
+      <!-- View Switcher: Super Wizard 3D vs Standard 2D -->
+      <div class="segmented-control view-switcher" role="group" aria-label="Board View Mode">
+        <button id="btnView3D" class="seg-btn active" title="Switch to Super Wizard Chess 3D View (Shortcut: V)">
+          <span class="seg-icon">✨</span>
+          <span>Wizard 3D</span>
+        </button>
+        <button id="btnView2D" class="seg-btn" title="Switch to Standard 2D Tournament View (Shortcut: V)">
+          <span class="seg-icon">♟️</span>
+          <span>Standard 2D</span>
+        </button>
+      </div>
+
+      <!-- Game Mode Switcher: vs Bots vs Multiplayer Room -->
+      <div class="segmented-control mode-switcher" role="group" aria-label="Game Mode">
+        <button id="btnModeBot" class="seg-btn active">
+          <span class="seg-icon">🤖</span>
+          <span>vs. Personalities</span>
+        </button>
+        <button id="btnModeMulti" class="seg-btn">
+          <span class="seg-icon">🌐</span>
+          <span>Multiplayer Room</span>
+        </button>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Duolingo-Style Daily Streak Pill -->
+        <div class="streak-pill" title="Daily Play Streak — Play every day to earn bonus chest coins!">
+          <span>🔥</span>
+          <span id="headerStreakCount">1</span>
+          <span class="hide-sm">Day Streak</span>
+        </div>
+
+        <!-- Coin Balance & Seasonal Costume Shop Button -->
+        <button id="btnOpenShopModal" class="shop-pill" title="Open Seasonal Costume Shop & Wardrobe">
+          <span>🪙</span>
+          <span id="headerCoinsCount">120</span>
+          <span class="shop-badge-tag">🛍️ Shop</span>
+        </button>
+
+        <button id="btnQuickEloMatch" class="action-pill gold-pill" title="Automatically play the bot matched to your current Elo">
+          <span>⚔️ Match My Elo</span>
+        </button>
+
+        <button id="btnOpenStatsModal" class="icon-btn" title="View Elo Memory, Rating Chart & Match History">
+          <span>📊</span>
+          <span class="hide-sm">Stats</span>
+        </button>
+
+        <button id="btnSoundToggle" class="icon-btn" title="Toggle Sound Effects">
+          <span id="soundIcon">🔊</span>
+        </button>
+
+        <!-- Sign-In & Character Creator Pill -->
+        <button id="btnOpenProfileModal" class="profile-pill" title="Sign In & Customize Your Character">
+          <div class="profile-avatar-dot" id="headerAvatarIcon"></div>
+          <div class="profile-pill-info">
+            <span id="headerPlayerName" class="profile-pill-name">Traveler</span>
+            <span id="headerPlayerElo" class="profile-pill-elo">1200 Elo</span>
+          </div>
+          <span class="profile-pill-caret">✎</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================== MAIN 3-COLUMN WORKSPACE ==================== -->
+    <main class="main-grid">
+      <!-- LEFT SIDEBAR: Player Character Card + Bot Personalities / Multiplayer Room -->
+      <aside class="sidebar left-panel">
+        <!-- Player Character & Elo Memory Card -->
+        <section class="panel-card memory-card">
+          <div class="memory-header">
+            <div class="memory-char-row">
+              <div id="cardAvatarFrame" class="card-avatar-large" title="Click to customize character or costumes"></div>
+              <div>
+                <div class="memory-label">SIGNED-IN CHALLENGER</div>
+                <div class="memory-username-row">
+                  <span id="cardPlayerName" class="memory-username">Traveler</span>
+                </div>
+                <span id="cardPlayerRankBadge" class="rank-badge">Sanctuary Tactician</span>
+              </div>
+            </div>
+            <div class="memory-elo-box">
+              <span id="cardPlayerElo" class="memory-elo-value">1200</span>
+              <span class="memory-elo-sub">ELO</span>
+            </div>
+          </div>
+
+          <div class="memory-avatar-actions">
+            <button id="btnCustomizeCharLeft" class="mini-action-btn">🧑 Edit Character</button>
+            <button id="btnOpenShopLeft" class="mini-action-btn highlight-shop-btn">🎃 Seasonal Costumes</button>
+          </div>
+
+          <div class="memory-stats-row">
+            <div class="stat-chip">
+              <span class="stat-label">Record</span>
+              <span id="cardRecordWLD" class="stat-val">0W - 0L - 0D</span>
+            </div>
+            <div class="stat-chip">
+              <span class="stat-label">Win Rate</span>
+              <span id="cardWinRate" class="stat-val">—</span>
+            </div>
+            <div class="stat-chip">
+              <span class="stat-label">Peak Elo</span>
+              <span id="cardPeakElo" class="stat-val">1200</span>
+            </div>
+          </div>
+
+          <div id="eloSparklineContainer" class="sparkline-box" title="Click to open full Elo History"></div>
+        </section>
+
+        <!-- BOT PERSONALITIES SELECTOR PANEL -->
+        <section id="botSelectorPanel" class="panel-card flex-grow-card">
+          <div class="section-header">
+            <h2>AI Personalities</h2>
+            <span class="section-hint">Adaptive Elo Rivals</span>
+          </div>
+
+          <div class="match-setup-row">
+            <label class="setup-field">
+              <span>Play As</span>
+              <select id="botColorPref">
+                <option value="w">White</option>
+                <option value="random">Random</option>
+                <option value="b">Black</option>
+              </select>
+            </label>
+            <label class="setup-field">
+              <span>Clock</span>
+              <select id="botTimeControl">
+                <option value="5">5 min Blitz</option>
+                <option value="10" selected>10 min Rapid</option>
+                <option value="15">15 min Classical</option>
+                <option value="0">Untimed</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="botListContainer" class="bot-list" role="listbox" aria-label="Choose AI Personality"></div>
+
+          <button id="btnStartBotMatch" class="primary-cta-btn">
+            <span>⚔️ Start Duel vs. Selected Bot</span>
+          </button>
+        </section>
+
+        <!-- MULTIPLAYER ROOM LOBBY PANEL -->
+        <section id="multiplayerPanel" class="panel-card flex-grow-card hidden">
+          <div class="section-header">
+            <h2>Multiplayer Room</h2>
+            <span class="section-hint">Works on GitHub Pages</span>
+          </div>
+
+          <p class="multi-instructions">
+            Sign in with your <strong>Player Name &amp; Avatar</strong>, then enter the <strong>exact same Room Name</strong> as your friend to play and chat live!
+          </p>
+
+          <div class="room-form">
+            <label class="setup-field">
+              <span>Your Player Name (Required)</span>
+              <div class="inline-name-row">
+                <input
+                  type="text"
+                  id="multiPlayerNameInput"
+                  placeholder="Enter your player name..."
+                  maxlength="24"
+                />
+                <button id="btnEditMultiAvatar" type="button" class="secondary-btn" title="Customize Avatar">🧑 Avatar</button>
+              </div>
+            </label>
+
+            <label class="setup-field">
+              <span>Shared Room Name</span>
+              <input
+                type="text"
+                id="roomNameInput"
+                placeholder="e.g. hogwarts-room"
+                maxlength="32"
+                autocomplete="off"
+              />
+            </label>
+
+            <div class="match-setup-row">
+              <label class="setup-field">
+                <span>Host Color</span>
+                <select id="roomColorPref">
+                  <option value="w">White</option>
+                  <option value="b">Black</option>
+                </select>
+              </label>
+              <label class="setup-field">
+                <span>Clock</span>
+                <select id="roomTimeControl">
+                  <option value="5">5 min</option>
+                  <option value="10" selected>10 min</option>
+                  <option value="15">15 min</option>
+                  <option value="0">Untimed</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="room-btn-row">
+              <button id="btnJoinRoom" class="primary-cta-btn">🔗 Join / Create Room</button>
+              <button id="btnLeaveRoom" class="secondary-btn hidden">Leave</button>
+            </div>
+
+            <button id="btnCopyInviteLink" class="secondary-btn full-width-btn">
+              📋 Copy Shareable Room Link
+            </button>
+          </div>
+
+          <div id="roomStatusBanner" class="room-status-banner status-idle">
+            <span class="status-dot"></span>
+            <span id="roomStatusText">Enter a room name above to host or join a match.</span>
+          </div>
+
+          <!-- Head-to-Head Room Scoreboard -->
+          <div class="multi-scoreboard">
+            <div class="score-col">
+              <span id="scoreSelfName" class="score-name">You</span>
+              <span id="scoreSelfVal" class="score-num">0</span>
+            </div>
+            <div class="score-vs">
+              <span>ROOM SCORE</span>
+              <span id="scoreDrawsVal" class="score-draws">0 Draws</span>
+            </div>
+            <div class="score-col">
+              <span id="scoreOppName" class="score-name">Opponent</span>
+              <span id="scoreOppVal" class="score-num">0</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- CENTER STAGE: Opponent Bar + 3D/2D Board + Player Bar -->
+      <section class="board-stage">
+        <!-- Opponent Bar -->
+        <div class="player-bar opponent-bar">
+          <div class="player-identity">
+            <div id="opponentAvatar" class="avatar-frame"></div>
+            <div class="player-meta">
+              <div class="player-name-line">
+                <span id="opponentName" class="player-name">Sister Celeste</span>
+                <span id="opponentEloBadge" class="elo-pill">1250 Elo</span>
+              </div>
+              <span id="opponentTitle" class="player-subtitle">Keeper of the Sanctuary</span>
+            </div>
+          </div>
+
+          <div id="capturedByOpponent" class="captured-tray" aria-label="Pieces captured by opponent"></div>
+
+          <div id="opponentClock" class="chess-clock">10:00</div>
+        </div>
+
+        <!-- Live Bot Dialogue / Banter Bubble -->
+        <div id="botDialogueBanner" class="bot-dialogue-banner">
+          <span class="dialogue-sparkle">✦</span>
+          <p id="botDialogueText" class="dialogue-quote">
+            "Peace be with you, traveler. Let us build harmony upon the sixty-four squares."
+          </p>
+        </div>
+
+        <!-- 3D / 2D Interactive Chessboard Viewport -->
+        <div id="boardViewport" class="board-viewport">
+          <!-- Cinematic 3D Combat Clash Banner Overlay -->
+          <div id="combatClashBanner" class="combat-clash-banner hidden">
+            <span id="combatClashText">⚔️ KNIGHT vs. BISHOP — BATTLE AT E5!</span>
+          </div>
+
+          <!-- Super Wizard Chess 3D Container -->
+          <div id="board3DContainer" class="board-3d-canvas-wrap"></div>
+
+          <!-- Standard 2D Board Container -->
+          <div id="board2DContainer" class="board-2d-wrap hidden"></div>
+
+          <!-- 3D Floating Camera, Fight Zoom & World Background HUD -->
+          <div id="hud3DControls" class="board-hud hud-3d">
+            <div class="hud-group">
+              <span class="hud-label">View:</span>
+              <button id="camWhite" class="hud-btn" title="White 3D Perspective">White</button>
+              <button id="camBlack" class="hud-btn" title="Black 3D Perspective">Black</button>
+              <button id="camCinematic" class="hud-btn" title="Dramatic Great Hall Angle">Hall</button>
+              <button id="camTop" class="hud-btn" title="Overhead 3D Angle">Top</button>
+              <button id="camBattleToggle" class="hud-btn active" title="Zoom in and show animated fight when a piece captures another">⚔️ Fight Zoom: ON</button>
+              <button id="camAutoRotate" class="hud-btn" title="Toggle Slow Orbit">Orbit</button>
+            </div>
+            <div class="hud-group">
+              <span class="hud-label">3D World:</span>
+              <select id="select3DTheme" class="hud-select" aria-label="3D Background World">
+                <option value="great-hall">🏰 Great Hall &amp; Floating Candles</option>
+                <option value="halloween">🎃 Haunted Blood Moon</option>
+                <option value="astral">🌌 Astral Starlight Nebula</option>
+                <option value="emerald-sanctum">🌿 Emerald Sanctum</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 2D Floating Color Swatches & Flip HUD -->
+          <div id="hud2DControls" class="board-hud hud-2d hidden">
+            <div class="hud-group swatch-hud-group">
+              <span class="hud-label">2D Board Colors:</span>
+              <button class="color-swatch-btn active" data-theme="classic" title="Classic Walnut Wood">
+                <span class="swatch-pair"><i style="background:#f0d9b5"></i><i style="background:#b58863"></i></span>
+                <span>Wood</span>
+              </button>
+              <button class="color-swatch-btn" data-theme="tournament" title="Tournament Emerald Green">
+                <span class="swatch-pair"><i style="background:#eeeed2"></i><i style="background:#769656"></i></span>
+                <span>Green</span>
+              </button>
+              <button class="color-swatch-btn" data-theme="arcane" title="Arcane Amethyst Slate">
+                <span class="swatch-pair"><i style="background:#e2d9f3"></i><i style="background:#5b3e85"></i></span>
+                <span>Arcane</span>
+              </button>
+              <button class="color-swatch-btn" data-theme="icy" title="Glacial Icy Sapphire">
+                <span class="swatch-pair"><i style="background:#e0f2fe"></i><i style="background:#0284c7"></i></span>
+                <span>Ice</span>
+              </button>
+              <button class="color-swatch-btn" data-theme="halloween" title="Haunted Halloween Amber">
+                <span class="swatch-pair"><i style="background:#fde68a"></i><i style="background:#9a3412"></i></span>
+                <span>Hallows</span>
+              </button>
+              <button class="color-swatch-btn" data-theme="crimson" title="Crimson Obsidian">
+                <span class="swatch-pair"><i style="background:#fce7f3"></i><i style="background:#881337"></i></span>
+                <span>Crimson</span>
+              </button>
+            </div>
+            <div class="hud-group">
+              <button id="btnFlip2DBoard" class="hud-btn">🔄 Flip Board</button>
+            </div>
+          </div>
+
+          <!-- Pawn Promotion Picker Overlay -->
+          <div id="promotionModal" class="promotion-overlay hidden">
+            <div class="promotion-card">
+              <h3>Promote Pawn</h3>
+              <div id="promotionChoices" class="promotion-choices"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Player Bar (You) -->
+        <div class="player-bar self-bar">
+          <div class="player-identity">
+            <div id="playerAvatar" class="avatar-frame self-avatar" title="Click to customize your character"></div>
+            <div class="player-meta">
+              <div class="player-name-line">
+                <span id="playerNameBar" class="player-name">Traveler</span>
+                <span id="playerEloBar" class="elo-pill gold-elo-pill">1200 Elo</span>
+              </div>
+              <span id="playerRankBar" class="player-subtitle">Sanctuary Tactician</span>
+            </div>
+          </div>
+
+          <div id="capturedByPlayer" class="captured-tray" aria-label="Pieces captured by you"></div>
+
+          <div id="playerClock" class="chess-clock active-clock">10:00</div>
+        </div>
+      </section>
+
+      <!-- RIGHT SIDEBAR: Game Status, Move History, Live Communication Window & Controls -->
+      <aside class="sidebar right-panel">
+        <section class="panel-card status-card">
+          <div id="gameStatusBanner" class="game-status-banner">
+            <span id="statusIndicatorDot" class="turn-dot white-turn"></span>
+            <span id="gameStatusText">White to move</span>
+          </div>
+          <div id="checkAlertBadge" class="check-alert-badge hidden">⚠️ ROYAL CHECK!</div>
+        </section>
+
+        <section class="panel-card moves-card">
+          <div class="section-header">
+            <h2>Move Chronicle</h2>
+            <span id="moveCountBadge" class="section-hint">0 moves</span>
+          </div>
+
+          <div id="moveHistoryContainer" class="move-history-scroll">
+            <table class="move-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>White</th>
+                  <th>Black</th>
+                </tr>
+              </thead>
+              <tbody id="moveHistoryBody"></tbody>
+            </table>
+            <div id="emptyMovesHint" class="empty-moves-hint">
+              Click or drag any piece to begin the duel.
+            </div>
+          </div>
+
+          <div class="game-controls-grid">
+            <button id="btnNewGame" class="control-btn primary-ctrl" title="Start a Fresh Game">
+              <span>🔄 New Game</span>
+            </button>
+            <button id="btnUndoMove" class="control-btn" title="Take Back Last Turn (Bot Mode)">
+              <span>↩️ Undo</span>
+            </button>
+            <button id="btnFlipBoard" class="control-btn" title="Flip Board Perspective">
+              <span>🔃 Flip View</span>
+            </button>
+            <button id="btnOfferDraw" class="control-btn hidden" title="Offer Draw to Opponent">
+              <span>🤝 Offer Draw</span>
+            </button>
+            <button id="btnResign" class="control-btn danger-ctrl" title="Resign Current Match">
+              <span>🏳️ Resign</span>
+            </button>
+          </div>
+
+          <div class="export-row">
+            <button id="btnCopyPgn" class="mini-btn" title="Copy Match PGN to Clipboard">Copy PGN</button>
+            <button id="btnCopyFen" class="mini-btn" title="Copy Current Position FEN">Copy FEN</button>
+          </div>
+        </section>
+
+        <!-- ALWAYS-ACCESSIBLE COMMUNICATION WINDOW (Player Chat + Quick Emotes) -->
+        <section class="panel-card comm-card">
+          <div class="section-header">
+            <h2>💬 Communication Window</h2>
+            <span id="commStatusHint" class="section-hint">Live Chat</span>
+          </div>
+
+          <div id="chatMessagesList" class="chat-messages">
+            <div class="chat-system-msg">Send a message or quick reaction during your match!</div>
+          </div>
+
+          <div class="quick-Reactions-row">
+            <button type="button" class="quick-chat-btn" data-msg="👋 Well met, challenger!">👋 Well met!</button>
+            <button type="button" class="quick-chat-btn" data-msg="👏 Brilliant move!">👏 Nice move!</button>
+            <button type="button" class="quick-chat-btn" data-msg="😱 What an intense battle!">😱 Intense!</button>
+            <button type="button" class="quick-chat-btn" data-msg="🤝 Good game, well played!">🤝 Good game!</button>
+          </div>
+
+          <form id="chatForm" class="chat-input-row">
+            <input
+              type="text"
+              id="chatInput"
+              placeholder="Type a message..."
+              maxlength="160"
+              autocomplete="off"
+            />
+            <button type="submit" class="secondary-btn">Send</button>
+          </form>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <!-- ==================== MODAL 1: SIGN IN & CHARACTER CREATOR ==================== -->
+  <div id="profileModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <h2 id="profileModalTitle">🧑 Challenger Sign-In &amp; Character Creator</h2>
+        <button id="btnCloseProfileModal" class="modal-close-btn" aria-label="Close">✕</button>
+      </div>
+
+      <p class="modal-desc">
+        Choose your <strong>Player Name</strong> and customize your character’s gender, age, hair, and features. In Multiplayer, your opponent sees your name and custom character!
+      </p>
+
+      <form id="profileSignInForm" class="character-creator-layout">
+        <!-- Left Column: Live Character Preview -->
+        <div class="creator-preview-col">
+          <div id="creatorAvatarPreview" class="creator-avatar-stage"></div>
+          <button type="button" id="btnRandomizeCharacter" class="secondary-btn full-width-btn">🎲 Randomize Look</button>
+          <button type="button" id="btnSwitchToShopFromProfile" class="secondary-btn full-width-btn highlight-shop-btn">🛍️ Dress in Costume Shop</button>
+        </div>
+
+        <!-- Right Column: Identity & Appearance Controls -->
+        <div class="creator-fields-col">
+          <div class="form-row-2">
+            <label class="form-field">
+              <span>Player Name (Required for Multiplayer)</span>
+              <input type="text" id="inputProfileName" required maxlength="24" placeholder="Enter your player name..." />
+            </label>
+
+            <label class="form-field">
+              <span>Starting Skill (New Profiles)</span>
+              <select id="selectStartingElo">
+                <option value="800">Beginner (800 Elo)</option>
+                <option value="1000">Casual (1000 Elo)</option>
+                <option value="1200" selected>Intermediate (1200 Elo)</option>
+                <option value="1500">Advanced (1500 Elo)</option>
+                <option value="1800">Master (1800 Elo)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-row-3">
+            <label class="form-field">
+              <span>Gender / Style</span>
+              <select id="selectCharGender">
+                <option value="male">♂️ Male</option>
+                <option value="female">♀️ Female</option>
+                <option value="nonbinary">⚧️ Non-Binary</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Age Tier</span>
+              <select id="selectCharAge">
+                <option value="youth">Young Apprentice</option>
+                <option value="adult" selected>Prime Duelist</option>
+                <option value="mature">Seasoned Master</option>
+                <option value="elder">Ancient Sage</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Skin Complexion</span>
+              <select id="selectCharSkin">
+                <option value="fair">Alabaster Rose</option>
+                <option value="warm" selected>Warm Peach</option>
+                <option value="golden">Sunlit Bronze</option>
+                <option value="deep">Obsidian Umber</option>
+                <option value="elf">Astral Lavender</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-row-3">
+            <label class="form-field">
+              <span>Hair Style</span>
+              <select id="selectCharHairStyle">
+                <option value="short">Short Crop</option>
+                <option value="wavy" selected>Adventurer Waves</option>
+                <option value="long">Flowing Locks</option>
+                <option value="spiky">Battlemage Spikes</option>
+                <option value="bun">Scholarly Bun</option>
+                <option value="bald">Monastic Shaved</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Hair Color</span>
+              <select id="selectCharHairColor">
+                <option value="black">Raven Black</option>
+                <option value="brown" selected>Chestnut Brown</option>
+                <option value="blonde">Golden Blonde</option>
+                <option value="auburn">Fiery Auburn</option>
+                <option value="silver">Elder Silver</option>
+                <option value="violet">Arcane Violet</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Eye Color</span>
+              <select id="selectCharEyeColor">
+                <option value="sapphire" selected>Sapphire Blue</option>
+                <option value="emerald">Emerald Green</option>
+                <option value="amber">Dragon Amber</option>
+                <option value="violet">Mystic Amethyst</option>
+                <option value="crimson">Shadow Ruby</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="form-field">
+            <span>Facial Hair / Beard</span>
+            <select id="selectCharBeard">
+              <option value="none" selected>Clean Shaven</option>
+              <option value="mustache">Duelist Mustache</option>
+              <option value="goatee">Noble Goatee</option>
+              <option value="wizard_beard">Grand Wizard Beard</option>
+            </select>
+          </label>
+
+          <button type="submit" class="primary-cta-btn">✨ Save Character &amp; Sign In</button>
+        </div>
+      </form>
+
+      <div class="saved-profiles-section">
+        <h3>Saved Profiles on This Device</h3>
+        <div id="savedProfilesList" class="saved-profiles-list"></div>
+      </div>
+
+      <div class="backup-section">
+        <div class="backup-btn-row">
+          <button id="btnExportProfile" type="button" class="secondary-btn">⬇️ Export Profile JSON</button>
+          <button id="btnToggleImport" type="button" class="secondary-btn">⬆️ Import Profile JSON</button>
+        </div>
+        <div id="importProfileArea" class="import-area hidden">
+          <textarea id="inputImportJson" rows="2" placeholder="Paste exported profile JSON here..."></textarea>
+          <button id="btnConfirmImport" type="button" class="primary-cta-btn">Restore Profile</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: SEASONAL COSTUME SHOP & WARDROBE ==================== -->
+  <div id="shopModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shopModalTitle">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <div>
+          <h2 id="shopModalTitle">🛍️ Arcane Boutique &amp; Seasonal Costume Shop</h2>
+          <p id="shopSeasonSubtitle" class="modal-desc">Earn coins from Victory Chests &amp; Daily Streaks to dress your champion!</p>
+        </div>
+        <div class="shop-header-right">
+          <div class="shop-balance-pill">
+            <span>🪙 <strong id="shopModalCoins">120</strong> Coins</span>
+          </div>
+          <div class="shop-streak-pill">
+            <span>🔥 <strong id="shopModalStreak">1</strong> Day Streak</span>
+          </div>
+          <button id="btnCloseShopModal" class="modal-close-btn" aria-label="Close">✕</button>
+        </div>
+      </div>
+
+      <!-- Seasonal Event Banner (Auto-detects October Halloween / December Christmas + Filter Tabs) -->
+      <div id="shopSeasonalBanner" class="seasonal-event-banner">
+        <div class="seasonal-banner-text">
+          <span id="seasonalBadgeTag" class="seasonal-tag">OCTOBER DROP</span>
+          <h3 id="seasonalBannerTitle">🎃 October Event: Haunted Hallows</h3>
+          <p id="seasonalBannerDesc">Win matches to open Victory Chests and collect spooky Halloween gear!</p>
+        </div>
+        <div class="season-filter-tabs" role="tablist">
+          <button type="button" class="season-tab active" data-season="all">All Collections</button>
+          <button type="button" class="season-tab" data-season="halloween">🎃 Halloween</button>
+          <button type="button" class="season-tab" data-season="christmas">🎄 Christmas</button>
+          <button type="button" class="season-tab" data-season="classic">👑 Royal Hall</button>
+        </div>
+      </div>
+
+      <div class="shop-main-layout">
+        <!-- Left: Live Dressed Character Mannequin -->
+        <div class="shop-mannequin-col">
+          <div id="shopAvatarPreview" class="creator-avatar-stage"></div>
+          <div class="mannequin-name" id="shopPlayerNameLabel">Traveler</div>
+          <button type="button" id="btnOpenCharFromShop" class="secondary-btn full-width-btn">🧑 Edit Body / Hair / Age</button>
+        </div>
+
+        <!-- Right: Slot Tabs & Costume Grid -->
+        <div class="shop-catalog-col">
+          <div class="slot-tabs" role="tablist">
+            <button type="button" class="slot-tab active" data-slot="all">✨ All</button>
+            <button type="button" class="slot-tab" data-slot="hat">🎩 Hats &amp; Crowns</button>
+            <button type="button" class="slot-tab" data-slot="outfit">👘 Costumes &amp; Armor</button>
+            <button type="button" class="slot-tab" data-slot="prop">🦉 Pets &amp; Staffs</button>
+            <button type="button" class="slot-tab" data-slot="aura">🌙 Auras</button>
+          </div>
+
+          <div id="shopItemsGrid" class="shop-items-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: POST-GAME ELO & VICTORY TREASURE CHEST ==================== -->
+  <div id="postGameModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card postgame-card">
+      <div class="modal-header">
+        <h2 id="postGameTitle">VICTORY!</h2>
+        <button id="btnClosePostGameModal" class="modal-close-btn" aria-label="Close">✕</button>
+      </div>
+
+      <p id="postGameSubtitle" class="postgame-subtitle">Checkmate against Sister Celeste</p>
+
+      <div class="elo-transition-banner">
+        <div class="elo-col">
+          <span class="elo-col-label">Previous Elo</span>
+          <span id="postGameOldElo" class="elo-col-val">1200</span>
+        </div>
+        <div class="elo-arrow">→</div>
+        <div class="elo-col">
+          <span class="elo-col-label">New Rating</span>
+          <span id="postGameNewElo" class="elo-col-val highlight-elo">1222</span>
+        </div>
+        <div id="postGameDeltaBadge" class="elo-delta-pill delta-pos">+22</div>
+      </div>
+
+      <!-- Interactive Victory Treasure Chest Section -->
+      <div id="victoryChestSection" class="victory-chest-box hidden">
+        <div id="chestClosedView" class="chest-stage">
+          <div class="chest-icon-anim" aria-hidden="true">🎁</div>
+          <div class="chest-info">
+            <h4>Enchanted Victory Chest Earned!</h4>
+            <p>Open your chest to claim gold coins for the Seasonal Costume Shop!</p>
+          </div>
+          <button id="btnOpenVictoryChest" type="button" class="gold-pill action-pill">🗝️ Open Chest!</button>
+        </div>
+
+        <div id="chestOpenedView" class="chest-stage chest-opened hidden">
+          <div class="chest-icon-opened" aria-hidden="true">✨🪙✨</div>
+          <div class="chest-info">
+            <h4 id="chestRewardHeadline">+75 Arcane Coins Claimed!</h4>
+            <p id="chestRewardBreakdown">Victory Base + Elo Bonus + 🔥 Streak Bonus!</p>
+          </div>
+          <button id="btnVisitShopFromChest" type="button" class="primary-cta-btn">🛍️ Dress Avatar in Costume Shop!</button>
+        </div>
+      </div>
+
+      <!-- Participation Coins Note (on Draw/Loss) -->
+      <div id="participationCoinNote" class="participation-coin-note hidden"></div>
+
+      <blockquote id="postGameBotQuote" class="postgame-quote"></blockquote>
+
+      <div id="postGameRecommendation" class="postgame-rec-box"></div>
+
+      <div class="postgame-actions">
+        <button id="btnPostGameRematch" class="primary-cta-btn">⚔️ Play Rematch</button>
+        <button id="btnPostGameMatchElo" class="secondary-btn">🎯 Play Recommended Bot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: STATS, ELO GRAPH & MATCH HISTORY ==================== -->
+  <div id="statsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <h2>Player Memory, Elo Progression &amp; Chronicle</h2>
+        <button id="btnCloseStatsModal" class="modal-close-btn" aria-label="Close">✕</button>
+      </div>
+
+      <div class="stats-overview-grid">
+        <div class="stat-box">
+          <span class="stat-box-label">Current Elo</span>
+          <span id="modalStatElo" class="stat-box-val">1200</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box-label">Peak Elo</span>
+          <span id="modalStatPeak" class="stat-box-val">1200</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box-label">Daily Streak</span>
+          <span id="modalStatDailyStreak" class="stat-box-val">🔥 1</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box-label">Chests Opened</span>
+          <span id="modalStatChests" class="stat-box-val">🎁 0</span>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <h3>Elo Rating Progression</h3>
+        <div id="modalEloChartContainer" class="elo-chart-large"></div>
+      </div>
+
+      <div class="bot-records-section">
+        <h3>Head-to-Head vs. Bot Personalities</h3>
+        <div id="modalBotRecordsGrid" class="bot-records-grid"></div>
+      </div>
+
+      <div class="history-section">
+        <div class="section-header">
+          <h3>Recent Match Chronicle</h3>
+          <button id="btnResetStats" class="mini-btn danger-text">Reset Stats</button>
+        </div>
+        <div id="modalMatchHistoryList" class="match-history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBanner" class="toast-banner hidden"></div>
+
+  <!-- Main Application Controller -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
