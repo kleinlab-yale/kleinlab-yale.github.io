@@ -133,7 +133,51 @@ export function getCurrentSeasonInfo(date = new Date()) {
 }
 
 /**
- * Catalog of all customizable avatar items across slots and seasons.
+ * 4-Stage Progression Tiers for the Seasonal Costume Shop.
+ * Players must unlock earlier stage items and win matches / climb Elo from 500
+ * before higher stages unlock!
+ */
+export const SHOP_STAGES = [
+  {
+    stage: 1,
+    name: 'Stage 1: Initiate Collection',
+    badge: 'STAGE 1 • OPEN',
+    reqPaidItems: 0,
+    reqElo: 500,
+    reqWins: 0,
+    summary: 'Open to all new challengers (500+ Elo). Win a match to open a Victory Chest!'
+  },
+  {
+    stage: 2,
+    name: 'Stage 2: Adept Wardrobe',
+    badge: 'STAGE 2 • ADEPT',
+    reqPaidItems: 1,
+    reqElo: 600,
+    reqWins: 2,
+    summary: 'Unlocks after buying 1 Stage-1 item AND reaching 600 Elo (or 2 Wins).'
+  },
+  {
+    stage: 3,
+    name: 'Stage 3: Master Armory',
+    badge: 'STAGE 3 • RARE & EPIC',
+    reqPaidItems: 3,
+    reqElo: 850,
+    reqWins: 5,
+    summary: 'Unlocks after buying 3 earlier items AND reaching 850 Elo (or 5 Wins).'
+  },
+  {
+    stage: 4,
+    name: 'Stage 4: Grandmaster Vault',
+    badge: 'STAGE 4 • LEGENDARY',
+    reqPaidItems: 6,
+    reqElo: 1150,
+    reqWins: 10,
+    summary: 'The ultimate tier! Unlocks after buying 6 items AND reaching 1150 Elo (or 10 Wins).'
+  }
+];
+
+/**
+ * Catalog of all customizable avatar items across slots, seasons, and progression stages (1-4).
  */
 export const SHOP_CATALOG = [
   // ==================== HATS / HEADGEAR ====================
@@ -142,6 +186,7 @@ export const SHOP_CATALOG = [
     name: 'No Hat (Show Hair)',
     slot: 'hat',
     season: 'classic',
+    stage: 1,
     price: 0,
     rarity: 'Starter',
     description: 'Show off your character’s custom hairstyle and hair color.'
@@ -151,6 +196,7 @@ export const SHOP_CATALOG = [
     name: 'Apprentice Pointed Hat',
     slot: 'hat',
     season: 'classic',
+    stage: 1,
     price: 0,
     rarity: 'Starter',
     description: 'Classic stargazer hat issued to all new initiates of the Hall.'
@@ -160,53 +206,62 @@ export const SHOP_CATALOG = [
     name: "Jack-o'-Lantern Helm",
     slot: 'hat',
     season: 'halloween',
-    price: 80,
-    rarity: 'Halloween',
+    stage: 1,
+    price: 75,
+    rarity: 'Stage 1 • Halloween',
     description: 'A glowing carved pumpkin crown brimming with October mischief.'
-  },
-  {
-    id: 'hat_witch_obsidian',
-    name: 'Hexweaver Buckle Hat',
-    slot: 'hat',
-    season: 'halloween',
-    price: 110,
-    rarity: 'Halloween',
-    description: 'Wide-brimmed midnight witch hat with an enchanted gold buckle.'
-  },
-  {
-    id: 'hat_vampire_crest',
-    name: 'Count’s Crimson Top Hat',
-    slot: 'hat',
-    season: 'halloween',
-    price: 140,
-    rarity: 'Halloween',
-    description: 'Aristocratic velvet top hat worn at the Midnight Gambit Ball.'
   },
   {
     id: 'hat_santa_cap',
     name: 'Enchanted Santa Cap',
     slot: 'hat',
     season: 'christmas',
-    price: 90,
-    rarity: 'Christmas',
+    stage: 1,
+    price: 75,
+    rarity: 'Stage 1 • Christmas',
     description: 'Cozy crimson velvet cap trimmed with enchanted winter snow-fur.'
+  },
+  {
+    id: 'hat_witch_obsidian',
+    name: 'Hexweaver Buckle Hat',
+    slot: 'hat',
+    season: 'halloween',
+    stage: 2,
+    prerequisiteItemId: 'hat_pumpkin_crown',
+    price: 120,
+    rarity: 'Stage 2 • Halloween',
+    description: 'Wide-brimmed midnight witch hat with an enchanted gold buckle.'
   },
   {
     id: 'hat_reindeer_antlers',
     name: 'Starlight Reindeer Antlers',
     slot: 'hat',
     season: 'christmas',
+    stage: 2,
+    prerequisiteItemId: 'hat_santa_cap',
     price: 125,
-    rarity: 'Christmas',
+    rarity: 'Stage 2 • Christmas',
     description: 'Festive antlers hung with glowing ornaments and jingle bells.'
+  },
+  {
+    id: 'hat_vampire_crest',
+    name: 'Count’s Crimson Top Hat',
+    slot: 'hat',
+    season: 'halloween',
+    stage: 3,
+    prerequisiteItemId: 'hat_witch_obsidian',
+    price: 165,
+    rarity: 'Stage 3 • Epic',
+    description: 'Aristocratic velvet top hat worn at the Midnight Gambit Ball.'
   },
   {
     id: 'hat_grandmaster_crown',
     name: 'Monarch’s Golden Crown',
     slot: 'hat',
     season: 'classic',
-    price: 200,
-    rarity: 'Legendary',
+    stage: 4,
+    price: 260,
+    rarity: 'Stage 4 • Legendary',
     description: 'Forged from pure celestial gold for true rulers of the 64 squares.'
   },
 
@@ -216,6 +271,7 @@ export const SHOP_CATALOG = [
     name: 'Sanctuary Initiate Robe',
     slot: 'outfit',
     season: 'classic',
+    stage: 1,
     price: 0,
     rarity: 'Starter',
     description: 'Comfortable sapphire robe with bronze clasp.'
@@ -225,44 +281,51 @@ export const SHOP_CATALOG = [
     name: 'Phantom Cobweb Cloak',
     slot: 'outfit',
     season: 'halloween',
-    price: 95,
-    rarity: 'Halloween',
+    stage: 1,
+    price: 85,
+    rarity: 'Stage 1 • Halloween',
     description: 'High-collared dusk cloak stitched with glowing violet runes and skull clasp.'
-  },
-  {
-    id: 'outfit_pumpkin_knight',
-    name: 'Harvest Gourd Plate',
-    slot: 'outfit',
-    season: 'halloween',
-    price: 130,
-    rarity: 'Halloween',
-    description: 'Autumn orange battle-plate forged for Halloween night duels.'
-  },
-  {
-    id: 'outfit_santa_coat',
-    name: 'Father Frost Fur Coat',
-    slot: 'outfit',
-    season: 'christmas',
-    price: 110,
-    rarity: 'Christmas',
-    description: 'Warm festive crimson coat with white fur trim and brass belt.'
   },
   {
     id: 'outfit_elf_tunic',
     name: 'Toymaker’s Emerald Tunic',
     slot: 'outfit',
     season: 'christmas',
-    price: 100,
-    rarity: 'Christmas',
+    stage: 1,
+    price: 85,
+    rarity: 'Stage 1 • Christmas',
     description: 'Jolly evergreen tunic with candy-striped collar and golden buttons.'
+  },
+  {
+    id: 'outfit_santa_coat',
+    name: 'Father Frost Fur Coat',
+    slot: 'outfit',
+    season: 'christmas',
+    stage: 2,
+    prerequisiteItemId: 'outfit_elf_tunic',
+    price: 135,
+    rarity: 'Stage 2 • Christmas',
+    description: 'Warm festive crimson coat with white fur trim and brass belt.'
+  },
+  {
+    id: 'outfit_pumpkin_knight',
+    name: 'Harvest Gourd Plate',
+    slot: 'outfit',
+    season: 'halloween',
+    stage: 3,
+    prerequisiteItemId: 'outfit_necromancer',
+    price: 175,
+    rarity: 'Stage 3 • Epic',
+    description: 'Autumn orange battle-plate forged for Halloween night duels.'
   },
   {
     id: 'outfit_archmage_gold',
     name: 'High Archmage Regalia',
     slot: 'outfit',
     season: 'classic',
-    price: 190,
-    rarity: 'Legendary',
+    stage: 4,
+    price: 280,
+    rarity: 'Stage 4 • Legendary',
     description: 'Imperial white-and-gold vestments worn by Grandmasters of the Hall.'
   },
 
@@ -272,6 +335,7 @@ export const SHOP_CATALOG = [
     name: 'Oakwood Practice Wand',
     slot: 'prop',
     season: 'classic',
+    stage: 1,
     price: 0,
     rarity: 'Starter',
     description: 'A dependable wand that sparks softly when you castle.'
@@ -281,35 +345,41 @@ export const SHOP_CATALOG = [
     name: 'Will-o’-Wisp Lantern',
     slot: 'prop',
     season: 'halloween',
-    price: 85,
-    rarity: 'Halloween',
+    stage: 1,
+    price: 80,
+    rarity: 'Stage 1 • Halloween',
     description: 'An iron lantern housing a friendly floating spooky spirit.'
-  },
-  {
-    id: 'prop_bat_familiar',
-    name: 'Vampiric Bat Companion',
-    slot: 'prop',
-    season: 'halloween',
-    price: 120,
-    rarity: 'Halloween',
-    description: 'A loyal winged midnight bat who squeaks whenever you deliver Check.'
   },
   {
     id: 'prop_candy_staff',
     name: 'Peppermint Arcane Scepter',
     slot: 'prop',
     season: 'christmas',
-    price: 85,
-    rarity: 'Christmas',
+    stage: 1,
+    price: 80,
+    rarity: 'Stage 1 • Christmas',
     description: 'Swirled red-and-white candy cane staff topped with a frost star.'
+  },
+  {
+    id: 'prop_bat_familiar',
+    name: 'Vampiric Bat Companion',
+    slot: 'prop',
+    season: 'halloween',
+    stage: 2,
+    prerequisiteItemId: 'prop_ghost_lantern',
+    price: 130,
+    rarity: 'Stage 2 • Halloween',
+    description: 'A loyal winged midnight bat who squeaks whenever you deliver Check.'
   },
   {
     id: 'prop_snow_owl',
     name: 'Winter Frost Owl',
     slot: 'prop',
     season: 'christmas',
-    price: 150,
-    rarity: 'Christmas',
+    stage: 3,
+    prerequisiteItemId: 'prop_candy_staff',
+    price: 170,
+    rarity: 'Stage 3 • Epic',
     description: 'A wise snowy owl companion perched proudly beside your shoulder.'
   },
   {
@@ -317,8 +387,9 @@ export const SHOP_CATALOG = [
     name: 'Levitating Queen Relic',
     slot: 'prop',
     season: 'classic',
-    price: 175,
-    rarity: 'Epic',
+    stage: 4,
+    price: 250,
+    rarity: 'Stage 4 • Legendary',
     description: 'A miniature enchanted golden Queen piece orbiting your hand.'
   },
 
@@ -328,6 +399,7 @@ export const SHOP_CATALOG = [
     name: 'Sanctuary Stone Glow',
     slot: 'aura',
     season: 'classic',
+    stage: 1,
     price: 0,
     rarity: 'Starter',
     description: 'Calm twilight backdrop of the Great Hall.'
@@ -337,8 +409,9 @@ export const SHOP_CATALOG = [
     name: 'Haunted Blood Moon',
     slot: 'aura',
     season: 'halloween',
-    price: 95,
-    rarity: 'Halloween',
+    stage: 2,
+    price: 115,
+    rarity: 'Stage 2 • Halloween',
     description: 'Eerie orange harvest moon with drifting twilight bats.'
   },
   {
@@ -346,8 +419,9 @@ export const SHOP_CATALOG = [
     name: 'Starlit Snowfall',
     slot: 'aura',
     season: 'christmas',
-    price: 95,
-    rarity: 'Christmas',
+    stage: 2,
+    price: 115,
+    rarity: 'Stage 2 • Christmas',
     description: 'Gently falling December snowflakes over a festive aurora sky.'
   },
   {
@@ -355,14 +429,109 @@ export const SHOP_CATALOG = [
     name: 'Grandmaster Solar Halo',
     slot: 'aura',
     season: 'classic',
-    price: 180,
-    rarity: 'Legendary',
+    stage: 4,
+    price: 290,
+    rarity: 'Stage 4 • Legendary',
     description: 'Radiant golden rune circle pulsing with arcane mastery.'
   }
 ];
 
 export function getShopItemById(id) {
   return SHOP_CATALOG.find(item => item.id === id) || null;
+}
+
+/**
+ * Counts how many non-starter (paid) items the player has unlocked so far.
+ */
+export function getUnlockedPaidItemCount(profile) {
+  const unlocked = profile?.unlockedItems || [];
+  return unlocked.filter(id => !STARTER_UNLOCKED.includes(id)).length;
+}
+
+/**
+ * Determines the highest Shop Stage (1..4) the player has unlocked,
+ * plus whether a specific item's stage & item prerequisite are satisfied.
+ */
+export function checkItemUnlockRequirements(item, profile) {
+  if (!item) return { canBuy: false, isLocked: true, lockReason: 'Unknown item' };
+  const unlocked = profile?.unlockedItems || [];
+  if (unlocked.includes(item.id)) {
+    return { canBuy: true, isLocked: false, lockReason: '' };
+  }
+
+  const paidCount = getUnlockedPaidItemCount(profile);
+  const playerElo = profile?.elo ?? 500;
+  const playerWins = profile?.wins ?? 0;
+
+  const stageNum = item.stage || 1;
+  const stageDef = SHOP_STAGES.find(s => s.stage === stageNum) || SHOP_STAGES[0];
+
+  const missingReasons = [];
+
+  if (paidCount < stageDef.reqPaidItems) {
+    const needMore = stageDef.reqPaidItems - paidCount;
+    missingReasons.push(
+      `Unlock ${needMore} more earlier item${needMore > 1 ? 's' : ''} (${paidCount}/${stageDef.reqPaidItems})`
+    );
+  }
+
+  const meetsSkill = playerElo >= stageDef.reqElo || playerWins >= stageDef.reqWins;
+  if (!meetsSkill) {
+    missingReasons.push(
+      `Reach ${stageDef.reqElo} Elo or ${stageDef.reqWins} Wins (Now: ${playerElo} Elo, ${playerWins}W)`
+    );
+  }
+
+  if (item.prerequisiteItemId && !unlocked.includes(item.prerequisiteItemId)) {
+    const prereqItem = getShopItemById(item.prerequisiteItemId);
+    if (prereqItem) {
+      missingReasons.push(`Requires "${prereqItem.name}" first`);
+    }
+  }
+
+  if (missingReasons.length > 0) {
+    return {
+      canBuy: false,
+      isLocked: true,
+      stage: stageNum,
+      lockReason: `🔒 Stage ${stageNum}: ${missingReasons.join(' • ')}`
+    };
+  }
+
+  return {
+    canBuy: true,
+    isLocked: false,
+    stage: stageNum,
+    lockReason: ''
+  };
+}
+
+/**
+ * Computes the player's current overall Shop Stage (1..4) and progress toward the next stage.
+ */
+export function getPlayerShopStageStatus(profile) {
+  const paidCount = getUnlockedPaidItemCount(profile);
+  const playerElo = profile?.elo ?? 500;
+  const playerWins = profile?.wins ?? 0;
+
+  let currentStage = 1;
+  for (const s of SHOP_STAGES) {
+    const hasItems = paidCount >= s.reqPaidItems;
+    const hasSkill = playerElo >= s.reqElo || playerWins >= s.reqWins;
+    if (hasItems && hasSkill) {
+      currentStage = s.stage;
+    }
+  }
+
+  const nextStageDef = SHOP_STAGES.find(s => s.stage === currentStage + 1) || null;
+  return {
+    currentStage,
+    paidCount,
+    playerElo,
+    playerWins,
+    currentStageDef: SHOP_STAGES.find(s => s.stage === currentStage),
+    nextStageDef
+  };
 }
 
 /**

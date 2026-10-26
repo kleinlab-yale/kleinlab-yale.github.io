@@ -70,7 +70,7 @@
         <!-- Coin Balance & Seasonal Costume Shop Button -->
         <button id="btnOpenShopModal" class="shop-pill" title="Open Seasonal Costume Shop & Wardrobe">
           <span>🪙</span>
-          <span id="headerCoinsCount">120</span>
+          <span id="headerCoinsCount">50</span>
           <span class="shop-badge-tag">🛍️ Shop</span>
         </button>
 
@@ -92,19 +92,35 @@
           <div class="profile-avatar-dot" id="headerAvatarIcon"></div>
           <div class="profile-pill-info">
             <span id="headerPlayerName" class="profile-pill-name">Traveler</span>
-            <span id="headerPlayerElo" class="profile-pill-elo">1200 Elo</span>
+            <span id="headerPlayerElo" class="profile-pill-elo">500 Elo</span>
           </div>
           <span class="profile-pill-caret">✎</span>
         </button>
       </div>
     </header>
 
+    <!-- MOBILE PHONE NAVIGATION TAB BAR (Visible on phones/tablets <= 960px) -->
+    <nav id="mobileTabBar" class="mobile-tab-bar" aria-label="Mobile Sections">
+      <button type="button" class="mobile-tab-btn active" data-mobtab="setup">
+        <span>🎮 Play / Join</span>
+      </button>
+      <button type="button" class="mobile-tab-btn" data-mobtab="chat">
+        <span>💬 Chat</span>
+      </button>
+      <button type="button" class="mobile-tab-btn" data-mobtab="moves">
+        <span>📜 Moves</span>
+      </button>
+      <button type="button" class="mobile-tab-btn" data-mobtab="profile">
+        <span>🧑 Avatar &amp; Shop</span>
+      </button>
+    </nav>
+
     <!-- ==================== MAIN 3-COLUMN WORKSPACE ==================== -->
     <main class="main-grid">
       <!-- LEFT SIDEBAR: Player Character Card + Bot Personalities / Multiplayer Room -->
       <aside class="sidebar left-panel">
         <!-- Player Character & Elo Memory Card -->
-        <section class="panel-card memory-card">
+        <section id="memoryCardSection" class="panel-card memory-card">
           <div class="memory-header">
             <div class="memory-char-row">
               <div id="cardAvatarFrame" class="card-avatar-large" title="Click to customize character or costumes"></div>
@@ -113,11 +129,11 @@
                 <div class="memory-username-row">
                   <span id="cardPlayerName" class="memory-username">Traveler</span>
                 </div>
-                <span id="cardPlayerRankBadge" class="rank-badge">Sanctuary Tactician</span>
+                <span id="cardPlayerRankBadge" class="rank-badge">Novice Apprentice</span>
               </div>
             </div>
             <div class="memory-elo-box">
-              <span id="cardPlayerElo" class="memory-elo-value">1200</span>
+              <span id="cardPlayerElo" class="memory-elo-value">500</span>
               <span class="memory-elo-sub">ELO</span>
             </div>
           </div>
@@ -138,7 +154,7 @@
             </div>
             <div class="stat-chip">
               <span class="stat-label">Peak Elo</span>
-              <span id="cardPeakElo" class="stat-val">1200</span>
+              <span id="cardPeakElo" class="stat-val">500</span>
             </div>
           </div>
 
@@ -149,7 +165,7 @@
         <section id="botSelectorPanel" class="panel-card flex-grow-card">
           <div class="section-header">
             <h2>AI Personalities</h2>
-            <span class="section-hint">Adaptive Elo Rivals</span>
+            <span class="section-hint">Start at 500 Elo &amp; Climb!</span>
           </div>
 
           <div class="match-setup-row">
@@ -162,37 +178,39 @@
               </select>
             </label>
             <label class="setup-field">
-              <span>Clock</span>
+              <span>Time Control</span>
               <select id="botTimeControl">
+                <option value="0" selected>∞ Unrestricted Time</option>
+                <option value="10">10 min Rapid</option>
                 <option value="5">5 min Blitz</option>
-                <option value="10" selected>10 min Rapid</option>
                 <option value="15">15 min Classical</option>
-                <option value="0">Untimed</option>
               </select>
             </label>
           </div>
 
-          <div id="botListContainer" class="bot-list" role="listbox" aria-label="Choose AI Personality"></div>
-
-          <button id="btnStartBotMatch" class="primary-cta-btn">
-            <span>⚔️ Start Duel vs. Selected Bot</span>
+          <button id="btnStartBotMatch" class="start-game-cta-btn">
+            <span>▶️ START GAME vs. Selected Bot</span>
           </button>
+
+          <div id="botListContainer" class="bot-list" role="listbox" aria-label="Choose AI Personality"></div>
         </section>
 
         <!-- MULTIPLAYER ROOM LOBBY PANEL -->
         <section id="multiplayerPanel" class="panel-card flex-grow-card hidden">
           <div class="section-header">
             <h2>Multiplayer Room</h2>
-            <span class="section-hint">Works on GitHub Pages</span>
+            <span id="roomBadgePill" class="room-pill-indicator pill-red">🔴 NOT IN ROOM</span>
           </div>
 
           <p class="multi-instructions">
-            Sign in with your <strong>Player Name &amp; Avatar</strong>, then enter the <strong>exact same Room Name</strong> as your friend to play and chat live!
+            <strong>1.</strong> Enter the same <strong>Room Name</strong> as your friend.<br />
+            <strong>2.</strong> Tap the button so it turns <strong>🟢 GREEN (In Room)</strong>.<br />
+            <strong>3.</strong> Press <strong>▶️ START GAME</strong>!
           </p>
 
           <div class="room-form">
             <label class="setup-field">
-              <span>Your Player Name (Required)</span>
+              <span>Your Player Name &amp; Avatar</span>
               <div class="inline-name-row">
                 <input
                   type="text"
@@ -224,29 +242,37 @@
                 </select>
               </label>
               <label class="setup-field">
-                <span>Clock</span>
+                <span>Time Control</span>
                 <select id="roomTimeControl">
+                  <option value="0" selected>∞ Unrestricted Time</option>
+                  <option value="10">10 min</option>
                   <option value="5">5 min</option>
-                  <option value="10" selected>10 min</option>
                   <option value="15">15 min</option>
-                  <option value="0">Untimed</option>
                 </select>
               </label>
             </div>
 
+            <!-- RED when not in room, turns GREEN when in room! -->
             <div class="room-btn-row">
-              <button id="btnJoinRoom" class="primary-cta-btn">🔗 Join / Create Room</button>
-              <button id="btnLeaveRoom" class="secondary-btn hidden">Leave</button>
+              <button id="btnJoinRoom" type="button" class="join-room-btn state-red">
+                🔴 Not in Room — Tap to Join Room
+              </button>
+              <button id="btnLeaveRoom" type="button" class="secondary-btn hidden" title="Leave Room">Leave</button>
             </div>
 
-            <button id="btnCopyInviteLink" class="secondary-btn full-width-btn">
+            <!-- Explicit START GAME Button -->
+            <button id="btnStartMultiplayerGame" type="button" class="start-game-cta-btn">
+              ▶️ START GAME
+            </button>
+
+            <button id="btnCopyInviteLink" type="button" class="secondary-btn full-width-btn">
               📋 Copy Shareable Room Link
             </button>
           </div>
 
           <div id="roomStatusBanner" class="room-status-banner status-idle">
             <span class="status-dot"></span>
-            <span id="roomStatusText">Enter a room name above to host or join a match.</span>
+            <span id="roomStatusText">Not in a room yet. Enter a room name above and tap the red button!</span>
           </div>
 
           <!-- Head-to-Head Room Scoreboard -->
@@ -275,23 +301,23 @@
             <div id="opponentAvatar" class="avatar-frame"></div>
             <div class="player-meta">
               <div class="player-name-line">
-                <span id="opponentName" class="player-name">Sister Celeste</span>
-                <span id="opponentEloBadge" class="elo-pill">1250 Elo</span>
+                <span id="opponentName" class="player-name">Pip the Squire</span>
+                <span id="opponentEloBadge" class="elo-pill">600 Elo</span>
               </div>
-              <span id="opponentTitle" class="player-subtitle">Keeper of the Sanctuary</span>
+              <span id="opponentTitle" class="player-subtitle">Clumsy Apprentice</span>
             </div>
           </div>
 
           <div id="capturedByOpponent" class="captured-tray" aria-label="Pieces captured by opponent"></div>
 
-          <div id="opponentClock" class="chess-clock">10:00</div>
+          <div id="opponentClock" class="chess-clock">∞</div>
         </div>
 
         <!-- Live Bot Dialogue / Banter Bubble -->
         <div id="botDialogueBanner" class="bot-dialogue-banner">
           <span class="dialogue-sparkle">✦</span>
           <p id="botDialogueText" class="dialogue-quote">
-            "Peace be with you, traveler. Let us build harmony upon the sixty-four squares."
+            "Oh! Wait—which way does the horsey jump again? Good luck!"
           </p>
         </div>
 
@@ -300,6 +326,22 @@
           <!-- Cinematic 3D Combat Clash Banner Overlay -->
           <div id="combatClashBanner" class="combat-clash-banner hidden">
             <span id="combatClashText">⚔️ KNIGHT vs. BISHOP — BATTLE AT E5!</span>
+          </div>
+
+          <!-- On-Board Multiplayer Status & Explicit START GAME Overlay -->
+          <div id="boardStartOverlay" class="board-start-overlay hidden">
+            <div class="board-start-card">
+              <div id="boardOverlayStatusPill" class="room-pill-indicator pill-red">🔴 NOT IN ROOM YET</div>
+              <h3 id="boardOverlayTitle">Join a Multiplayer Room</h3>
+              <p id="boardOverlayDesc">
+                Enter the same Room Name as your friend in the Multiplayer panel, tap Join so the button turns <strong>🟢 GREEN</strong>, then press <strong>START GAME</strong>!
+              </p>
+              <div class="board-overlay-actions">
+                <button id="btnBoardOverlayStart" type="button" class="start-game-cta-btn">
+                  ▶️ START GAME
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Super Wizard Chess 3D Container -->
@@ -380,21 +422,21 @@
             <div class="player-meta">
               <div class="player-name-line">
                 <span id="playerNameBar" class="player-name">Traveler</span>
-                <span id="playerEloBar" class="elo-pill gold-elo-pill">1200 Elo</span>
+                <span id="playerEloBar" class="elo-pill gold-elo-pill">500 Elo</span>
               </div>
-              <span id="playerRankBar" class="player-subtitle">Sanctuary Tactician</span>
+              <span id="playerRankBar" class="player-subtitle">Novice Apprentice</span>
             </div>
           </div>
 
           <div id="capturedByPlayer" class="captured-tray" aria-label="Pieces captured by you"></div>
 
-          <div id="playerClock" class="chess-clock active-clock">10:00</div>
+          <div id="playerClock" class="chess-clock active-clock">∞</div>
         </div>
       </section>
 
       <!-- RIGHT SIDEBAR: Game Status, Move History, Live Communication Window & Controls -->
       <aside class="sidebar right-panel">
-        <section class="panel-card status-card">
+        <section id="statusCardSection" class="panel-card status-card">
           <div id="gameStatusBanner" class="game-status-banner">
             <span id="statusIndicatorDot" class="turn-dot white-turn"></span>
             <span id="gameStatusText">White to move</span>
@@ -402,7 +444,7 @@
           <div id="checkAlertBadge" class="check-alert-badge hidden">⚠️ ROYAL CHECK!</div>
         </section>
 
-        <section class="panel-card moves-card">
+        <section id="movesCardSection" class="panel-card moves-card">
           <div class="section-header">
             <h2>Move Chronicle</h2>
             <span id="moveCountBadge" class="section-hint">0 moves</span>
@@ -426,7 +468,7 @@
 
           <div class="game-controls-grid">
             <button id="btnNewGame" class="control-btn primary-ctrl" title="Start a Fresh Game">
-              <span>🔄 New Game</span>
+              <span>▶️ Start / New Game</span>
             </button>
             <button id="btnUndoMove" class="control-btn" title="Take Back Last Turn (Bot Mode)">
               <span>↩️ Undo</span>
@@ -449,7 +491,7 @@
         </section>
 
         <!-- ALWAYS-ACCESSIBLE COMMUNICATION WINDOW (Player Chat + Quick Emotes) -->
-        <section class="panel-card comm-card">
+        <section id="commCardSection" class="panel-card comm-card">
           <div class="section-header">
             <h2>💬 Communication Window</h2>
             <span id="commStatusHint" class="section-hint">Live Chat</span>
@@ -481,16 +523,19 @@
     </main>
   </div>
 
-  <!-- ==================== MODAL 1: SIGN IN & CHARACTER CREATOR ==================== -->
+  <!-- ==================== MODAL 1: FIRST-TIME WELCOME, SIGN IN & CHARACTER CREATOR ==================== -->
   <div id="profileModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
     <div class="modal-card modal-wide">
       <div class="modal-header">
-        <h2 id="profileModalTitle">🧑 Challenger Sign-In &amp; Character Creator</h2>
+        <div>
+          <span id="welcomeStepBadge" class="seasonal-tag">STEP 1 • PICK YOUR NAME &amp; AVATAR</span>
+          <h2 id="profileModalTitle">🧑 Challenger Sign-In &amp; Character Creator</h2>
+        </div>
         <button id="btnCloseProfileModal" class="modal-close-btn" aria-label="Close">✕</button>
       </div>
 
       <p class="modal-desc">
-        Choose your <strong>Player Name</strong> and customize your character’s gender, age, hair, and features. In Multiplayer, your opponent sees your name and custom character!
+        Enter your <strong>Player Name</strong> and customize your <strong>Avatar</strong> below! All challengers begin at <strong>500 Elo</strong> and earn their way higher by winning matches and unlocking staged rewards.
       </p>
 
       <form id="profileSignInForm" class="character-creator-layout">
@@ -498,27 +543,24 @@
         <div class="creator-preview-col">
           <div id="creatorAvatarPreview" class="creator-avatar-stage"></div>
           <button type="button" id="btnRandomizeCharacter" class="secondary-btn full-width-btn">🎲 Randomize Look</button>
-          <button type="button" id="btnSwitchToShopFromProfile" class="secondary-btn full-width-btn highlight-shop-btn">🛍️ Dress in Costume Shop</button>
+          <button type="button" id="btnSwitchToShopFromProfile" class="secondary-btn full-width-btn highlight-shop-btn">🛍️ View Costume Shop</button>
         </div>
 
         <!-- Right Column: Identity & Appearance Controls -->
         <div class="creator-fields-col">
           <div class="form-row-2">
             <label class="form-field">
-              <span>Player Name (Required for Multiplayer)</span>
-              <input type="text" id="inputProfileName" required maxlength="24" placeholder="Enter your player name..." />
+              <span>1. Your Player Name (Required)</span>
+              <input type="text" id="inputProfileName" required maxlength="24" placeholder="Type your name (e.g. Daryl)..." />
             </label>
 
-            <label class="form-field">
-              <span>Starting Skill (New Profiles)</span>
-              <select id="selectStartingElo">
-                <option value="800">Beginner (800 Elo)</option>
-                <option value="1000">Casual (1000 Elo)</option>
-                <option value="1200" selected>Intermediate (1200 Elo)</option>
-                <option value="1500">Advanced (1500 Elo)</option>
-                <option value="1800">Master (1800 Elo)</option>
-              </select>
-            </label>
+            <div class="form-field">
+              <span>Starting Rating &amp; Progression</span>
+              <div class="starting-elo-fixed-badge">
+                ⚡ <strong>500 Elo</strong> Apprentice — Win to Climb!
+              </div>
+              <input type="hidden" id="selectStartingElo" value="500" />
+            </div>
           </div>
 
           <div class="form-row-3">
@@ -600,7 +642,14 @@
             </select>
           </label>
 
-          <button type="submit" class="primary-cta-btn">✨ Save Character &amp; Sign In</button>
+          <div class="signin-action-row">
+            <button type="submit" id="btnSaveAndPlayBot" class="primary-cta-btn">
+              🤖 Save &amp; Play vs. Computer
+            </button>
+            <button type="button" id="btnSaveAndPlayMulti" class="start-game-cta-btn">
+              🌐 Save &amp; Join Multiplayer Room
+            </button>
+          </div>
         </div>
       </form>
 
@@ -622,22 +671,30 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 2: SEASONAL COSTUME SHOP & WARDROBE ==================== -->
+  <!-- ==================== MODAL 2: SEASONAL COSTUME SHOP & 4-STAGE PROGRESSION ==================== -->
   <div id="shopModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shopModalTitle">
     <div class="modal-card modal-wide">
       <div class="modal-header">
         <div>
-          <h2 id="shopModalTitle">🛍️ Arcane Boutique &amp; Seasonal Costume Shop</h2>
-          <p id="shopSeasonSubtitle" class="modal-desc">Earn coins from Victory Chests &amp; Daily Streaks to dress your champion!</p>
+          <h2 id="shopModalTitle">🛍️ Arcane Boutique &amp; Staged Progression Shop</h2>
+          <p id="shopSeasonSubtitle" class="modal-desc">Unlock earlier stage items and climb from 500 Elo to unlock Rare, Epic &amp; Legendary gear!</p>
         </div>
         <div class="shop-header-right">
           <div class="shop-balance-pill">
-            <span>🪙 <strong id="shopModalCoins">120</strong> Coins</span>
+            <span>🪙 <strong id="shopModalCoins">50</strong> Coins</span>
           </div>
           <div class="shop-streak-pill">
             <span>🔥 <strong id="shopModalStreak">1</strong> Day Streak</span>
           </div>
           <button id="btnCloseShopModal" class="modal-close-btn" aria-label="Close">✕</button>
+        </div>
+      </div>
+
+      <!-- 4-Stage Progression Tracker Bar -->
+      <div id="shopStageProgressBanner" class="shop-stage-tracker">
+        <div class="stage-steps-row" id="shopStagePillsRow"></div>
+        <div id="shopNextStageHint" class="stage-next-hint">
+          Win matches to earn Victory Chests and unlock Stage 2!
         </div>
       </div>
 

@@ -1900,12 +1900,403 @@ button {
   font-weight: 600;
 }
 
+/* ==================== RED vs. GREEN MULTIPLAYER JOIN BUTTON & PILLS ==================== */
+.join-room-btn {
+  flex: 1;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.join-room-btn.state-red {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  border: 2px solid #fca5a5;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.48);
+  animation: pulseRedJoin 2s infinite ease-in-out;
+}
+
+.join-room-btn.state-red:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(239, 68, 68, 0.7);
+}
+
+@keyframes pulseRedJoin {
+  0%, 100% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.45); }
+  50% { box-shadow: 0 0 26px rgba(239, 68, 68, 0.8); }
+}
+
+.join-room-btn.state-green {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  border: 2px solid #6ee7b7;
+  box-shadow: 0 0 22px rgba(16, 185, 129, 0.55);
+}
+
+.join-room-btn.state-green:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 26px rgba(16, 185, 129, 0.75);
+}
+
+.room-pill-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.room-pill-indicator.pill-red {
+  background: rgba(239, 68, 68, 0.22);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+}
+
+.room-pill-indicator.pill-green {
+  background: rgba(16, 185, 129, 0.24);
+  border: 1px solid #10b981;
+  color: #6ee7b7;
+}
+
+/* ==================== EXPLICIT "START GAME" CTA & BOARD OVERLAY ==================== */
+.start-game-cta-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  border: 1.5px solid #86efac;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 18px rgba(34, 197, 94, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.start-game-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.65);
+}
+
+.board-start-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  background: rgba(7, 6, 14, 0.68);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.board-start-card {
+  width: min(100%, 400px);
+  background: rgba(20, 17, 36, 0.96);
+  border: 1.5px solid var(--border-gold);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.78);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.board-start-card h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: #fde68a;
+}
+
+.board-start-card p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.board-overlay-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* ==================== SIGN-IN STARTING 500 ELO & ACTION ROW ==================== */
+.starting-elo-fixed-badge {
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 8px;
+  padding: 8px 11px;
+  color: #fde68a;
+  font-size: 12.5px;
+}
+
+.signin-action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ==================== 4-STAGE SHOP PROGRESSION TRACKER & LOCKED ITEMS ==================== */
+.shop-stage-tracker {
+  background: rgba(9, 8, 18, 0.82);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 11px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stage-steps-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.stage-step-pill {
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: rgba(28, 25, 44, 0.7);
+  border: 1px solid var(--border-subtle);
+  font-size: 11.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stage-step-pill.unlocked {
+  border-color: var(--emerald);
+  background: rgba(16, 185, 129, 0.14);
+}
+
+.stage-step-pill.current {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(168, 85, 247, 0.22));
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+}
+
+.stage-step-pill.locked {
+  opacity: 0.62;
+}
+
+.stage-step-top {
+  font-weight: 800;
+  color: #fde68a;
+  font-size: 11.5px;
+}
+
+.stage-step-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.stage-next-hint {
+  font-size: 12px;
+  color: #cbd5e1;
+  text-align: center;
+}
+
+.shop-item-card.locked-stage {
+  opacity: 0.78;
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(15, 13, 26, 0.78);
+}
+
+.shop-lock-reason {
+  font-size: 10.5px;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  border-radius: 6px;
+  padding: 4px 6px;
+  line-height: 1.3;
+  width: 100%;
+}
+
+.shop-buy-btn.locked-btn {
+  background: rgba(51, 65, 85, 0.65);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  cursor: not-allowed;
+}
+
+/* ==================== MOBILE PHONE TAB BAR & PHONE LAYOUT ==================== */
+.mobile-tab-bar {
+  display: none;
+}
+
 @media (max-width: 1260px) {
   .main-grid {
-    grid-template-columns: 1fr;
-  }
-  .character-creator-layout,
-  .shop-main-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 300px minmax(400px, 1fr) 290px;
   }
 }
+
+@media (max-width: 960px) {
+  .app-shell {
+    padding: 0 8px 14px;
+  }
+
+  .topbar {
+    padding: 8px 10px;
+    margin: 6px 0 8px;
+    gap: 8px;
+  }
+
+  .brand-subtitle,
+  .hide-sm {
+    display: none !important;
+  }
+
+  .brand-title {
+    font-size: 15px;
+  }
+
+  .seg-btn {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+
+  /* Show Mobile Navigation Tab Bar on Phones */
+  .mobile-tab-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: 11px;
+    padding: 5px;
+    margin-bottom: 8px;
+    position: sticky;
+    top: 4px;
+    z-index: 40;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  }
+
+  .mobile-tab-btn {
+    padding: 8px 4px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-align: center;
+    background: transparent;
+  }
+
+  .mobile-tab-btn.active {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(168, 85, 247, 0.28));
+    color: #fff;
+    border: 1px solid rgba(245, 158, 11, 0.5);
+  }
+
+  /* Place Board Stage FIRST on mobile so players always see the board immediately! */
+  .main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .board-stage {
+    order: 1;
+  }
+
+  .left-panel {
+    order: 2;
+  }
+
+  .right-panel {
+    order: 3;
+  }
+
+  .board-viewport {
+    min-height: 350px;
+    height: min(88vw, 430px);
+  }
+
+  .board-3d-canvas-wrap {
+    min-height: 350px;
+  }
+
+  .board-2d-wrap {
+    width: min(100%, 390px);
+    padding: 6px 6px 42px;
+  }
+
+  .player-bar {
+    padding: 7px 10px;
+  }
+
+  .avatar-frame {
+    width: 36px;
+    height: 36px;
+  }
+
+  .player-name {
+    font-size: 13.5px;
+  }
+
+  .chess-clock {
+    font-size: 15px;
+    padding: 4px 10px;
+    min-width: 68px;
+  }
+
+  .bot-list {
+    max-height: 230px;
+  }
+
+  /* Mobile Section Visibility Controlled by Active Mobile Tab */
+  body[data-mobile-tab="setup"] #memoryCardSection,
+  body[data-mobile-tab="setup"] #movesCardSection,
+  body[data-mobile-tab="setup"] #commCardSection {
+    display: none !important;
+  }
+
+  body[data-mobile-tab="chat"] #memoryCardSection,
+  body[data-mobile-tab="chat"] #botSelectorPanel,
+  body[data-mobile-tab="chat"] #multiplayerPanel,
+  body[data-mobile-tab="chat"] #movesCardSection {
+    display: none !important;
+  }
+
+  body[data-mobile-tab="moves"] #memoryCardSection,
+  body[data-mobile-tab="moves"] #botSelectorPanel,
+  body[data-mobile-tab="moves"] #multiplayerPanel,
+  body[data-mobile-tab="moves"] #commCardSection {
+    display: none !important;
+  }
+
+  body[data-mobile-tab="profile"] #botSelectorPanel,
+  body[data-mobile-tab="profile"] #multiplayerPanel,
+  body[data-mobile-tab="profile"] #movesCardSection,
+  body[data-mobile-tab="profile"] #commCardSection {
+    display: none !important;
+  }
+
+  .character-creator-layout,
+  .shop-main-layout,
+  .signin-action-row,
+  .stage-steps-row,
+  .form-row-2,
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-card {
+    padding: 14px;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+}
+

@@ -23,8 +23,11 @@ import { MultiplayerRoomManager } from './multiplayer.js';
 import {
   CHARACTER_OPTIONS,
   SHOP_CATALOG,
+  SHOP_STAGES,
   getCurrentSeasonInfo,
-  renderAvatarSvg
+  renderAvatarSvg,
+  checkItemUnlockRequirements,
+  getPlayerShopStageStatus
 } from './avatar-shop.js';
 
 class ArcaneChessApp {
@@ -36,7 +39,7 @@ class ArcaneChessApp {
 
     this.viewMode = this.prefs.viewMode || '3d';
     this.gameMode = 'bot';
-    this.selectedBot = getBotById(this.prefs.selectedBotId || 'celeste');
+    this.selectedBot = getBotById(this.prefs.selectedBotId || 'pip');
 
     this.playerColor = 'w';
     this.boardOrientation = 'w';
@@ -46,24 +49,29 @@ class ArcaneChessApp {
     this.botThinking = false;
     this.botTimerId = null;
     this.matchEndedRecorded = false;
-    this.lastMatchOpponentElo = 1250;
+    this.lastMatchOpponentElo = 600;
+    this.multiplayerGameStarted = false;
 
     // Shop filter state
     this.shopSeasonFilter = 'all';
     this.shopSlotFilter = 'all';
 
-    // Clocks (in seconds)
-    this.timeControlSeconds = (this.prefs.timeControlMinutes ?? 10) * 60;
-    this.clocks = { w: 600, b: 600 };
+    // Default to Unrestricted Time (0 seconds = ∞ untimed) unless user switches
+    this.timeControlSeconds = (this.prefs.timeControlMinutes ?? 0) * 60;
+    this.clocks = { w: this.timeControlSeconds, b: this.timeControlSeconds };
     this.clockInterval = null;
 
     // Renderers
     this.board2D = null;
     this.board3D = null;
 
+    // Default mobile tab
+    document.body.dataset.mobileTab = 'setup';
+
     // Multiplayer
     this.multiplayer = new MultiplayerRoomManager({
       onStatusChange: status => this._onMultiplayerStatus(status),
+      onRoomReady: info => this._onMultiplayerRoomReady(info),
       onMatchStart: info => this._onMultiplayerMatchStart(info),
       onRemoteMove: (move, clocks) => this._onMultiplayerRemoteMove(move, clocks),
       onChatMessage: msg => this._appendChatMessage(msg.sender, msg.text),
@@ -71,7 +79,10 @@ class ArcaneChessApp {
       onRemoteDrawOffer: fromName => this._onMultiplayerDrawOffer(fromName),
       onRemoteDrawAccept: () => this._onMultiplayerDrawAccept(),
       onRemoteRematch: newHostColor => this._onMultiplayerRemoteRematch(newHostColor),
-      onOpponentDisconnected: () => this._showToast('Opponent disconnected from room.')
+      onOpponentDisconnected: () => {
+        this._showToast('Opponent disconnected from room.');
+        this._updateRoomJoinUI();
+      }
     });
 
     this._initRenderers();
@@ -83,6 +94,14 @@ class ArcaneChessApp {
 
     if (this.gameMode === 'bot') {
       this.startNewBotGame();
+    }
+
+    // First-Time Sign-In Flow: Prompt new players to pick their Name & Avatar first!
+    const activeProfile = this.storage.getActiveProfile();
+    if (!activeProfile.hasSignedIn) {
+      setTimeout(() => {
+        this._openProfileModal(true);
+      }, 120);
     }
   }
 
@@ -136,6 +155,17 @@ class ArcaneChessApp {
       this._applyViewMode('2d');
     });
 
+    // Mobile Navigation Tab Bar
+    document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.mobtab || 'setup';
+        document.body.dataset.mobileTab = tab;
+        document.querySelectorAll('.mobile-tab-btn').forEach(b => {
+          b.classList.toggle('active', b === btn);
+        });
+      });
+    });
+
     // Keyboard shortcut 'V' to toggle 3D / 2D view
     window.addEventListener('keydown', e => {
       if (
@@ -182,6 +212,7 @@ class ArcaneChessApp {
     // Start Bot Match CTA
     document.getElementById('btnStartBotMatch').addEventListener('click', () => {
       this.startNewBotGame();
+      this._showToast(`Started new game vs. ${this.selectedBot.name}!`);
     });
 
     // 3D HUD Camera, Fight Zoom & World Theme Controls
@@ -233,7 +264,7 @@ class ArcaneChessApp {
     // Right Sidebar Game Controls
     document.getElementById('btnNewGame').addEventListener('click', () => {
       if (this.gameMode === 'multiplayer') {
-        this._requestMultiplayerRematch();
+        this._handleExplicitStartMultiplayerGame();
       } else {
         this.startNewBotGame();
       }
@@ -292,7 +323,7 @@ class ArcaneChessApp {
       this._showToast('FEN copied to clipboard!');
     });
 
-    // Multiplayer Room Controls
+    // Multiplayer Room Controls (RED when out, GREEN when in + Explicit START GAME)
     document.getElementById('btnJoinRoom').addEventListener('click', () => {
       this._joinMultiplayerRoomFromUI();
     });
@@ -302,12 +333,19 @@ class ArcaneChessApp {
         this._joinMultiplayerRoomFromUI();
       }
     });
+    document.getElementById('btnStartMultiplayerGame').addEventListener('click', () => {
+      this._handleExplicitStartMultiplayerGame();
+    });
+    document.getElementById('btnBoardOverlayStart').addEventListener('click', () => {
+      this._handleExplicitStartMultiplayerGame();
+    });
     document.getElementById('btnEditMultiAvatar').addEventListener('click', () => {
-      this._openProfileModal();
+      this._openProfileModal(false);
     });
     document.getElementById('btnLeaveRoom').addEventListener('click', () => {
       this.multiplayer.leaveRoom(true);
-      document.getElementById('btnLeaveRoom').classList.add('hidden');
+      this.multiplayerGameStarted = false;
+      this._updateRoomJoinUI();
     });
     document.getElementById('btnCopyInviteLink').addEventListener('click', () => {
       const roomVal = document.getElementById('roomNameInput').value.trim() || 'hogwarts-room';
@@ -335,13 +373,24 @@ class ArcaneChessApp {
     });
 
     // Character Creator & Sign-In Modal Triggers
-    const openCharModal = () => this._openProfileModal();
+    const openCharModal = () => this._openProfileModal(false);
     document.getElementById('btnOpenProfileModal').addEventListener('click', openCharModal);
     document.getElementById('btnCustomizeCharLeft').addEventListener('click', openCharModal);
     document.getElementById('cardAvatarFrame').addEventListener('click', openCharModal);
     document.getElementById('playerAvatar').addEventListener('click', openCharModal);
 
     document.getElementById('btnCloseProfileModal').addEventListener('click', () => {
+      const profile = this.storage.getActiveProfile();
+      if (!profile.hasSignedIn) {
+        const entered = document.getElementById('inputProfileName').value.trim();
+        if (!entered) {
+          this._showToast('Please pick a Player Name & Avatar to sign in first!');
+          document.getElementById('inputProfileName').focus();
+          return;
+        }
+        this._saveCharacterFromModal(true);
+        return;
+      }
       document.getElementById('profileModal').classList.add('hidden');
     });
 
@@ -377,14 +426,30 @@ class ArcaneChessApp {
     });
 
     document.getElementById('btnSwitchToShopFromProfile').addEventListener('click', () => {
-      this._saveCharacterFromModal(false);
+      const nameVal = document.getElementById('inputProfileName').value.trim();
+      if (nameVal) {
+        this._saveCharacterFromModal(false);
+      }
       document.getElementById('profileModal').classList.add('hidden');
       this._openShopModal();
     });
 
+    // Save & Play vs. Computer
     document.getElementById('profileSignInForm').addEventListener('submit', e => {
       e.preventDefault();
-      this._saveCharacterFromModal(true);
+      if (!this._saveCharacterFromModal(true)) return;
+      this._switchGameMode('bot');
+      this.startNewBotGame();
+    });
+
+    // Save & Join Multiplayer Room
+    document.getElementById('btnSaveAndPlayMulti').addEventListener('click', () => {
+      if (!this._saveCharacterFromModal(true)) return;
+      this._switchGameMode('multiplayer');
+      document.body.dataset.mobileTab = 'setup';
+      setTimeout(() => {
+        document.getElementById('roomNameInput')?.focus();
+      }, 60);
     });
 
     document.getElementById('btnExportProfile').addEventListener('click', () => {
@@ -420,7 +485,7 @@ class ArcaneChessApp {
     });
     document.getElementById('btnOpenCharFromShop').addEventListener('click', () => {
       document.getElementById('shopModal').classList.add('hidden');
-      this._openProfileModal();
+      this._openProfileModal(false);
     });
 
     document.querySelectorAll('.season-tab').forEach(btn => {
@@ -468,12 +533,12 @@ class ArcaneChessApp {
       document.getElementById('statsModal').classList.add('hidden');
     });
     document.getElementById('btnResetStats').addEventListener('click', () => {
-      if (confirm('Reset wins, losses, and Elo history for your current profile?')) {
-        this.storage.resetActiveProfileStats(1200);
+      if (confirm('Reset wins, losses, and Elo history back to 500 Elo?')) {
+        this.storage.resetActiveProfileStats(500);
         this._refreshProfileUI();
         this._renderBotList();
         this._openStatsModal();
-        this._showToast('Profile stats reset to 1200 Elo.');
+        this._showToast('Profile stats reset to 500 Elo.');
       }
     });
 
@@ -554,6 +619,7 @@ class ArcaneChessApp {
     const profile = this.storage.getActiveProfile();
     document.getElementById('multiPlayerNameInput').value = profile.username;
     this._updateMultiplayerScoreboard();
+    this._updateRoomJoinUI();
   }
 
   _flipBoardPerspective() {
@@ -570,6 +636,7 @@ class ArcaneChessApp {
     }
     this.botThinking = false;
     this.matchEndedRecorded = false;
+    document.getElementById('boardStartOverlay')?.classList.add('hidden');
 
     const colorPref = document.getElementById('botColorPref').value;
     if (colorPref === 'random') {
@@ -615,11 +682,13 @@ class ArcaneChessApp {
 
     if (this.gameMode === 'bot' && this.game.turn !== this.playerColor) return;
     if (this.gameMode === 'multiplayer') {
-      if (!this.multiplayer.isConnected()) {
-        this._showToast('Wait for an opponent to join the room first!');
+      if (!this.multiplayer.isInRoom()) {
+        this._showToast('🔴 You are not in a room yet! Enter a Room Name and tap Join.');
         return;
       }
-      if (this.game.turn !== this.playerColor) return;
+      if (this.multiplayer.isConnected() && this.game.turn !== this.playerColor) {
+        return;
+      }
     }
 
     const clickedPiece = this.game.getPiece(sq);
@@ -999,26 +1068,96 @@ class ArcaneChessApp {
     }
   }
 
+  _updateRoomJoinUI(statusObj = null) {
+    const inRoom = statusObj ? !!statusObj.inRoom : this.multiplayer.isInRoom();
+    const isConnected = statusObj ? !!statusObj.connected : this.multiplayer.isConnected();
+    const roomName = statusObj?.roomName || this.multiplayer.roomName || '';
+
+    const joinBtn = document.getElementById('btnJoinRoom');
+    const leaveBtn = document.getElementById('btnLeaveRoom');
+    const roomPill = document.getElementById('roomBadgePill');
+    const overlay = document.getElementById('boardStartOverlay');
+    const overlayPill = document.getElementById('boardOverlayStatusPill');
+    const overlayTitle = document.getElementById('boardOverlayTitle');
+    const overlayDesc = document.getElementById('boardOverlayDesc');
+
+    if (inRoom) {
+      joinBtn.className = 'join-room-btn state-green';
+      if (isConnected) {
+        const oppName = this.multiplayer.opponentProfile?.username || 'Opponent';
+        joinBtn.textContent = `🟢 In Room "${roomName}" with ${oppName}`;
+      } else {
+        joinBtn.textContent = `🟢 In Room "${roomName}" (Waiting for Friend...)`;
+      }
+      leaveBtn.classList.remove('hidden');
+
+      if (roomPill) {
+        roomPill.className = 'room-pill-indicator pill-green';
+        roomPill.textContent = `🟢 IN ROOM: ${roomName}`;
+      }
+      if (overlayPill) {
+        overlayPill.className = 'room-pill-indicator pill-green';
+        overlayPill.textContent = `🟢 IN ROOM: ${roomName}`;
+      }
+      if (overlayTitle && overlayDesc) {
+        if (isConnected) {
+          const oppName = this.multiplayer.opponentProfile?.username || 'Opponent';
+          overlayTitle.textContent = `Ready vs. ${oppName}!`;
+          overlayDesc.innerHTML = `Both players are in room <strong>"${roomName}"</strong>! Press <strong>▶️ START GAME</strong> below to begin your match.`;
+        } else {
+          overlayTitle.textContent = `You're in Room "${roomName}"!`;
+          overlayDesc.innerHTML = `Share room name <strong>"${roomName}"</strong> with your friend, or press <strong>▶️ START GAME</strong> to open the board right now!`;
+        }
+      }
+    } else {
+      joinBtn.className = 'join-room-btn state-red';
+      joinBtn.textContent = '🔴 Not in Room — Tap to Join Room';
+      leaveBtn.classList.add('hidden');
+
+      if (roomPill) {
+        roomPill.className = 'room-pill-indicator pill-red';
+        roomPill.textContent = '🔴 NOT IN ROOM';
+      }
+      if (overlayPill) {
+        overlayPill.className = 'room-pill-indicator pill-red';
+        overlayPill.textContent = '🔴 NOT IN ROOM YET';
+      }
+      if (overlayTitle && overlayDesc) {
+        overlayTitle.textContent = 'Join a Multiplayer Room';
+        overlayDesc.innerHTML =
+          'Enter the same Room Name as your friend, tap the red button so it turns <strong>🟢 GREEN</strong>, then press <strong>▶️ START GAME</strong>!';
+      }
+    }
+
+    if (overlay) {
+      if (this.gameMode === 'multiplayer' && !this.multiplayerGameStarted) {
+        overlay.classList.remove('hidden');
+      } else {
+        overlay.classList.add('hidden');
+      }
+    }
+  }
+
   _joinMultiplayerRoomFromUI() {
     const enteredName = document.getElementById('multiPlayerNameInput').value.trim();
     if (!enteredName) {
       this._showToast('Please enter your Player Name first!');
       document.getElementById('multiPlayerNameInput').focus();
-      return;
+      return false;
     }
 
     // Sign in or update active profile name
     const currentProfile = this.storage.getActiveProfile();
-    if (enteredName !== currentProfile.username) {
+    if (enteredName !== currentProfile.username || !currentProfile.hasSignedIn) {
       this.storage.signIn(enteredName, currentProfile.elo, currentProfile.character);
       this._refreshProfileUI();
     }
 
     const roomName = document.getElementById('roomNameInput').value.trim();
     if (!roomName) {
-      this._showToast('Please enter a Shared Room Name to create or join.');
+      this._showToast('Please enter a Shared Room Name (e.g. hogwarts-room) to join.');
       document.getElementById('roomNameInput').focus();
-      return;
+      return false;
     }
 
     const colorPref = document.getElementById('roomColorPref').value;
@@ -1030,7 +1169,52 @@ class ArcaneChessApp {
     window.history.replaceState({}, '', url);
 
     this.multiplayer.joinRoom(roomName, profile, colorPref, mins);
-    document.getElementById('btnLeaveRoom').classList.remove('hidden');
+    this._updateRoomJoinUI();
+    return true;
+  }
+
+  _handleExplicitStartMultiplayerGame() {
+    // If not in room yet, try to join using the roomNameInput first
+    if (!this.multiplayer.isInRoom()) {
+      const roomVal = document.getElementById('roomNameInput').value.trim();
+      if (!roomVal) {
+        this._showToast('Enter a Shared Room Name first, then tap Join or Start Game!');
+        document.getElementById('roomNameInput').focus();
+        return;
+      }
+      const joined = this._joinMultiplayerRoomFromUI();
+      if (!joined) return;
+    }
+
+    const colorPref = document.getElementById('roomColorPref').value;
+    const mins = Number(document.getElementById('roomTimeControl').value);
+    this.multiplayerGameStarted = true;
+    document.getElementById('boardStartOverlay')?.classList.add('hidden');
+
+    if (this.multiplayer.isConnected()) {
+      this.multiplayer.triggerStartGame(colorPref, mins);
+      this._showToast('▶️ Match started!');
+    } else {
+      // Allow starting the board immediately even while waiting for the 2nd player to arrive!
+      this.matchEndedRecorded = false;
+      this.playerColor = colorPref === 'b' ? 'b' : 'w';
+      this.boardOrientation = this.playerColor;
+      this.timeControlSeconds = mins * 60;
+      this.clocks = {
+        w: this.timeControlSeconds,
+        b: this.timeControlSeconds
+      };
+      this.game.reset();
+      this.selectedSquare = null;
+      this.legalMovesForSelected = [];
+      this.board2D?.setOrientation(this.boardOrientation);
+      this.board3D?.setOrientation(this.boardOrientation);
+      this._startClockLoop();
+      this._renderAll();
+      this._showToast(
+        `🟢 Board ready in room "${this.multiplayer.roomName}"! As soon as your friend joins, they will sync automatically.`
+      );
+    }
   }
 
   _onMultiplayerStatus(status) {
@@ -1038,17 +1222,35 @@ class ArcaneChessApp {
     const textEl = document.getElementById('roomStatusText');
     banner.className = `room-status-banner status-${status.state}`;
     textEl.textContent = status.message;
+    this._updateRoomJoinUI(status);
+  }
+
+  _onMultiplayerRoomReady({ myColor, opponentProfile, timeControlMinutes }) {
+    this._updateMultiplayerScoreboard();
+    this._updateRoomJoinUI();
+    this._showToast(
+      `🟢 Connected with ${opponentProfile.username}! Press "▶️ START GAME" to begin!`
+    );
+    // If either player already clicked Start Game while waiting, launch right away!
+    if (this.multiplayerGameStarted) {
+      const colorPref = document.getElementById('roomColorPref').value;
+      const mins = Number(document.getElementById('roomTimeControl').value);
+      this.multiplayer.triggerStartGame(colorPref, mins);
+    }
   }
 
   _onMultiplayerMatchStart({ myColor, opponentProfile, timeControlMinutes }) {
+    this.multiplayerGameStarted = true;
     this.matchEndedRecorded = false;
     this.playerColor = myColor;
     this.boardOrientation = myColor;
-    this.timeControlSeconds = (timeControlMinutes ?? 10) * 60;
+    this.timeControlSeconds = (timeControlMinutes ?? 0) * 60;
     this.clocks = {
       w: this.timeControlSeconds,
       b: this.timeControlSeconds
     };
+
+    document.getElementById('boardStartOverlay')?.classList.add('hidden');
 
     this.game.reset();
     this.selectedSquare = null;
@@ -1058,7 +1260,7 @@ class ArcaneChessApp {
     this.board3D?.setOrientation(this.boardOrientation);
 
     // Render Opponent's Custom Character & Costume!
-    const oppRank = getRankTitleForElo(opponentProfile.elo || 1200);
+    const oppRank = getRankTitleForElo(opponentProfile.elo || 500);
     document.getElementById('opponentAvatar').innerHTML = renderAvatarSvg(
       opponentProfile.equipped,
       opponentProfile.character
@@ -1066,11 +1268,12 @@ class ArcaneChessApp {
     document.getElementById('opponentName').textContent =
       opponentProfile.username || 'Challenger';
     document.getElementById('opponentEloBadge').textContent = `${
-      opponentProfile.elo || 1200
+      opponentProfile.elo || 500
     } Elo`;
     document.getElementById('opponentTitle').textContent = `${oppRank.title} • Room "${this.multiplayer.roomName}"`;
 
     this._updateMultiplayerScoreboard();
+    this._updateRoomJoinUI();
     this._startClockLoop();
     this._renderAll();
     this._appendChatMessage(
@@ -1157,7 +1360,10 @@ class ArcaneChessApp {
   }
 
   _requestMultiplayerRematch() {
-    if (!this.multiplayer.isConnected()) return;
+    if (!this.multiplayer.isConnected()) {
+      this._handleExplicitStartMultiplayerGame();
+      return;
+    }
     const nextColor = this.playerColor === 'w' ? 'b' : 'w';
     this.multiplayer.sendPacket({
       type: 'rematch',
@@ -1193,12 +1399,26 @@ class ArcaneChessApp {
     list.scrollTop = list.scrollHeight;
   }
 
-  /* ==================== CHARACTER CREATOR & SEASONAL COSTUME SHOP ==================== */
-  _openProfileModal() {
+  /* ==================== CHARACTER CREATOR, SIGN-IN & 4-STAGE COSTUME SHOP ==================== */
+  _openProfileModal(isFirstTime = false) {
     const profile = this.storage.getActiveProfile();
     const ch = profile.character;
 
-    document.getElementById('inputProfileName').value = profile.username;
+    const nameInput = document.getElementById('inputProfileName');
+    if (isFirstTime && (!profile.hasSignedIn || profile.username === 'Traveler')) {
+      nameInput.value = '';
+    } else {
+      nameInput.value = profile.username;
+    }
+
+    const stepBadge = document.getElementById('welcomeStepBadge');
+    if (stepBadge) {
+      stepBadge.textContent =
+        isFirstTime || !profile.hasSignedIn
+          ? 'WELCOME! • PICK YOUR NAME & AVATAR FIRST'
+          : 'CHALLENGER PROFILE & AVATAR';
+    }
+
     document.getElementById('selectCharGender').value = ch.gender || 'male';
     document.getElementById('selectCharAge').value = ch.age || 'adult';
     document.getElementById('selectCharSkin').value = ch.skinTone || 'warm';
@@ -1225,12 +1445,15 @@ class ArcaneChessApp {
         this._refreshProfileUI();
         this._renderBotList();
         document.getElementById('profileModal').classList.add('hidden');
-        this._showToast(`Switched to ${p.username} (${p.elo} Elo)`);
+        this._showToast(`Signed in as ${p.username} (${p.elo} Elo)`);
       });
       listEl.appendChild(item);
     }
 
     document.getElementById('profileModal').classList.remove('hidden');
+    if (isFirstTime || !profile.hasSignedIn) {
+      setTimeout(() => nameInput.focus(), 60);
+    }
   }
 
   _getCreatorTraitsFromInputs() {
@@ -1255,16 +1478,57 @@ class ArcaneChessApp {
   }
 
   _saveCharacterFromModal(closeModal = true) {
-    const name = document.getElementById('inputProfileName').value.trim() || 'Traveler';
-    const startElo = Number(document.getElementById('selectStartingElo').value) || 1200;
-    const traits = this._getCreatorTraitsFromInputs();
+    const nameInput = document.getElementById('inputProfileName');
+    const name = nameInput.value.trim();
+    if (!name) {
+      this._showToast('Please enter your Player Name first!');
+      nameInput.focus();
+      return false;
+    }
 
-    const profile = this.storage.signIn(name, startElo, traits);
+    const traits = this._getCreatorTraitsFromInputs();
+    const profile = this.storage.signIn(name, 500, traits);
     this._refreshProfileUI();
     this._renderBotList();
     if (closeModal) {
       document.getElementById('profileModal').classList.add('hidden');
-      this._showToast(`Character saved for ${profile.username}!`);
+      this._showToast(`Welcome, ${profile.username} (${profile.elo} Elo)!`);
+    }
+    return true;
+  }
+
+  _renderShopStageTracker(profile) {
+    const status = getPlayerShopStageStatus(profile);
+    const row = document.getElementById('shopStagePillsRow');
+    const hint = document.getElementById('shopNextStageHint');
+    if (!row || !hint) return;
+
+    row.innerHTML = '';
+    for (const s of SHOP_STAGES) {
+      const isCurrent = s.stage === status.currentStage;
+      const isUnlocked = s.stage <= status.currentStage;
+      const pill = document.createElement('div');
+      pill.className = `stage-step-pill ${
+        isCurrent ? 'current' : isUnlocked ? 'unlocked' : 'locked'
+      }`;
+      pill.innerHTML = `
+        <span class="stage-step-top">${isUnlocked ? '🔓' : '🔒'} Stage ${s.stage}: ${
+        s.name.split(': ')[1] || s.name
+      }</span>
+        <span class="stage-step-sub">${
+          s.stage === 1
+            ? 'Starter Tier (500+ Elo)'
+            : `Needs ${s.reqPaidItems} item${s.reqPaidItems > 1 ? 's' : ''} + ${s.reqElo} Elo (or ${s.reqWins}W)`
+        }</span>
+      `;
+      row.appendChild(pill);
+    }
+
+    if (status.nextStageDef) {
+      const nxt = status.nextStageDef;
+      hint.innerHTML = `Your Progress: <strong>Stage ${status.currentStage}</strong> (${status.paidCount} shop items unlocked • <strong>${status.playerElo} Elo</strong> • <strong>${status.playerWins} Wins</strong>) — Next: <strong>${nxt.name}</strong> requires ${nxt.reqPaidItems} unlocked items &amp; ${nxt.reqElo} Elo (or ${nxt.reqWins} Wins).`;
+    } else {
+      hint.innerHTML = `🏆 <strong>Stage 4 Grandmaster Vault Unlocked!</strong> You have unlocked access to all Legendary rewards!`;
     }
   }
 
@@ -1285,6 +1549,7 @@ class ArcaneChessApp {
       profile.character
     );
 
+    this._renderShopStageTracker(profile);
     this._renderShopGrid();
     document.getElementById('shopModal').classList.remove('hidden');
   }
@@ -1302,11 +1567,12 @@ class ArcaneChessApp {
         return false;
       }
       return true;
-    });
+    }).sort((a, b) => (a.stage || 1) - (b.stage || 1) || a.price - b.price);
 
     for (const item of items) {
       const isOwned = profile.unlockedItems.includes(item.id);
       const isEquipped = profile.equipped[item.slot] === item.id;
+      const reqCheck = checkItemUnlockRequirements(item, profile);
 
       // Preview the avatar wearing this item
       const previewEquipped = {
@@ -1315,7 +1581,9 @@ class ArcaneChessApp {
       };
 
       const card = document.createElement('div');
-      card.className = `shop-item-card ${isEquipped ? 'equipped' : ''}`;
+      card.className = `shop-item-card ${isEquipped ? 'equipped' : ''} ${
+        !isOwned && reqCheck.isLocked ? 'locked-stage' : ''
+      }`;
 
       let btnLabel = `🪙 ${item.price} Coins`;
       let btnClass = 'shop-buy-btn';
@@ -1325,6 +1593,9 @@ class ArcaneChessApp {
       } else if (isOwned) {
         btnLabel = 'Wear Item';
         btnClass = 'shop-buy-btn owned';
+      } else if (reqCheck.isLocked) {
+        btnLabel = `🔒 Stage ${item.stage} (${item.price} 🪙)`;
+        btnClass = 'shop-buy-btn locked-btn';
       }
 
       card.innerHTML = `
@@ -1334,6 +1605,11 @@ class ArcaneChessApp {
         )}</div>
         <div class="shop-item-title">${item.name}</div>
         <span class="shop-item-rarity">${item.rarity}</span>
+        ${
+          !isOwned && reqCheck.isLocked
+            ? `<div class="shop-lock-reason">${reqCheck.lockReason}</div>`
+            : ''
+        }
         <button type="button" class="${btnClass}">${btnLabel}</button>
       `;
 
@@ -1357,6 +1633,7 @@ class ArcaneChessApp {
           updated.character
         );
         this._refreshProfileUI();
+        this._renderShopStageTracker(updated);
         this._renderShopGrid();
       });
 

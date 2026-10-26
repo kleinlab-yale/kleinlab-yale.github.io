@@ -7,7 +7,8 @@ import {
   DEFAULT_CHARACTER,
   DEFAULT_EQUIPPED,
   STARTER_UNLOCKED,
-  getShopItemById
+  getShopItemById,
+  checkItemUnlockRequirements
 } from './avatar-shop.js';
 
 const PROFILES_KEY = 'arcane_chess_profiles_v1';
@@ -22,24 +23,24 @@ export function getLocalDateString(date = new Date()) {
 }
 
 export function getRankTitleForElo(elo) {
-  if (elo < 800) return { title: 'Novice Apprentice', badgeColor: '#38bdf8' };
-  if (elo < 1100) return { title: 'Vanguard Squire', badgeColor: '#f97316' };
-  if (elo < 1400) return { title: 'Sanctuary Tactician', badgeColor: '#10b981' };
-  if (elo < 1700) return { title: 'Shadow Court Duelist', badgeColor: '#a855f7' };
-  if (elo < 2000) return { title: 'High Archmage', badgeColor: '#f59e0b' };
+  if (elo < 650) return { title: 'Novice Apprentice', badgeColor: '#38bdf8' };
+  if (elo < 900) return { title: 'Vanguard Squire', badgeColor: '#f97316' };
+  if (elo < 1200) return { title: 'Sanctuary Tactician', badgeColor: '#10b981' };
+  if (elo < 1550) return { title: 'Shadow Court Duelist', badgeColor: '#a855f7' };
+  if (elo < 1900) return { title: 'High Archmage', badgeColor: '#f59e0b' };
   return { title: 'Astral Grandmaster', badgeColor: '#ec4899' };
 }
 
 export function calculateEloChange(playerElo, opponentElo, score, gamesPlayed = 0) {
   const expected = 1 / (1 + Math.pow(10, (opponentElo - playerElo) / 400));
-  let kFactor = 24;
-  if (gamesPlayed < 8) {
-    kFactor = 40;
+  let kFactor = 32;
+  if (gamesPlayed < 10) {
+    kFactor = 44;
   } else if (playerElo >= 2000) {
     kFactor = 16;
   }
   const delta = Math.round(kFactor * (score - expected));
-  const newElo = Math.max(400, playerElo + delta);
+  const newElo = Math.max(300, playerElo + delta);
   return {
     oldElo: playerElo,
     newElo,
@@ -51,8 +52,9 @@ export function calculateEloChange(playerElo, opponentElo, score, gamesPlayed = 
 
 function createDefaultProfile(
   username = 'Traveler',
-  startingElo = 1200,
-  character = DEFAULT_CHARACTER
+  startingElo = 500,
+  character = DEFAULT_CHARACTER,
+  hasSignedIn = false
 ) {
   const cleanName = (username || 'Traveler').trim().slice(0, 24) || 'Traveler';
   const now = new Date().toISOString();
@@ -60,15 +62,15 @@ function createDefaultProfile(
   return {
     id: cleanName.toLowerCase(),
     username: cleanName,
-    hasSignedIn: cleanName.toLowerCase() !== 'traveler',
-    elo: startingElo,
-    peakElo: startingElo,
+    hasSignedIn: !!hasSignedIn,
+    elo: 500,
+    peakElo: 500,
     wins: 0,
     losses: 0,
     draws: 0,
     streak: 0,
     bestStreak: 0,
-    coins: 120, // Starter coins so players can immediately buy an item or save up
+    coins: 50,
     dailyStreak: 1,
     bestDailyStreak: 1,
     lastPlayedDate: today,
@@ -81,20 +83,40 @@ function createDefaultProfile(
     eloHistory: [
       {
         date: now,
-        elo: startingElo,
+        elo: 500,
         delta: 0,
-        label: 'Initial Rating'
+        label: 'Initial Rating (500 Elo)'
       }
     ],
     botStats: {},
-    peerStats: {}, // Head-to-head score vs human opponents by username
+    peerStats: {},
     matchHistory: []
   };
 }
 
 function ensureProfileFields(profile) {
   if (!profile) return profile;
-  if (typeof profile.coins !== 'number') profile.coins = 120;
+  if (typeof profile.hasSignedIn !== 'boolean') {
+    profile.hasSignedIn = Boolean(profile.username && profile.username !== 'Traveler');
+  }
+  // Migrate unplayed default 1200 Elo profiles to start at 500 Elo and 50 starter coins
+  const totalGames = (profile.wins || 0) + (profile.losses || 0) + (profile.draws || 0);
+  if (totalGames === 0 && profile.elo === 1200) {
+    profile.elo = 500;
+    profile.peakElo = 500;
+    profile.eloHistory = [
+      {
+        date: profile.createdAt || new Date().toISOString(),
+        elo: 500,
+        delta: 0,
+        label: 'Initial Rating (500 Elo)'
+      }
+    ];
+    if (profile.coins === 120) {
+      profile.coins = 50;
+    }
+  }
+  if (typeof profile.coins !== 'number') profile.coins = 50;
   if (typeof profile.dailyStreak !== 'number' || profile.dailyStreak < 1) {
     profile.dailyStreak = 1;
   }
@@ -145,7 +167,7 @@ export class StorageManager {
       if (existingIds.length > 0) {
         this.activeId = existingIds[0];
       } else {
-        const def = createDefaultProfile('Traveler', 1200);
+        const def = createDefaultProfile('Traveler', 500, DEFAULT_CHARACTER, false);
         this.profiles[def.id] = def;
         this.activeId = def.id;
       }
@@ -181,14 +203,15 @@ export class StorageManager {
       lightingTheme3D: 'great-hall',
       soundEnabled: true,
       autoRotateCam: false,
-      battleCam: true, // Zoom-in animated fight on 3D capture
-      selectedBotId: 'celeste',
-      timeControlMinutes: 10
+      battleCam: true,
+      selectedBotId: 'pip', // Start matched against Pip the Squire (600 Elo) for 500 Elo players
+      timeControlMinutes: 0 // Default to Unrestricted Time (0 = untimed)
     };
     try {
       const raw = localStorage.getItem(PREFS_KEY);
       if (!raw) return defaults;
-      return { ...defaults, ...JSON.parse(raw) };
+      const loaded = JSON.parse(raw);
+      return { ...defaults, ...loaded };
     } catch {
       return defaults;
     }
@@ -215,21 +238,39 @@ export class StorageManager {
   }
 
   /**
-   * Signs in to an existing username profile or creates a new one,
+   * Signs in to an existing username profile or creates a new one starting at 500 Elo,
    * saving character appearance (gender, age, hair, skin, eyes, beard).
    */
-  signIn(username, startingElo = 1200, characterTraits = null) {
+  signIn(username, startingElo = 500, characterTraits = null) {
     const cleanName = (username || '').trim().slice(0, 24);
     if (!cleanName) return this.getActiveProfile();
 
     const key = cleanName.toLowerCase();
-    if (!this.profiles[key]) {
+    // If signing in for the first time while still on the default 'traveler' placeholder,
+    // rename the traveler profile in-place so nothing is lost.
+    if (
+      !this.profiles[key] &&
+      this.profiles['traveler'] &&
+      !this.profiles['traveler'].hasSignedIn &&
+      this.activeId === 'traveler'
+    ) {
+      const migrated = ensureProfileFields(this.profiles['traveler']);
+      delete this.profiles['traveler'];
+      migrated.id = key;
+      migrated.username = cleanName;
+      migrated.hasSignedIn = true;
+      if (characterTraits) {
+        migrated.character = { ...migrated.character, ...characterTraits };
+      }
+      migrated.updatedAt = new Date().toISOString();
+      this.profiles[key] = migrated;
+    } else if (!this.profiles[key]) {
       this.profiles[key] = createDefaultProfile(
         cleanName,
-        Number(startingElo) || 1200,
-        characterTraits || DEFAULT_CHARACTER
+        500,
+        characterTraits || DEFAULT_CHARACTER,
+        true
       );
-      this.profiles[key].hasSignedIn = true;
     } else {
       this.profiles[key] = ensureProfileFields(this.profiles[key]);
       this.profiles[key].username = cleanName;
@@ -439,6 +480,15 @@ export class StorageManager {
       this.equipShopItem(itemId);
       return { ok: true, message: `Equipped ${item.name}!`, profile };
     }
+
+    const reqCheck = checkItemUnlockRequirements(item, profile);
+    if (reqCheck.isLocked) {
+      return {
+        ok: false,
+        message: reqCheck.lockReason
+      };
+    }
+
     if (profile.coins < item.price) {
       return {
         ok: false,
@@ -472,9 +522,9 @@ export class StorageManager {
     return { ok: true, profile, item };
   }
 
-  resetActiveProfileStats(newStartingElo = 1200) {
+  resetActiveProfileStats(newStartingElo = 500) {
     const cur = this.getActiveProfile();
-    const fresh = createDefaultProfile(cur.username, newStartingElo, cur.character);
+    const fresh = createDefaultProfile(cur.username, newStartingElo, cur.character, true);
     fresh.coins = cur.coins;
     fresh.equipped = { ...cur.equipped };
     fresh.unlockedItems = [...cur.unlockedItems];
