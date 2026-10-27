@@ -1,44 +1,45 @@
-# Chessmate
+# Chessmate 2.1 — account-owned home rooms
 
-A warm, modern chess clubhouse: memorable computer opponents, an interactive 3D board, private games with friends, and a little progress every day.
+A warm, modern chess clubhouse with computer personalities, 2D/3D boards, named home rooms, friends, and progression.
 
-**Live destination:** https://kleinlab-yale.github.io/Chessmate/
+**Website destination:** [kleinlab-yale.github.io/Chessmate](https://kleinlab-yale.github.io/Chessmate/)
 
-## What works
+**Current activation status:** Connected to the configured Supabase Free project. The schema is installed and username login is enabled. A live integration check passed signup/login, room reservation, host-approved admission, six legal moves, chat, agreed draw, private saved progress, friend invitations, and login from a fresh client. Upload the prepared `Chessmate` folder to update the GitHub website; this local release has not been published yet.
 
-- Six computer personalities from 400 to 1900 **estimated** Elo, using a local worker-based chess engine with varying search depth and mistake rates.
-- Complete legal chess: castling, en passant, four promotion choices, checkmate, stalemate, repetition, insufficient material, and the fifty-move rule.
-- SVG 2D board with legal-move highlights, keyboard navigation, board flipping, and PGN download.
-- Three.js 3D board with modeled pieces, lighting and shadows, click-to-move, orbit, and zoom. The 3D code loads only when requested.
-- Browser-local player name and avatar, Elo changes, match history, daily streaks, and XP levels.
-- Wardrobe purchases using earned points. Lifetime XP stays intact when points are spent. Seasonal collections follow the visitor's calendar; owned items stay available to equip.
-- Private invitations, live moves and text chat, resignations, and mutual draw offers over PeerJS/WebRTC.
-- Responsive layouts, named controls, keyboard focus handling in dialogs, reduced-motion support, and optional move sounds.
+## The player flow
 
-## First-pass boundaries
+1. Choose **Create your room**, enter a nickname, choose a username such as `emma`, and make a password. The username is also the permanent home-room name.
+2. Sign in to return to your own home room. It opens automatically and displays whether you are online. The name stays yours when you sign out.
+3. Share `room.html?room=emma`, or have a friend type `emma` under **Join a room**. A signed-in visitor enters the waiting list; the host chooses **Play** next to the person they want to play.
+4. Previous opponents appear in **Familiar faces**. Tap an avatar to invite that friend or choose **Visit their room**. Invitations are stored for the recipient's next visit.
+5. Rating, XP, outfits, history, avatar, and friends are saved to the account. Sign in on another device to retrieve them.
 
-Player profiles are local browser profiles, not authenticated cloud accounts. No password, email, database, or API key is required. Progress is not synchronized across devices and can be changed through browser storage. Export a profile backup from Settings.
+An invitation uses the device's native share sheet where available. The fallback offers copying and **Open Messages**; the sender chooses the recipient and sends the message. Chessmate never reads device contacts or sends an SMS automatically.
 
-Elo is a casual local progression score. The bot difficulty labels are not calibrated tournament ratings. The custom engine searches up to three plies with a time budget, so its strongest level is not a substitute for a rated Stockfish opponent.
+## Included features
 
-Multiplayer uses PeerJS's public signaling service and direct WebRTC data channels. Both players must remain connected. Some restrictive networks require a TURN relay, which is not configured in this first pass. There is no reconnect/resume, central authority, anti-cheat, matchmaking, or persistent chat server. A connection loss leaves the game unrated. Private games are untimed; the host plays white and the guest plays black.
+- Six computer personalities at 400–1900 estimated Elo. A local worker varies search depth and mistakes; these difficulty labels are not calibrated tournament ratings.
+- Legal moves, castling, en passant, promotion choices, checkmate and draws through chess.js.
+- A fixed 8×8 SVG-backed 2D board, legal-move highlights, keyboard navigation, flipping, and PGN export. The background and hit targets share one square coordinate system, including at phone widths.
+- A Three.js 3D board with modeled pieces, lighting, orbit, zoom, and click-to-move.
+- Account-owned named rooms, host-approved waiting lists, saved friends, durable in-app invitations, live moves, chat, resignations, and agreed draws.
+- Elo progression, streaks, match history, XP levels, reward points, avatar outfits, and seasonal collections.
+- Username/password sign-in, one-step account and room creation, profile editing, and visible save status. Forgotten passwords are handled by the organizer, without email.
 
-## Progression
+New players start at 800 Elo. Rating uses K=32 with a floor of 100. Wins earn 80 points/XP, draws 40, and completed losses 25. Rewards require six half-moves or checkmate; a taken-back bot game becomes unrated practice. Each 250 lifetime XP adds a level. Spending points preserves lifetime XP. The latest 300 games are retained.
 
-New players start at 800 Elo. Rating changes use the standard expected-score formula with K = 32 and a floor of 100. Wins award 80 XP and points, draws 40, and losses 25. Games must reach six half-moves to earn rewards, unless they end in checkmate. Each 250 lifetime XP adds a level. Taking back a move turns a bot game into practice: no rating change and 15 points for a qualifying completed game.
+This remains a casual chess app. Read [backend behavior and limitations](_source/supabase/SETUP.md#data-and-operating-behavior) for concurrency, offline-result reconciliation, data visibility, and client-computed progression. Account security and room ownership are server enforced; competitive anti-cheat is outside this version.
 
-Autumn is September–November; winter December–February; spring March–May; summer June–August. Daily goals and streaks use the player's local date. The most recent 300 games are retained.
+## Develop and build
 
-## Develop locally
-
-Requirements: Node.js 22.12+ and pnpm 11.25.
+Use Node.js 22.12+ and pnpm 11.25:
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open the local URL printed by Vite. For a release:
+Open Vite's local HTTP address. Opening the source `index.html` directly with `file://` does not run the app.
 
 ```sh
 pnpm test
@@ -46,45 +47,45 @@ pnpm build
 pnpm package:pages
 ```
 
-The application is static. No build-time environment variables or secrets are required. Vite uses relative asset URLs so the app works under `/Chessmate/`.
+The frontend uses relative assets and runs under `/Chessmate/`. Configure its backend in `public/chessmate-config.js`; no private key belongs in the frontend.
 
-## Publish within the existing lab website
+## Folder for GitHub
 
-`pnpm package:pages` builds a self-contained `release/Chessmate/` folder:
+The package command creates:
 
 ```text
-Chessmate/
-  index.html          # Compiled entry point, ready for GitHub Pages
-  favicon.svg
-  assets/             # Hashed JS, CSS, and bot worker
-  images/             # Compressed hero artwork
-  THIRD_PARTY_NOTICES.txt
+release/Chessmate/
+  index.html
+  room.html
+  chessmate-config.js
+  version.json
+  assets/
+  images/
   README.md
-  _source/            # Editable source project; ignored by Jekyll
+  THIRD_PARTY_NOTICES.txt
+  _source/              # Editable project, tests, and Supabase schema/setup
 ```
 
-Copy that entire `Chessmate` folder to the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Keep the website's existing publishing settings. Do not replace the root `index.html`, `_config.yml`, or unrelated folders. GitHub Pages publishes the app at `https://kleinlab-yale.github.io/Chessmate/`.
+After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.1.zip` before using GitHub's folder-upload interface.
 
-The local `release/Chessmate.zip` contains the same folder and can be unzipped before dragging it into GitHub's upload interface. The `_source` directory contains everything needed to rebuild. To update, work inside `_source`, build and package again, then replace only the app's compiled files in `Chessmate/`.
-
-The workflow in this source project's `.github/workflows/deploy.yml` is an optional **standalone-repository** workflow. It is not installed at the lab website's root and does not replace the existing lab website deployment.
+`version.json` and the app footer identify version **2.1.0 / Username edition**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
 
 ## Validation
 
-`pnpm test` runs 12 tests covering move legality, special moves, terminal positions, bot moves and mate detection, rating math, duplicate result protection, reward spending, practice rules, streaks, and seasonal availability.
+`pnpm test` runs 24 tests: chess legality and special moves, bot responses, ratings/rewards, room names and sharing, and actual PostgreSQL row policies/functions via PGlite. Database tests cover unique ownership, private progress, stale-save protection, host-only acceptance, match membership, event ordering, malformed payload rejection, durable invitations, and mutual friends.
 
-Browser checks exercised profile creation, bot replies, board view switching, saved match results, desktop and phone layouts, and two real PeerJS-connected browser tabs with bidirectional moves, chat delivery, and a mutually accepted draw.
+The updated phone board is checked in-browser at narrow and standard phone widths, including a legal move and computer reply. Hosted username login and the room/game database flow passed a live integration check. A full game between two physical phones remains a useful release check.
 
-## Project map
+## Source map
 
-- `src/App.jsx` — clubhouse, opponent selection, profile, progression, and wardrobe
-- `src/Game.jsx` — game state, worker coordination, result handling, chat
-- `src/Board2D.jsx`, `src/Board3D.jsx` — board rendering and interaction
-- `src/RoomLobby.jsx` — PeerJS room setup and invitations
-- `src/engine.js` — local alpha-beta search and personality tuning
-- `src/profile.js` — persistence helpers, Elo, rewards, and streaks
-- `src/data.js` — opponents, outfits, and seasons
-- `scripts/package-pages.mjs` — portable deployment package
-- `design/asset-prompt.md` — generated illustration provenance and prompt
+- `src/App.jsx` — clubhouse, progression, wardrobe, and navigation
+- `src/AccountForm.jsx`, `src/usernameAuth.js`, `src/useAccount.js`, `src/cloud.js` — authentication and cloud saves
+- `src/RoomLobby.jsx`, `src/CloudRooms.js` — named rooms, waiting guests, friends, realtime transport
+- `src/Game.jsx` — chess, chat, result handling, and worker coordination
+- `src/Board2D.jsx`, `src/Board3D.jsx` — board rendering
+- `src/engine.js`, `src/profile.js`, `src/data.js` — engine, progression, and collections
+- `supabase/schema.sql` — tables, permissions, and authenticated database actions
+- `supabase/SETUP.md` — backend activation and release checks
+- `scripts/reset-player-password.mjs` — private organizer password reset; never part of the browser bundle
 
-Built with React, Vite, [chess.js](https://github.com/jhlywa/chess.js), [Three.js](https://threejs.org/), [PeerJS](https://peerjs.com/), and Lucide. The generated hero is an original project asset; avatars, 2D pieces, and 3D pieces are defined in the source.
+Built with React, Vite, chess.js, Three.js, Supabase, and Lucide. Hero artwork provenance is in `design/asset-prompt.md`; avatars and chess pieces are defined in source.
