@@ -8,7 +8,7 @@ Create a new Supabase project in a **Free-plan organization** in your own accoun
 
 ## 2. Configure username login
 
-Children sign in with a **Chessmate username and password**. No email address, phone number, Google account, or other outside account is collected from them. Their username is also their room name.
+Players enter **their name and a password**. The same name identifies their player and room. No email address, phone number, Google account, or other outside account is collected from them. Their username is also their room name.
 
 When creating the Supabase project, select:
 
@@ -52,7 +52,7 @@ Run `pnpm build` and `pnpm package:pages`. Alternatively, edit `chessmate-config
 
 ## 4. Verify before replacing the live app
 
-1. Create two Chessmate accounts in separate browser profiles or devices, using only a nickname, username, and password. Reserve distinct names such as `emma` and `lily`. Use different accounts, not two tabs sharing one login.
+1. Create two Chessmate accounts in separate browser profiles or devices, using only a name and password. Reserve distinct names such as `emma` and `lily`. Use different accounts, not two tabs sharing one login.
 2. Sign in as Emma. **My room & friends** should show her room online immediately.
 3. Open Emma's invitation on the other device or join `emma` by name. Lily should appear under **At your door**. No game should start until Emma clicks **Play**.
 4. Exchange moves and chat, finish the game, and return to the room. Verify both accounts have the result, saved friend, and expected progress.

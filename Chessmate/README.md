@@ -1,4 +1,4 @@
-# Chessmate 2.1 — account-owned home rooms
+# Chessmate 2.2 — account-owned home rooms
 
 A warm, modern chess clubhouse with computer personalities, 2D/3D boards, named home rooms, friends, and progression.
 
@@ -8,9 +8,9 @@ A warm, modern chess clubhouse with computer personalities, 2D/3D boards, named 
 
 ## The player flow
 
-1. Choose **Create your room**, enter a nickname, choose a username such as `emma`, and make a password. The username is also the permanent home-room name.
-2. Sign in to return to your own home room. It opens automatically and displays whether you are online. The name stays yours when you sign out.
-3. Share `room.html?room=emma`, or have a friend type `emma` under **Join a room**. A signed-in visitor enters the waiting list; the host chooses **Play** next to the person they want to play.
+1. Enter **Your name** and **Create a password**, then press **Start playing**. That same name identifies your player and home room. Returning players choose **Sign in** and use the same two fields.
+2. The next screen has two large choices: **Play computer** or **Play a friend**. Progress and avatar options are secondary links.
+3. Under **Play a friend**, choose **Send my room link**, or enter the other person’s name or room link and press **Join my friend**. A signed-in visitor enters the waiting list; the host chooses **Play** next to the person they want to play.
 4. Previous opponents appear in **Familiar faces**. Tap an avatar to invite that friend or choose **Visit their room**. Invitations are stored for the recipient's next visit.
 5. Rating, XP, outfits, history, avatar, and friends are saved to the account. Sign in on another device to retrieve them.
 
@@ -66,9 +66,9 @@ release/Chessmate/
   _source/              # Editable project, tests, and Supabase schema/setup
 ```
 
-After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.1.zip` before using GitHub's folder-upload interface.
+After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.2.zip` before using GitHub's folder-upload interface.
 
-`version.json` and the app footer identify version **2.1.0 / Username edition**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
+`version.json` identifies version **2.2.0 / Simple play**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
 
 ## Validation
 
@@ -78,7 +78,7 @@ The updated phone board is checked in-browser at narrow and standard phone width
 
 ## Source map
 
-- `src/App.jsx` — clubhouse, progression, wardrobe, and navigation
+- `src/App.jsx`, `src/HomeScreen.jsx` — welcome, two-choice start screen, progression, wardrobe, and navigation
 - `src/AccountForm.jsx`, `src/usernameAuth.js`, `src/useAccount.js`, `src/cloud.js` — authentication and cloud saves
 - `src/RoomLobby.jsx`, `src/CloudRooms.js` — named rooms, waiting guests, friends, realtime transport
 - `src/Game.jsx` — chess, chat, result handling, and worker coordination

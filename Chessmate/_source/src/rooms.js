@@ -2,7 +2,7 @@
 export function roomName(value = '') {
   let text = String(value).trim();
   try { text = new URL(text).searchParams.get('room') || text; } catch {}
-  return text.replace(/^@/, '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, '-');
+  return text.replace(/^@/, '').replace(/[’']/g, '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, '-');
 }
 export function validRoom(value) { return /^[a-z0-9][a-z0-9-]{1,23}$/.test(value); }
 export function suggestedRoom(name) { return roomName(name).replace(/[^a-z0-9-]/g, '').slice(0, 24) || 'my-chess-room'; }
