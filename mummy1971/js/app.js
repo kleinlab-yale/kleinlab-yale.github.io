@@ -9,11 +9,11 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=12';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=12';
-import { Mummy3DView } from './view_3d.js?v=12';
-import { Mummy2DView } from './view_2d.js?v=12';
-import { MultiplayerManager } from './multiplayer.js?v=12';
+} from './board_data.js?v=14';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=14';
+import { Mummy3DView } from './view_3d.js?v=14';
+import { Mummy2DView } from './view_2d.js?v=14';
+import { MultiplayerManager } from './multiplayer.js?v=14';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -1249,6 +1249,7 @@ class VoiceOfTheMummyApp {
     if (!container) return;
 
     const curPlayer = state.players[state.turnIndex];
+    const humanPlayers = state.players.filter((pl) => pl.control === 'human');
     const colorNames = {
       blue: 'BLUE PAWN',
       red: 'RED PAWN',
@@ -1266,6 +1267,21 @@ class VoiceOfTheMummyApp {
         const totalScore =
           p.jewels + (hasGreatJewel ? 5 : 0) + (hasCobra ? -5 : 0);
         const pawnLabel = colorNames[p.id] || p.id.toUpperCase();
+
+        const isLocalYou =
+          p.control === 'human' &&
+          (humanPlayers.length === 1 ||
+            (this.mp.mode !== 'local' && p.peerId === this.mp.myPeerId));
+        const isDefaultName = /^(Blue|Red|Yellow|Green)\s+Explorer/i.test(p.name || '') || /^Explorer\s*\d*$/i.test(p.name || '') || /^Player\s*\d*$/i.test(p.name || '');
+
+        let cardTitle = p.name;
+        if (p.control === 'ai') {
+          cardTitle = 'Bot';
+        } else if (isLocalYou) {
+          cardTitle = isDefaultName ? 'You' : p.name;
+        } else if (isDefaultName) {
+          cardTitle = 'Player';
+        }
 
         return `
           <div class="temple-player-card ${isTurn ? 'active-turn' : ''}" style="--player-color: ${p.colorHex}; --player-accent: ${p.accentHex}">
@@ -1287,7 +1303,7 @@ class VoiceOfTheMummyApp {
                   <span class="pawn-color-pill" style="background: ${p.colorHex}">${pawnLabel}</span>
                   <span class="player-badge-role">${p.control === 'ai' ? '🤖 Bot' : '🧑 You/Human'}</span>
                 </div>
-                <div class="temple-player-title-strong">${p.name}</div>
+                <div class="temple-player-title-strong">${cardTitle}</div>
                 <div class="temple-deity-sub">${p.deityTitle} • Level ${p.level}</div>
                 <div class="temple-space-sub">📍 ${sp ? sp.label : ''}</div>
               </div>
