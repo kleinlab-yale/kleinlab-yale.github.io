@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice of the Mummy (1971 Milton Bradley) — 3D &amp; 2D Online Multiplayer</title>
+  <!-- IMPORTANT: importmap MUST appear before any other <script> tag in <head> -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="css/styles.css?v=2" />
+  <!-- PeerJS for Serverless WebRTC P2P Multiplayer on GitHub Pages -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+</head>
+<body>
+  <!-- TOP NAVIGATION BAR -->
+  <header class="top-navbar">
+    <div class="brand-group">
+      <span class="brand-emblem">🏺</span>
+      <div>
+        <div class="brand-title">Voice of the Mummy</div>
+        <div class="brand-sub">1971 Milton Bradley • 3D &amp; 2D Online Multiplayer</div>
+      </div>
+    </div>
+
+    <div class="status-pills-group">
+      <div id="badge-game-part" class="part-pill part-one">
+        💿 PART I: Side 1 — Hunt for the Jewels
+      </div>
+      <div id="badge-jewels-remaining" class="jewel-status-pill">
+        💎 Top-Level Scarabs left: 6/6
+      </div>
+      <div id="top-room-badge" class="room-badge-pill hidden">
+        🌐 Room: —
+      </div>
+    </div>
+
+    <div class="nav-actions-group">
+      <div class="view-switcher" role="group" aria-label="Board View Switcher">
+        <button class="view-btn active" data-view-mode="split">3D + 2D Split</button>
+        <button class="view-btn" data-view-mode="3d">3D Pyramid</button>
+        <button class="view-btn" data-view-mode="2d">2D Overhead</button>
+      </div>
+      <button class="nav-btn" id="btn-open-lobby">🌐 Multiplayer / Setup</button>
+      <button class="nav-btn" id="btn-open-rules">📜 1971 Rules &amp; Audio</button>
+      <button class="nav-btn" id="btn-toggle-mute">🔊 Audio On</button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE: 3D & 2D VIEWPORTS + RIGHT GAME SIDEBAR -->
+  <main class="workspace-layout">
+    <div class="stage-area" id="main-stage-grid" data-view-mode="split">
+      <!-- 3D Three.js Pyramid Viewport -->
+      <section class="pane-3d">
+        <div class="pane-floating-toolbar">
+          <button class="cam-pill-btn" data-cam-preset="hero">🎥 3/4 Hero View</button>
+          <button class="cam-pill-btn" data-cam-preset="topdown">⬇ Top-Down 3D</button>
+          <button class="cam-pill-btn" data-cam-preset="sarcophagus">⚰️ Sarcophagus Close-Up</button>
+          <button class="cam-pill-btn" data-cam-preset="follow">🧭 Follow Active Explorer</button>
+        </div>
+        <div id="viewport-3d" class="viewport-canvas"></div>
+        <div id="loading-overlay-3d" class="loading-overlay">
+          <img src="renders/voice_of_the_mummy_hero.png" alt="3D Pyramid Preview" class="loading-preview-img" />
+          <div class="loading-overlay-badge">⏳ Loading Interactive 3D Stepped Pyramid &amp; 26 Scarab Gems...</div>
+        </div>
+        <div class="pane-label-tag">Interactive 3D View — Drag to Orbit • Scroll to Zoom • Click Highlighted Tiles, Die, or Sarcophagus Lever</div>
+      </section>
+
+      <!-- 2D Orthographic Board Viewport -->
+      <section class="pane-2d">
+        <div id="viewport-2d" class="viewport-canvas">
+          <div class="board2d-wrapper">
+            <div class="board2d-stage">
+              <img src="textures/board_top_ortho.png" alt="1971 Voice of the Mummy Orthographic Board" class="board2d-img" />
+            </div>
+          </div>
+        </div>
+        <div class="pane-label-tag">Interactive 2D Orthographic View — Hover Spaces for Details • Click Highlighted Tiles to Move</div>
+      </section>
+
+      <!-- Live Mummy Voice Transcript Overlay Banner -->
+      <div id="mummy-voice-banner" class="mummy-voice-banner hidden">
+        <div id="mummy-voice-title" class="mummy-voice-title">🎙️ THE VOICE OF THE MUMMY SPEAKS</div>
+        <div id="mummy-voice-quote" class="mummy-voice-quote">""</div>
+      </div>
+
+      <!-- Part II Record Flip Notification Toast -->
+      <div id="part2-flip-toast" class="part2-flip-toast hidden">
+        <h3>💿 PART I COMPLETE — FLIPPING RECORD TO SIDE #2 (SIDE B)!</h3>
+        <p>The Great Mummy Jewel (+5 pts) and cursed Ruby Cobra (-5 pts Evil Spell) have been claimed! Explorers may now move CLOCKWISE or COUNTER-CLOCKWISE to pass the Cobra and race back to their Home Temple Corner by exact count!</p>
+      </div>
+    </div>
+
+    <!-- RIGHT GAMEPLAY SIDEBAR -->
+    <aside class="sidebar-panel">
+      <!-- Active Turn Controls -->
+      <div id="turn-action-deck" class="turn-action-deck"></div>
+
+      <!-- 4 Explorer Temples & Live Scoreboard -->
+      <div class="sidebar-section-header">🏛️ Explorer Temples &amp; Jewel Scores</div>
+      <div id="players-sidebar-list" class="players-sidebar-list"></div>
+
+      <!-- Tomb Expedition Event Log -->
+      <div class="sidebar-section-header">📜 Tomb Expedition Chronicle</div>
+      <div id="tomb-event-log" class="tomb-event-log"></div>
+    </aside>
+  </main>
+
+  <!-- =======================================================================
+       MODAL 1: MULTIPLAYER ROOM & GAME SETUP LOBBY
+       ======================================================================= -->
+  <div id="modal-lobby" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>🌐 Tomb Expedition Setup &amp; Online Multiplayer Lobby</h2>
+        <button class="btn-close-modal" id="btn-close-lobby">✕ Return to Board</button>
+      </div>
+      <div class="modal-body">
+        <!-- Online P2P Multiplayer Room Box -->
+        <div class="mp-connect-box">
+          <div class="mp-row">
+            <strong>Online Multiplayer (GitHub Pages P2P):</strong>
+            <input type="text" id="input-player-name" class="mp-input" placeholder="Your Explorer Name" value="Explorer" />
+            <button class="nav-btn" id="btn-host-room">👑 Host Online Game</button>
+            <span>or</span>
+            <input type="text" id="input-room-code" class="mp-input" placeholder="Room Code (e.g. TOMB-4821)" style="width: 175px;" />
+            <button class="nav-btn" id="btn-join-room">🔗 Join Room</button>
+          </div>
+          <div id="mp-status-banner" style="font-size: 12px; color: var(--gold-soft);">
+            Play solo against AI Tomb Bots, Local Pass-and-Play, or click "Host Online Game" to get a shareable invite link for friends!
+          </div>
+          <div id="room-share-box" class="room-share-box hidden">
+            <div>
+              Room Code: <strong id="active-room-code-display" style="color: var(--gold-bright); font-size: 15px;">TOMB-0000</strong>
+            </div>
+            <div style="display: flex; gap: 8px; flex: 1; min-width: 260px;">
+              <input type="text" id="share-invite-url" class="mp-input" readonly style="flex: 1;" />
+              <button class="nav-btn" id="btn-copy-invite">📋 Copy Invite Link</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Seat Presets -->
+        <div class="preset-row">
+          <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">Quick Setup Presets:</span>
+          <button class="nav-btn" id="btn-preset-solo">1 Human + 3 AI Bots</button>
+          <button class="nav-btn" id="btn-preset-2p">2 Humans (Pass &amp; Play / Online)</button>
+          <button class="nav-btn" id="btn-preset-4p">4 Humans (Full Table)</button>
+        </div>
+
+        <!-- 4 Deity Temple Explorer Seats -->
+        <div id="lobby-seats-grid" class="lobby-seats-grid"></div>
+
+        <!-- Start Expedition CTA -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button class="btn-primary-action pulse-gold" id="btn-start-game" style="max-width: 280px;">
+            🏺 Start New Tomb Expedition
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       MODAL 2: ORIGINAL 1971 RULEBOOK & 40-TRACK MUMMY SOUNDBOARD
+       ======================================================================= -->
+  <div id="modal-rules" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>📜 1971 Milton Bradley Rules &amp; 40 Original Mummy Record Tracks</h2>
+        <button class="btn-close-modal" id="btn-close-rules">✕ Close</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <p style="font-size: 13px; color: var(--text-muted);">
+            Faithfully recreated from the original 1971 Milton Bradley <em>Voice of the Mummy</em> Directions (4165) and dual-sided 40-groove internal phonograph record.
+          </p>
+          <a href="rules/update_sarc.pdf" target="_blank" rel="noopener" class="nav-btn" style="text-decoration: none;">
+            📄 Open Original 1971 Rulebook PDF
+          </a>
+        </div>
+
+        <div class="rules-columns">
+          <div class="rules-box">
+            <h3>💿 PART I: Side 1 of Record (Hunt for Jewels)</h3>
+            <ul>
+              <li><strong>Setup:</strong> 26 Emerald Scarab Jewels (<strong>1 pt each</strong>) sit on the Winged Scarab spaces (12 on Level 1, 8 on Level 2, 6 on Level 3). The Great Jewel (<strong>+5 pts</strong>) and Ruby Cobra sit on the Sarcophagus.</li>
+              <li><strong>Movement:</strong> All Explorers start on their Home Lotus Corner on Level 1 and move <strong>CLOCKWISE</strong> by the count rolled on the die. All corner sections count as a space.</li>
+              <li><strong>Collecting Jewels:</strong> Ending your move on a space with a Scarab Jewel collects it into your Temple. Ending on an opponent's space steals 1 Jewel from each opponent there!</li>
+              <li><strong>Mummy's Head Spaces:</strong> Landing on a Pharaoh Mask requires pulling the Sarcophagus Lever to hear and obey a random Side A voice command!</li>
+              <li><strong>Changing Levels (Rule 7):</strong> Ending your turn on any Corner space or Protruding Staircase space lets you climb UP or DOWN 1 level for your next turn.</li>
+              <li><strong>End of Part I (Rules 8 &amp; 9):</strong> Once all <strong>6 Top-Level Jewels</strong> on Level 3 are collected, the first Explorer to land by <strong>EXACT COUNT</strong> on either Level 3 Great Jewel Space collects both the <strong>Great Jewel (+5 pts)</strong> and the cursed <strong>Ruby Cobra (-5 pts Evil Spell)</strong>!</li>
+            </ul>
+          </div>
+
+          <div class="rules-box">
+            <h3>💿 PART II: Side 2 of Record (Escape to Your Temple)</h3>
+            <ul>
+              <li><strong>Record Flip:</strong> The Sarcophagus record flips to Side #2 (Side B). Explorers may now move <strong>CLOCKWISE or COUNTER-CLOCKWISE</strong> each turn!</li>
+              <li><strong>Passing the Cursed Cobra (Rule II.2):</strong> While holding the Cobra, you <strong>cannot end the game</strong>. Landing by <strong>EXACT COUNT</strong> on an opponent steals 1 Jewel AND passes the Cobra and its Evil Spell to that opponent!</li>
+              <li><strong>Stealing the Great Jewel (Rule II.3):</strong> Landing by <strong>EXACT COUNT</strong> on the opponent holding the Great Jewel steals the Great Jewel from them (without taking the Cobra!).</li>
+              <li><strong>Ending the Game &amp; Homecoming Bonus (Rules II.6 &amp; II.7):</strong> The first Explorer <em>without the Cobra</em> to reach their own Level 1 Home Lotus Corner by <strong>EXACT COUNT</strong> ends the game and receives <strong>1 bonus Jewel from each opponent</strong> (or the Great Jewel if an opponent holds only the Great Jewel)!</li>
+              <li><strong>Winning:</strong> 1 pt per Precious Jewel, +5 pts for the Great Jewel, -5 pts for the Cobra. Highest score wins!</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rules-columns">
+          <div class="rules-box">
+            <h3>🔊 Record Side A Soundboard (20 Tracks — Part I)</h3>
+            <div id="soundboard-side-a" class="soundboard-list"></div>
+          </div>
+          <div class="rules-box">
+            <h3>🔊 Record Side B Soundboard (20 Tracks — Part II)</h3>
+            <div id="soundboard-side-b" class="soundboard-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       MODAL 3: GAME OVER & FINAL TREASURE SCOREBOARD
+       ======================================================================= -->
+  <div id="modal-gameover" class="modal-backdrop hidden">
+    <div class="modal-card" style="max-width: 640px;">
+      <div class="modal-header">
+        <h2>🏆 Tomb Expedition Complete — Final Jewel Tally</h2>
+      </div>
+      <div class="modal-body">
+        <div id="gameover-scores-body" style="display: flex; flex-direction: column; gap: 16px;"></div>
+        <div style="display: flex; justify-content: flex-end;">
+          <button class="btn-primary-action pulse-gold" id="btn-play-again" style="max-width: 220px;">
+            🏺 Play Another Game
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Script -->
+  <script type="module" src="js/app.js?v=3"></script>
+</body>
+</html>
