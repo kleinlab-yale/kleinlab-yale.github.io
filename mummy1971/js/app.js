@@ -9,11 +9,11 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=14';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=14';
-import { Mummy3DView } from './view_3d.js?v=14';
-import { Mummy2DView } from './view_2d.js?v=14';
-import { MultiplayerManager } from './multiplayer.js?v=14';
+} from './board_data.js?v=16';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=16';
+import { Mummy3DView } from './view_3d.js?v=16';
+import { Mummy2DView } from './view_2d.js?v=16';
+import { MultiplayerManager } from './multiplayer.js?v=16';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -32,7 +32,15 @@ class VoiceOfTheMummyApp {
     this.bigPopupTimer = null;
     this.lastBigPopupTime = 0;
 
-    // Step 1 Multiplayer Wizard state
+    // Single Player & Step 1 Multiplayer Wizard state
+    this.selectedSingleSeatId = 'blue';
+    this.selectedSingleBotIds = new Set(['red', 'yellow', 'green']);
+    this.botTraits = {
+      blue: { rightHanded: false, ageEven: true },
+      red: { rightHanded: true, ageEven: true },
+      yellow: { rightHanded: false, ageEven: false },
+      green: { rightHanded: true, ageEven: false },
+    };
     this.selectedHostSeatId = 'blue';
     this.selectedHumanCount = 2;
 
@@ -288,13 +296,43 @@ class VoiceOfTheMummyApp {
     // Intro Landing Card ("Single Player" vs "Multiplayer")
     document.getElementById('btn-landing-single')?.addEventListener('click', () => {
       document.getElementById('modal-intro-landing')?.classList.add('hidden');
-      this._applySeatPreset('solo_3ai');
-      this._resetViewForNewGame();
-      this.engine.initGame(this.mp.lobbyState.seats);
+      this._openSingleSetupModal();
+    });
+
+    document.getElementById('btn-close-single-setup')?.addEventListener('click', () => {
+      document.getElementById('modal-single-setup')?.classList.add('hidden');
+      document.getElementById('modal-intro-landing')?.classList.remove('hidden');
+    });
+
+    document.getElementById('btn-start-single-game')?.addEventListener('click', () => {
+      this._startSinglePlayerGame();
+    });
+
+    document.getElementById('input-single-name')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this._startSinglePlayerGame();
+      }
+    });
+
+    // Single Player Bot Count Pills (1 Bot, 2 Bots, 3 Bots)
+    document.querySelectorAll('[data-single-bot-count]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetCount = Math.max(1, Math.min(3, Number(btn.dataset.singleBotCount) || 3));
+        const availableIds = PLAYERS_CONFIG.map((c) => c.id).filter((id) => id !== this.selectedSingleSeatId);
+        const kept = availableIds.filter((id) => this.selectedSingleBotIds.has(id)).slice(0, targetCount);
+        for (const id of availableIds) {
+          if (kept.length >= targetCount) break;
+          if (!kept.includes(id)) kept.push(id);
+        }
+        this.selectedSingleBotIds = new Set(kept);
+        this._renderSingleBotPicker();
+      });
     });
 
     document.getElementById('btn-landing-multi')?.addEventListener('click', () => {
       document.getElementById('modal-intro-landing')?.classList.add('hidden');
+      document.getElementById('modal-single-setup')?.classList.add('hidden');
       this._openMultiplayerModal();
     });
 
@@ -305,6 +343,7 @@ class VoiceOfTheMummyApp {
     // Lobby Modal Open / Close
     document.getElementById('btn-open-lobby')?.addEventListener('click', () => {
       document.getElementById('modal-intro-landing')?.classList.add('hidden');
+      document.getElementById('modal-single-setup')?.classList.add('hidden');
       this._openMultiplayerModal();
     });
     document.getElementById('btn-close-lobby')?.addEventListener('click', () => {
@@ -447,7 +486,12 @@ class VoiceOfTheMummyApp {
     // Victory Modal Buttons ("Play Another Expedition" & "View 3D Finale Board")
     document.getElementById('btn-play-again')?.addEventListener('click', () => {
       document.getElementById('modal-gameover')?.classList.add('hidden');
-      this._openMultiplayerModal();
+      const humans = (this.activeState?.players || []).filter((p) => p.control === 'human');
+      if (this.mp.mode === 'local' && humans.length === 1) {
+        this._openSingleSetupModal();
+      } else {
+        this._openMultiplayerModal();
+      }
     });
     document.getElementById('btn-close-gameover')?.addEventListener('click', () => {
       document.getElementById('modal-gameover')?.classList.add('hidden');
@@ -456,9 +500,201 @@ class VoiceOfTheMummyApp {
       document.getElementById('modal-gameover')?.classList.add('hidden');
     });
 
-    // Render Step 1 Character Picker & initial Lobby seats
+    // Render Single Player & Step 1 Multiplayer Character Pickers & initial Lobby seats
+    this._renderSingleCharacterPicker();
+    this._renderSingleBotPicker();
     this._renderStep1HostCharacterPicker();
     this._renderLobbySeats(this.mp.lobbyState);
+  }
+
+  _openSingleSetupModal() {
+    this._renderSingleCharacterPicker();
+    this._renderSingleBotPicker();
+    document.getElementById('modal-single-setup')?.classList.remove('hidden');
+  }
+
+  _renderSingleCharacterPicker() {
+    const container = document.getElementById('single-character-picker');
+    if (!container) return;
+
+    container.innerHTML = PLAYERS_CONFIG.map((cfg) => {
+      const isSelected = cfg.id === this.selectedSingleSeatId;
+      return `
+        <button type="button" class="mp-char-pick-card ${isSelected ? 'selected' : ''}" data-pick-single-seat="${cfg.id}" style="--char-color: ${cfg.colorHex}">
+          <div class="mp-char-visuals">
+            <img src="${cfg.portraitImg}" alt="${cfg.name}" class="mp-char-fig" />
+            <img src="${cfg.templeImg}" alt="${cfg.deity}" class="mp-char-temple" />
+          </div>
+          <div class="mp-char-name">${cfg.name}</div>
+          <div class="mp-char-deity">${cfg.deityTitle}</div>
+          <div class="mp-char-badge" style="background: ${cfg.colorHex}">
+            ${isSelected ? '✓ YOUR PIECE' : 'Tap to Pick'}
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    container.querySelectorAll('[data-pick-single-seat]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const prevSeatId = this.selectedSingleSeatId;
+        const nextSeatId = btn.dataset.pickSingleSeat;
+        if (nextSeatId === prevSeatId) return;
+        this.selectedSingleSeatId = nextSeatId;
+        // If the newly picked human Explorer color was previously an active AI Bot, swap the old human seat into the active bots
+        if (this.selectedSingleBotIds.has(nextSeatId)) {
+          this.selectedSingleBotIds.delete(nextSeatId);
+          this.selectedSingleBotIds.add(prevSeatId);
+        }
+        this._renderSingleCharacterPicker();
+        this._renderSingleBotPicker();
+      });
+    });
+  }
+
+  _renderSingleBotPicker() {
+    const container = document.getElementById('single-bot-picker');
+    if (!container) return;
+
+    const availableConfigs = PLAYERS_CONFIG.filter((cfg) => cfg.id !== this.selectedSingleSeatId);
+    // Ensure selectedSingleBotIds only contains non-human IDs and has at least 1 bot
+    for (const id of Array.from(this.selectedSingleBotIds)) {
+      if (id === this.selectedSingleSeatId) {
+        this.selectedSingleBotIds.delete(id);
+      }
+    }
+    if (this.selectedSingleBotIds.size === 0 && availableConfigs.length > 0) {
+      this.selectedSingleBotIds.add(availableConfigs[0].id);
+    }
+
+    const activeBotCount = this.selectedSingleBotIds.size;
+    document.querySelectorAll('[data-single-bot-count]').forEach((btn) => {
+      btn.classList.toggle('active', Number(btn.dataset.singleBotCount) === activeBotCount);
+    });
+
+    container.innerHTML = availableConfigs
+      .map((cfg) => {
+        const isActiveBot = this.selectedSingleBotIds.has(cfg.id);
+        const traits = this.botTraits[cfg.id] || { rightHanded: true, ageEven: true };
+        return `
+          <div class="single-bot-card ${isActiveBot ? 'bot-active' : 'bot-off'}" style="--bot-color: ${cfg.colorHex}">
+            <button type="button" class="single-bot-toggle-head" data-toggle-single-bot="${cfg.id}" title="Tap to turn ${cfg.name} Bot On or Off">
+              <div class="single-bot-visuals">
+                <img src="${cfg.portraitImg}" alt="${cfg.name}" class="single-bot-fig" />
+                <img src="${cfg.templeImg}" alt="${cfg.deity}" class="single-bot-temple" />
+              </div>
+              <div class="single-bot-title-wrap">
+                <div class="single-bot-name">${cfg.name}</div>
+                <div class="single-bot-deity">${cfg.deityTitle}</div>
+              </div>
+              <div class="single-bot-status-pill" style="${isActiveBot ? `background: ${cfg.colorHex}; color: #fff;` : ''}">
+                ${isActiveBot ? '✓ 🤖 AI BOT PLAYING' : '🚫 NOT PLAYING (TAP TO ADD)'}
+              </div>
+            </button>
+
+            <div class="single-bot-traits-box ${isActiveBot ? '' : 'traits-disabled'}">
+              <div class="bot-trait-group">
+                <span class="bot-trait-label">Handedness (Side B Spell):</span>
+                <div class="bot-trait-Switch">
+                  <button type="button" class="btn-bot-trait ${traits.rightHanded ? 'active' : ''}" data-bot-hand="${cfg.id}" data-hand-val="right" ${isActiveBot ? '' : 'disabled'}>
+                    ✋ Right-Handed
+                  </button>
+                  <button type="button" class="btn-bot-trait ${!traits.rightHanded ? 'active' : ''}" data-bot-hand="${cfg.id}" data-hand-val="left" ${isActiveBot ? '' : 'disabled'}>
+                    🤚 Left-Handed
+                  </button>
+                </div>
+              </div>
+
+              <div class="bot-trait-group">
+                <span class="bot-trait-label">Birthday / Age Number (3 Gems):</span>
+                <div class="bot-trait-Switch">
+                  <button type="button" class="btn-bot-trait ${traits.ageEven ? 'active' : ''}" data-bot-age="${cfg.id}" data-age-val="even" ${isActiveBot ? '' : 'disabled'}>
+                    🎂 Even Number
+                  </button>
+                  <button type="button" class="btn-bot-trait ${!traits.ageEven ? 'active' : ''}" data-bot-age="${cfg.id}" data-age-val="odd" ${isActiveBot ? '' : 'disabled'}>
+                    🎂 Odd Number
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      })
+      .join('');
+
+    container.querySelectorAll('[data-toggle-single-bot]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const botId = btn.dataset.toggleSingleBot;
+        if (this.selectedSingleBotIds.has(botId)) {
+          if (this.selectedSingleBotIds.size > 1) {
+            this.selectedSingleBotIds.delete(botId);
+          } else {
+            // Always keep at least 1 bot active so there is an opponent
+            const other = availableConfigs.find((c) => c.id !== botId);
+            if (other) {
+              this.selectedSingleBotIds.delete(botId);
+              this.selectedSingleBotIds.add(other.id);
+            }
+          }
+        } else {
+          this.selectedSingleBotIds.add(botId);
+        }
+        this._renderSingleBotPicker();
+      });
+    });
+
+    container.querySelectorAll('[data-bot-hand]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const botId = btn.dataset.botHand;
+        const isRight = btn.dataset.handVal === 'right';
+        if (!this.botTraits[botId]) {
+          this.botTraits[botId] = { rightHanded: true, ageEven: true };
+        }
+        this.botTraits[botId].rightHanded = isRight;
+        this._renderSingleBotPicker();
+      });
+    });
+
+    container.querySelectorAll('[data-bot-age]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const botId = btn.dataset.botAge;
+        const isEven = btn.dataset.ageVal === 'even';
+        if (!this.botTraits[botId]) {
+          this.botTraits[botId] = { rightHanded: true, ageEven: true };
+        }
+        this.botTraits[botId].ageEven = isEven;
+        this._renderSingleBotPicker();
+      });
+    });
+  }
+
+  _startSinglePlayerGame() {
+    const rawName = document.getElementById('input-single-name')?.value?.trim() || '';
+    this.mp.disconnect();
+
+    for (const s of this.mp.lobbyState.seats) {
+      const cfg = PLAYERS_CONFIG.find((c) => c.id === s.id);
+      const traits = this.botTraits[s.id] || { rightHanded: true, ageEven: true };
+      if (s.id === this.selectedSingleSeatId) {
+        s.control = 'human';
+        s.peerId = 'local';
+        s.name = rawName || 'You';
+      } else if (this.selectedSingleBotIds.has(s.id)) {
+        s.control = 'ai';
+        s.peerId = null;
+        s.name = `${cfg.name} (Bot)`;
+        s.rightHanded = Boolean(traits.rightHanded);
+        s.ageEven = Boolean(traits.ageEven);
+      } else {
+        s.control = 'none';
+        s.peerId = null;
+        s.name = cfg.name;
+      }
+    }
+
+    document.getElementById('modal-single-setup')?.classList.add('hidden');
+    document.getElementById('modal-intro-landing')?.classList.add('hidden');
+    this._resetViewForNewGame();
+    this.engine.initGame(this.mp.lobbyState.seats);
   }
 
   _openMultiplayerModal() {
@@ -746,6 +982,19 @@ class VoiceOfTheMummyApp {
                 : ''
             }
 
+            ${
+              seat.control === 'ai' && this.mp.mode !== 'guest'
+                ? `<div class="lobby-bot-traits-row">
+                    <button type="button" class="btn-lobby-trait" data-lobby-bot-hand="${seat.id}" title="Click to toggle Right-Handed vs Left-Handed for this AI Bot">
+                      ${seat.rightHanded !== false ? '✋ Right-Handed' : '🤚 Left-Handed'}
+                    </button>
+                    <button type="button" class="btn-lobby-trait" data-lobby-bot-age="${seat.id}" title="Click to toggle Even vs Odd Birthday/Age for this AI Bot">
+                      ${seat.ageEven !== false ? '🎂 Even B-Day/Age' : '🎂 Odd B-Day/Age'}
+                    </button>
+                  </div>`
+                : ''
+            }
+
             <div class="seat-Join-btn-row">
               ${
                 isMe
@@ -771,9 +1020,12 @@ class VoiceOfTheMummyApp {
         const seatId = sel.dataset.seatId;
         const cfg = PLAYERS_CONFIG.find((c) => c.id === seatId);
         const newControl = sel.value;
+        const traits = this.botTraits[seatId] || { rightHanded: true, ageEven: true };
         this.mp.updateSeat(seatId, {
           control: newControl,
           peerId: null,
+          rightHanded: traits.rightHanded,
+          ageEven: traits.ageEven,
           name:
             newControl === 'human'
               ? 'Waiting for Friend...'
@@ -781,6 +1033,28 @@ class VoiceOfTheMummyApp {
               ? `${cfg?.name || 'Explorer'} (Bot)`
               : cfg?.name || 'Explorer',
         });
+      });
+    });
+
+    container.querySelectorAll('[data-lobby-bot-hand]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const seatId = btn.dataset.lobbyBotHand;
+        const seat = lobbyState.seats.find((s) => s.id === seatId);
+        if (!seat) return;
+        const nextVal = !(seat.rightHanded !== false);
+        if (this.botTraits[seatId]) this.botTraits[seatId].rightHanded = nextVal;
+        this.mp.updateSeat(seatId, { rightHanded: nextVal });
+      });
+    });
+
+    container.querySelectorAll('[data-lobby-bot-age]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const seatId = btn.dataset.lobbyBotAge;
+        const seat = lobbyState.seats.find((s) => s.id === seatId);
+        if (!seat) return;
+        const nextVal = !(seat.ageEven !== false);
+        if (this.botTraits[seatId]) this.botTraits[seatId].ageEven = nextVal;
+        this.mp.updateSeat(seatId, { ageEven: nextVal });
       });
     });
 
@@ -1248,6 +1522,8 @@ class VoiceOfTheMummyApp {
     const container = document.getElementById('players-sidebar-list');
     if (!container) return;
 
+    container.style.setProperty('--player-count', String(Math.max(1, state.players.length)));
+
     const curPlayer = state.players[state.turnIndex];
     const humanPlayers = state.players.filter((pl) => pl.control === 'human');
     const colorNames = {
@@ -1283,6 +1559,11 @@ class VoiceOfTheMummyApp {
           cardTitle = 'Player';
         }
 
+        const botTraitBadge =
+          p.control === 'ai'
+            ? `🤖 Bot • ${p.rightHanded !== false ? '✋Right' : '🤚Left'} • ${p.ageEven !== false ? '🎂Even' : '🎂Odd'}`
+            : '🧑 You/Human';
+
         return `
           <div class="temple-player-card ${isTurn ? 'active-turn' : ''}" style="--player-color: ${p.colorHex}; --player-accent: ${p.accentHex}">
             ${
@@ -1301,7 +1582,7 @@ class VoiceOfTheMummyApp {
               <div class="temple-player-info">
                 <div class="temple-player-name-row">
                   <span class="pawn-color-pill" style="background: ${p.colorHex}">${pawnLabel}</span>
-                  <span class="player-badge-role">${p.control === 'ai' ? '🤖 Bot' : '🧑 You/Human'}</span>
+                  <span class="player-badge-role">${botTraitBadge}</span>
                 </div>
                 <div class="temple-player-title-strong">${cardTitle}</div>
                 <div class="temple-deity-sub">${p.deityTitle} • Level ${p.level}</div>

@@ -10,7 +10,7 @@ import {
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
   TOP_LEVEL_JEWEL_IDS,
-} from './board_data.js?v=2';
+} from './board_data.js?v=15';
 
 export { TOP_LEVEL_JEWEL_IDS };
 
@@ -65,10 +65,12 @@ export class VoiceOfTheMummyEngine {
     this.sideADeck = this._shuffleTracks(SIDE_A_TRACKS);
     this.sideBDeck = this._shuffleTracks(SIDE_B_TRACKS);
 
+    const firstHumanIdx = players.findIndex((p) => p.control === 'human');
+
     this.state = {
       part: 1, // 1 = Side A (Hunt for Jewels), 2 = Side B (Escape to Temple)
       recordSide: 'SideA',
-      turnIndex: 0,
+      turnIndex: firstHumanIdx >= 0 ? firstHumanIdx : 0,
       turnNumber: 1,
       phase: 'ROLL_DIE', // ROLL_DIE | CHOOSE_DIRECTION | MOVING | PULL_LEVER | MUMMY_SPEAKING | MUMMY_CHOICE | CHOOSE_LEVEL_STEP | GAME_OVER
       lastRoll: null,
@@ -481,6 +483,7 @@ export class VoiceOfTheMummyEngine {
       case 'take_jewels_conditional': {
         this._promptChoice({
           type: 'conditional_yes_no',
+          condition: eff.condition,
           prompt: eff.promptText,
           options: [
             { id: 'yes', label: `Yes — Take ${eff.count} Jewels!` },
@@ -649,6 +652,7 @@ export class VoiceOfTheMummyEngine {
       case 'choice_give_spell_or_level_conditional': {
         this._promptChoice({
           type: 'handedness_check',
+          condition: eff.condition,
           prompt: eff.promptText,
           options: [
             { id: 'yes', label: 'Yes — Give the Spell or Change a Level!' },
@@ -780,17 +784,26 @@ export class VoiceOfTheMummyEngine {
     this.state.pendingChoice = null;
 
     if (choice.type === 'conditional_yes_no') {
+      const condLabel =
+        choice.condition === 'even_age'
+          ? 'Even Number'
+          : choice.condition === 'odd_age'
+          ? 'Odd Number'
+          : 'matching trait';
       if (optionId === 'yes') {
         const n = this._takeAnyBoardJewels(player, choice.count || 3);
-        this._log(`${player.name} answered YES and took ${n} Precious Jewels!`, 'jewel');
+        this._log(`${player.name} (${condLabel}) answered YES and took ${n} Precious Jewels!`, 'jewel');
         this._emitEvent('major_announcement', {
           theme: 'emerald',
           icon: '💎',
           title: `${player.name.toUpperCase()} GOT ${n} GEMS!`,
-          subtitle: `Obeyed the Voice of the Mummy (+${n})`,
+          subtitle: `${condLabel} Match — Obeyed the Voice of the Mummy (+${n})`,
         });
       } else {
-        this._log(`${player.name} answered NO — no Jewels taken.`, 'info');
+        this._log(
+          `${player.name} is NOT ${condLabel} — answered NO and takes 0 Jewels.`,
+          'info'
+        );
       }
       this.state.activeTrack = null;
       this._checkEndTurnLevelChange();
@@ -823,10 +836,20 @@ export class VoiceOfTheMummyEngine {
     }
 
     if (choice.type === 'handedness_check') {
+      const handLabel =
+        choice.condition === 'right_handed'
+          ? 'Right-Handed'
+          : choice.condition === 'left_handed'
+          ? 'Left-Handed'
+          : 'matching handedness';
       if (optionId === 'yes') {
+        this._log(`${player.name} is ${handLabel} — command applies!`, 'info');
         this._promptGiveSpellOrLevelChoice(player, opponents);
       } else {
-        this._log(`${player.name} is unaffected by the Mummy's handedness command.`, 'info');
+        this._log(
+          `${player.name} is NOT ${handLabel} — unaffected by the Mummy's handedness command.`,
+          'info'
+        );
         this.state.activeTrack = null;
         this._checkEndTurnLevelChange();
       }
@@ -1170,8 +1193,31 @@ export class VoiceOfTheMummyEngine {
         return { action: 'pull_lever' };
 
       case 'MUMMY_CHOICE': {
-        const opts = this.state.pendingChoice?.options || [];
+        const choice = this.state.pendingChoice;
+        const opts = choice?.options || [];
         if (opts.length === 0) return null;
+
+        // Honest trait checks for AI Bots based on their pre-game Handedness & Birthday/Age Even/Odd settings!
+        if (choice.type === 'conditional_yes_no') {
+          if (choice.condition === 'even_age') {
+            return { action: 'choice', optionId: player.ageEven ? 'yes' : 'no' };
+          }
+          if (choice.condition === 'odd_age') {
+            return { action: 'choice', optionId: !player.ageEven ? 'yes' : 'no' };
+          }
+        }
+        if (choice.type === 'handedness_check') {
+          if (choice.condition === 'right_handed') {
+            return { action: 'choice', optionId: player.rightHanded ? 'yes' : 'no' };
+          }
+          if (choice.condition === 'left_handed') {
+            return { action: 'choice', optionId: !player.rightHanded ? 'yes' : 'no' };
+          }
+        }
+        if (choice.type === 'tasted_blood_check') {
+          return { action: 'choice', optionId: player.tastedBlood ? 'yes' : 'no' };
+        }
+
         // Prefer giving spell, taking extra turn, or taking jewels
         const giveSpell = opts.find((o) => o.id.startsWith('give_spell_'));
         if (giveSpell) return { action: 'choice', optionId: giveSpell.id };

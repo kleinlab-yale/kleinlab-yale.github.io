@@ -1620,6 +1620,195 @@ body {
   align-items: stretch;
 }
 
+/* SINGLE PLAYER BOT PICKER & HONEST BOT TRAIT TOGGLES (RIGHT/LEFT-HANDED, EVEN/ODD B-DAY) */
+.single-bot-sublabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.single-bot-sublabel strong {
+  color: var(--gold-bright);
+}
+
+.single-bot-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.single-bot-card {
+  background: #140f0a;
+  border: 2px solid rgba(140, 106, 48, 0.35);
+  border-top: 4px solid var(--bot-color);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.single-bot-card.bot-active {
+  background: linear-gradient(180deg, rgba(44, 32, 18, 0.96) 0%, rgba(22, 16, 10, 0.98) 100%);
+  border-color: var(--bot-color);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+}
+
+.single-bot-card.bot-off {
+  opacity: 0.62;
+  filter: grayscale(40%);
+}
+
+.single-bot-toggle-head {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  width: 100%;
+  transition: all 0.15s ease;
+}
+
+.single-bot-toggle-head:hover {
+  border-color: var(--gold-bright);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.single-bot-visuals {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  height: 54px;
+}
+
+.single-bot-fig {
+  width: 38px;
+  height: 50px;
+  object-fit: contain;
+  transform: rotate(10deg);
+}
+
+.single-bot-temple {
+  width: 34px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.single-bot-name {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text-light);
+}
+
+.single-bot-deity {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.single-bot-status-pill {
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  margin-top: 2px;
+  width: 100%;
+}
+
+.single-bot-traits-box {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(245, 200, 76, 0.18);
+}
+
+.single-bot-traits-box.traits-disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.bot-trait-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bot-trait-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.bot-trait-Switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.btn-bot-trait {
+  background: #120d09;
+  border: 1.5px solid rgba(140, 106, 48, 0.45);
+  color: var(--text-muted);
+  border-radius: 7px;
+  padding: 5px 4px;
+  font-size: 10.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-bot-trait:hover:not(:disabled) {
+  border-color: var(--gold-bright);
+  color: var(--text-light);
+}
+
+.btn-bot-trait.active {
+  background: linear-gradient(180deg, #ffe252 0%, #dfa01c 100%);
+  color: #1a1005;
+  border-color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(245, 200, 76, 0.35);
+}
+
+.lobby-bot-traits-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.btn-lobby-trait {
+  background: #140f0a;
+  border: 1.5px solid var(--border-gold);
+  color: #ffe266;
+  border-radius: 7px;
+  padding: 5px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-lobby-trait:hover {
+  background: rgba(245, 200, 76, 0.18);
+  border-color: #ffffff;
+}
+
 /* STEP 2: INVITE LINK & WAITING ROOM */
 .mp-invite-hero-box {
   background: linear-gradient(135deg, rgba(16, 56, 32, 0.9), rgba(10, 32, 18, 0.95));
@@ -2781,10 +2970,10 @@ body {
     padding: 6px 8px;
   }
 
-  /* 4-Across Horizontal Player Score Strip on iPhone — All 4 Explorers fit tightly in 1 clean row! */
+  /* 4-Across Horizontal Player Score Strip on iPhone — All active Explorers fit tightly in 1 clean row! */
   .players-sidebar-list {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--player-count, 4), minmax(0, 1fr));
     gap: 4px;
     padding: 5px 5px;
     width: 100%;
@@ -2989,6 +3178,11 @@ body {
 
   .mp-char-picker-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .single-bot-picker-grid {
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 
