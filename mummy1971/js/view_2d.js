@@ -278,22 +278,38 @@ export class Mummy2DView {
     for (const sp of BOARD_SPACES) {
       if (sp.type === 'jewel' && state.boardJewels[sp.id]) {
         const isHorizontalTile = sp.px < 125 || sp.px > 344;
-        const rx = isHorizontalTile ? 8.5 : 5.8;
-        const ry = isHorizontalTile ? 5.8 : 8.5;
+        const rx = isHorizontalTile ? 9.5 : 6.8;
+        const ry = isHorizontalTile ? 6.8 : 9.5;
+        const cx = sp.px;
+        const cy = sp.py;
+
+        // Octagonal emerald-cut outer girdle & inner table coordinates
+        const outerPts = [
+          [cx - rx * 0.45, cy - ry],
+          [cx + rx * 0.45, cy - ry],
+          [cx + rx, cy - ry * 0.45],
+          [cx + rx, cy + ry * 0.45],
+          [cx + rx * 0.45, cy + ry],
+          [cx - rx * 0.45, cy + ry],
+          [cx - rx, cy + ry * 0.45],
+          [cx - rx, cy - ry * 0.45],
+        ];
+        const innerPts = outerPts.map(([ox, oy]) => [cx + (ox - cx) * 0.52, cy + (oy - cy) * 0.52]);
 
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('filter', 'url(#emeraldGlow)');
+        g.setAttribute('filter', 'url(#tokenShadow)');
         g.style.pointerEvents = 'none';
 
-        const el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
-        el.setAttribute('cx', sp.px);
-        el.setAttribute('cy', sp.py);
-        el.setAttribute('rx', rx * 1.12);
-        el.setAttribute('ry', ry * 1.12);
-        el.setAttribute('fill', 'url(#emeraldGemGrad)');
-        el.setAttribute('stroke', '#e0ffeb');
-        el.setAttribute('stroke-width', '1.4');
-        g.appendChild(el);
+        let facetLines = '';
+        for (let i = 0; i < 8; i++) {
+          facetLines += `<line x1="${outerPts[i][0]}" y1="${outerPts[i][1]}" x2="${innerPts[i][0]}" y2="${innerPts[i][1]}" stroke="#034018" stroke-width="0.9" />`;
+        }
+
+        g.innerHTML = `
+          <polygon points="${outerPts.map((p) => p.join(',')).join(' ')}" fill="url(#emeraldGemGrad)" stroke="#033312" stroke-width="1.4" />
+          ${facetLines}
+          <polygon points="${innerPts.map((p) => p.join(',')).join(' ')}" fill="#24e86c" fill-opacity="0.65" stroke="#b8ffd4" stroke-width="0.9" />
+        `;
 
         this.jewelsLayer.appendChild(g);
       }

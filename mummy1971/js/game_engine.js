@@ -465,6 +465,14 @@ export class VoiceOfTheMummyEngine {
       case 'take_jewels': {
         const n = this._takeAnyBoardJewels(player, eff.count);
         this._log(`${player.name} obeyed the Mummy and took ${n} Precious Jewel(s)!`, 'jewel');
+        if (n >= 2) {
+          this._emitEvent('major_announcement', {
+            theme: 'emerald',
+            icon: '💎',
+            title: `${player.name.toUpperCase()} GOT ${n} GEMS!`,
+            subtitle: `Blessed by the Voice of the Mummy (+${n})`,
+          });
+        }
         this.state.activeTrack = null;
         this._checkEndTurnLevelChange();
         break;
@@ -598,6 +606,12 @@ export class VoiceOfTheMummyEngine {
           `${player.name} obeyed the Mummy and returned immediately to their Starting Corner Space (${SPACES_BY_ID[player.homeSpaceId].label})!`,
           'warning'
         );
+        this._emitEvent('major_announcement', {
+          theme: 'curse',
+          icon: '🏺',
+          title: `${player.name.toUpperCase()} SENT BACK TO START!`,
+          subtitle: `The Mummy banished them back to ${SPACES_BY_ID[player.homeSpaceId].label}!`,
+        });
         this._emitEvent('player_moved', {
           playerId: player.id,
           fromSpaceId,
@@ -769,6 +783,12 @@ export class VoiceOfTheMummyEngine {
       if (optionId === 'yes') {
         const n = this._takeAnyBoardJewels(player, choice.count || 3);
         this._log(`${player.name} answered YES and took ${n} Precious Jewels!`, 'jewel');
+        this._emitEvent('major_announcement', {
+          theme: 'emerald',
+          icon: '💎',
+          title: `${player.name.toUpperCase()} GOT ${n} GEMS!`,
+          subtitle: `Obeyed the Voice of the Mummy (+${n})`,
+        });
       } else {
         this._log(`${player.name} answered NO — no Jewels taken.`, 'info');
       }

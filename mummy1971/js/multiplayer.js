@@ -54,9 +54,13 @@ export class MultiplayerManager {
   }
 
   /**
-   * Generates a 4-digit Room Code and initializes Host mode.
+   * Generates a 4-digit Room Code and initializes Host mode with the Host's chosen Explorer seat & player count.
    */
-  async hostRoom(playerName = 'Host Explorer') {
+  async hostRoom(playerName = 'Host Explorer', options = {}) {
+    const preferredSeatId = options.preferredSeatId || 'blue';
+    const humanCount = Math.max(2, Math.min(4, Number(options.humanCount) || 2));
+    const fillWithAi = options.fillWithAi !== undefined ? Boolean(options.fillWithAi) : true;
+
     this.disconnect();
     this.mode = 'host';
     const num = Math.floor(1000 + Math.random() * 9000);
@@ -64,10 +68,40 @@ export class MultiplayerManager {
     this.lobbyState.roomCode = this.roomCode;
     this.lobbyState.hostPeerId = this.myPeerId;
 
-    // Assign Host to Blue Explorer seat by default
-    this.lobbyState.seats[0].control = 'human';
-    this.lobbyState.seats[0].peerId = this.myPeerId;
-    this.lobbyState.seats[0].name = playerName || 'Blue Explorer';
+    const defaultNames = {
+      blue: 'Blue Explorer',
+      red: 'Red Explorer',
+      yellow: 'Yellow Explorer',
+      green: 'Green Explorer',
+    };
+
+    let openHumanFriendsToAssign = humanCount - 1;
+    // First configure Host's preferred seat
+    for (const s of this.lobbyState.seats) {
+      if (s.id === preferredSeatId) {
+        s.control = 'human';
+        s.peerId = this.myPeerId;
+        s.name = playerName || defaultNames[s.id];
+      }
+    }
+    // Configure remaining seats in order
+    for (const s of this.lobbyState.seats) {
+      if (s.id === preferredSeatId) continue;
+      if (openHumanFriendsToAssign > 0) {
+        s.control = 'human';
+        s.peerId = null;
+        s.name = 'Waiting for Friend...';
+        openHumanFriendsToAssign--;
+      } else if (fillWithAi) {
+        s.control = 'ai';
+        s.peerId = null;
+        s.name = `${defaultNames[s.id]} (Bot)`;
+      } else {
+        s.control = 'none';
+        s.peerId = null;
+        s.name = defaultNames[s.id];
+      }
+    }
 
     this._setupBroadcastChannel(this.roomCode);
     this._emitStatus(`Creating Room ${this.roomCode}...`);
@@ -79,7 +113,7 @@ export class MultiplayerManager {
       this.peer = new PeerClass(fullPeerId, PEER_CONFIG);
 
       this.peer.on('open', () => {
-        this._emitStatus(`✅ Hosting Room ${this.roomCode} — Copy the Invite Link below and send it to friends!`);
+        this._emitStatus(`✅ Room ${this.roomCode} Ready — Copy the Invite Link and send it to your friends!`);
         this._broadcastLobby();
       });
 
@@ -195,35 +229,51 @@ export class MultiplayerManager {
         this.connections.set(guestPeerId, conn);
       }
 
-      // Assign guest to an available seat in Lobby if not already assigned
+      // Assign guest to an open human seat first, or any non-taken seat
       let assignedSeat = this.lobbyState.seats.find((s) => s.peerId === guestPeerId);
       if (!assignedSeat) {
         assignedSeat =
-          this.lobbyState.seats.find((s) => s.control !== 'human') ||
+          this.lobbyState.seats.find((s) => s.control === 'human' && !s.peerId) ||
+          this.lobbyState.seats.find((s) => !s.peerId && s.control !== 'human') ||
           this.lobbyState.seats.find((s) => s.peerId !== this.myPeerId);
         if (assignedSeat) {
           assignedSeat.control = 'human';
           assignedSeat.peerId = guestPeerId;
           assignedSeat.name = guestName;
         }
+      } else if (guestName) {
+        assignedSeat.name = guestName;
       }
 
-      this._emitStatus(`🎉 ${guestName} joined Room ${this.roomCode} as ${assignedSeat ? assignedSeat.id.toUpperCase() : 'Explorer'}!`);
+      this._emitStatus(`🎉 ${guestName} joined as ${assignedSeat ? assignedSeat.id.toUpperCase() : 'Explorer'}!`);
       this._broadcastLobby();
 
       if (this.callbacks.onGuestJoined) {
         this.callbacks.onGuestJoined(guestPeerId, guestName, assignedSeat?.id);
       }
     } else if (msg.type === 'CLAIM_SEAT') {
-      const { seatId, peerId, name, control, ageEven, rightHanded } = msg;
+      const { seatId, peerId, name, control, ageEven, rightHanded, exclusiveClaim } = msg;
       const seat = this.lobbyState.seats.find((s) => s.id === seatId);
       if (seat) {
+        // If a player is switching to a new seat, free their previous seat first
+        if (exclusiveClaim && peerId) {
+          for (const prev of this.lobbyState.seats) {
+            if (prev.id !== seatId && prev.peerId === peerId) {
+              prev.peerId = null;
+              prev.control = 'human';
+              prev.name = 'Waiting for Friend...';
+            }
+          }
+        }
         seat.control = control;
         seat.peerId = peerId;
         if (name !== undefined) seat.name = name;
         if (ageEven !== undefined) seat.ageEven = ageEven;
         if (rightHanded !== undefined) seat.rightHanded = rightHanded;
         this._broadcastLobby();
+        if (this.callbacks.onGuestJoined && peerId) {
+          this.callbacks.onGuestJoined(peerId, seat.name, seat.id);
+        }
       }
     } else if (msg.type === 'PLAYER_ACTION') {
       if (this.callbacks.onPlayerAction) {
@@ -247,6 +297,54 @@ export class MultiplayerManager {
         this.callbacks.onGameEvent(msg.event);
       }
     }
+  }
+
+  /**
+   * Claims a specific Explorer seat for the current player (and releases their old seat so they only occupy 1 character).
+   */
+  claimExplorerSeat(seatId, playerName) {
+    if (this.mode === 'guest') {
+      this.sendToHost({
+        type: 'CLAIM_SEAT',
+        seatId,
+        peerId: this.myPeerId,
+        control: 'human',
+        name: playerName,
+        exclusiveClaim: true,
+      });
+      return;
+    }
+
+    for (const prev of this.lobbyState.seats) {
+      if (prev.id !== seatId && prev.peerId === this.myPeerId) {
+        prev.peerId = null;
+        prev.control = 'human';
+        prev.name = 'Waiting for Friend...';
+      }
+    }
+    const target = this.lobbyState.seats.find((s) => s.id === seatId);
+    if (target) {
+      target.control = 'human';
+      target.peerId = this.myPeerId;
+      if (playerName) target.name = playerName;
+      this._broadcastLobby();
+    }
+  }
+
+  /**
+   * Returns how many human players are expected vs how many have connected.
+   */
+  getWaitingStats() {
+    const seats = this.lobbyState?.seats || [];
+    const humanSeats = seats.filter((s) => s.control === 'human');
+    const totalHumanSeats = humanSeats.length;
+    const connectedHumans = humanSeats.filter((s) => Boolean(s.peerId)).length;
+    const waitingCount = Math.max(0, totalHumanSeats - connectedHumans);
+    return {
+      totalHumanSeats,
+      connectedHumans,
+      waitingCount,
+    };
   }
 
   updateSeat(seatId, updates) {

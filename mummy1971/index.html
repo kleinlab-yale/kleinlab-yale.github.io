@@ -13,7 +13,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="css/styles.css?v=5" />
+  <link rel="stylesheet" href="css/styles.css?v=11" />
   <!-- PeerJS for Serverless WebRTC P2P Multiplayer on GitHub Pages -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -42,33 +42,39 @@
 
     <div class="nav-actions-group">
       <div class="view-switcher" role="group" aria-label="Board View Switcher">
-        <button class="view-btn view-btn-split active" data-view-mode="split">3D + 2D Split</button>
-        <button class="view-btn" data-view-mode="3d">3D Pyramid</button>
+        <button class="view-btn active" data-view-mode="3d">3D Pyramid</button>
         <button class="view-btn" data-view-mode="2d">2D Board</button>
+        <button class="view-btn view-btn-split" data-view-mode="split">3D + 2D Split</button>
       </div>
-      <button class="nav-btn" id="btn-open-lobby" title="Multiplayer &amp; Game Setup">🌐 <span class="nav-btn-label">Multiplayer / Setup</span></button>
-      <button class="nav-btn" id="btn-open-rules" title="1971 Rulebook &amp; 40 Audio Tracks">📜 <span class="nav-btn-label">1971 Rules &amp; Audio</span></button>
+      <button class="nav-btn nav-invite-btn hidden" id="btn-top-copy-invite" title="Copy Multiplayer Invite Link">
+        📋 <span id="top-invite-btn-text" class="nav-btn-label">Copy Link</span>
+      </button>
+      <button class="nav-btn nav-sms-btn hidden" id="btn-top-sms-invite" title="Open Messaging App to Send Invite Link">
+        💬 <span class="nav-btn-label">Send Link</span>
+      </button>
+      <button class="nav-btn" id="btn-open-lobby" title="Multiplayer &amp; Game Setup">🌐 <span class="nav-btn-label">Multiplayer</span></button>
+      <button class="nav-btn" id="btn-open-rules" title="1971 Rulebook &amp; 40 Audio Tracks">📜 <span class="nav-btn-label">Rules</span></button>
       <button class="nav-btn" id="btn-toggle-mute" title="Toggle Audio">🔊 <span class="nav-btn-label">Audio On</span></button>
     </div>
   </header>
 
   <!-- MAIN WORKSPACE: 3D & 2D VIEWPORTS + RIGHT/BOTTOM GAME SIDEBAR -->
   <main class="workspace-layout">
-    <div class="stage-area" id="main-stage-grid" data-view-mode="split">
+    <div class="stage-area" id="main-stage-grid" data-view-mode="3d">
       <!-- 3D Three.js Pyramid & King Tut Burial Chamber Viewport -->
       <section class="pane-3d">
         <div class="pane-floating-toolbar">
-          <button class="cam-pill-btn" data-cam-preset="hero">🎥 3/4 View</button>
+          <button class="cam-pill-btn active" data-cam-preset="follow">🧭 Follow</button>
           <button class="cam-pill-btn" data-cam-preset="topdown">⬇ Top-Down</button>
+          <button class="cam-pill-btn" data-cam-preset="hero">🎥 3/4 View</button>
           <button class="cam-pill-btn" data-cam-preset="sarcophagus">⚰️ Sarcophagus</button>
-          <button class="cam-pill-btn" data-cam-preset="follow">🧭 Follow</button>
           <span class="toolbar-divider"></span>
           <button class="cam-pill-btn bg-mode-btn active" data-bg-mode="tomb" title="Show 3D King Tut Burial Chamber">🏛️ Tomb Room</button>
           <button class="cam-pill-btn bg-mode-btn" data-bg-mode="black" title="Show Clean Black Background">⬛ Black BG</button>
         </div>
         <div id="viewport-3d" class="viewport-canvas"></div>
         <div id="loading-overlay-3d" class="loading-overlay">
-          <img src="renders/voice_of_the_mummy_hero.png" alt="3D Pyramid Preview" class="loading-preview-img" />
+          <img src="renders/voice_of_the_mummy_topdown.png" alt="3D Pyramid Preview" class="loading-preview-img" />
           <div class="loading-overlay-badge">⏳ Entering Pharaoh's Burial Chamber &amp; Loading 3D Pyramid...</div>
         </div>
         <div class="pane-label-tag">Interactive 3D Tomb Chamber — Drag to Orbit • Pinch/Scroll to Zoom • Tap Highlighted Tiles, Die, or Sarcophagus</div>
@@ -91,6 +97,19 @@
         <div id="mummy-voice-title" class="mummy-voice-title">🎙️ THE VOICE OF THE MUMMY SPEAKS</div>
         <div id="mummy-voice-quote" class="mummy-voice-quote">""</div>
       </div>
+
+      <!-- Live Main-Screen Multiplayer Waiting Banner (when waiting for friends to click Invite Link) -->
+      <div id="mp-main-waiting-banner" class="mp-main-waiting-banner hidden">
+        <span id="mp-main-waiting-text">⏳ Waiting for friends to join via your Invite Link...</span>
+        <div class="mp-main-banner-btns">
+          <button type="button" class="mp-main-copy-btn" id="btn-main-banner-copy">📋 Copy Link</button>
+          <button type="button" class="mp-main-sms-btn" id="btn-main-banner-sms">💬 Send Text</button>
+          <button type="button" class="mp-main-playnow-btn" id="btn-main-banner-play-current">▶️ Play with Current Players</button>
+        </div>
+      </div>
+
+      <!-- Major Game Event Pop-Up Banner (Gem Steals, Cobra Curse, Great Jewel, Mummy Twists) -->
+      <div id="big-event-popup" class="big-event-popup hidden" aria-live="polite"></div>
 
       <!-- Part II Record Flip Notification Toast -->
       <div id="part2-flip-toast" class="part2-flip-toast hidden">
@@ -121,55 +140,163 @@
   </main>
 
   <!-- =======================================================================
-       MODAL 1: MULTIPLAYER ROOM & GAME SETUP LOBBY
+       MODAL 0: INTRO HERO LANDING CARD (SINGLE PLAYER VS MULTIPLAYER)
+       ======================================================================= -->
+  <div id="modal-intro-landing" class="modal-backdrop">
+    <div class="intro-landing-card">
+      <div class="intro-hero-artwork-wrap">
+        <img src="textures/landing_hero_tomb.png?v=8" alt="Explorers Entering the Pharaoh's Tomb — Voice of the Mummy" class="intro-hero-img" />
+        <div class="intro-hero-overlay">
+          <div class="intro-vintage-pill">1971 MILTON BRADLEY • 3D &amp; 2D DIGITAL EDITION</div>
+          <h1 class="intro-main-title">Voice of the Mummy</h1>
+          <p class="intro-subtitle">
+            Ascend the Pharaoh's Stepped Pyramid, claim the 26 Emerald Scarabs, and beware the Cursed Ruby Cobra as the Mummy speaks from his golden Sarcophagus!
+          </p>
+        </div>
+      </div>
+
+      <div class="intro-choice-section">
+        <div class="intro-choice-heading">Choose Your Expedition Mode</div>
+        <div class="intro-mode-buttons">
+          <button class="intro-mode-card single-player" id="btn-landing-single">
+            <span class="intro-mode-icon">🏺</span>
+            <div class="intro-mode-text">
+              <strong>Single Player</strong>
+              <span>Play immediately against 3 AI Tomb Bots</span>
+            </div>
+          </button>
+
+          <button class="intro-mode-card multi-player" id="btn-landing-multi">
+            <span class="intro-mode-icon">🌐</span>
+            <div class="intro-mode-text">
+              <strong>Multiplayer</strong>
+              <span>Host or Join Online Room • Local Pass &amp; Play</span>
+            </div>
+          </button>
+        </div>
+
+        <div class="intro-footer-links">
+          <button class="intro-link-btn" id="btn-landing-rules">📜 View 1971 Rulebook &amp; 40 Original Mummy Audio Tracks</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       MODAL 1: STEP-BY-STEP MULTIPLAYER WIZARD (STEP 1: CREATE -> STEP 2: WAITING ROOM)
        ======================================================================= -->
   <div id="modal-lobby" class="modal-backdrop hidden">
-    <div class="modal-card">
+    <div class="modal-card mp-wizard-card">
       <div class="modal-header">
-        <h2>🌐 Tomb Expedition Setup &amp; Online Multiplayer Lobby</h2>
+        <h2 id="mp-modal-heading">🌐 Step 1: Create Your Multiplayer Game</h2>
         <button class="btn-close-modal" id="btn-close-lobby">✕ Return to Board</button>
       </div>
+
       <div class="modal-body">
-        <!-- Online P2P Multiplayer Room Box -->
-        <div class="mp-connect-box">
-          <div class="mp-row">
-            <strong>Online Multiplayer (GitHub Pages P2P):</strong>
-            <input type="text" id="input-player-name" class="mp-input" placeholder="Your Explorer Name" value="Explorer" />
-            <button class="nav-btn" id="btn-host-room">👑 Host Online Game</button>
-            <span>or</span>
-            <input type="text" id="input-room-code" class="mp-input" placeholder="Room Code (e.g. TOMB-4821)" style="width: 175px;" />
-            <button class="nav-btn" id="btn-join-room">🔗 Join Room</button>
+        <!-- ===============================================================
+             STEP 1: ENTER YOUR NAME, PICK YOUR CHARACTER & PLAYER COUNT
+             =============================================================== -->
+        <div id="mp-wizard-step1" class="mp-wizard-step">
+          <div class="mp-step-field">
+            <label class="mp-step-label" for="input-player-name">1. Enter Your Name</label>
+            <input type="text" id="input-player-name" class="mp-name-big-input" placeholder="Type your name..." value="Explorer 1" />
           </div>
-          <div id="mp-status-banner" style="font-size: 12px; color: var(--gold-soft);">
-            Play solo against AI Tomb Bots, Local Pass-and-Play, or click "Host Online Game" to get a shareable invite link for friends!
+
+          <div class="mp-step-field">
+            <label class="mp-step-label">2. Pick Your Explorer Character</label>
+            <div id="host-character-picker" class="mp-char-picker-grid"></div>
           </div>
-          <div id="room-share-box" class="room-share-box hidden">
-            <div>
-              Room Code: <strong id="active-room-code-display" style="color: var(--gold-bright); font-size: 15px;">TOMB-0000</strong>
+
+          <div class="mp-step-field">
+            <label class="mp-step-label">3. How Many Human Players (Including You)?</label>
+            <div class="mp-count-pills-row">
+              <button type="button" class="mp-count-pill active" data-mp-count="2">👥 2 Players</button>
+              <button type="button" class="mp-count-pill" data-mp-count="3">👥 3 Players</button>
+              <button type="button" class="mp-count-pill" data-mp-count="4">👥 4 Players</button>
             </div>
-            <div style="display: flex; gap: 8px; flex: 1; min-width: 240px;">
-              <input type="text" id="share-invite-url" class="mp-input" readonly style="flex: 1;" />
-              <button class="nav-btn" id="btn-copy-invite">📋 Copy Invite Link</button>
-            </div>
+            <label class="mp-ai-fill-toggle">
+              <input type="checkbox" id="chk-fill-ai" checked />
+              <span>🤖 Fill any leftover seats with AI Tomb Bots (so all 4 corners play)</span>
+            </label>
+          </div>
+
+          <div class="mp-step1-actions">
+            <button type="button" class="btn-primary-action pulse-gold" id="btn-host-room">
+              👑 Host Online Game &amp; Get Invite Link ➔
+            </button>
+            <button type="button" class="btn-secondary-action" id="btn-start-pass-play">
+              🛋️ Or Play Local Pass &amp; Play on This Device
+            </button>
           </div>
         </div>
 
-        <!-- Quick Seat Presets -->
-        <div class="preset-row">
-          <span style="font-size: 12px; color: var(--text-muted); font-weight: 700;">Quick Setup Presets:</span>
-          <button class="nav-btn" id="btn-preset-solo">1 Human + 3 AI Bots</button>
-          <button class="nav-btn" id="btn-preset-2p">2 Humans (Pass &amp; Play / Online)</button>
-          <button class="nav-btn" id="btn-preset-4p">4 Humans (Full Table)</button>
-        </div>
+        <!-- ===============================================================
+             STEP 2: INVITE LINK & LIVE WAITING ROOM
+             =============================================================== -->
+        <div id="mp-wizard-step2" class="mp-wizard-step hidden">
+          <!-- Invite Link Box (Shown to Host & Guests so anyone can copy/share the link) -->
+          <div id="room-share-box" class="mp-invite-hero-box">
+            <div class="mp-invite-top-row">
+              <div>
+                <div class="mp-invite-kicker">🔗 SEND THIS INVITE LINK TO YOUR FRIENDS</div>
+                <div class="mp-invite-sub">When friends click this link, they join your room automatically and pick their character!</div>
+              </div>
+              <span class="mp-room-pill">Room: <strong id="active-room-code-display">TOMB-0000</strong></span>
+            </div>
+            <div class="mp-invite-input-row">
+              <input type="text" id="share-invite-url" class="mp-input mp-invite-url-input" readonly />
+              <button type="button" class="btn-copy-invite-big" id="btn-copy-invite">📋 Copy Invite Link</button>
+              <button type="button" class="btn-sms-invite-big" id="btn-sms-invite">💬 Send Invite Link</button>
+              <button type="button" class="nav-btn" id="btn-share-invite" title="More Share Options">📤 Share</button>
+            </div>
+          </div>
 
-        <!-- 4 Deity Temple Explorer Seats -->
-        <div id="lobby-seats-grid" class="lobby-seats-grid"></div>
+          <!-- Guest Name Box (Shown when a Friend joins via the Invite Link) -->
+          <div id="guest-welcome-box" class="mp-guest-welcome-box hidden">
+            <label class="mp-step-label" for="input-guest-name">Your Explorer Name (Tap an Open Character Card below to switch colors!):</label>
+            <div class="mp-guest-name-row">
+              <input type="text" id="input-guest-name" class="mp-name-big-input" placeholder="Type your name..." value="Explorer 2" />
+              <button type="button" class="nav-btn" id="btn-save-guest-name">✓ Update Name</button>
+            </div>
+          </div>
 
-        <!-- Start Expedition CTA -->
-        <div style="display: flex; justify-content: flex-end; gap: 12px;">
-          <button class="btn-primary-action pulse-gold" id="btn-start-game" style="max-width: 280px;">
-            🏺 Start New Tomb Expedition
-          </button>
+          <!-- Live Waiting for Players Status Banner -->
+          <div id="mp-waiting-status-box" class="mp-waiting-status-box waiting">
+            <div class="mp-waiting-headline" id="mp-waiting-headline">⏳ Waiting for Friends to Join... (1 of 2 Players Connected)</div>
+            <div class="mp-waiting-sub" id="mp-status-banner">Send the Invite Link above — this screen updates live as soon as your friends click it!</div>
+          </div>
+
+          <!-- Host Quick-Start Box: Play with Current Players without needing a new link! -->
+          <div id="mp-play-current-box" class="mp-play-current-box">
+            <div class="mp-play-current-info">
+              <strong>Someone didn't join yet? Start right now with the players here:</strong>
+              <span>No need to send a new link — choose what to do with unjoined slots:</span>
+            </div>
+            <div class="mp-play-current-btns">
+              <button type="button" class="btn-play-current-opt" id="btn-play-current-empty">
+                ▶️ Play with Current Players <span>(Empty Slots = Nothing)</span>
+              </button>
+              <button type="button" class="btn-play-current-opt ai-opt" id="btn-play-current-ai">
+                ▶️ Play with Current Players <span>(Empty Slots = Computer)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Explorer Character Seats (Shows who is in each seat & lets players pick their character) -->
+          <div id="lobby-seats-grid" class="lobby-seats-grid"></div>
+
+          <!-- Step 2 Footer: Start Expedition (Host) or Waiting Notice (Guest) -->
+          <div class="mp-step2-footer">
+            <button type="button" class="btn-secondary-action" id="btn-mp-back-step1" style="max-width: 170px;">
+              ← Change Setup
+            </button>
+            <div id="guest-waiting-host-notice" class="guest-waiting-host-notice hidden">
+              ⏳ Connected! Waiting for the Host to click <strong>Start Tomb Expedition</strong>...
+            </div>
+            <button type="button" class="btn-primary-action pulse-gold" id="btn-start-game" style="max-width: 300px;">
+              🏺 Start Tomb Expedition
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -234,18 +361,23 @@
   </div>
 
   <!-- =======================================================================
-       MODAL 3: GAME OVER & FINAL TREASURE SCOREBOARD
+       MODAL 3: GAME OVER — GRAND VICTORY & TOMB FATE FINALE
        ======================================================================= -->
   <div id="modal-gameover" class="modal-backdrop hidden">
-    <div class="modal-card" style="max-width: 640px;">
+    <div id="gameover-particles" class="gameover-particles-layer" aria-hidden="true"></div>
+    <div id="gameover-modal-card" class="modal-card gameover-card">
       <div class="modal-header">
-        <h2>🏆 Tomb Expedition Complete — Final Jewel Tally</h2>
+        <h2 id="gameover-modal-title">🏆 Tomb Expedition Complete — Final Gem Tally</h2>
+        <button class="btn-close-modal" id="btn-close-gameover">✕ View 3D Board</button>
       </div>
       <div class="modal-body">
-        <div id="gameover-scores-body" style="display: flex; flex-direction: column; gap: 16px;"></div>
-        <div style="display: flex; justify-content: flex-end;">
-          <button class="btn-primary-action pulse-gold" id="btn-play-again" style="max-width: 220px;">
-            🏺 Play Another Game
+        <div id="gameover-scores-body" class="gameover-scores-body"></div>
+        <div class="gameover-actions-row">
+          <button class="btn-secondary-action" id="btn-view-gameover-board" style="max-width: 220px;">
+            🎥 View 3D Finale Board
+          </button>
+          <button class="btn-primary-action pulse-gold" id="btn-play-again" style="max-width: 240px;">
+            🏺 Play Another Expedition
           </button>
         </div>
       </div>
@@ -253,6 +385,6 @@
   </div>
 
   <!-- Main Application Script -->
-  <script type="module" src="js/app.js?v=5"></script>
+  <script type="module" src="js/app.js?v=11"></script>
 </body>
 </html>

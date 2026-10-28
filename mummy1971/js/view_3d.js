@@ -60,6 +60,13 @@ export class Mummy3DView {
 
     this.activeAnimations = [];
     this.cameraTransition = null;
+    this.cameraPreset = 'follow'; // 'follow' (default) | 'topdown' | 'hero' | 'sarcophagus'
+    this.initialTopDownHold = true; // Start game from Top-Down view, then follow your character once movement begins
+    this.isUserInteracting = false;
+    this.userPausedFollowUntilNextMove = false;
+    this.activeMovingExplorerId = null;
+    this.localPeerId = 'local';
+    this.isOnlineMode = false;
     this.isMummySpeaking = false;
     this.currentGameState = null;
 
@@ -117,8 +124,8 @@ export class Mummy3DView {
     const h = Math.max(240, rect.height || this.container.clientHeight || 560);
 
     this.camera = new THREE.PerspectiveCamera(38, w / h, 0.1, 80);
-    // Positioned so the 3D Stepped Pyramid is front-and-center while framing the King Tut Tomb Chamber behind it
-    this.camera.position.set(-8.1, 4.65, 1.45);
+    // Start in the Top-Down view inside the Tomb Room when the game loads
+    this.camera.position.set(0.0, 10.2, 0.01);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setSize(w, h);
@@ -155,6 +162,16 @@ export class Mummy3DView {
     this.controls.maxPolarAngle = Math.PI * 0.495;
     this.controls.minDistance = 2.2;
     this.controls.maxDistance = 13.2;
+    this.controls.addEventListener('start', () => {
+      this.isUserInteracting = true;
+      this.cameraTransition = null;
+      if (this.cameraPreset === 'follow') {
+        this.userPausedFollowUntilNextMove = true;
+      }
+    });
+    this.controls.addEventListener('end', () => {
+      this.isUserInteracting = false;
+    });
     this.controls.update();
 
     // Balanced, high-contrast lighting so board artwork, Emerald Scarabs, and Ruby Gems stay rich and saturated
@@ -1270,6 +1287,57 @@ export class Mummy3DView {
     }
   }
 
+  /**
+   * Builds a multi-faceted Brilliant / Emerald-Cut Precious Gemstone Geometry with non-indexed
+   * triangles and exact per-facet flat normals so every cut facet catches crisp gemstone highlights
+   * and dark pavilion shadows naturally (with NO artificial circle base!).
+   */
+  _createFacetedGemGeometry(THREE, rx = 0.095, rz = 0.072, h = 0.072, segs = 8) {
+    const R0 = [];
+    const R1 = [];
+    const R2 = [];
+    const R3 = [];
+
+    for (let i = 0; i < segs; i++) {
+      const a = (i / segs) * Math.PI * 2;
+      const aHalf = ((i + 0.5) / segs) * Math.PI * 2;
+      // Ring 0: Lower Pavilion Base resting on the board (tapers inward so lower facets catch dark shadow)
+      R0.push([Math.cos(a) * rx * 0.72, 0.0, Math.sin(a) * rz * 0.72]);
+      // Ring 1: Outer Girdle Edge (widest part of the cut stone)
+      R1.push([Math.cos(a) * rx * 1.0, h * 0.34, Math.sin(a) * rz * 1.0]);
+      // Ring 2: Crown Star Break (rotated by half a facet to form diamond kite & star facets)
+      R2.push([Math.cos(aHalf) * rx * 0.8, h * 0.7, Math.sin(aHalf) * rz * 0.8]);
+      // Ring 3: Top Table Octagon Edge
+      R3.push([Math.cos(a) * rx * 0.44, h * 0.98, Math.sin(a) * rz * 0.44]);
+    }
+    const C = [0.0, h, 0.0];
+
+    const positions = [];
+    const pushTri = (p0, p1, p2) => {
+      positions.push(p0[0], p0[1], p0[2], p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
+    };
+
+    for (let i = 0; i < segs; i++) {
+      const i1 = (i + 1) % segs;
+      // Lower Pavilion Facets (R0 -> R1)
+      pushTri(R0[i], R1[i], R0[i1]);
+      pushTri(R0[i1], R1[i], R1[i1]);
+      // Lower Crown Bezel & Star Facets (R1 -> R2)
+      pushTri(R1[i], R2[i], R1[i1]);
+      pushTri(R1[i1], R2[i], R2[i1]);
+      // Upper Crown Star & Kite Facets (R2 -> R3)
+      pushTri(R2[i], R3[i], R3[i1]);
+      pushTri(R2[i], R3[i1], R2[i1]);
+      // Flat Top Table Facets (R3 -> C)
+      pushTri(C, R3[i1], R3[i]);
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geo.computeVertexNormals();
+    return geo;
+  }
+
   _loadGLBModel(THREE, GLTFLoader) {
     const loader = new GLTFLoader();
     const texLoader = new THREE.TextureLoader();
@@ -1290,39 +1358,25 @@ export class Mummy3DView {
         const root = gltf.scene;
         this.scene.add(root);
 
-        // Rich, deep, high-contrast Emerald Green & Ruby Red (envMapIntensity: 0 so they never wash out!)
-        this.emeraldMat = new THREE.MeshStandardMaterial({
-          color: 0x00ad3c,
-          emissive: 0x00591c,
-          emissiveIntensity: 0.65,
-          roughness: 0.24,
-          metalness: 0.05,
-          envMapIntensity: 0.0,
+        // Multi-faceted cut Emerald & Ruby materials with flatShading so every cut facet sparkles with high contrast
+        this.emeraldMat = new THREE.MeshPhongMaterial({
+          color: 0x00a838,
+          emissive: 0x00330f,
+          specular: 0xbaffd4,
+          shininess: 110,
+          flatShading: true,
         });
 
-        this.rubyMat = new THREE.MeshStandardMaterial({
+        this.rubyMat = new THREE.MeshPhongMaterial({
           color: 0xd4001c,
-          emissive: 0x66000c,
-          emissiveIntensity: 0.7,
-          roughness: 0.22,
-          metalness: 0.06,
-          envMapIntensity: 0.0,
+          emissive: 0x450008,
+          specular: 0xffc4ce,
+          shininess: 115,
+          flatShading: true,
         });
 
-        const darkBezelMat = new THREE.MeshBasicMaterial({
-          color: 0x0d0804,
-          side: THREE.DoubleSide,
-        });
-
-        const emeraldRimMat = new THREE.MeshBasicMaterial({
-          color: 0x00ff5e,
-          side: THREE.DoubleSide,
-        });
-
-        const rubyRimMat = new THREE.MeshBasicMaterial({
-          color: 0xff1a3c,
-          side: THREE.DoubleSide,
-        });
+        const facetedEmeraldGeo = this._createFacetedGemGeometry(THREE, 0.1, 0.074, 0.072, 8);
+        const facetedGreatRubyGeo = this._createFacetedGemGeometry(THREE, 0.175, 0.175, 0.115, 12);
 
         const sandstoneMat = new THREE.MeshStandardMaterial({
           map: sandstoneTex,
@@ -1400,23 +1454,13 @@ export class Mummy3DView {
           this.scene.attach(obj);
         }
 
-        // Enhance all 26 Emerald Scarab Jewels with a high-contrast dark obsidian bezel + emerald rim on top of the board
-        const scarabDarkDiscGeo = new THREE.CircleGeometry(0.095, 22);
-        const scarabRimGeo = new THREE.RingGeometry(0.068, 0.088, 22);
+        // Replace all 26 Scarab Jewels with multi-faceted Emerald-Cut Gemstones (no flat circle bases!)
         for (const [name, mesh] of Object.entries(this.scarabMeshes)) {
-          mesh.scale.multiply(new THREE.Vector3(1.45, 2.1, 1.45));
-          mesh.position.y += 0.006;
-
-          const darkDisc = new THREE.Mesh(scarabDarkDiscGeo, darkBezelMat);
-          darkDisc.rotation.x = -Math.PI / 2;
-          darkDisc.position.y = 0.0015;
-          mesh.add(darkDisc);
-
-          const emeraldRim = new THREE.Mesh(scarabRimGeo, emeraldRimMat);
-          emeraldRim.rotation.x = -Math.PI / 2;
-          emeraldRim.position.y = 0.0025;
-          mesh.add(emeraldRim);
-
+          if (mesh.isMesh) {
+            mesh.geometry = facetedEmeraldGeo;
+            mesh.material = this.emeraldMat;
+          }
+          mesh.position.y += 0.002;
           this.scarabHomeTransforms[name] = {
             pos: mesh.position.clone(),
             quat: mesh.quaternion.clone(),
@@ -1426,20 +1470,11 @@ export class Mummy3DView {
         this.greatJewelMesh = this.scene.getObjectByName('Great_Mummy_Jewel_Ruby');
         if (this.greatJewelMesh) {
           this.greatJewelMesh.traverse((c) => {
-            if (c.isMesh) c.material = this.rubyMat;
+            if (c.isMesh) {
+              c.geometry = facetedGreatRubyGeo;
+              c.material = this.rubyMat;
+            }
           });
-          this.greatJewelMesh.scale.multiplyScalar(1.38);
-
-          const gjDarkBase = new THREE.Mesh(new THREE.CircleGeometry(0.16, 24), darkBezelMat);
-          gjDarkBase.rotation.x = -Math.PI / 2;
-          gjDarkBase.position.y = -0.015;
-          this.greatJewelMesh.add(gjDarkBase);
-
-          const gjRim = new THREE.Mesh(new THREE.RingGeometry(0.125, 0.155, 24), rubyRimMat);
-          gjRim.rotation.x = -Math.PI / 2;
-          gjRim.position.y = -0.013;
-          this.greatJewelMesh.add(gjRim);
-
           this.greatJewelHome = {
             pos: this.greatJewelMesh.position.clone(),
             quat: this.greatJewelMesh.quaternion.clone(),
@@ -1449,20 +1484,11 @@ export class Mummy3DView {
         this.cobraMesh = this.scene.getObjectByName('Ruby_Cobra_Figure');
         if (this.cobraMesh) {
           this.cobraMesh.traverse((c) => {
-            if (c.isMesh) c.material = this.rubyMat;
+            if (c.isMesh) {
+              c.material = this.rubyMat;
+            }
           });
-          this.cobraMesh.scale.multiplyScalar(1.28);
-
-          const cobraDarkBase = new THREE.Mesh(new THREE.CircleGeometry(0.18, 24), darkBezelMat);
-          cobraDarkBase.rotation.x = -Math.PI / 2;
-          cobraDarkBase.position.y = 0.004;
-          this.cobraMesh.add(cobraDarkBase);
-
-          const cobraRim = new THREE.Mesh(new THREE.RingGeometry(0.14, 0.175, 24), rubyRimMat);
-          cobraRim.rotation.x = -Math.PI / 2;
-          cobraRim.position.y = 0.006;
-          this.cobraMesh.add(cobraRim);
-
+          this.cobraMesh.scale.multiplyScalar(1.22);
           this.cobraHome = {
             pos: this.cobraMesh.position.clone(),
             quat: this.cobraMesh.quaternion.clone(),
@@ -1625,14 +1651,12 @@ export class Mummy3DView {
     const aspect = w / h;
     this.camera.aspect = aspect;
 
-    // On portrait screens (e.g. iPhone), widen vertical FOV so the full width of the pyramid & tomb chamber fits
+    // Guarantee at least a 48° horizontal FOV on narrow/portrait screens (like iPhone) so the full pyramid & 4 corner temples fit cleanly
     const baseFov = 38;
-    if (aspect < 1.05) {
-      const targetTan = Math.tan((baseFov * Math.PI) / 360) * (1.05 / Math.max(0.45, aspect));
-      this.camera.fov = Math.min(62, (Math.atan(targetTan) * 360) / Math.PI);
-    } else {
-      this.camera.fov = baseFov;
-    }
+    const minTanHorizontal = 0.455; // tan(24.5°)
+    const requiredTanVertical = minTanHorizontal / Math.max(0.42, aspect);
+    const computedFov = (Math.atan(requiredTanVertical) * 360) / Math.PI;
+    this.camera.fov = Math.max(baseFov, Math.min(68, computedFov));
 
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
@@ -1689,7 +1713,227 @@ export class Mummy3DView {
     }
   }
 
+  /**
+   * Resets camera & environment when starting a new game:
+   * - Tomb Room enabled
+   * - Starts at the Top-Down view of the 3D Pyramid
+   * - Sets 'follow' as the default camera mode so it follows your character once movement begins
+   */
+  resetForNewGame(localPeerId = 'local', isOnlineMode = false) {
+    this._cleanupVictoryCelebration();
+    this.localPeerId = localPeerId;
+    this.isOnlineMode = isOnlineMode;
+    this.setBackgroundMode('tomb');
+    this.cameraPreset = 'follow';
+    this.initialTopDownHold = true;
+    this.userPausedFollowUntilNextMove = false;
+    this.activeMovingExplorerId = null;
+    if (this.THREE && this.camera && this.controls) {
+      this.cameraTransition = null;
+      this.camera.position.set(0.0, 10.2, 0.01);
+      this.controls.target.set(0.0, 1.0, 0.0);
+      this.controls.update();
+    }
+  }
+
+  _cleanupVictoryCelebration() {
+    this.victoryWinnerId = null;
+    this.victoryBaseY = null;
+    this.victoryGems = [];
+    if (this.victoryCelebrationGroup && this.scene) {
+      this.scene.remove(this.victoryCelebrationGroup);
+      this.victoryCelebrationGroup = null;
+    }
+    for (const expObj of Object.values(this.explorers)) {
+      if (expObj) {
+        expObj.rotation.z = 0;
+        expObj.rotation.x = 0;
+      }
+    }
+  }
+
+  /**
+   * Launches the 3D Game Over Celebration on the Pyramid Board:
+   * - Camera swoops in on the Winner
+   * - Golden Pharaoh Sunbeam Pillar + 32 Faceted Gems fountain & rain around the Winner
+   * - Winner jumps in celebration while Losers topple/slump on the pyramid steps!
+   */
+  triggerGameOverCelebration(winnerId) {
+    if (this.fallbackMode || !this.THREE || !this.scene) return;
+    this._cleanupVictoryCelebration();
+
+    const THREE = this.THREE;
+    const winnerExp = this.explorers[winnerId];
+    if (!winnerExp) return;
+
+    this.victoryWinnerId = winnerId;
+    this.victoryBaseY = winnerExp.position.y;
+    this.userPausedFollowUntilNextMove = true;
+
+    // Tilt losing explorers on the board in defeat
+    for (const [id, expObj] of Object.entries(this.explorers)) {
+      if (!expObj || !expObj.visible) continue;
+      if (id !== winnerId) {
+        expObj.rotation.z = 0.42;
+      }
+    }
+
+    // Swoop camera to frame the Winner and the Pyramid
+    const wPos = winnerExp.position.clone();
+    const radial = new THREE.Vector3(wPos.x, 0, wPos.z);
+    if (radial.lengthSq() < 0.001) radial.set(-0.707, 0, -0.707);
+    else radial.normalize();
+
+    const camPos = new THREE.Vector3(
+      wPos.x + radial.x * 3.1,
+      3.35,
+      wPos.z + radial.z * 3.1
+    );
+    const lookTarget = new THREE.Vector3(
+      wPos.x * 0.72,
+      wPos.y + 0.45,
+      wPos.z * 0.72
+    );
+    this._transitionCamera(camPos, lookTarget, 950);
+
+    // Build Golden Pharaoh Sunbeam & Gem Fountain Group
+    const group = new THREE.Group();
+    group.name = 'VictoryCelebrationGroup';
+
+    const beamGeo = new THREE.CylinderGeometry(0.32, 0.52, 6.5, 24, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0xffe055,
+      transparent: true,
+      opacity: 0.28,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+    beamMesh.position.set(wPos.x, wPos.y + 3.1, wPos.z);
+    group.add(beamMesh);
+
+    const ringGeo = new THREE.RingGeometry(0.22, 0.56, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xffd700,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.rotation.x = -Math.PI / 2;
+    ringMesh.position.set(wPos.x, wPos.y + 0.02, wPos.z);
+    group.add(ringMesh);
+
+    const winLight = new THREE.PointLight(0xffe066, 3.2, 4.5);
+    winLight.position.set(wPos.x, wPos.y + 1.2, wPos.z);
+    group.add(winLight);
+
+    // 32 Faceted 3D Gems raining & fountaining around the Winner
+    const gemGeo = this._createFacetedGemGeometry(THREE, 0.075, 0.095, 0.055, 8);
+    this.victoryGems = [];
+    for (let i = 0; i < 32; i++) {
+      const isRuby = i % 5 === 0;
+      const mat = isRuby ? this.rubyMat || new THREE.MeshPhongMaterial({ color: 0xd4001c, flatShading: true }) : this.emeraldMat || new THREE.MeshPhongMaterial({ color: 0x00a838, flatShading: true });
+      const gem = new THREE.Mesh(gemGeo, mat);
+      const angle = (i / 32) * Math.PI * 2 + Math.random() * 0.4;
+      const radius = 0.25 + Math.random() * 1.15;
+      gem.position.set(
+        wPos.x + Math.cos(angle) * radius,
+        wPos.y + 0.4 + Math.random() * 3.2,
+        wPos.z + Math.sin(angle) * radius
+      );
+      group.add(gem);
+      this.victoryGems.push({
+        mesh: gem,
+        baseX: wPos.x + Math.cos(angle) * radius,
+        baseZ: wPos.z + Math.sin(angle) * radius,
+        minY: wPos.y + 0.12,
+        maxY: wPos.y + 3.4,
+        speedY: 1.2 + Math.random() * 1.4,
+        rotSpeed: 2.0 + Math.random() * 3.0,
+      });
+    }
+
+    this.scene.add(group);
+    this.victoryCelebrationGroup = group;
+  }
+
+  /**
+   * Returns the player whose character should be followed by the 'follow' camera.
+   * Follows your human character on the board!
+   */
+  _getFollowedPlayer() {
+    const state = this.currentGameState;
+    if (!state || !state.players || state.players.length === 0) return null;
+    const humanPlayers = state.players.filter((p) => p.control === 'human');
+    if (humanPlayers.length === 1) {
+      return humanPlayers[0];
+    }
+    if (this.isOnlineMode && this.localPeerId) {
+      const myPeerHuman = humanPlayers.find((p) => p.peerId === this.localPeerId);
+      if (myPeerHuman) return myPeerHuman;
+    }
+    const turnPlayer = state.players[state.turnIndex];
+    if (turnPlayer && turnPlayer.control === 'human') {
+      return turnPlayer;
+    }
+    return humanPlayers[0] || state.players[0];
+  }
+
+  /**
+   * Computes the smooth 3D camera position & look-at target behind and above your character,
+   * looking across your character toward the center of the pyramid (and gently glancing toward any moving piece).
+   */
+  _computeFollowCameraTarget() {
+    if (!this.THREE || !this.currentGameState) return null;
+    const THREE = this.THREE;
+    const myPlayer = this._getFollowedPlayer();
+    const myExp = myPlayer ? this.explorers[myPlayer.id] : null;
+    if (!myExp) return null;
+
+    const expPos = myExp.position.clone();
+    const radial = new THREE.Vector3(expPos.x, 0, expPos.z);
+    if (radial.lengthSq() < 0.001) {
+      radial.set(-0.707, 0, -0.707);
+    } else {
+      radial.normalize();
+    }
+
+    const camPos = new THREE.Vector3(
+      expPos.x + radial.x * 3.85,
+      5.75,
+      expPos.z + radial.z * 3.85
+    );
+
+    const lookTarget = new THREE.Vector3(
+      expPos.x * 0.52,
+      expPos.y + 0.22,
+      expPos.z * 0.52
+    );
+
+    if (this.activeMovingExplorerId && this.activeMovingExplorerId !== myPlayer.id) {
+      const movingExp = this.explorers[this.activeMovingExplorerId];
+      if (movingExp) {
+        lookTarget.lerp(
+          new THREE.Vector3(
+            movingExp.position.x * 0.65,
+            movingExp.position.y + 0.25,
+            movingExp.position.z * 0.65
+          ),
+          0.35
+        );
+      }
+    }
+
+    return { camPos, lookTarget };
+  }
+
   setCameraPreset(presetName) {
+    this.cameraPreset = presetName;
+    this.userPausedFollowUntilNextMove = false;
+
     if (this.fallbackMode) {
       const img = this.container.querySelector('.fallback3d-bg-img');
       if (img) {
@@ -1709,17 +1953,11 @@ export class Mummy3DView {
       this._transitionCamera(new THREE.Vector3(0.0, 10.2, 0.01), new THREE.Vector3(0.0, 1.0, 0.0));
     } else if (presetName === 'sarcophagus') {
       this._transitionCamera(new THREE.Vector3(-3.2, 3.4, 1.55), new THREE.Vector3(0.0, 1.48, 0.0));
-    } else if (presetName === 'follow' && this.currentGameState) {
-      const curPlayer = this.currentGameState.players[this.currentGameState.turnIndex];
-      const exp = this.explorers[curPlayer?.id];
-      if (exp) {
-        const target = exp.position.clone().add(new THREE.Vector3(0, 0.25, 0));
-        const offset = new THREE.Vector3(
-          target.x < 0 ? -3.4 : 3.4,
-          2.6,
-          target.z < 0 ? -3.0 : 3.0
-        );
-        this._transitionCamera(target.clone().add(offset), target);
+    } else if (presetName === 'follow') {
+      this.initialTopDownHold = false;
+      const followPose = this._computeFollowCameraTarget();
+      if (followPose) {
+        this._transitionCamera(followPose.camPos, followPose.lookTarget, 650);
       }
     }
   }
@@ -1973,6 +2211,11 @@ export class Mummy3DView {
     const expObj = this.explorers[playerId];
     if (!expObj || !pathSpaceIds || pathSpaceIds.length === 0) return;
 
+    // Release initial Top-Down hold and resume Follow mode when movement starts
+    this.initialTopDownHold = false;
+    this.userPausedFollowUntilNextMove = false;
+    this.activeMovingExplorerId = playerId;
+
     const waypoints = [expObj.position.clone()];
     for (const spId of pathSpaceIds) {
       const sp = SPACES_BY_ID[spId];
@@ -2009,6 +2252,9 @@ export class Mummy3DView {
         const p1 = waypoints[segIdx + 1];
         expObj.position.lerpVectors(p0, p1, localT);
         expObj.position.y += Math.sin(localT * Math.PI) * 0.22;
+        if (overallT >= 1 && this.activeMovingExplorerId === playerId) {
+          this.activeMovingExplorerId = null;
+        }
         return overallT >= 1;
       },
     });
@@ -2081,6 +2327,18 @@ export class Mummy3DView {
       this.camera.position.lerpVectors(ct.startPos, ct.endPos, ease);
       this.controls.target.lerpVectors(ct.startTarget, ct.endTarget, ease);
       if (t >= 1) this.cameraTransition = null;
+    } else if (
+      this.cameraPreset === 'follow' &&
+      !this.initialTopDownHold &&
+      !this.isUserInteracting &&
+      !this.userPausedFollowUntilNextMove &&
+      this.currentGameState
+    ) {
+      const followPose = this._computeFollowCameraTarget();
+      if (followPose) {
+        this.camera.position.lerp(followPose.camPos, 0.055);
+        this.controls.target.lerp(followPose.lookTarget, 0.075);
+      }
     }
 
     const pulse = 0.5 + 0.5 * Math.sin(now * 0.006);
@@ -2090,12 +2348,12 @@ export class Mummy3DView {
       }
     }
 
-    // Keep Emerald Scarab Jewels and Ruby Great Jewel / Cobra rich and saturated (never over-exposing to white!)
+    // Keep Faceted Emerald & Ruby Gemstones crisp with high facet contrast
     if (this.emeraldMat) {
-      this.emeraldMat.emissiveIntensity = 0.5 + 0.35 * pulse;
+      this.emeraldMat.emissiveIntensity = 0.35 + 0.25 * pulse;
     }
     if (this.rubyMat) {
-      this.rubyMat.emissiveIntensity = 0.55 + 0.38 * pulse;
+      this.rubyMat.emissiveIntensity = 0.4 + 0.25 * pulse;
     }
 
     // Automatically hide Tomb Ceiling when camera is high overhead (e.g. Top-Down view) so it never blocks the board
@@ -2130,6 +2388,24 @@ export class Mummy3DView {
     }
     if (this.dustParticles) {
       this.dustParticles.rotation.y = sec * 0.018;
+    }
+
+    // Animate 3D Victory Celebration (Winner jumping + 32 Faceted Gems raining around Winner)
+    if (this.victoryWinnerId && this.explorers[this.victoryWinnerId]) {
+      const wExp = this.explorers[this.victoryWinnerId];
+      const baseY = this.victoryBaseY ?? 0.36;
+      wExp.position.y = baseY + Math.abs(Math.sin(sec * 6.5)) * 0.34;
+      wExp.rotation.y = Math.sin(sec * 3.2) * 0.35;
+    }
+    if (this.victoryGems && this.victoryGems.length > 0) {
+      for (const vg of this.victoryGems) {
+        vg.mesh.position.y -= vg.speedY * 0.016;
+        if (vg.mesh.position.y < vg.minY) {
+          vg.mesh.position.y = vg.maxY;
+        }
+        vg.mesh.rotation.x += vg.rotSpeed * 0.016;
+        vg.mesh.rotation.y += vg.rotSpeed * 0.022;
+      }
     }
 
     if (this.mummyLight) {

@@ -9,19 +9,25 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=5';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=5';
-import { Mummy3DView } from './view_3d.js?v=5';
-import { Mummy2DView } from './view_2d.js?v=5';
-import { MultiplayerManager } from './multiplayer.js?v=5';
+} from './board_data.js?v=11';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=11';
+import { Mummy3DView } from './view_3d.js?v=11';
+import { Mummy2DView } from './view_2d.js?v=11';
+import { MultiplayerManager } from './multiplayer.js?v=11';
 
 class VoiceOfTheMummyApp {
   constructor() {
-    this.viewMode = 'split'; // '3d' | '2d' | 'split'
+    this.viewMode = '3d'; // '3d' (default) | '2d' | 'split'
     this.audioMuted = false;
     this.currentAudio = null;
     this.audioCtx = null;
     this.botTimer = null;
+    this.bigPopupTimer = null;
+    this.lastBigPopupTime = 0;
+
+    // Step 1 Multiplayer Wizard state
+    this.selectedHostSeatId = 'blue';
+    this.selectedHumanCount = 2;
 
     this.engine = new VoiceOfTheMummyEngine(
       (state) => this._onAuthoritativeStateChange(state),
@@ -29,27 +35,39 @@ class VoiceOfTheMummyApp {
     );
 
     this.mp = new MultiplayerManager({
-      onLobbyUpdate: (lobby) => this._renderLobbySeats(lobby),
+      onLobbyUpdate: (lobby) => {
+        this._renderLobbySeats(lobby);
+        this._updateWaitingStatusUI();
+      },
       onGameState: (state) => this._onClientReceiveState(state),
       onGameEvent: (ev) => this._onClientReceiveEvent(ev),
       onPlayerAction: (action, payload, peerId) => this._handleIncomingPlayerAction(action, payload, peerId),
       onStatusChange: (statusText) => this._updateMultiplayerStatusBanner(statusText),
       onGuestJoined: (peerId, name, assignedSeatId) => {
+        const seatCfg = PLAYERS_CONFIG.find((c) => c.id === assignedSeatId);
+        this._showBigEventPopup({
+          theme: 'emerald',
+          icon: '🎉',
+          title: `${(name || 'FRIEND').toUpperCase()} JOINED THE GAME!`,
+          subtitle: `Playing as ${seatCfg ? seatCfg.name : 'Explorer'} (${seatCfg ? seatCfg.deity : ''})`,
+        });
         if (this.engine.state && assignedSeatId) {
+          // Ensure no other player in active game holds this same peerId
+          for (const pl of this.engine.state.players) {
+            if (pl.id !== assignedSeatId && pl.peerId === peerId) {
+              pl.peerId = null;
+            }
+          }
           const p = this.engine.state.players.find((pl) => pl.id === assignedSeatId);
           if (p) {
             p.control = 'human';
             p.peerId = peerId;
             p.name = name || p.name;
           }
-          // Also ensure Host player has Host's peerId
-          const hostP = this.engine.state.players[0];
-          if (hostP && hostP.peerId === 'local') {
-            hostP.peerId = this.mp.myPeerId;
-          }
           this._applyStateToUI(this.engine.state);
           this.mp.broadcastGameState(this.engine.state);
         }
+        this._updateWaitingStatusUI();
       },
     });
 
@@ -80,14 +98,24 @@ class VoiceOfTheMummyApp {
       onLeverClick: () => this.triggerAction('pull_lever'),
     });
 
-    // On mobile / iPhone screens (<= 768px), default to full-width '3d' view so 3D and 2D don't stack on top of each other
-    const initialMode = window.innerWidth <= 768 ? '3d' : 'split';
-    this.setViewMode(initialMode);
+    // Default to 3D Pyramid view on all screens
+    this.setViewMode('3d');
 
     window.addEventListener('resize', () => {
       if (window.innerWidth <= 768 && this.viewMode === 'split') {
         this.setViewMode('3d');
       }
+    });
+  }
+
+  _resetViewForNewGame() {
+    this.setViewMode('3d');
+    this.view3D.resetForNewGame(this.mp.myPeerId, this.mp.mode !== 'local');
+    document.querySelectorAll('[data-cam-preset]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.camPreset === 'follow');
+    });
+    document.querySelectorAll('[data-bg-mode]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.bgMode === 'tomb');
     });
   }
 
@@ -116,7 +144,11 @@ class VoiceOfTheMummyApp {
     // 3D Camera Presets
     document.querySelectorAll('[data-cam-preset]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        this.view3D.setCameraPreset(btn.dataset.camPreset);
+        const preset = btn.dataset.camPreset;
+        this.view3D.setCameraPreset(preset);
+        document.querySelectorAll('[data-cam-preset]').forEach((b) => {
+          b.classList.toggle('active', b.dataset.camPreset === preset);
+        });
       });
     });
 
@@ -145,9 +177,27 @@ class VoiceOfTheMummyApp {
       });
     }
 
+    // Intro Landing Card ("Single Player" vs "Multiplayer")
+    document.getElementById('btn-landing-single')?.addEventListener('click', () => {
+      document.getElementById('modal-intro-landing')?.classList.add('hidden');
+      this._applySeatPreset('solo_3ai');
+      this._resetViewForNewGame();
+      this.engine.initGame(this.mp.lobbyState.seats);
+    });
+
+    document.getElementById('btn-landing-multi')?.addEventListener('click', () => {
+      document.getElementById('modal-intro-landing')?.classList.add('hidden');
+      this._openMultiplayerModal();
+    });
+
+    document.getElementById('btn-landing-rules')?.addEventListener('click', () => {
+      document.getElementById('modal-rules')?.classList.remove('hidden');
+    });
+
     // Lobby Modal Open / Close
     document.getElementById('btn-open-lobby')?.addEventListener('click', () => {
-      document.getElementById('modal-lobby')?.classList.remove('hidden');
+      document.getElementById('modal-intro-landing')?.classList.add('hidden');
+      this._openMultiplayerModal();
     });
     document.getElementById('btn-close-lobby')?.addEventListener('click', () => {
       if (this.activeState) {
@@ -163,75 +213,324 @@ class VoiceOfTheMummyApp {
       document.getElementById('modal-rules')?.classList.add('hidden');
     });
 
-    // Multiplayer Host / Join Controls in Lobby
+    // Step 1 Multiplayer Wizard Controls (Player Count Pills)
+    document.querySelectorAll('[data-mp-count]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.selectedHumanCount = Number(btn.dataset.mpCount) || 2;
+        document.querySelectorAll('[data-mp-count]').forEach((b) => {
+          b.classList.toggle('active', Number(b.dataset.mpCount) === this.selectedHumanCount);
+        });
+      });
+    });
+
+    // Step 1 -> Step 2: Host Online Game & Get Invite Link
     document.getElementById('btn-host-room')?.addEventListener('click', async () => {
-      const hostName = document.getElementById('input-player-name')?.value?.trim() || 'Host Explorer';
-      const code = await this.mp.hostRoom(hostName);
+      const hostName = document.getElementById('input-player-name')?.value?.trim() || 'Explorer 1';
+      const fillWithAi = document.getElementById('chk-fill-ai')?.checked ?? true;
+      const code = await this.mp.hostRoom(hostName, {
+        preferredSeatId: this.selectedHostSeatId,
+        humanCount: this.selectedHumanCount,
+        fillWithAi,
+      });
+      this._setMultiplayerWizardStep(2);
       this._showRoomShareBox(code);
+      this._updateWaitingStatusUI();
     });
 
-    document.getElementById('btn-join-room')?.addEventListener('click', async () => {
-      const codeInput = document.getElementById('input-room-code')?.value?.trim();
-      const guestName = document.getElementById('input-player-name')?.value?.trim() || 'Guest Explorer';
-      if (!codeInput) return;
-      await this.mp.joinRoom(codeInput, guestName);
-      this._showRoomShareBox(this.mp.roomCode);
+    // Step 1 Alternative: Local Pass & Play on This Device
+    document.getElementById('btn-start-pass-play')?.addEventListener('click', () => {
+      const hostName = document.getElementById('input-player-name')?.value?.trim() || 'Player 1';
+      const fillWithAi = document.getElementById('chk-fill-ai')?.checked ?? true;
+      this.mp.disconnect();
+      let humansRemaining = this.selectedHumanCount - 1;
+      for (const s of this.mp.lobbyState.seats) {
+        const cfg = PLAYERS_CONFIG.find((c) => c.id === s.id);
+        if (s.id === this.selectedHostSeatId) {
+          s.control = 'human';
+          s.peerId = 'local';
+          s.name = hostName;
+        } else if (humansRemaining > 0) {
+          s.control = 'human';
+          s.peerId = 'local';
+          s.name = `${cfg.name} (Human)`;
+          humansRemaining--;
+        } else {
+          s.control = fillWithAi ? 'ai' : 'none';
+          s.peerId = null;
+          s.name = fillWithAi ? `${cfg.name} (Bot)` : cfg.name;
+        }
+      }
+      document.getElementById('modal-lobby')?.classList.add('hidden');
+      this._resetViewForNewGame();
+      this.engine.initGame(this.mp.lobbyState.seats);
     });
 
-    document.getElementById('btn-copy-invite')?.addEventListener('click', () => {
-      const url = this.mp.getShareableInviteUrl();
-      navigator.clipboard?.writeText(url);
-      const btn = document.getElementById('btn-copy-invite');
-      if (btn) {
-        const orig = btn.textContent;
-        btn.textContent = '✅ Link Copied!';
-        setTimeout(() => {
-          btn.textContent = orig;
-        }, 2000);
+    // Step 2 -> Back to Step 1
+    document.getElementById('btn-mp-back-step1')?.addEventListener('click', () => {
+      this._setMultiplayerWizardStep(1);
+    });
+
+    // Guest Name Update Button (for friends who clicked the Invite Link)
+    document.getElementById('btn-save-guest-name')?.addEventListener('click', () => {
+      const guestName = document.getElementById('input-guest-name')?.value?.trim() || 'Explorer';
+      const mySeat = this.mp.lobbyState.seats.find((s) => s.peerId === this.mp.myPeerId);
+      if (mySeat) {
+        this.mp.claimExplorerSeat(mySeat.id, guestName);
       }
     });
 
-    // Start Game Button in Lobby
+    // Copy Invite Link Buttons (in Modal Step 2, Top Navbar, and Main Screen Waiting Banner)
+    document.getElementById('btn-copy-invite')?.addEventListener('click', () => {
+      this._copyInviteLinkWithFeedback('btn-copy-invite', '✅ Invite Link Copied!');
+    });
+    document.getElementById('btn-top-copy-invite')?.addEventListener('click', () => {
+      this._copyInviteLinkWithFeedback('top-invite-btn-text', 'Copied!');
+    });
+    document.getElementById('btn-main-banner-copy')?.addEventListener('click', () => {
+      this._copyInviteLinkWithFeedback('btn-main-banner-copy', '✅ Copied!');
+    });
+
+    // Send Invite Link via Messaging App (SMS / iMessage) Buttons
+    document.getElementById('btn-sms-invite')?.addEventListener('click', () => {
+      this._sendInviteViaMessagesApp();
+    });
+    document.getElementById('btn-top-sms-invite')?.addEventListener('click', () => {
+      this._sendInviteViaMessagesApp();
+    });
+    document.getElementById('btn-main-banner-sms')?.addEventListener('click', () => {
+      this._sendInviteViaMessagesApp();
+    });
+
+    // Native Share Button (iPhone / macOS share sheet)
+    document.getElementById('btn-share-invite')?.addEventListener('click', async () => {
+      const url = this.mp.getShareableInviteUrl();
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Join My Voice of the Mummy (1971) Game!',
+            text: 'Click to join my Egyptian Tomb Expedition in Voice of the Mummy:',
+            url,
+          });
+          return;
+        } catch (e) {
+          // Fallback to clipboard copy
+        }
+      }
+      this._copyInviteLinkWithFeedback('btn-copy-invite', '✅ Invite Link Copied!');
+    });
+
+    // Host "Play with Current Players" Buttons (Empty Slots = Nothing OR Empty Slots = Computer)
+    document.getElementById('btn-play-current-empty')?.addEventListener('click', () => {
+      this._startWithCurrentPlayers('none');
+    });
+    document.getElementById('btn-play-current-ai')?.addEventListener('click', () => {
+      this._startWithCurrentPlayers('ai');
+    });
+    document.getElementById('btn-main-banner-play-current')?.addEventListener('click', () => {
+      const { connectedHumans } = this.mp.getWaitingStats();
+      this._startWithCurrentPlayers(connectedHumans >= 2 ? 'none' : 'ai');
+    });
+
+    // Start Game Button in Step 2 Waiting Room
     document.getElementById('btn-start-game')?.addEventListener('click', () => {
       this._startNewGameFromLobby();
     });
 
-    // Quick-Start Preset Buttons in Lobby
-    document.getElementById('btn-preset-solo')?.addEventListener('click', () => {
-      this._applySeatPreset('solo_3ai');
-    });
-    document.getElementById('btn-preset-2p')?.addEventListener('click', () => {
-      this._applySeatPreset('pass_2p');
-    });
-    document.getElementById('btn-preset-4p')?.addEventListener('click', () => {
-      this._applySeatPreset('pass_4p');
-    });
-
-    // Victory Modal Play Again Button
+    // Victory Modal Buttons ("Play Another Expedition" & "View 3D Finale Board")
     document.getElementById('btn-play-again')?.addEventListener('click', () => {
       document.getElementById('modal-gameover')?.classList.add('hidden');
-      document.getElementById('modal-lobby')?.classList.remove('hidden');
+      this._openMultiplayerModal();
+    });
+    document.getElementById('btn-close-gameover')?.addEventListener('click', () => {
+      document.getElementById('modal-gameover')?.classList.add('hidden');
+    });
+    document.getElementById('btn-view-gameover-board')?.addEventListener('click', () => {
+      document.getElementById('modal-gameover')?.classList.add('hidden');
     });
 
-    // Render initial Lobby seats
+    // Render Step 1 Character Picker & initial Lobby seats
+    this._renderStep1HostCharacterPicker();
     this._renderLobbySeats(this.mp.lobbyState);
+  }
+
+  _openMultiplayerModal() {
+    document.getElementById('modal-lobby')?.classList.remove('hidden');
+    if (this.mp.mode === 'host' || this.mp.mode === 'guest') {
+      this._setMultiplayerWizardStep(2);
+      this._updateWaitingStatusUI();
+    } else {
+      this._setMultiplayerWizardStep(1);
+      this._renderStep1HostCharacterPicker();
+    }
+  }
+
+  _setMultiplayerWizardStep(stepNum) {
+    const step1 = document.getElementById('mp-wizard-step1');
+    const step2 = document.getElementById('mp-wizard-step2');
+    const heading = document.getElementById('mp-modal-heading');
+    const guestBox = document.getElementById('guest-welcome-box');
+    const backBtn = document.getElementById('btn-mp-back-step1');
+    const startBtn = document.getElementById('btn-start-game');
+    const guestWaitNotice = document.getElementById('guest-waiting-host-notice');
+
+    if (stepNum === 1) {
+      step1?.classList.remove('hidden');
+      step2?.classList.add('hidden');
+      if (heading) heading.textContent = '🌐 Step 1: Create Your Multiplayer Game';
+    } else {
+      step1?.classList.add('hidden');
+      step2?.classList.remove('hidden');
+      const isGuest = this.mp.mode === 'guest';
+      if (heading) {
+        heading.textContent = isGuest
+          ? `🔗 Joined Room ${this.mp.roomCode || ''} — Pick Your Explorer`
+          : `👑 Step 2: Send Invite Link & Waiting Room (${this.mp.roomCode || ''})`;
+      }
+      guestBox?.classList.toggle('hidden', !isGuest);
+      backBtn?.classList.toggle('hidden', isGuest);
+      startBtn?.classList.toggle('hidden', isGuest);
+      guestWaitNotice?.classList.toggle('hidden', !isGuest);
+    }
+  }
+
+  _renderStep1HostCharacterPicker() {
+    const container = document.getElementById('host-character-picker');
+    if (!container) return;
+
+    container.innerHTML = PLAYERS_CONFIG.map((cfg) => {
+      const isSelected = cfg.id === this.selectedHostSeatId;
+      return `
+        <button type="button" class="mp-char-pick-card ${isSelected ? 'selected' : ''}" data-pick-host-seat="${cfg.id}" style="--char-color: ${cfg.colorHex}">
+          <div class="mp-char-visuals">
+            <img src="${cfg.portraitImg}" alt="${cfg.name}" class="mp-char-fig" />
+            <img src="${cfg.templeImg}" alt="${cfg.deity}" class="mp-char-temple" />
+          </div>
+          <div class="mp-char-name">${cfg.name}</div>
+          <div class="mp-char-deity">${cfg.deityTitle}</div>
+          <div class="mp-char-badge" style="background: ${cfg.colorHex}">
+            ${isSelected ? '✓ YOUR CHARACTER' : 'Tap to Pick'}
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    container.querySelectorAll('[data-pick-host-seat]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.selectedHostSeatId = btn.dataset.pickHostSeat;
+        this._renderStep1HostCharacterPicker();
+      });
+    });
+  }
+
+  _copyInviteLinkWithFeedback(elementId, copiedLabel = '✅ Copied!') {
+    const url = this.mp.getShareableInviteUrl();
+    navigator.clipboard?.writeText(url);
+    const el = document.getElementById(elementId);
+    if (el) {
+      const orig = el.textContent;
+      el.textContent = copiedLabel;
+      setTimeout(() => {
+        el.textContent = orig;
+      }, 2200);
+    }
+  }
+
+  /**
+   * Opens the user's native Messaging app (iMessage / Messages on Mac & iPhone, SMS on Android)
+   * with the Multiplayer Invite Link pre-filled in the message body so they can immediately text it to friends!
+   */
+  _sendInviteViaMessagesApp() {
+    const url = this.mp.getShareableInviteUrl();
+    const bodyText = `Join my 1971 Voice of the Mummy game! Tap this link to enter the Tomb: ${url}`;
+    const smsHref = `sms:?&body=${encodeURIComponent(bodyText)}`;
+    const link = document.createElement('a');
+    link.href = smsHref;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      link.remove();
+    }, 200);
+  }
+
+  _updateWaitingStatusUI() {
+    const isOnline = this.mp.mode === 'host' || this.mp.mode === 'guest';
+    const topCopyBtn = document.getElementById('btn-top-copy-invite');
+    const topSmsBtn = document.getElementById('btn-top-sms-invite');
+    const mainWaitingBanner = document.getElementById('mp-main-waiting-banner');
+    const mainWaitingText = document.getElementById('mp-main-waiting-text');
+    const mainPlayCurrentBtn = document.getElementById('btn-main-banner-play-current');
+    const playCurrentBox = document.getElementById('mp-play-current-box');
+    const statusBox = document.getElementById('mp-waiting-status-box');
+    const headlineEl = document.getElementById('mp-waiting-headline');
+    const startBtn = document.getElementById('btn-start-game');
+
+    if (topCopyBtn) {
+      topCopyBtn.classList.toggle('hidden', !isOnline);
+    }
+    if (topSmsBtn) {
+      topSmsBtn.classList.toggle('hidden', !isOnline);
+    }
+
+    if (!isOnline) {
+      mainWaitingBanner?.classList.add('hidden');
+      playCurrentBox?.classList.add('hidden');
+      return;
+    }
+
+    const { totalHumanSeats, connectedHumans, waitingCount } = this.mp.getWaitingStats();
+    const isHost = this.mp.mode === 'host';
+
+    if (waitingCount > 0) {
+      statusBox?.classList.add('waiting');
+      statusBox?.classList.remove('ready');
+      playCurrentBox?.classList.toggle('hidden', !isHost);
+      if (mainPlayCurrentBtn) {
+        mainPlayCurrentBtn.classList.toggle('hidden', !isHost);
+      }
+      if (headlineEl) {
+        headlineEl.textContent = `⏳ Waiting for ${waitingCount} more friend${waitingCount === 1 ? '' : 's'} to click your Invite Link... (${connectedHumans} of ${totalHumanSeats} Players Connected)`;
+      }
+      if (startBtn && isHost) {
+        startBtn.textContent = `🏺 Start Tomb Expedition (${connectedHumans}/${totalHumanSeats} Joined)`;
+      }
+      if (mainWaitingBanner && mainWaitingText) {
+        mainWaitingText.textContent = `⏳ Waiting for ${waitingCount} friend${waitingCount === 1 ? '' : 's'} (${connectedHumans}/${totalHumanSeats} joined)...`;
+        mainWaitingBanner.classList.remove('hidden');
+      }
+    } else {
+      statusBox?.classList.remove('waiting');
+      statusBox?.classList.add('ready');
+      playCurrentBox?.classList.add('hidden');
+      if (headlineEl) {
+        headlineEl.textContent = `✅ All ${totalHumanSeats} Players Connected! Ready to Start the Tomb Expedition!`;
+      }
+      if (startBtn && isHost) {
+        startBtn.textContent = `🏺 Start Tomb Expedition (${connectedHumans}/${totalHumanSeats} Ready!)`;
+      }
+      mainWaitingBanner?.classList.add('hidden');
+    }
   }
 
   _checkUrlRoomParam() {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
     if (roomParam) {
+      document.getElementById('modal-intro-landing')?.classList.add('hidden');
       document.getElementById('modal-lobby')?.classList.remove('hidden');
-      const codeInput = document.getElementById('input-room-code');
-      if (codeInput) codeInput.value = roomParam;
-      const guestName = `Explorer-${Math.floor(10 + Math.random() * 89)}`;
-      const nameInput = document.getElementById('input-player-name');
-      if (nameInput) nameInput.value = guestName;
+      const guestName = `Explorer ${Math.floor(2 + Math.random() * 8)}`;
+      const guestInput = document.getElementById('input-guest-name');
+      if (guestInput) guestInput.value = guestName;
       this.mp.joinRoom(roomParam, guestName);
-      this._showRoomShareBox(roomParam.toUpperCase().startsWith('TOMB-') ? roomParam.toUpperCase() : `TOMB-${roomParam.toUpperCase()}`);
+      const cleanCode = roomParam.toUpperCase().startsWith('TOMB-')
+        ? roomParam.toUpperCase()
+        : `TOMB-${roomParam.toUpperCase()}`;
+      this._setMultiplayerWizardStep(2);
+      this._showRoomShareBox(cleanCode);
+      this._updateWaitingStatusUI();
     } else {
       // Start a default 4-explorer showcase game right away in the background so the 3D & 2D boards are immediately alive,
-      // while keeping the Lobby accessible or starting immediately!
+      // while the Intro Landing Card welcomes the player!
       this.engine.initGame(this.mp.lobbyState.seats);
     }
   }
@@ -240,29 +539,37 @@ class VoiceOfTheMummyApp {
     const box = document.getElementById('room-share-box');
     const codeSpan = document.getElementById('active-room-code-display');
     const urlInput = document.getElementById('share-invite-url');
-    const topRoomBadge = document.getElementById('top-room-badge');
+    const topCopyBtn = document.getElementById('btn-top-copy-invite');
+    const topSmsBtn = document.getElementById('btn-top-sms-invite');
 
     if (box) box.classList.remove('hidden');
     if (codeSpan) codeSpan.textContent = code;
     if (urlInput) urlInput.value = this.mp.getShareableInviteUrl();
-    if (topRoomBadge) {
-      topRoomBadge.textContent = `🌐 Room: ${code}`;
-      topRoomBadge.classList.remove('hidden');
-    }
+    if (topCopyBtn) topCopyBtn.classList.remove('hidden');
+    if (topSmsBtn) topSmsBtn.classList.remove('hidden');
   }
 
   _updateMultiplayerStatusBanner(text) {
     const el = document.getElementById('mp-status-banner');
     if (el) el.textContent = text;
+    this._updateWaitingStatusUI();
   }
 
   _applySeatPreset(preset) {
     const seats = this.mp.lobbyState.seats;
     if (preset === 'solo_3ai') {
       seats[0].control = 'human';
+      seats[0].peerId = 'local';
+      seats[0].name = 'Blue Explorer';
       seats[1].control = 'ai';
+      seats[1].peerId = null;
+      seats[1].name = 'Red Explorer (Bot)';
       seats[2].control = 'ai';
+      seats[2].peerId = null;
+      seats[2].name = 'Yellow Explorer (Bot)';
       seats[3].control = 'ai';
+      seats[3].peerId = null;
+      seats[3].name = 'Green Explorer (Bot)';
     } else if (preset === 'pass_2p') {
       seats[0].control = 'human';
       seats[1].control = 'human';
@@ -284,31 +591,60 @@ class VoiceOfTheMummyApp {
     container.innerHTML = lobbyState.seats
       .map((seat) => {
         const cfg = PLAYERS_CONFIG.find((c) => c.id === seat.id);
-        const isMe = seat.peerId === this.mp.myPeerId;
+        const isMe = Boolean(seat.peerId && seat.peerId === this.mp.myPeerId);
+        const isTakenByOtherHuman = Boolean(seat.control === 'human' && seat.peerId && seat.peerId !== this.mp.myPeerId);
+        const isWaitingForFriend = seat.control === 'human' && !seat.peerId;
+
+        let statusBadgeHtml = '';
+        if (isMe) {
+          statusBadgeHtml = `<div class="seat-live-status status-me">✅ YOUR CHARACTER (${seat.name})</div>`;
+        } else if (isTakenByOtherHuman) {
+          statusBadgeHtml = `<div class="seat-live-status status-joined">✅ ${seat.name} Joined!</div>`;
+        } else if (isWaitingForFriend) {
+          statusBadgeHtml = `<div class="seat-live-status status-waiting">⏳ Waiting for Friend to Join...</div>`;
+        } else if (seat.control === 'ai') {
+          statusBadgeHtml = `<div class="seat-live-status status-ai">🤖 AI Tomb Bot</div>`;
+        } else {
+          statusBadgeHtml = `<div class="seat-live-status status-empty">🚫 Seat Closed</div>`;
+        }
+
+        const canPickThisSeat = !isMe && !isTakenByOtherHuman;
+
         return `
-          <div class="lobby-seat-card" style="border-color: ${cfg.colorHex}">
-            <div class="seat-card-header" style="background: ${cfg.colorHex}22">
-              <img src="${cfg.portraitImg}" alt="${cfg.name}" class="seat-portrait" />
-              <div>
+          <div class="lobby-seat-card ${isMe ? 'seat-is-me' : ''} ${isWaitingForFriend ? 'seat-is-waiting' : ''}" style="--seat-color: ${cfg.colorHex}; border-color: ${cfg.colorHex}">
+            <div class="seat-card-header" style="background: ${cfg.colorHex}26">
+              <div class="seat-dual-thumbs">
+                <img src="${cfg.portraitImg}" alt="${cfg.name}" class="seat-portrait" />
+                <img src="${cfg.templeImg}" alt="${cfg.deity}" class="seat-temple-thumb" />
+              </div>
+              <div class="seat-header-info">
+                <span class="seat-color-tag" style="background: ${cfg.colorHex}">${cfg.id.toUpperCase()} PAWN</span>
                 <div class="seat-deity-title" style="color: ${cfg.accentHex}">${cfg.deityTitle}</div>
-                <input type="text" class="seat-name-input" data-seat-id="${seat.id}" value="${seat.name}" />
+                <input type="text" class="seat-name-input" data-seat-id="${seat.id}" value="${seat.name}" ${this.mp.mode === 'guest' && !isMe ? ' disabled' : ''} />
               </div>
             </div>
-            <div class="seat-controls-row">
-              <label>Player Type:</label>
-              <select class="seat-control-select" data-seat-id="${seat.id}">
-                <option value="human" ${seat.control === 'human' ? 'selected' : ''}>🧑 Human Explorer ${isMe && this.mp.mode !== 'local' ? '(You)' : ''}</option>
-                <option value="ai" ${seat.control === 'ai' ? 'selected' : ''}>🤖 AI Tomb Bot</option>
-                <option value="none" ${seat.control === 'none' ? 'selected' : ''}>🚫 Empty Seat</option>
-              </select>
-            </div>
+
+            ${statusBadgeHtml}
+
+            ${
+              this.mp.mode !== 'guest'
+                ? `<div class="seat-controls-row">
+                    <select class="seat-control-select" data-seat-id="${seat.id}">
+                      <option value="human" ${seat.control === 'human' ? 'selected' : ''}>🧑 Human Player ${isMe ? '(You)' : '(Friend via Link)'}</option>
+                      <option value="ai" ${seat.control === 'ai' ? 'selected' : ''}>🤖 AI Tomb Bot</option>
+                      <option value="none" ${seat.control === 'none' ? 'selected' : ''}>🚫 Closed Seat</option>
+                    </select>
+                  </div>`
+                : ''
+            }
+
             <div class="seat-Join-btn-row">
               ${
-                this.mp.mode !== 'local'
-                  ? `<button class="btn-claim-seat ${isMe ? 'claimed' : ''}" data-claim-seat="${seat.id}">
-                      ${isMe ? '✓ Your Explorer Seat' : 'Claim This Explorer'}
-                    </button>`
-                  : ''
+                isMe
+                  ? `<button type="button" class="btn-claim-seat claimed" disabled>✓ Playing as ${cfg.name}</button>`
+                  : canPickThisSeat
+                  ? `<button type="button" class="btn-claim-seat" data-claim-seat="${seat.id}">👆 Switch to ${cfg.name}</button>`
+                  : `<button type="button" class="btn-claim-seat" disabled>🔒 Taken by ${seat.name}</button>`
               }
             </div>
           </div>
@@ -324,29 +660,86 @@ class VoiceOfTheMummyApp {
 
     container.querySelectorAll('.seat-control-select').forEach((sel) => {
       sel.addEventListener('change', () => {
-        this.mp.updateSeat(sel.dataset.seatId, {
-          control: sel.value,
-          peerId: sel.value === 'human' ? this.mp.myPeerId : null,
+        const seatId = sel.dataset.seatId;
+        const cfg = PLAYERS_CONFIG.find((c) => c.id === seatId);
+        const newControl = sel.value;
+        this.mp.updateSeat(seatId, {
+          control: newControl,
+          peerId: null,
+          name:
+            newControl === 'human'
+              ? 'Waiting for Friend...'
+              : newControl === 'ai'
+              ? `${cfg?.name || 'Explorer'} (Bot)`
+              : cfg?.name || 'Explorer',
         });
       });
     });
 
     container.querySelectorAll('[data-claim-seat]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const myName = document.getElementById('input-player-name')?.value?.trim() || 'Explorer';
-        this.mp.updateSeat(btn.dataset.claimSeat, {
-          control: 'human',
-          peerId: this.mp.myPeerId,
-          name: myName,
-        });
+        const nameInputId = this.mp.mode === 'guest' ? 'input-guest-name' : 'input-player-name';
+        const myName = document.getElementById(nameInputId)?.value?.trim() || 'Explorer';
+        this.mp.claimExplorerSeat(btn.dataset.claimSeat, myName);
       });
     });
+  }
+
+  /**
+   * Starts the online game immediately with the players who have currently joined,
+   * converting any unjoined human slots (`control === 'human' && !peerId`) to either
+   * `'none'` (Empty / Closed) or `'ai'` (Computer Bot) so the Host never needs a new link!
+   */
+  _startWithCurrentPlayers(emptySlotMode = 'none') {
+    if (this.mp.mode === 'guest') return;
+    const seats = this.mp.lobbyState.seats;
+
+    for (const s of seats) {
+      if (s.control === 'human' && !s.peerId) {
+        const cfg = PLAYERS_CONFIG.find((c) => c.id === s.id);
+        if (emptySlotMode === 'ai') {
+          s.control = 'ai';
+          s.name = `${cfg?.name || 'Explorer'} (Bot)`;
+        } else {
+          s.control = 'none';
+          s.name = cfg?.name || 'Explorer';
+        }
+      }
+    }
+
+    // Ensure at least 2 total active players (if only the Host is in the room and chose 'none', add 1 AI Bot so they can play)
+    const activeCount = seats.filter((s) => s.control !== 'none').length;
+    if (activeCount < 2) {
+      const fallbackSeat = seats.find((s) => s.control === 'none');
+      if (fallbackSeat) {
+        const cfg = PLAYERS_CONFIG.find((c) => c.id === fallbackSeat.id);
+        fallbackSeat.control = 'ai';
+        fallbackSeat.name = `${cfg?.name || 'Explorer'} (Bot)`;
+      }
+    }
+
+    this.mp._broadcastLobby();
+    this._updateWaitingStatusUI();
+    document.getElementById('modal-lobby')?.classList.add('hidden');
+    document.getElementById('modal-gameover')?.classList.add('hidden');
+    this._resetViewForNewGame();
+    this.engine.initGame(this.mp.lobbyState.seats);
   }
 
   _startNewGameFromLobby() {
     if (this.mp.mode === 'guest') {
       this._updateMultiplayerStatusBanner('Waiting for the Host to start the game...');
       return;
+    }
+    // If hosting an online room and some invited human slots haven't joined yet,
+    // automatically convert those unjoined slots so the game never gets stuck waiting on an empty seat!
+    if (this.mp.mode === 'host') {
+      const { connectedHumans, waitingCount } = this.mp.getWaitingStats();
+      if (waitingCount > 0) {
+        const fillAiChecked = document.getElementById('chk-fill-ai')?.checked ?? false;
+        this._startWithCurrentPlayers(fillAiChecked || connectedHumans < 2 ? 'ai' : 'none');
+        return;
+      }
     }
     const activeCount = this.mp.lobbyState.seats.filter((s) => s.control !== 'none').length;
     if (activeCount < 2) {
@@ -355,6 +748,7 @@ class VoiceOfTheMummyApp {
     }
     document.getElementById('modal-lobby')?.classList.add('hidden');
     document.getElementById('modal-gameover')?.classList.add('hidden');
+    this._resetViewForNewGame();
     this.engine.initGame(this.mp.lobbyState.seats);
   }
 
@@ -442,12 +836,56 @@ class VoiceOfTheMummyApp {
   }
 
   _onClientReceiveState(state) {
+    const isInitialTurn = !this.activeState || (state.turnNumber === 1 && state.turnIndex === 0 && state.phase === 'ROLL_DIE');
+    document.getElementById('modal-intro-landing')?.classList.add('hidden');
     document.getElementById('modal-lobby')?.classList.add('hidden');
+    if (isInitialTurn) {
+      this._resetViewForNewGame();
+    }
     this._applyStateToUI(state);
   }
 
   _onClientReceiveEvent(event) {
     this._playVisualAndAudioEvent(event);
+  }
+
+  _getPlayerDisplayName(playerId) {
+    const p = this.activeState?.players?.find((x) => x.id === playerId) ||
+      this.engine?.state?.players?.find((x) => x.id === playerId) ||
+      PLAYERS_CONFIG.find((x) => x.id === playerId);
+    return p ? p.name : 'Explorer';
+  }
+
+  _showBigEventPopup({ theme = 'gold', icon = '🏺', title = '', subtitle = '' }) {
+    const popupEl = document.getElementById('big-event-popup');
+    if (!popupEl || !title) return;
+
+    const now = performance.now();
+    const itemHtml = `
+      <div class="big-event-card theme-${theme}">
+        <div class="big-event-icon">${icon}</div>
+        <div class="big-event-texts">
+          <div class="big-event-title">${title}</div>
+          ${subtitle ? `<div class="big-event-sub">${subtitle}</div>` : ''}
+        </div>
+      </div>
+    `;
+
+    // If two major events happen simultaneously on the same landing (e.g. stealing a gem AND passing the Cobra curse), stack them!
+    if (!popupEl.classList.contains('hidden') && now - this.lastBigPopupTime < 900) {
+      popupEl.insertAdjacentHTML('beforeend', itemHtml);
+    } else {
+      popupEl.innerHTML = itemHtml;
+      popupEl.classList.remove('hidden');
+    }
+
+    this.lastBigPopupTime = now;
+    if (this.bigPopupTimer) {
+      clearTimeout(this.bigPopupTimer);
+    }
+    this.bigPopupTimer = setTimeout(() => {
+      popupEl.classList.add('hidden');
+    }, 3600);
   }
 
   _playVisualAndAudioEvent(event) {
@@ -469,20 +907,108 @@ class VoiceOfTheMummyApp {
         }
         break;
 
+      case 'jewel_transferred': {
+        this._playSfx('jewel');
+        const fromName = this._getPlayerDisplayName(event.fromPlayerId);
+        const toName = this._getPlayerDisplayName(event.toPlayerId);
+        this._showBigEventPopup({
+          theme: 'emerald',
+          icon: '💎',
+          title: `${toName.toUpperCase()} STOLE A GEM!`,
+          subtitle: `Took 1 Precious Scarab Gem from ${fromName}`,
+        });
+        break;
+      }
+
+      case 'cobra_transferred': {
+        this._playSfx('gong');
+        const toName = this._getPlayerDisplayName(event.toPlayerId);
+        const fromName = event.fromPlayerId ? this._getPlayerDisplayName(event.fromPlayerId) : null;
+        this._showBigEventPopup({
+          theme: 'curse',
+          icon: '🐍',
+          title: `${toName.toUpperCase()} GOT THE COBRA CURSE!`,
+          subtitle: fromName
+            ? `Passed from ${fromName} (-5 Gems Evil Spell)`
+            : `Cursed by the Evil Ruby Cobra (-5 Gems)`,
+        });
+        break;
+      }
+
+      case 'great_jewel_transferred': {
+        this._playSfx('victory');
+        const toName = this._getPlayerDisplayName(event.toPlayerId);
+        const fromName = this._getPlayerDisplayName(event.fromPlayerId);
+        this._showBigEventPopup({
+          theme: 'gold',
+          icon: '👑',
+          title: `${toName.toUpperCase()} STOLE THE GREAT JEWEL!`,
+          subtitle: `Snatched the +5 Great Mummy Jewel from ${fromName}!`,
+        });
+        break;
+      }
+
+      case 'great_jewel_unlocked': {
+        this._playSfx('gong');
+        this._showBigEventPopup({
+          theme: 'gold',
+          icon: '🔓',
+          title: 'GREAT MUMMY JEWEL UNLOCKED!',
+          subtitle: 'All 6 Top-Level Gems collected — Land on Level 3 Great Jewel Space!',
+        });
+        break;
+      }
+
+      case 'major_announcement': {
+        this._showBigEventPopup({
+          theme: event.theme || 'gold',
+          icon: event.icon || '🏺',
+          title: event.title,
+          subtitle: event.subtitle || '',
+        });
+        break;
+      }
+
       case 'mummy_track_started':
         this.view3D.animateSarcophagusLeverPull();
         this._playMummyTrackAudio(event.track);
         break;
 
-      case 'part2_started':
+      case 'part2_started': {
         this._playSfx('gong');
+        const claimer = this._getPlayerDisplayName(event.playerId);
+        this._showBigEventPopup({
+          theme: 'curse',
+          icon: '👑🐍',
+          title: `${claimer.toUpperCase()} CLAIMED THE GREAT JEWEL & COBRA CURSE!`,
+          subtitle: 'PART II BEGINS — Race back to your Home Temple without the Cobra!',
+        });
         this._showPart2RecordFlipBanner();
         break;
+      }
 
-      case 'game_over':
-        this._playSfx('victory');
-        this._showGameOverModal(event.scores);
+      case 'game_over': {
+        const winner = event.scores?.[0];
+        const didLocalWin = this._didLocalHumanWin(event.scores);
+        this._playSfx(didLocalWin ? 'victory_fanfare' : 'defeat_curse');
+        if (winner) {
+          this.view3D.triggerGameOverCelebration(winner.playerId);
+          this._showBigEventPopup({
+            theme: didLocalWin ? 'gold' : 'curse',
+            icon: didLocalWin ? '👑🏆' : '⚰️🐍',
+            title: didLocalWin
+              ? `VICTORY! ${winner.name.toUpperCase()} WINS WITH ${winner.totalScore} GEMS!`
+              : `TOMB SEALED! ${winner.name.toUpperCase()} WINS (${winner.totalScore} GEMS)!`,
+            subtitle: didLocalWin
+              ? 'You escaped the Pharaoh’s Tomb with the richest treasure!'
+              : 'The Mummy seals the tomb doors on the vanquished explorers!',
+          });
+        }
+        setTimeout(() => {
+          this._showGameOverModal(event.scores);
+        }, 2100);
         break;
+      }
 
       default:
         break;
@@ -621,26 +1147,39 @@ class VoiceOfTheMummyApp {
                 <div class="temple-deity-sub">${p.deityTitle} • Level ${p.level}</div>
                 <div class="temple-space-sub">📍 ${sp ? sp.label : ''}</div>
               </div>
-              <div class="temple-score-box" title="Total Jewel Value">
+              <div class="temple-score-box" title="Total Gems Value (${p.jewels} Scarab Gems${hasGreatJewel ? ' + 5 Great Jewel' : ''}${hasCobra ? ' - 5 Cobra Curse' : ''})">
                 <div class="score-num">${totalScore}</div>
-                <div class="score-lbl">PTS</div>
+                <svg class="score-gem-icon" viewBox="0 0 28 22" aria-label="Gems">
+                  <polygon points="8,1 20,1 27,7 27,15 20,21 8,21 1,15 1,7" fill="#00a838" stroke="#85ffba" stroke-width="1.5" />
+                  <polygon points="9,5 19,5 22,8 22,14 19,17 9,17 6,14 6,8" fill="#00e054" stroke="#baffd8" stroke-width="0.9" />
+                  <line x1="8" y1="1" x2="9" y2="5" stroke="#baffd8" stroke-width="0.9" />
+                  <line x1="20" y1="1" x2="19" y2="5" stroke="#baffd8" stroke-width="0.9" />
+                  <line x1="27" y1="7" x2="22" y2="8" stroke="#baffd8" stroke-width="0.9" />
+                  <line x1="27" y1="15" x2="22" y2="14" stroke="#006622" stroke-width="0.9" />
+                  <line x1="20" y1="21" x2="19" y2="17" stroke="#006622" stroke-width="0.9" />
+                  <line x1="8" y1="21" x2="9" y2="17" stroke="#006622" stroke-width="0.9" />
+                  <line x1="1" y1="15" x2="6" y2="14" stroke="#006622" stroke-width="0.9" />
+                  <line x1="1" y1="7" x2="6" y2="8" stroke="#baffd8" stroke-width="0.9" />
+                  <polygon points="10,6.5 17,6.5 14,10" fill="#ffffff" fill-opacity="0.55" />
+                </svg>
               </div>
             </div>
-            <div class="temple-inventory-row">
-              <span class="inv-pill emerald" title="Precious Scarab Jewels (+1 pt each)">
-                💎 ${p.jewels} Scarab${p.jewels === 1 ? '' : 's'}
-              </span>
-              ${
-                hasGreatJewel
-                  ? `<span class="inv-pill gold" title="The Great Mummy Jewel (+5 pts)">👑 Great Jewel (+5)</span>`
-                  : ''
-              }
-              ${
-                hasCobra
-                  ? `<span class="inv-pill ruby-curse" title="Evil Cobra Spell (-5 pts & cannot end game)">🐍 Cobra Spell (-5)</span>`
-                  : ''
-              }
-            </div>
+            ${
+              hasGreatJewel || hasCobra
+                ? `<div class="temple-inventory-row">
+                    ${
+                      hasGreatJewel
+                        ? `<span class="inv-pill gold" title="The Great Mummy Jewel (+5)">👑 <span class="inv-lbl-desk">Great Jewel </span>(+5)</span>`
+                        : ''
+                    }
+                    ${
+                      hasCobra
+                        ? `<span class="inv-pill ruby-curse" title="Evil Cobra Spell (-5 & cannot end game)">🐍 <span class="inv-lbl-desk">Cobra Curse </span>(-5)</span>`
+                        : ''
+                    }
+                  </div>`
+                : ''
+            }
           </div>
         `;
       })
@@ -835,48 +1374,178 @@ class VoiceOfTheMummyApp {
     }, 6500);
   }
 
+  _didLocalHumanWin(scores) {
+    if (!scores || scores.length === 0) return true;
+    const winnerId = scores[0].playerId;
+    const players = this.activeState?.players || this.engine?.state?.players || [];
+    const humans = players.filter((p) => p.control === 'human');
+    if (humans.length === 0) return true;
+    if (this.mp.mode !== 'local') {
+      const myHuman = humans.find((p) => p.peerId === this.mp.myPeerId);
+      if (myHuman) return myHuman.id === winnerId;
+    }
+    if (humans.length === 1) {
+      return humans[0].id === winnerId;
+    }
+    // In local Pass & Play with multiple humans, if any human won, celebrate victory!
+    return humans.some((h) => h.id === winnerId);
+  }
+
+  _getLocalHumanPlayer() {
+    const players = this.activeState?.players || this.engine?.state?.players || [];
+    const humans = players.filter((p) => p.control === 'human');
+    if (this.mp.mode !== 'local') {
+      return humans.find((p) => p.peerId === this.mp.myPeerId) || humans[0] || null;
+    }
+    return humans.length === 1 ? humans[0] : null;
+  }
+
   _showGameOverModal(scores) {
     const modal = document.getElementById('modal-gameover');
+    const modalCard = document.getElementById('gameover-modal-card');
+    const modalTitle = document.getElementById('gameover-modal-title');
+    const particlesEl = document.getElementById('gameover-particles');
     const body = document.getElementById('gameover-scores-body');
-    if (!modal || !body || !scores) return;
+    if (!modal || !body || !scores || scores.length === 0) return;
 
     const winner = scores[0];
+    const winnerCfg = PLAYERS_CONFIG.find((c) => c.id === winner.playerId);
+    const losers = scores.slice(1);
+    const didLocalWin = this._didLocalHumanWin(scores);
+    const myHuman = this._getLocalHumanPlayer();
+    const myScoreEntry = myHuman ? scores.find((s) => s.playerId === myHuman.id) : null;
+
+    if (modalCard) {
+      modalCard.classList.toggle('is-victory', didLocalWin);
+      modalCard.classList.toggle('is-defeat', !didLocalWin);
+    }
+    if (modalTitle) {
+      modalTitle.innerHTML = didLocalWin
+        ? '👑 Grand Pharaoh’s Triumph — Expedition Complete!'
+        : '⚰️ The Tomb Doors Seal — Expedition Complete!';
+    }
+
+    // Spawn falling celebration gems/crowns (on Victory) or cursed cobras/skulls (on Defeat)
+    if (particlesEl) {
+      const icons = didLocalWin
+        ? ['💎', '👑', '✨', '🏺', '🪙', '💎']
+        : ['🐍', '⚰️', '💀', '🕸️', '🐍', '💎'];
+      particlesEl.innerHTML = Array.from({ length: 28 })
+        .map((_, idx) => {
+          const left = ((idx * 37) % 96) + 2;
+          const delay = ((idx * 0.23) % 3.2).toFixed(2);
+          const dur = (3.0 + (idx % 5) * 0.55).toFixed(2);
+          const size = 18 + (idx % 4) * 5;
+          const icon = icons[idx % icons.length];
+          return `<span class="gameover-particle" style="left:${left}%; animation-delay:${delay}s; animation-duration:${dur}s; font-size:${size}px;">${icon}</span>`;
+        })
+        .join('');
+    }
+
+    const gemIconSvg = `
+      <svg class="score-gem-icon" viewBox="0 0 28 22" aria-label="Gems">
+        <polygon points="8,1 20,1 27,7 27,15 20,21 8,21 1,15 1,7" fill="#00a838" stroke="#85ffba" stroke-width="1.5" />
+        <polygon points="9,5 19,5 22,8 22,14 19,17 9,17 6,14 6,8" fill="#00e054" stroke="#baffd8" stroke-width="0.9" />
+        <polygon points="10,6.5 17,6.5 14,10" fill="#ffffff" fill-opacity="0.55" />
+      </svg>
+    `;
+
+    let personalBannerHtml = '';
+    if (didLocalWin) {
+      personalBannerHtml = `
+        <div class="gameover-outcome-banner outcome-victory">
+          <div class="outcome-badge-icon">🏆</div>
+          <div class="outcome-banner-texts">
+            <div class="outcome-kicker">PHARAOH’S BLESSING • GRAND VICTORY!</div>
+            <div class="outcome-headline">${winner.name} Escaped the Tomb in Triumph!</div>
+            <div class="outcome-sub">The golden treasures of the Stepped Pyramid belong to ${winner.deityTitle}!</div>
+          </div>
+        </div>
+      `;
+    } else {
+      const myFateReason = myScoreEntry?.hasCobra
+        ? `You were left holding the Cursed Ruby Cobra (-5 Gems) when the tomb sealed!`
+        : myScoreEntry?.finishedFirst
+        ? `You escaped to your temple first, but ${winner.name} outscored you in total Gems!`
+        : `You were trapped inside the pyramid while ${winner.name} claimed the richest treasure!`;
+      personalBannerHtml = `
+        <div class="gameover-outcome-banner outcome-defeat">
+          <div class="outcome-badge-icon">⚰️</div>
+          <div class="outcome-banner-texts">
+            <div class="outcome-kicker">THE MUMMY’S CURSE • DEFEAT!</div>
+            <div class="outcome-headline">${winner.name} Conquered the Tomb!</div>
+            <div class="outcome-sub">${myFateReason}</div>
+          </div>
+        </div>
+      `;
+    }
+
     body.innerHTML = `
-      <div class="winner-crown-banner" style="border-color: ${winner.colorHex}">
-        <div class="winner-trophy">🏆</div>
-        <div>
-          <h2>${winner.name} (${winner.deity}) Wins!</h2>
-          <p>Final Tomb Treasure Value: <strong>${winner.totalScore} Points</strong></p>
+      ${personalBannerHtml}
+
+      <!-- 1ST PLACE WINNER SHOWCASE -->
+      <div class="gameover-winner-showcase" style="--winner-color: ${winner.colorHex}">
+        <div class="winner-showcase-left">
+          <div class="winner-Visuals-pair">
+            <div class="winner-figure-frame" style="border-color: ${winner.colorHex}; background: ${winner.colorHex}30">
+              <span class="winner-crown-float">👑</span>
+              <img src="${winnerCfg?.portraitImg || ''}" alt="${winner.name}" class="winner-figure-img" />
+              <span class="winner-pawn-pill" style="background: ${winner.colorHex}">#1 WINNER</span>
+            </div>
+            <img src="${winnerCfg?.templeImg || ''}" alt="${winner.deity}" class="winner-temple-img" />
+          </div>
+          <div class="winner-info-col">
+            <div class="winner-rank-tag">🥇 1ST PLACE • TOMB CHAMPION</div>
+            <h3 class="winner-name-big">${winner.name} (${winner.deity})</h3>
+            <div class="winner-breakdown-pills">
+              <span class="win-pill emerald">💎 ${winner.preciousJewels} Scarab Gems</span>
+              ${winner.hasGreatJewel ? `<span class="win-pill gold">👑 Great Jewel (+5)</span>` : ''}
+              ${winner.finishedFirst ? `<span class="win-pill temple">🏛️ Escaped Tomb First!</span>` : ''}
+              ${winner.hasCobra ? `<span class="win-pill curse">🐍 Cobra Curse (-5)</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="winner-score-pedestal">
+          <div class="winner-score-num">${winner.totalScore}</div>
+          ${gemIconSvg}
         </div>
       </div>
-      <table class="scores-breakdown-table">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Explorer</th>
-            <th>Precious Jewels (+1)</th>
-            <th>Great Jewel (+5)</th>
-            <th>Cobra Spell (-5)</th>
-            <th>Total Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${scores
-            .map(
-              (s, i) => `
-              <tr class="${i === 0 ? 'winner-row' : ''}">
-                <td>#${i + 1}</td>
-                <td><span class="player-dot" style="background:${s.colorHex}"></span> ${s.name} (${s.deity}) ${s.finishedFirst ? '🏛️' : ''}</td>
-                <td>💎 ${s.preciousJewels}</td>
-                <td>${s.hasGreatJewel ? '👑 +5' : '—'}</td>
-                <td>${s.hasCobra ? '🐍 -5' : '—'}</td>
-                <td><strong>${s.totalScore} pts</strong></td>
-              </tr>
-            `
-            )
-            .join('')}
-        </tbody>
-      </table>
+
+      <!-- VANQUISHED EXPLORERS (LOSERS FATE GRID) -->
+      <div class="gameover-losers-header">⚰️ FATE OF THE VANQUISHED EXPLORERS</div>
+      <div class="gameover-losers-grid">
+        ${losers
+          .map((s, idx) => {
+            const cfg = PLAYERS_CONFIG.find((c) => c.id === s.playerId);
+            const rankNum = idx + 2;
+            const fateTitle = s.hasCobra
+              ? '🐍 Cursed by the Ruby Cobra (-5)!'
+              : s.finishedFirst
+              ? '🏃 Escaped First, Outscored in Gems!'
+              : '🕸️ Trapped Inside the Pyramid!';
+            const fateClass = s.hasCobra ? 'fate-cursed' : 'fate-trapped';
+            return `
+              <div class="loser-fate-card ${fateClass}" style="--loser-color: ${s.colorHex}">
+                <div class="loser-card-top">
+                  <div class="loser-figure-wrap" style="border-color: ${s.colorHex}">
+                    <img src="${cfg?.portraitImg || ''}" alt="${s.name}" class="loser-figure-img" />
+                    <span class="loser-rank-tag" style="background: ${s.colorHex}">#${rankNum}</span>
+                  </div>
+                  <div class="loser-meta">
+                    <div class="loser-name">${s.name}</div>
+                    <div class="loser-deity">${s.deity} • ${s.preciousJewels} Scarabs${s.hasGreatJewel ? ' • 👑 +5' : ''}${s.hasCobra ? ' • 🐍 -5' : ''}</div>
+                    <div class="loser-fate-badge ${fateClass}">${fateTitle}</div>
+                  </div>
+                  <div class="temple-score-box loser-score-box">
+                    <div class="score-num">${s.totalScore}</div>
+                    ${gemIconSvg}
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join('')}
+      </div>
     `;
     modal.classList.remove('hidden');
   }
@@ -981,6 +1650,52 @@ class VoiceOfTheMummyApp {
           gain.connect(ctx.destination);
           osc.start(now);
           osc.stop(now + 1.25);
+        });
+      } else if (type === 'victory_fanfare') {
+        // Triumphant Royal Pharaoh Trumpet & Harp Fanfare
+        const notes = [
+          { f: 261.63, t: 0.0, d: 0.18 },
+          { f: 329.63, t: 0.16, d: 0.18 },
+          { f: 392.0, t: 0.32, d: 0.18 },
+          { f: 523.25, t: 0.48, d: 0.35 },
+          { f: 392.0, t: 0.82, d: 0.18 },
+          { f: 523.25, t: 1.0, d: 0.85 },
+          { f: 659.25, t: 1.0, d: 0.85 },
+          { f: 783.99, t: 1.0, d: 0.85 },
+        ];
+        notes.forEach((n) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(n.f, now + n.t);
+          gain.gain.setValueAtTime(0.16, now + n.t);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + n.t);
+          osc.stop(now + n.t + n.d + 0.02);
+        });
+      } else if (type === 'defeat_curse') {
+        // Dramatic Descending Mummy's Tomb Seal Chord
+        const notes = [
+          { f: 293.66, t: 0.0, d: 0.32 },
+          { f: 277.18, t: 0.3, d: 0.32 },
+          { f: 246.94, t: 0.6, d: 0.35 },
+          { f: 196.0, t: 0.92, d: 1.1 },
+          { f: 146.83, t: 0.92, d: 1.1 },
+          { f: 116.54, t: 0.92, d: 1.1 },
+        ];
+        notes.forEach((n) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(n.f, now + n.t);
+          gain.gain.setValueAtTime(0.09, now + n.t);
+          gain.gain.exponentialRampToValueAtTime(0.0008, now + n.t + n.d);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + n.t);
+          osc.stop(now + n.t + n.d + 0.02);
         });
       }
     } catch (e) {
