@@ -11,7 +11,7 @@ await fs.cp(path.join(root,'dist'),destination,{recursive:true});
 // suggesting that a message preview replace it with the generic homepage URL.
 const landing=await fs.readFile(path.join(destination,'index.html'),'utf8');
 await fs.writeFile(path.join(destination,'room.html'),landing.replace(/\s*<link rel="canonical"[^>]*>/g,'').replace(/\s*<meta property="og:url"[^>]*>/g,''));
-await fs.writeFile(path.join(destination,'version.json'),JSON.stringify({version:'2.3.1',edition:'Your chess home · Link previews',builtAt:new Date().toISOString()},null,2));
+await fs.writeFile(path.join(destination,'version.json'),JSON.stringify({version:'2.3.2',edition:'Your chess home · Sculpted knights',builtAt:new Date().toISOString()},null,2));
 await fs.writeFile(path.join(destination,'README.md'),(await fs.readFile(path.join(root,'README.md'),'utf8')).replaceAll('(supabase/','(_source/supabase/'));
 const source=path.join(destination,'_source');await fs.mkdir(source,{recursive:true});
 for(const file of ['src','public','tests','scripts','supabase','package.json','pnpm-lock.yaml','vite.config.js','index.html','README.md','.gitignore','.github'])await fs.cp(path.join(root,file),path.join(source,file),{recursive:true});

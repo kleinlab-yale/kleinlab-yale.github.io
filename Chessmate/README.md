@@ -1,4 +1,4 @@
-# Chessmate 2.3.1 — Your chess home
+# Chessmate 2.3.2 — Your chess home
 
 A warm, modern chess clubhouse with computer personalities, 2D/3D boards, named home rooms, friends, and progression.
 
@@ -26,7 +26,7 @@ Upload the complete updated folder before checking previews in a messaging app. 
 - Six computer personalities at 400–1900 estimated Elo. A local worker varies search depth and mistakes; these difficulty labels are not calibrated tournament ratings.
 - Legal moves, castling, en passant, promotion choices, checkmate and draws through chess.js.
 - A fixed 8×8 SVG-backed 2D board, legal-move highlights, keyboard navigation, flipping, and PGN export. The background and hit targets share one square coordinate system, including at phone widths.
-- A Three.js 3D board with modeled pieces, lighting, orbit, zoom, and click-to-move.
+- A Three.js 3D board with modeled pieces, lighting, orbit, zoom, and click-to-move. Knights have a continuous horse head and curved neck on a low base, paired ears, a sculpted mane, and small facial details. White and black knights face the opposing side.
 - Account-owned named rooms, host-approved waiting lists, saved friends, durable in-app invitations, live moves, chat, resignations, and agreed draws.
 - Elo progression, streaks, match history, XP levels, reward points, avatar outfits, and seasonal collections.
 - Username/password sign-in, one-step account and room creation, profile editing, and visible save status. Forgotten passwords are handled by the organizer, without email.
@@ -71,15 +71,15 @@ release/Chessmate/
   _source/              # Editable project, tests, and Supabase schema/setup
 ```
 
-After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.3.1.zip` before using GitHub's folder-upload interface.
+After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.3.2.zip` before using GitHub's folder-upload interface.
 
-`version.json` identifies version **2.3.1 / Your chess home · Link previews**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
+`version.json` identifies version **2.3.2 / Your chess home · Sculpted knights**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
 
 ## Validation
 
 `pnpm test` runs 27 tests: chess legality and special moves, bot responses, ratings/rewards, room names and sharing, and actual PostgreSQL row policies/functions via PGlite. Database tests cover unique ownership, private progress, stale-save protection, host-only acceptance, match membership, event ordering, malformed payload rejection, durable invitations, mutual friends, repeat games, and reciprocal waiting requests.
 
-This update was exercised with two local simulated players through invitation entry, host approval, six moves, an agreed draw, automatic return to both homes, and a second game. The responsive home and messaging chooser were inspected at phone width. These UI checks create no Supabase accounts; the original hosted login/database integration check predates this update. Actual messaging-app handoff and a full game between two physical phones have not been tested for this release. No database migration is required.
+This update was exercised with two local simulated players through invitation entry, host approval, six moves, an agreed draw, automatic return to both homes, and a second game. The responsive home and messaging chooser were inspected at phone width. These UI checks create no Supabase accounts; the original hosted login/database integration check predates this update. Actual messaging-app handoff and a full game between two physical phones have not been tested for this release. No database migration is required. The 2.3.2 knight update was checked in a compiled browser preview for both colors, board flipping, mesh selection, and a legal b1–a3 move. Model checks confirm finite geometry, the correct facing directions, and a footprint smaller than one square.
 
 ## Source map
 
@@ -87,7 +87,7 @@ This update was exercised with two local simulated players through invitation en
 - `src/AccountForm.jsx`, `src/usernameAuth.js`, `src/useAccount.js`, `src/cloud.js` — authentication and cloud saves
 - `src/RoomLobby.jsx`, `src/CloudRooms.js` — named rooms, waiting guests, friends, realtime transport
 - `src/Game.jsx` — chess, chat, result handling, and worker coordination
-- `src/Board2D.jsx`, `src/Board3D.jsx` — board rendering
+- `src/Board2D.jsx`, `src/Board3D.jsx`, `src/pieceModel.js` — board rendering and 3D piece geometry
 - `src/engine.js`, `src/profile.js`, `src/data.js` — engine, progression, and collections
 - `supabase/schema.sql` — tables, permissions, and authenticated database actions
 - `supabase/SETUP.md` — backend activation and release checks

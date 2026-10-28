@@ -1,24 +1,8 @@
 import {useEffect,useRef,useState} from 'react';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import pieceModel from './pieceModel';
 
-function pieceModel(type,color) {
- const group=new THREE.Group(),material=new THREE.MeshStandardMaterial({color:color==='w'?0xf5e9d4:0x655271,roughness:.32,metalness:.08});
- const mesh=(geometry,x=0,y=0,z=0)=>{const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;};
- const height={p:.72,r:.95,n:1.12,b:1.15,q:1.32,k:1.42}[type];
- const points=[[.01,0],[.29,0],[.32,.05],[.32,.12],[.26,.17],[.23,.22],[.17,height*.33],[.12,height*.6],[.20,height*.66],[.20,height*.72],[.13,height*.76]].map(([x,y])=>new THREE.Vector2(x,y));
- mesh(new THREE.LatheGeometry(points,28));
- if(type==='p')mesh(new THREE.SphereGeometry(.20,24,16),0,height*.85);
- if(type==='b'){const top=mesh(new THREE.SphereGeometry(.18,24,16),0,height*.87);top.scale.y=1.45;mesh(new THREE.SphereGeometry(.055,12,8),0,height*1.12);}
- if(type==='r'){mesh(new THREE.CylinderGeometry(.26,.22,.22,24),0,height*.85);for(let i=0;i<6;i++){const a=i*Math.PI/3;const m=mesh(new THREE.BoxGeometry(.13,.16,.13),Math.cos(a)*.2,height*1.03,Math.sin(a)*.2);m.rotation.y=-a;}}
- if(type==='q'){mesh(new THREE.CylinderGeometry(.26,.13,.2,24),0,height*.85);for(let i=0;i<7;i++){const a=i*Math.PI*2/7;mesh(new THREE.SphereGeometry(.052,12,8),Math.cos(a)*.21,height*.96,Math.sin(a)*.21);}mesh(new THREE.SphereGeometry(.09,16,10),0,height);}
- if(type==='k'){mesh(new THREE.SphereGeometry(.17,24,16),0,height*.84);mesh(new THREE.BoxGeometry(.09,.32,.09),0,height*1.03);mesh(new THREE.BoxGeometry(.26,.09,.09),0,height*1.06);}
- if(type==='n'){
- const shape=new THREE.Shape();shape.moveTo(-.2,0);shape.lineTo(.22,0);shape.quadraticCurveTo(.26,.45,.04,.7);shape.lineTo(-.07,.76);shape.lineTo(-.06,.59);shape.lineTo(-.3,.42);shape.lineTo(-.28,.28);shape.lineTo(-.05,.34);shape.quadraticCurveTo(.07,.25,-.2,0);
- const head=mesh(new THREE.ExtrudeGeometry(shape,{depth:.2,bevelEnabled:true,bevelThickness:.045,bevelSize:.04,bevelSegments:3,steps:1}),0,height*.51,-.1);head.rotation.y=color==='w'?Math.PI/2:-Math.PI/2;
- }
- return group;
-}
 export default function Board3D({game,selected,legal,onSquare,flipped,lastMove,onFallback}) {
  const mount=useRef(), sceneRef=useRef(), callback=useRef(onSquare),[failed,setFailed]=useState(false);callback.current=onSquare;
  useEffect(()=>{
