@@ -36,19 +36,25 @@ export class Mummy2DView {
           <svg class="board2d-svg" viewBox="0 0 ${BOARD_W} ${BOARD_H}" preserveAspectRatio="xMidYMid meet">
             <defs>
               <radialGradient id="emeraldGemGrad" cx="35%" cy="30%" r="65%">
-                <stop offset="0%" stop-color="#9effc4" />
-                <stop offset="35%" stop-color="#17c964" />
-                <stop offset="80%" stop-color="#067a36" />
-                <stop offset="100%" stop-color="#023d19" />
+                <stop offset="0%" stop-color="#c2ffdb" />
+                <stop offset="35%" stop-color="#22ff78" />
+                <stop offset="80%" stop-color="#0bc452" />
+                <stop offset="100%" stop-color="#045923" />
               </radialGradient>
               <radialGradient id="rubyGemGrad" cx="35%" cy="30%" r="65%">
-                <stop offset="0%" stop-color="#ff9ea8" />
-                <stop offset="35%" stop-color="#ef1733" />
-                <stop offset="80%" stop-color="#9e0518" />
-                <stop offset="100%" stop-color="#4a010a" />
+                <stop offset="0%" stop-color="#ffb8c0" />
+                <stop offset="35%" stop-color="#ff2442" />
+                <stop offset="80%" stop-color="#bf0820" />
+                <stop offset="100%" stop-color="#5c020d" />
               </radialGradient>
-              <filter id="tokenShadow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000" flood-opacity="0.75" />
+              <filter id="tokenShadow" x="-35%" y="-35%" width="170%" height="170%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000" flood-opacity="0.8" />
+              </filter>
+              <filter id="emeraldGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="#26ff7a" flood-opacity="0.95" />
+              </filter>
+              <filter id="rubyGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="0" stdDeviation="4.0" flood-color="#ff2946" flood-opacity="0.95" />
               </filter>
             </defs>
             <g class="layer-spaces"></g>
@@ -276,17 +282,17 @@ export class Mummy2DView {
         const ry = isHorizontalTile ? 5.8 : 8.5;
 
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('filter', 'url(#tokenShadow)');
+        g.setAttribute('filter', 'url(#emeraldGlow)');
         g.style.pointerEvents = 'none';
 
         const el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
         el.setAttribute('cx', sp.px);
         el.setAttribute('cy', sp.py);
-        el.setAttribute('rx', rx);
-        el.setAttribute('ry', ry);
+        el.setAttribute('rx', rx * 1.12);
+        el.setAttribute('ry', ry * 1.12);
         el.setAttribute('fill', 'url(#emeraldGemGrad)');
-        el.setAttribute('stroke', '#baffd4');
-        el.setAttribute('stroke-width', '1.1');
+        el.setAttribute('stroke', '#e0ffeb');
+        el.setAttribute('stroke-width', '1.4');
         g.appendChild(el);
 
         this.jewelsLayer.appendChild(g);
@@ -300,10 +306,10 @@ export class Mummy2DView {
     // 1. Ruby Cobra on Sarcophagus forehead if unowned
     if (!state.cobraOwner) {
       const cobraG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      cobraG.setAttribute('filter', 'url(#tokenShadow)');
+      cobraG.setAttribute('filter', 'url(#rubyGlow)');
       cobraG.innerHTML = `
-        <circle cx="234.5" cy="182" r="11" fill="url(#rubyGemGrad)" stroke="#ff8593" stroke-width="1.5" />
-        <text x="234.5" y="186" text-anchor="middle" font-size="11" fill="#fff">🐍</text>
+        <circle cx="234.5" cy="182" r="12.5" fill="url(#rubyGemGrad)" stroke="#ffb8c0" stroke-width="1.8" />
+        <text x="234.5" y="186" text-anchor="middle" font-size="11.5" fill="#fff">🐍</text>
       `;
       this.sarcLayer.appendChild(cobraG);
     }
@@ -311,11 +317,11 @@ export class Mummy2DView {
     // 2. Great Mummy Jewel at the Mummy's feet if unowned
     if (!state.greatJewelOwner) {
       const gjG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      gjG.setAttribute('filter', 'url(#tokenShadow)');
+      gjG.setAttribute('filter', 'url(#rubyGlow)');
       const haloClass = state.greatJewelUnlocked ? 'sarc-gem-unlocked' : '';
       gjG.innerHTML = `
-        <circle cx="234.5" cy="456" r="15" fill="url(#rubyGemGrad)" stroke="#ffd700" stroke-width="2" class="${haloClass}" />
-        <text x="234.5" y="460" text-anchor="middle" font-size="12" fill="#fff">💎</text>
+        <circle cx="234.5" cy="456" r="16" fill="url(#rubyGemGrad)" stroke="#ffe055" stroke-width="2.2" class="${haloClass}" />
+        <text x="234.5" y="460" text-anchor="middle" font-size="12.5" fill="#fff">💎</text>
       `;
       this.sarcLayer.appendChild(gjG);
     }
@@ -368,10 +374,24 @@ export class Mummy2DView {
       }
 
       const isCurrent = activeTurnPlayer?.id === p.id;
+      const hasCobra = state.cobraOwner === p.id;
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('class', `explorer-token-2d ${isCurrent ? 'active-turn-token' : ''}`);
-      g.setAttribute('filter', 'url(#tokenShadow)');
+      g.setAttribute('class', `explorer-token-2d ${isCurrent ? 'active-turn-token' : ''} ${hasCobra ? 'cursed-cobra-token' : ''}`);
+      g.setAttribute('filter', hasCobra ? 'url(#rubyGlow)' : 'url(#tokenShadow)');
       g.style.pointerEvents = 'none';
+
+      // Fiery red glowing Cobra Curse ring on the 2D board when holding the Cobra
+      if (hasCobra) {
+        const curseHalo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        curseHalo.setAttribute('cx', cx);
+        curseHalo.setAttribute('cy', cy);
+        curseHalo.setAttribute('r', 21);
+        curseHalo.setAttribute('fill', 'rgba(255, 23, 51, 0.36)');
+        curseHalo.setAttribute('stroke', '#ff1733');
+        curseHalo.setAttribute('stroke-width', '3');
+        curseHalo.setAttribute('class', 'cobra-curse-halo-2d');
+        g.appendChild(curseHalo);
+      }
 
       if (isCurrent) {
         const pulseRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');

@@ -9,11 +9,11 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=3';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=3';
-import { Mummy3DView } from './view_3d.js?v=3';
-import { Mummy2DView } from './view_2d.js?v=3';
-import { MultiplayerManager } from './multiplayer.js?v=3';
+} from './board_data.js?v=5';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=5';
+import { Mummy3DView } from './view_3d.js?v=5';
+import { Mummy2DView } from './view_2d.js?v=5';
+import { MultiplayerManager } from './multiplayer.js?v=5';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -80,7 +80,15 @@ class VoiceOfTheMummyApp {
       onLeverClick: () => this.triggerAction('pull_lever'),
     });
 
-    this.setViewMode('split');
+    // On mobile / iPhone screens (<= 768px), default to full-width '3d' view so 3D and 2D don't stack on top of each other
+    const initialMode = window.innerWidth <= 768 ? '3d' : 'split';
+    this.setViewMode(initialMode);
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth <= 768 && this.viewMode === 'split') {
+        this.setViewMode('3d');
+      }
+    });
   }
 
   _bindUIControls() {
@@ -91,10 +99,35 @@ class VoiceOfTheMummyApp {
       });
     });
 
+    // Mobile Sidebar Sub-Tabs (Temples vs Tomb Chronicle)
+    document.querySelectorAll('[data-mobile-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.mobileTab;
+        const sidebar = document.getElementById('sidebar-panel');
+        if (sidebar) {
+          sidebar.dataset.mobilePanel = tab;
+        }
+        document.querySelectorAll('[data-mobile-tab]').forEach((b) => {
+          b.classList.toggle('active', b.dataset.mobileTab === tab);
+        });
+      });
+    });
+
     // 3D Camera Presets
     document.querySelectorAll('[data-cam-preset]').forEach((btn) => {
       btn.addEventListener('click', () => {
         this.view3D.setCameraPreset(btn.dataset.camPreset);
+      });
+    });
+
+    // 3D Background Mode Toggle ('tomb' vs 'black')
+    document.querySelectorAll('[data-bg-mode]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.bgMode;
+        this.view3D.setBackgroundMode(mode);
+        document.querySelectorAll('[data-bg-mode]').forEach((b) => {
+          b.classList.toggle('active', b.dataset.bgMode === mode);
+        });
       });
     });
 
@@ -106,7 +139,9 @@ class VoiceOfTheMummyApp {
         if (this.currentAudio) {
           this.currentAudio.muted = this.audioMuted;
         }
-        muteBtn.textContent = this.audioMuted ? '🔇 Audio Muted' : '🔊 Audio On';
+        muteBtn.innerHTML = this.audioMuted
+          ? '🔇 <span class="nav-btn-label">Audio Muted</span>'
+          : '🔊 <span class="nav-btn-label">Audio On</span>';
       });
     }
 
@@ -544,6 +579,12 @@ class VoiceOfTheMummyApp {
     if (!container) return;
 
     const curPlayer = state.players[state.turnIndex];
+    const colorNames = {
+      blue: 'BLUE PAWN',
+      red: 'RED PAWN',
+      yellow: 'YELLOW PAWN',
+      green: 'GREEN PAWN',
+    };
 
     container.innerHTML = state.players
       .map((p) => {
@@ -554,19 +595,31 @@ class VoiceOfTheMummyApp {
         const hasCobra = state.cobraOwner === p.id;
         const totalScore =
           p.jewels + (hasGreatJewel ? 5 : 0) + (hasCobra ? -5 : 0);
+        const pawnLabel = colorNames[p.id] || p.id.toUpperCase();
 
         return `
           <div class="temple-player-card ${isTurn ? 'active-turn' : ''}" style="--player-color: ${p.colorHex}; --player-accent: ${p.accentHex}">
+            ${
+              isTurn
+                ? `<div class="active-turn-ribbon">▶ ACTIVE TURN — NOW PLAYING</div>`
+                : ''
+            }
             <div class="temple-card-top">
-              <img src="${cfg.templeImg}" alt="${p.deity}" class="temple-deity-thumb" />
+              <div class="temple-card-visuals">
+                <div class="explorer-figure-box" style="border-color: ${p.colorHex}; background: ${p.colorHex}28" title="${p.name} Character Figure">
+                  <img src="${cfg.portraitImg}" alt="${p.name} Figure" class="explorer-figure-thumb" />
+                  <span class="explorer-pawn-tag" style="background: ${p.colorHex}">${p.id.toUpperCase()}</span>
+                </div>
+                <img src="${cfg.templeImg}" alt="${p.deity} Temple" class="temple-deity-thumb" title="${p.deityTitle} Gem Holder" />
+              </div>
               <div class="temple-player-info">
                 <div class="temple-player-name-row">
-                  <span class="player-dot" style="background: ${p.colorHex}"></span>
-                  <strong>${p.name}</strong>
-                  <span class="player-badge-role">${p.control === 'ai' ? '🤖 Bot' : '🧑'}</span>
+                  <span class="pawn-color-pill" style="background: ${p.colorHex}">${pawnLabel}</span>
+                  <span class="player-badge-role">${p.control === 'ai' ? '🤖 Bot' : '🧑 You/Human'}</span>
                 </div>
+                <div class="temple-player-title-strong">${p.name}</div>
                 <div class="temple-deity-sub">${p.deityTitle} • Level ${p.level}</div>
-                <div class="temple-space-sub">${sp ? sp.label : ''}</div>
+                <div class="temple-space-sub">📍 ${sp ? sp.label : ''}</div>
               </div>
               <div class="temple-score-box" title="Total Jewel Value">
                 <div class="score-num">${totalScore}</div>
@@ -601,6 +654,7 @@ class VoiceOfTheMummyApp {
     const player = state.players[state.turnIndex];
     if (!player) return;
 
+    const cfg = PLAYERS_CONFIG.find((c) => c.id === player.id);
     const isMyTurn = this.mp.isPlayerLocalTurn(state);
     const dieFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
     const dieChar = state.lastRoll ? dieFaces[state.lastRoll - 1] : '🎲';
@@ -696,10 +750,15 @@ class VoiceOfTheMummyApp {
     }
 
     deckEl.innerHTML = `
-      <div class="turn-header-strip" style="border-left: 5px solid ${player.colorHex}">
-        <div class="turn-who">
-          <span class="turn-tag">TURN #${state.turnNumber}</span>
-          <strong>${player.name} (${player.deity})</strong>
+      <div class="turn-header-strip" style="border-left: 6px solid ${player.colorHex}">
+        <div class="turn-who-row">
+          <div class="turn-explorer-avatar" style="background: ${player.colorHex}33; border-color: ${player.colorHex}">
+            <img src="${cfg?.portraitImg || ''}" alt="${player.name}" />
+          </div>
+          <div class="turn-who">
+            <span class="turn-tag">TURN #${state.turnNumber} • <span class="turn-color-chip" style="background:${player.colorHex}">${player.id.toUpperCase()} PAWN</span></span>
+            <strong>${player.name} (${player.deity})</strong>
+          </div>
         </div>
         <div class="turn-die-badge" title="Last Die Roll">${dieChar} ${state.lastRoll || '-'}</div>
       </div>

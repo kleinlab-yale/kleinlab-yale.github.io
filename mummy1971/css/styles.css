@@ -23,6 +23,7 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-light);
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
   display: flex;
@@ -37,13 +38,13 @@ body {
    TOP NAVIGATION BAR
    ========================================================================= */
 .top-navbar {
-  height: 58px;
+  min-height: 58px;
   background: linear-gradient(180deg, #261c12 0%, #16100b 100%);
   border-bottom: 2px solid var(--border-gold);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 18px;
+  padding: 6px 18px;
   gap: 12px;
   flex-shrink: 0;
   z-index: 30;
@@ -162,6 +163,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .nav-btn:hover {
@@ -175,11 +177,10 @@ body {
    ========================================================================= */
 .workspace-layout {
   flex: 1;
-  height: calc(100vh - 58px);
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
 }
 
@@ -238,28 +239,47 @@ body {
   position: absolute;
   top: 12px;
   left: 12px;
+  right: 12px;
   display: flex;
   gap: 6px;
   z-index: 10;
   flex-wrap: wrap;
+  pointer-events: none;
 }
 
 .cam-pill-btn {
-  background: rgba(22, 16, 11, 0.85);
+  pointer-events: auto;
+  background: rgba(22, 16, 11, 0.88);
   backdrop-filter: blur(6px);
   color: var(--gold-soft);
-  border: 1px solid rgba(140, 106, 48, 0.75);
+  border: 1px solid rgba(140, 106, 48, 0.8);
   border-radius: 6px;
   padding: 5px 10px;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .cam-pill-btn:hover {
   background: var(--gold-bright);
   color: #140e08;
+}
+
+.bg-mode-btn.active {
+  background: var(--gold-bright);
+  color: #140e08;
+  border-color: #ffffff;
+  box-shadow: 0 0 10px rgba(245, 200, 76, 0.55);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(245, 200, 76, 0.45);
+  align-self: center;
+  margin: 0 2px;
 }
 
 .pane-label-tag {
@@ -307,6 +327,8 @@ body {
   font-size: 13px;
   color: var(--gold-bright);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+  text-align: center;
+  max-width: 92%;
 }
 
 .fallback3d-stage {
@@ -345,7 +367,7 @@ body {
 
 .board2d-stage {
   position: relative;
-  height: calc(100vh - 108px);
+  height: 100%;
   max-height: 100%;
   max-width: 100%;
   aspect-ratio: 469 / 652;
@@ -425,6 +447,21 @@ body {
   stroke: #ffd700;
   stroke-width: 2.5;
   animation: pulseCell 1.2s infinite alternate;
+}
+
+.cobra-curse-halo-2d {
+  animation: pulseCobra2D 0.85s infinite alternate;
+}
+
+@keyframes pulseCobra2D {
+  from {
+    opacity: 0.45;
+    stroke-width: 2px;
+  }
+  to {
+    opacity: 1;
+    stroke-width: 4.5px;
+  }
 }
 
 @keyframes pulseCell {
@@ -526,10 +563,15 @@ body {
   overflow: hidden;
 }
 
+.mobile-sidebar-tabs {
+  display: none;
+}
+
 .turn-action-deck {
-  padding: 14px;
+  padding: 12px 14px;
   background: linear-gradient(180deg, #2b2016 0%, #1f1710 100%);
   border-bottom: 1px solid var(--border-gold);
+  flex-shrink: 0;
 }
 
 .turn-header-strip {
@@ -537,20 +579,62 @@ body {
   align-items: center;
   justify-content: space-between;
   padding-left: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.turn-who-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.turn-explorer-avatar {
+  width: 38px;
+  height: 46px;
+  border-radius: 6px;
+  border: 2px solid var(--border-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.turn-explorer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .turn-tag {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 10px;
   font-weight: 800;
   color: var(--text-muted);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+
+.turn-color-chip {
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .turn-who strong {
-  font-size: 15px;
+  font-size: 14.5px;
   color: var(--gold-bright);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .turn-die-badge {
@@ -561,11 +645,12 @@ body {
   font-size: 18px;
   font-weight: 800;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .btn-primary-action {
   width: 100%;
-  padding: 13px 16px;
+  padding: 12px 16px;
   border-radius: 10px;
   border: none;
   font-size: 15px;
@@ -674,14 +759,14 @@ body {
 .mummy-speaking-status {
   font-size: 13px;
   color: var(--gold-soft);
-  padding: 8px 0;
+  padding: 6px 0;
 }
 
 /* =========================================================================
-   PLAYER TEMPLE CARDS
+   PLAYER TEMPLE & EXPLORER CHARACTER CARDS
    ========================================================================= */
 .sidebar-section-header {
-  padding: 8px 14px;
+  padding: 7px 14px;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -689,45 +774,109 @@ body {
   color: var(--text-muted);
   background: #15100c;
   border-bottom: 1px solid rgba(140, 106, 48, 0.3);
+  flex-shrink: 0;
 }
 
 .players-sidebar-list {
-  padding: 10px 12px;
+  padding: 9px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .temple-player-card {
+  position: relative;
   background: var(--bg-card);
-  border: 1px solid rgba(140, 106, 48, 0.45);
-  border-left: 4px solid var(--player-color);
-  border-radius: 9px;
+  border: 1.5px solid rgba(140, 106, 48, 0.5);
+  border-left: 7px solid var(--player-color);
+  border-radius: 10px;
   padding: 8px 10px;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
+/* ENTIRE CARD LIGHTS UP IN BRIGHT GOLDEN-YELLOW ON ACTIVE TURN */
 .temple-player-card.active-turn {
-  border-color: var(--gold-bright);
-  border-left-width: 5px;
-  box-shadow: 0 0 14px rgba(245, 200, 76, 0.22);
-  background: #302419;
+  background: linear-gradient(135deg, #fff19e 0%, #ffd53d 55%, #f5b418 100%) !important;
+  color: #1a1004 !important;
+  border: 2px solid #ffffff !important;
+  border-left: 8px solid var(--player-color) !important;
+  box-shadow: 0 0 24px rgba(255, 215, 56, 0.8), 0 4px 14px rgba(0, 0, 0, 0.65);
+  transform: scale(1.01);
+}
+
+.active-turn-ribbon {
+  background: #1a1004;
+  color: #ffe252;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 5px;
+  margin-bottom: 6px;
+  text-align: center;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 .temple-card-top {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+}
+
+/* Dual Visuals: Character Figure + Temple Box */
+.temple-card-visuals {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.explorer-figure-box {
+  position: relative;
+  width: 40px;
+  height: 50px;
+  border-radius: 6px;
+  border: 2px solid var(--player-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.explorer-figure-thumb {
+  width: 34px;
+  height: 36px;
+  object-fit: contain;
+  margin-top: 1px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+.explorer-pawn-tag {
+  width: 100%;
+  font-size: 8px;
+  font-weight: 900;
+  color: #ffffff;
+  text-align: center;
+  padding: 1px 0;
+  margin-top: auto;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 .temple-deity-thumb {
   width: 34px;
-  height: 44px;
+  height: 50px;
   object-fit: cover;
-  border-radius: 4px;
-  border: 1px solid var(--border-gold);
+  border-radius: 6px;
+  border: 1.5px solid var(--border-gold);
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
 .temple-player-info {
@@ -738,26 +887,39 @@ body {
 .temple-player-name-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 5px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
 }
 
-.player-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  display: inline-block;
+.pawn-color-pill {
+  font-size: 9.5px;
+  font-weight: 900;
+  color: #ffffff;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .player-badge-role {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
+  font-weight: 700;
+}
+
+.temple-player-title-strong {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: var(--text-light);
+  line-height: 1.15;
 }
 
 .temple-deity-sub {
   font-size: 11px;
   color: var(--player-accent);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .temple-space-sub {
@@ -768,13 +930,34 @@ body {
   text-overflow: ellipsis;
 }
 
+/* High-contrast dark text inside the lit-up yellow active-turn card */
+.temple-player-card.active-turn .temple-player-title-strong {
+  color: #140c02 !important;
+}
+
+.temple-player-card.active-turn .temple-deity-sub {
+  color: #3d2405 !important;
+}
+
+.temple-player-card.active-turn .temple-space-sub,
+.temple-player-card.active-turn .player-badge-role {
+  color: #2e1c06 !important;
+  font-weight: 700;
+}
+
 .temple-score-box {
   background: #140f0a;
-  border: 1px solid var(--border-gold);
+  border: 1.5px solid var(--border-gold);
   border-radius: 7px;
   padding: 4px 8px;
   text-align: center;
   min-width: 44px;
+  flex-shrink: 0;
+}
+
+.temple-player-card.active-turn .temple-score-box {
+  background: #1a1004;
+  border-color: #1a1004;
 }
 
 .score-num {
@@ -798,27 +981,40 @@ body {
 
 .inv-pill {
   font-size: 10.5px;
-  font-weight: 700;
+  font-weight: 800;
   padding: 2px 7px;
   border-radius: 999px;
 }
 
 .inv-pill.emerald {
-  background: rgba(23, 201, 100, 0.16);
+  background: rgba(23, 201, 100, 0.18);
   color: #7dffb3;
-  border: 1px solid rgba(23, 201, 100, 0.4);
+  border: 1px solid rgba(23, 201, 100, 0.45);
+}
+
+.temple-player-card.active-turn .inv-pill.emerald {
+  background: #0b4a25;
+  color: #9effc5;
+  border-color: #062e16;
 }
 
 .inv-pill.gold {
-  background: rgba(245, 200, 76, 0.22);
+  background: rgba(245, 200, 76, 0.25);
   color: #ffe27a;
   border: 1px solid var(--gold-bright);
 }
 
+.temple-player-card.active-turn .inv-pill.gold {
+  background: #422a03;
+  color: #ffe266;
+  border-color: #1f1300;
+}
+
 .inv-pill.ruby-curse {
-  background: rgba(239, 23, 51, 0.25);
-  color: #ff99a6;
-  border: 1px solid #ef1733;
+  background: #b80d24;
+  color: #ffffff;
+  border: 1px solid #ff6b7d;
+  box-shadow: 0 0 10px rgba(239, 23, 51, 0.6);
 }
 
 /* =========================================================================
@@ -833,6 +1029,7 @@ body {
   gap: 6px;
   font-size: 11.5px;
   background: #120d09;
+  min-height: 80px;
 }
 
 .log-entry {
@@ -878,7 +1075,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   z-index: 100;
 }
 
@@ -888,6 +1085,7 @@ body {
   border-radius: 16px;
   width: min(880px, 96vw);
   max-height: 90vh;
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.92);
@@ -895,16 +1093,17 @@ body {
 }
 
 .modal-header {
-  padding: 16px 22px;
+  padding: 14px 20px;
   background: #140f0a;
   border-bottom: 1px solid var(--border-gold);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
 }
 
 .modal-header h2 {
-  font-size: 18px;
+  font-size: 17px;
   color: var(--gold-bright);
   letter-spacing: 0.04em;
 }
@@ -917,6 +1116,7 @@ body {
   padding: 5px 12px;
   cursor: pointer;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .btn-close-modal:hover {
@@ -925,11 +1125,11 @@ body {
 }
 
 .modal-body {
-  padding: 20px 22px;
+  padding: 18px 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .mp-connect-box {
@@ -1041,7 +1241,6 @@ body {
   align-items: center;
 }
 
-/* Soundboard & Rules Grid */
 .rules-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1140,14 +1339,308 @@ body {
   color: var(--gold-bright);
 }
 
-@media (max-width: 980px) {
+/* =========================================================================
+   TABLET & iPHONE / MOBILE RESPONSIVE DESIGN
+   ========================================================================= */
+@media (max-width: 1080px) {
+  .workspace-layout {
+    grid-template-columns: 1fr 340px;
+  }
+  .brand-sub {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Compact 2-Row Mobile Navbar that never overlaps */
+  .top-navbar {
+    min-height: unset;
+    padding: 6px 10px;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .brand-group {
+    gap: 6px;
+  }
+
+  .brand-emblem {
+    font-size: 18px;
+  }
+
+  .brand-title {
+    font-size: 13.5px;
+    letter-spacing: 0.04em;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+
+  /* Hide "3D + 2D Split" button on iPhone where full-width 3D or 2D is much cleaner */
+  .view-btn-split {
+    display: none;
+  }
+
+  .view-btn {
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+
+  .nav-actions-group {
+    gap: 5px;
+    margin-left: auto;
+  }
+
+  .nav-btn {
+    padding: 5px 8px;
+    font-size: 11.5px;
+  }
+
+  .nav-btn-label {
+    display: none;
+  }
+
+  .status-pills-group {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+
+  .part-pill,
+  .jewel-status-pill,
+  .room-badge-pill {
+    font-size: 10px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Clean Vertical Split on iPhone: Top 55% Interactive 3D/2D Stage, Bottom 45% Command & Temples */
   .workspace-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 300px;
+    grid-template-rows: minmax(220px, 55fr) minmax(210px, 45fr);
   }
+
   .stage-area[data-view-mode='split'] {
     grid-template-columns: 1fr;
   }
+
+  .stage-area[data-view-mode='split'] .pane-2d {
+    display: none;
+  }
+
+  /* Single-line scrollable camera preset bar on iPhone */
+  .pane-floating-toolbar {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cam-pill-btn {
+    padding: 4px 8px;
+    font-size: 10.5px;
+    flex-shrink: 0;
+  }
+
+  /* Hide long bottom instruction tag on phone so it never covers the pyramid or 2D board */
+  .pane-label-tag {
+    display: none;
+  }
+
+  .board2d-wrapper {
+    padding: 6px;
+  }
+
+  .board2d-stage {
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .mummy-voice-banner {
+    bottom: 8px;
+    padding: 8px 12px;
+    width: 94%;
+  }
+
+  .mummy-voice-title {
+    font-size: 10.5px;
+    margin-bottom: 3px;
+  }
+
+  .mummy-voice-quote {
+    font-size: 12.5px;
+  }
+
+  /* Mobile Bottom Drawer with Turn Action Bar + Sub-Tabs (Temples vs Log) */
+  .sidebar-panel {
+    border-left: none;
+    border-top: 2px solid var(--border-gold);
+  }
+
+  .turn-action-deck {
+    padding: 8px 10px;
+  }
+
+  .turn-header-strip {
+    margin-bottom: 6px;
+    padding-left: 6px;
+  }
+
+  .turn-explorer-avatar {
+    width: 30px;
+    height: 36px;
+  }
+
+  .turn-who strong {
+    font-size: 13px;
+  }
+
+  .turn-die-badge {
+    font-size: 15px;
+    padding: 2px 8px;
+  }
+
+  .btn-primary-action {
+    padding: 9px 12px;
+    font-size: 13.5px;
+  }
+
+  /* Mobile Sub-Tabs (Temples vs Tomb Chronicle) */
+  .mobile-sidebar-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: #140f0a;
+    border-bottom: 1px solid var(--border-gold);
+    flex-shrink: 0;
+  }
+
+  .mobile-tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 8px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+
+  .mobile-tab-btn.active {
+    color: var(--gold-bright);
+    border-bottom-color: var(--gold-bright);
+    background: rgba(245, 200, 76, 0.1);
+  }
+
+  .sidebar-section-header {
+    display: none;
+  }
+
+  /* Toggle between Temples and Log on mobile based on data-mobile-panel */
+  .sidebar-panel[data-mobile-panel='temples'] .tomb-event-log {
+    display: none;
+  }
+
+  .sidebar-panel[data-mobile-panel='log'] .players-sidebar-list {
+    display: none;
+  }
+
+  /* Compact 2x2 Grid for the 4 Player Cards on iPhone */
+  .players-sidebar-list {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 6px 8px;
+    align-content: start;
+  }
+
+  .temple-player-card {
+    padding: 6px 7px;
+    border-left-width: 5px;
+  }
+
+  .active-turn-ribbon {
+    font-size: 8.5px;
+    padding: 2px 4px;
+    margin-bottom: 4px;
+  }
+
+  .temple-card-top {
+    gap: 6px;
+  }
+
+  .explorer-figure-box {
+    width: 30px;
+    height: 38px;
+  }
+
+  .explorer-figure-thumb {
+    width: 26px;
+    height: 26px;
+  }
+
+  .explorer-pawn-tag {
+    font-size: 7px;
+  }
+
+  .temple-deity-thumb {
+    width: 24px;
+    height: 38px;
+  }
+
+  .pawn-color-pill {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+
+  .player-badge-role {
+    display: none;
+  }
+
+  .temple-player-title-strong {
+    font-size: 11.5px;
+  }
+
+  .temple-deity-sub {
+    font-size: 9.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .temple-space-sub {
+    font-size: 9px;
+  }
+
+  .temple-score-box {
+    padding: 2px 5px;
+    min-width: 32px;
+  }
+
+  .score-num {
+    font-size: 13px;
+  }
+
+  .temple-inventory-row {
+    margin-top: 4px;
+    gap: 3px;
+  }
+
+  .inv-pill {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+
   .rules-columns {
     grid-template-columns: 1fr;
   }
