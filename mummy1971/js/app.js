@@ -9,18 +9,25 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=11';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=11';
-import { Mummy3DView } from './view_3d.js?v=11';
-import { Mummy2DView } from './view_2d.js?v=11';
-import { MultiplayerManager } from './multiplayer.js?v=11';
+} from './board_data.js?v=12';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=12';
+import { Mummy3DView } from './view_3d.js?v=12';
+import { Mummy2DView } from './view_2d.js?v=12';
+import { MultiplayerManager } from './multiplayer.js?v=12';
 
 class VoiceOfTheMummyApp {
   constructor() {
     this.viewMode = '3d'; // '3d' (default) | '2d' | 'split'
     this.audioMuted = false;
     this.currentAudio = null;
+    this.mummyAudioEl = new Audio();
+    this.mummyAudioEl.preload = 'auto';
+    this.mummyAudioUnlocked = false;
     this.audioCtx = null;
+    this.mummyGainNode = null;
+    this.currentBufferSource = null;
+    this.mummyBufferCache = new Map();
+    this.mummyTrackPlaybackId = 0;
     this.botTimer = null;
     this.bigPopupTimer = null;
     this.lastBigPopupTime = 0;
@@ -74,9 +81,104 @@ class VoiceOfTheMummyApp {
     this.activeState = null;
 
     this._initViews();
+    this._initAudioUnlocker();
     this._bindUIControls();
     this._buildSoundboardAndRulesModal();
     this._checkUrlRoomParam();
+  }
+
+  /**
+   * Unlocks WebAudio (AudioContext) and persistent HTML5 Audio on the very first user tap/click
+   * so that Mummy voice tracks ALWAYS play on iPhone/iPad/Android even when AI Bots pull the lever inside setTimeout.
+   */
+  _initAudioUnlocker() {
+    const unlock = () => {
+      const ctx = this._ensureAudioContext();
+      if (ctx) {
+        if (ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+        try {
+          const buf = ctx.createBuffer(1, 1, 22050);
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          src.connect(ctx.destination);
+          src.start(0);
+        } catch (e) {
+          // Ignore
+        }
+      }
+      if (!this.mummyAudioUnlocked && this.mummyAudioEl) {
+        this.mummyAudioUnlocked = true;
+        try {
+          this.mummyAudioEl.src =
+            'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+          this.mummyAudioEl.volume = 0.01;
+          const p = this.mummyAudioEl.play();
+          if (p && typeof p.then === 'function') {
+            p.then(() => {
+              this.mummyAudioEl.pause();
+              this.mummyAudioEl.volume = 1.0;
+            }).catch(() => {
+              this.mummyAudioEl.volume = 1.0;
+            });
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    };
+
+    window.addEventListener('pointerdown', unlock, { passive: true });
+    window.addEventListener('touchend', unlock, { passive: true });
+    window.addEventListener('click', unlock, { passive: true });
+    window.addEventListener('keydown', unlock, { passive: true });
+  }
+
+  _ensureAudioContext() {
+    try {
+      if (!this.audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return null;
+        this.audioCtx = new AudioContext();
+        this.mummyGainNode = this.audioCtx.createGain();
+        this.mummyGainNode.gain.value = this.audioMuted ? 0 : 1.0;
+        this.mummyGainNode.connect(this.audioCtx.destination);
+      }
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch(() => {});
+      }
+      if (this.mummyGainNode) {
+        this.mummyGainNode.gain.value = this.audioMuted ? 0 : 1.0;
+      }
+      return this.audioCtx;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  _stopCurrentMummyAudio() {
+    this.mummyTrackPlaybackId++;
+    if (this.currentBufferSource) {
+      try {
+        this.currentBufferSource.onended = null;
+        this.currentBufferSource.stop();
+        this.currentBufferSource.disconnect();
+      } catch (e) {
+        // Ignore
+      }
+      this.currentBufferSource = null;
+    }
+    if (this.currentAudio) {
+      try {
+        this.currentAudio.onended = null;
+        this.currentAudio.onerror = null;
+        this.currentAudio.pause();
+      } catch (e) {
+        // Ignore
+      }
+      this.currentAudio = null;
+    }
   }
 
   _initViews() {
@@ -170,6 +272,12 @@ class VoiceOfTheMummyApp {
         this.audioMuted = !this.audioMuted;
         if (this.currentAudio) {
           this.currentAudio.muted = this.audioMuted;
+        }
+        if (this.mummyAudioEl) {
+          this.mummyAudioEl.muted = this.audioMuted;
+        }
+        if (this.mummyGainNode) {
+          this.mummyGainNode.gain.value = this.audioMuted ? 0 : 1.0;
         }
         muteBtn.innerHTML = this.audioMuted
           ? '🔇 <span class="nav-btn-label">Audio Muted</span>'
@@ -1015,16 +1123,10 @@ class VoiceOfTheMummyApp {
     }
   }
 
-  _playMummyTrackAudio(track) {
+  async _playMummyTrackAudio(track) {
     if (!track) return;
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio = null;
-    }
-
-    const audio = new Audio(track.url);
-    audio.muted = this.audioMuted;
-    this.currentAudio = audio;
+    this._stopCurrentMummyAudio();
+    const myPlaybackId = this.mummyTrackPlaybackId;
 
     // Show live Mummy Voice Banner
     const voiceBanner = document.getElementById('mummy-voice-banner');
@@ -1036,24 +1138,66 @@ class VoiceOfTheMummyApp {
       voiceBanner.classList.remove('hidden');
     }
 
+    let finished = false;
     const onEndedOrSkipped = () => {
-      if (this.currentAudio === audio) {
-        this.currentAudio = null;
-      }
+      if (finished || this.mummyTrackPlaybackId !== myPlaybackId) return;
+      finished = true;
+      this.currentBufferSource = null;
+      this.currentAudio = null;
       if (this.mp.mode !== 'guest' && this.engine.state?.phase === 'MUMMY_SPEAKING') {
         this.engine.finishMummyAudio();
       }
     };
 
-    audio.addEventListener('ended', onEndedOrSkipped);
-    audio.addEventListener('error', () => {
-      setTimeout(onEndedOrSkipped, 2500);
-    });
+    // 1. Primary path: Play via unlocked WebAudio AudioContext (works 100% of the time on iPhone/iPad/Android even inside bot setTimeout!)
+    const ctx = this._ensureAudioContext();
+    if (ctx && typeof window.fetch === 'function') {
+      try {
+        let audioBuffer = this.mummyBufferCache.get(track.url);
+        if (!audioBuffer) {
+          const resp = await fetch(track.url);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const arrBuf = await resp.arrayBuffer();
+          audioBuffer = await ctx.decodeAudioData(arrBuf);
+          this.mummyBufferCache.set(track.url, audioBuffer);
+        }
+        if (this.mummyTrackPlaybackId !== myPlaybackId) return;
+        if (ctx.state === 'suspended') {
+          await ctx.resume().catch(() => {});
+        }
+        const source = ctx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(this.mummyGainNode || ctx.destination);
+        this.currentBufferSource = source;
+        source.onended = () => {
+          onEndedOrSkipped();
+        };
+        source.start(0);
+        return;
+      } catch (err) {
+        // Fall through to persistent HTMLAudioElement fallback below
+      }
+    }
 
-    audio.play().catch(() => {
-      // If browser blocks autoplay, allow clicking "Obey the Mummy" button or auto-advance after reading transcript
-      setTimeout(onEndedOrSkipped, 3600);
-    });
+    // 2. Fallback path: Reuse persistent user-unlocked HTMLAudioElement
+    if (this.mummyTrackPlaybackId !== myPlaybackId) return;
+    const audio = this.mummyAudioEl || new Audio();
+    audio.muted = this.audioMuted;
+    audio.volume = 1.0;
+    audio.src = track.url;
+    this.currentAudio = audio;
+
+    audio.onended = onEndedOrSkipped;
+    audio.onerror = () => {
+      setTimeout(onEndedOrSkipped, 2500);
+    };
+
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {
+        setTimeout(onEndedOrSkipped, 3600);
+      });
+    }
   }
 
   _applyStateToUI(state) {
@@ -1200,7 +1344,21 @@ class VoiceOfTheMummyApp {
 
     let controlsHtml = '';
 
-    if (!isMyTurn) {
+    if (state.phase === 'MUMMY_SPEAKING') {
+      const canSkip = isMyTurn || (player.control === 'ai' && this.mp.mode !== 'guest');
+      controlsHtml = `
+        <div class="mummy-speaking-status">
+          🎙️ Listening to the Voice of the Mummy...
+        </div>
+        ${
+          canSkip
+            ? `<button class="btn-secondary-action" id="btn-skip-audio">
+                Obey Command Now ➔
+              </button>`
+            : ''
+        }
+      `;
+    } else if (!isMyTurn) {
       controlsHtml = `
         <div class="waiting-turn-notice">
           ⏳ Waiting for <strong>${player.name}</strong> (${player.control === 'ai' ? 'AI Bot' : 'Remote Player'})...
@@ -1234,15 +1392,6 @@ class VoiceOfTheMummyApp {
       controlsHtml = `
         <button class="btn-primary-action pulse-emerald" id="btn-action-lever">
           🔊 Pull Sarcophagus Lever!
-        </button>
-      `;
-    } else if (state.phase === 'MUMMY_SPEAKING') {
-      controlsHtml = `
-        <div class="mummy-speaking-status">
-          🎙️ Listening to the Voice of the Mummy...
-        </div>
-        <button class="btn-secondary-action" id="btn-skip-audio">
-          Obey Command Now ➔
         </button>
       `;
     } else if (state.phase === 'MUMMY_CHOICE' && state.pendingChoice) {
@@ -1319,10 +1468,7 @@ class VoiceOfTheMummyApp {
       this.triggerAction('pull_lever');
     });
     deckEl.querySelector('#btn-skip-audio')?.addEventListener('click', () => {
-      if (this.currentAudio) {
-        this.currentAudio.pause();
-        this.currentAudio = null;
-      }
+      this._stopCurrentMummyAudio();
       this.triggerAction('finish_audio');
     });
     deckEl.querySelectorAll('[data-choice-opt]').forEach((btn) => {
@@ -1576,12 +1722,12 @@ class VoiceOfTheMummyApp {
 
     document.querySelectorAll('[data-sample-url]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        if (this.currentAudio) {
-          this.currentAudio.pause();
-        }
-        const a = new Audio(btn.dataset.sampleUrl);
+        this._stopCurrentMummyAudio();
+        const a = this.mummyAudioEl || new Audio();
+        a.muted = this.audioMuted;
+        a.src = btn.dataset.sampleUrl;
         this.currentAudio = a;
-        a.play();
+        a.play().catch(() => {});
       });
     });
   }
@@ -1592,12 +1738,8 @@ class VoiceOfTheMummyApp {
   _playSfx(type) {
     if (this.audioMuted) return;
     try {
-      if (!this.audioCtx) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.audioCtx = new AudioContext();
-      }
-      const ctx = this.audioCtx;
-      if (ctx.state === 'suspended') ctx.resume();
+      const ctx = this._ensureAudioContext();
+      if (!ctx) return;
       const now = ctx.currentTime;
 
       if (type === 'dice') {

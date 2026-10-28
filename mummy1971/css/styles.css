@@ -2548,27 +2548,28 @@ body {
 }
 
 @media (max-width: 768px) {
-  /* Single-Row Compact Mobile Navbar (42px tall) so nothing wraps or overlaps */
+  /* Responsive Mobile Navbar so all top buttons always fit on vertical phone screens */
   .top-navbar {
-    min-height: 42px;
-    height: 42px;
+    min-height: 40px;
+    height: auto;
     padding: 4px 8px;
-    gap: 6px;
-    flex-wrap: nowrap;
+    gap: 4px 6px;
+    flex-wrap: wrap;
   }
 
   .brand-group {
-    gap: 5px;
+    gap: 4px;
     min-width: 0;
+    flex: 1 1 auto;
   }
 
   .brand-emblem {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .brand-title {
-    font-size: 12px;
-    letter-spacing: 0.03em;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2585,14 +2586,16 @@ body {
   }
 
   .view-btn {
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: 4px 7px;
+    font-size: 10.5px;
   }
 
   .nav-actions-group {
     gap: 4px;
     margin-left: auto;
     flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .nav-btn {
@@ -2618,22 +2621,42 @@ body {
     display: none;
   }
 
-  /* Single-line scrollable camera & background bar on iPhone */
+  /* Organized 2-Row Grid on Mobile Vertical Mode:
+     Row 1: 4 Equal Camera Buttons (Follow, Top-Down, 3/4 View, Sarcophagus)
+     Row 2: 2 Equal Background Buttons (Tomb Room, Black BG)
+     Zero horizontal scrolling or clipped buttons! */
   .pane-floating-toolbar {
     top: 6px;
     left: 6px;
     right: 6px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 4px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    pointer-events: auto;
+    z-index: 26;
+  }
+
+  .toolbar-divider {
+    display: none;
   }
 
   .cam-pill-btn {
-    padding: 4px 7px;
+    width: 100%;
+    padding: 5px 3px;
     font-size: 10px;
-    flex-shrink: 0;
+    text-align: center;
+    justify-content: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: auto;
+    touch-action: manipulation;
+  }
+
+  .cam-pill-btn.bg-mode-btn {
+    grid-column: span 2;
+    font-size: 10.5px;
+    padding: 5px 6px;
   }
 
   /* Hide long bottom instruction tag on phone so it never covers the pyramid or 2D board */
@@ -2856,7 +2879,7 @@ body {
   }
 
   .big-event-popup {
-    top: 40px;
+    top: 68px;
     width: 94%;
   }
 
@@ -2964,7 +2987,7 @@ body {
   }
 
   .mp-main-waiting-banner {
-    top: 38px;
+    top: 66px;
     font-size: 10.5px;
     padding: 5px 10px;
     border-radius: 12px;

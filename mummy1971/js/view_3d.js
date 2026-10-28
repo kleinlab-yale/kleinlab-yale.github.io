@@ -1933,6 +1933,8 @@ export class Mummy3DView {
   setCameraPreset(presetName) {
     this.cameraPreset = presetName;
     this.userPausedFollowUntilNextMove = false;
+    this.isUserInteracting = false;
+    this.initialTopDownHold = false;
 
     if (this.fallbackMode) {
       const img = this.container.querySelector('.fallback3d-bg-img');
