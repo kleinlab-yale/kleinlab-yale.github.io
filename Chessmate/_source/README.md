@@ -1,4 +1,4 @@
-# Chessmate 2.3 — Your chess home
+# Chessmate 2.3.1 — Your chess home
 
 A warm, modern chess clubhouse with computer personalities, 2D/3D boards, named home rooms, friends, and progression.
 
@@ -14,6 +14,12 @@ A warm, modern chess clubhouse with computer personalities, 2D/3D boards, named 
 4. Opening the invitation signs an existing player into the waiting flow immediately. A new player first creates their own home using the same two fields. The host sees **“Lily is here, ready to play!”** and a large **Play Lily** button. The visitor sees that they are waiting and who starts the game. The invite is consumed once, so refreshing after the game does not join the old queue again.
 5. Finished games return each player to their own home with a result card and **Play again**. Previous opponents appear under **Your chess friends**. Play again sends an in-app invitation to that friend's home; they join, and the host starts. Friends can also visit by entering a name or pasted invitation under **Friends**.
 6. Rating, XP, outfits, history, avatar, and friends stay saved to the account. Keep the page open to remain present and see arriving friends. An offline owner's home still exists; visitors see that the owner is away.
+
+## Messaging link previews
+
+The main website and `room.html` invitations include static Open Graph and large-image card metadata, using the ivory chess artwork at `images/chessmate-share-v1.jpg`. The JPEG is 1536×1024 and approximately 246 KB. The main website's canonical URL and image URL use the actual GitHub Pages destination. Room invitations retain their original URL and room query.
+
+Upload the complete updated folder before checking previews in a messaging app. Preview availability, cropping, and refresh timing depend on that app; old messages may retain an earlier preview. The metadata follows the [Open Graph protocol](https://ogp.me/). A successful local build confirms the tags and image are included, but does not confirm a messaging app has fetched the published version.
 
 ## Included features
 
@@ -65,9 +71,9 @@ release/Chessmate/
   _source/              # Editable project, tests, and Supabase schema/setup
 ```
 
-After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.3.zip` before using GitHub's folder-upload interface.
+After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.3.1.zip` before using GitHub's folder-upload interface.
 
-`version.json` identifies version **2.3.0 / Your chess home**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
+`version.json` identifies version **2.3.1 / Your chess home · Link previews**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
 
 ## Validation
 
