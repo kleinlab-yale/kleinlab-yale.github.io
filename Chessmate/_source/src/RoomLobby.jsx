@@ -1,71 +1,56 @@
 import {useEffect,useImperativeHandle,useRef,useState} from 'react';
 import CloudRooms from './CloudRooms';
 import {cloudConfigured} from './cloud';
-import {ArrowRight,Copy,Check,Users,Loader2,House,Share2,MessageCircle,DoorOpen,X,UserPlus,Send,Link2} from 'lucide-react';
+import {ArrowRight,Copy,Check,Users,Loader2,House,Share2,MessageCircle,X,Mail,RotateCcw,Trophy} from 'lucide-react';
 import Avatar from './Avatar';
-import {roomName,suggestedRoom,validRoom} from './rooms';
-import {invitation,shareInvitation,copyInvitation} from './invitations';
+import HomeScreen from './HomeScreen';
+import {roomName} from './rooms';
+import {invitation,shareInvitation,copyInvitation,messageLinks} from './invitations';
 import useDialog from './useDialog';
 
-const emptyRoom=()=>({home:'',homeStatus:'closed',guests:[],visit:null,invitations:[],error:'',inviting:''});
+const emptyRoom=()=>({home:'',homeStatus:'closed',guests:[],visit:null,invitations:[],error:'',inviting:'',starting:'',returning:false,sentInvites:[]});
 
-export default function RoomLobby({ref,profile,onStart,onNeedProfile,onHome,onFriends,notify,visible}) {
- const [homeName,setHomeName]=useState(profile?.homeRoom||suggestedRoom(profile?.name));
- const [joinName,setJoinName]=useState(new URLSearchParams(location.search).get('room')||sessionStorage.getItem('chessmate-return-room')||'');
- const [state,setState]=useState(emptyRoom);
+export default function RoomLobby({ref,profile,onStart,onFriends,onState,onNavigate,onComputer,lastGame,onPlayBotAgain,onDismissResult,notify,view,visible,Session=CloudRooms}) {
+ const [joinName,setJoinName]=useState(''),[state,setState]=useState(emptyRoom);
  const [share,setShare]=useState(null),[copied,setCopied]=useState(false),[shareError,setShareError]=useState('');
- const session=useRef(),latest=useRef(); latest.current={profile,onStart,onHome,onFriends,notify};
- const edited=useRef(false),copyTimer=useRef(),pendingJoin=useRef('');
- const invitedRoom=roomName(new URLSearchParams(location.search).get('room')||sessionStorage.getItem('chessmate-return-room')||'');
+ const session=useRef(),latest=useRef(),copyTimer=useRef();latest.current={profile,onStart,onFriends,onState,onNavigate,notify};
  useDialog(share&&visible?'room-share':null,()=>setShare(null));
  useEffect(()=>{
   setState(emptyRoom());setShare(null);setShareError('');
-  if(!profile||!cloudConfigured)return;
-  const rooms=new CloudRooms({onFriends:friends=>latest.current.onFriends(friends),getProfile:()=>latest.current.profile,onChange:setState,onStart:room=>latest.current.onStart(room),onHome:name=>latest.current.onHome(name),onInvite:player=>latest.current.notify(`${player.name} invited you to @${player.room}. Open Play with friends to join.`)});
+  if(!profile||(!cloudConfigured&&Session===CloudRooms))return;
+  const rooms=new Session({onFriends:friends=>latest.current.onFriends(friends),getProfile:()=>latest.current.profile,onChange:next=>{setState(next);latest.current.onState(next);},onStart:room=>{setShare(null);latest.current.onStart(room);},onHome:()=>{},onInvite:player=>latest.current.notify(`${player.name} wants to play. Their invitation is on your home.`)});
   session.current=rooms;rooms.open();
-  const invited=roomName(pendingJoin.current||new URLSearchParams(location.search).get('room')||sessionStorage.getItem('chessmate-return-room')||'');pendingJoin.current='';sessionStorage.removeItem('chessmate-return-room');
-  if(invited&&invited!==profile.homeRoom)rooms.join(invited);
+  const url=new URL(location.href),invited=roomName(url.searchParams.get('room')||sessionStorage.getItem('chessmate-return-room')||'');
+  sessionStorage.removeItem('chessmate-return-room');
+  if(url.searchParams.has('room')){url.searchParams.delete('room');history.replaceState(null,'',url);}
+  if(invited&&invited!==profile.homeRoom){latest.current.onNavigate('play');rooms.join(invited);}
   return()=>{rooms.destroy();session.current=null;clearTimeout(copyTimer.current);};
- },[profile?.id]);
- useEffect(()=>{if(!edited.current)setHomeName(profile?.homeRoom||suggestedRoom(profile?.name));},[profile?.homeRoom,profile?.name]);
- useEffect(()=>{if(!visible&&session.current?.visiting&&!session.current.active)session.current.leaveVisit();},[visible]);
- useImperativeHandle(ref,()=>({endGame:()=>session.current?.endGame(),goOffline:()=>session.current?.closeHome()}),[]);
- const open=state.homeStatus==='open',opening=state.homeStatus==='opening',friends=profile?.friends||[];
- function needPlayer(){if(profile&&cloudConfigured)return false;onNeedProfile();return true;}
- async function openHome(){if(!profile||!cloudConfigured){onNeedProfile(homeName);return;}await session.current.open(homeName);}
- function join(name=joinName){if(!profile||!cloudConfigured){pendingJoin.current=name;sessionStorage.setItem('chessmate-return-room',roomName(name));onNeedProfile();return;}session.current.join(name);}
+ },[profile?.id,Session]);
+ useImperativeHandle(ref,()=>({endGame:()=>session.current?.endGame(),leaveVisit:()=>session.current?.leaveVisit(),goOffline:()=>session.current?.closeHome()}),[]);
+ const friends=profile?.friends||[],waiting=state.guests.length>0,links=share?messageLinks(share,navigator):null;
+ function join(name=joinName){onNavigate('play');session.current?.join(name);}
  function shareData(){return invitation(profile.homeRoom,profile.name,location.href);}
- async function shareRoom(){if(!profile)return;setShareError('');const data=shareData();if(await shareInvitation(data)==='fallback')setShare({data});}
- async function copy(data=shareData()){
-  try{await copyInvitation(data);setCopied(true);clearTimeout(copyTimer.current);copyTimer.current=setTimeout(()=>setCopied(false),2500);return true;}
-  catch{setShare({data});setShareError('Select and copy the invitation below. Your browser couldn’t access the clipboard.');return false;}
- }
- async function messages(data){if(await copy(data)){notify('Invitation copied. Paste it in Messages, then choose your friend.');window.location.href='sms:';}}
- async function inviteFriend(friend){
-  if(needPlayer())return;
-  const sent=await session.current.invite(friend,homeName);
-  if(sent)notify(`Invitation saved for ${friend.name}. They’ll see it when they’re signed in.`);
-  else if(session.current?.state.homeStatus==='open'){setShareError('');setShare({data:invitation(session.current.state.home,profile.name,location.href),friend:friend.name});}
- }
- return <div hidden={!visible} className="friends-page-wrap"><div className="simple-friends page-enter">
-  <h1>Play a friend</h1><p className="page-subtitle">Send them your room link, or enter their name to visit them.</p>
-  {state.invitations.length>0&&<section className="room-invitations" aria-label="Invitations">{state.invitations.map(({player})=><div className="room-invitation" key={player.id}><Avatar id={player.avatar} outfit={player.outfit} size={46}/><div><strong>{player.name} invited you to play.</strong></div><button className="button primary" onClick={()=>{setJoinName(player.room);join(player.room);session.current.dismissInvite(player.id);}}>Join {player.name}<ArrowRight size={18}/></button><button className="icon-button" aria-label={`Dismiss invitation from ${player.name}`} onClick={()=>session.current.dismissInvite(player.id)}><X size={20}/></button></div>)}</section>}
+ function shareRoom(){setShareError('');setShare(shareData());}
+ async function moreApps(){const result=await shareInvitation(share);if(result==='shared')setShare(null);else if(result==='fallback')setShareError('Choose Text message, WhatsApp, or Email above to send your invitation.');}
+ async function copy(data){try{await copyInvitation(data);setCopied(true);clearTimeout(copyTimer.current);copyTimer.current=setTimeout(()=>setCopied(false),2500);}catch{setShareError('Select the link below and copy it into your message.');}}
+ async function inviteFriend(friend){if(await session.current?.invite(friend))notify(`Invitation sent to ${friend.name}’s chess home.`);}
+ function friendCards(people){return <div className="home-friend-list">{people.map(friend=>{
+  const here=state.guests.find(guest=>guest.id===friend.id),invited=state.sentInvites.includes(friend.id),invitation=state.invitations.find(item=>item.player.id===friend.id);
+  return <div className="home-friend" key={friend.id}><Avatar id={friend.avatar} outfit={friend.outfit} size={52}/><div><strong>{friend.name}</strong><span>{here?'In your waiting room':invited?'Invited · waiting for a reply':invitation?'Wants to play with you':'A familiar face at the board'}</span></div><button className={`button ${here||invitation?'primary':'secondary'}`} disabled={!!state.inviting||!!state.starting||state.returning||!!state.visit||invited&&!here&&!invitation} onClick={()=>here?session.current.accept(friend.id):invitation?acceptInvite(friend):inviteFriend(friend)}>{here?'Play now':invitation?'Join them':invited?'Invited':'Play again'}<ArrowRight size={17}/></button></div>;
+ })}</div>;}
+ function acceptInvite(player){join(player.room);session.current?.dismissInvite(player.id);}
+ function playAgain(friend){if(state.guests.some(guest=>guest.id===friend.id))session.current.accept(friend.id);else if(state.invitations.some(item=>item.player.id===friend.id))acceptInvite(friend);else inviteFriend(friend);}
+ const previousReady=lastGame?.friend&&(state.guests.some(guest=>guest.id===lastGame.friend.id)||state.invitations.some(item=>item.player.id===lastGame.friend.id));
+ const lobby=<>
   {state.error&&<div className="error-banner room-error" role="alert"><span>{state.error}</span><button aria-label="Dismiss message" onClick={()=>session.current?.update({error:''})}><X size={18}/></button></div>}
-  <div className="simple-room-options">
-   <section className="panel simple-my-room" aria-label="Your room">
-    <div className="simple-room-owner"><Avatar id={profile?.avatar} outfit={profile?.outfit} size={62}/><div><h2>{profile?.name}’s room</h2><p>{open?'Your room is ready.':opening?'Opening your room…':'Reconnecting to your room…'}</p></div></div>
-    <p>Send this link to the person you want to play.</p>
-    <button className="button primary full" onClick={shareRoom}><Share2 size={21}/>Send my room link</button>
-    <div className="simple-room-link"><input aria-label="Your room link" readOnly value={profile?shareData().url:''} onFocus={event=>event.target.select()}/><button onClick={()=>copy()} aria-label="Copy my room link">{copied?<Check size={19}/>:<Copy size={19}/>} {copied?'Copied':'Copy'}</button></div>
-    {!open&&!opening&&<button className="text-button" onClick={openHome}>Reconnect <ArrowRight size={17}/></button>}
-    <div className="simple-waiting" aria-live="polite"><h3>{state.guests.length?'Ready to play':'Waiting for your friend'}</h3>{state.guests.length?state.guests.map(guest=><div className="waiting-player" key={guest.id}><Avatar id={guest.player.avatar} outfit={guest.player.outfit} size={48}/><strong>{guest.player.name}</strong><button className="button primary" disabled={!!state.visit||!!guest.starting} onClick={()=>session.current.accept(guest.id)}>Play <ArrowRight size={18}/></button><button className="icon-button" aria-label={`Decline ${guest.player.name}`} onClick={()=>session.current.decline(guest.id)}><X size={18}/></button></div>):<p>They’ll appear here when they open your link. Choose Play to start.</p>}</div>
-   </section>
-   <section className="panel simple-join-room" aria-label="Visit a friend">
-    <span className="simple-friend-icon"><Users size={32}/></span><h2>Go to a friend’s room</h2>
-    {state.visit?<div className="visitor-lounge" aria-live="polite">{state.visit.status==='connecting'?<><Loader2 className="spin" size={30}/><h3>Joining {state.visit.room}…</h3></>:<><Avatar id={state.visit.player.avatar} outfit={state.visit.player.outfit} size={64}/><h3>You’re in {state.visit.player.name}’s room.</h3><p>{state.visit.offline?`${state.visit.player.name} is offline. Keep this page open while you wait.`:state.visit.busy?'They’re finishing another game. They can see you waiting.':`Waiting for ${state.visit.player.name} to press Play.`}</p></>}<button className="button secondary" onClick={()=>session.current.leaveVisit()}>Leave this room</button></div>:<form onSubmit={event=>{event.preventDefault();join();}}><p>Enter their name or paste the room link they sent you.</p><label htmlFor="friend-room-name">Your friend’s name or link</label><input id="friend-room-name" placeholder="Emma" value={joinName} onChange={event=>setJoinName(event.target.value)} maxLength={400} autoComplete="off" autoCapitalize="none" spellCheck="false"/><button className="button primary full" disabled={!joinName.trim()}><ArrowRight size={21}/>Join my friend</button></form>}
-   </section>
-  </div>
-  {friends.length>0&&<section className="simple-saved-friends" aria-label="Friends"><h2>People you’ve played</h2><div className="simple-friend-list">{friends.map(friend=><div className="simple-friend-row" key={friend.id}><button className="simple-friend-person" onClick={()=>inviteFriend(friend)} aria-label={`Invite ${friend.name}`}><Avatar id={friend.avatar} outfit={friend.outfit} size={50}/><strong>{friend.name}</strong></button><button className="button secondary" disabled={!!state.inviting} onClick={()=>inviteFriend(friend)}>Invite</button><button className="button secondary" disabled={!!state.visit} onClick={()=>{setJoinName(friend.room);join(friend.room);}}>Visit</button></div>)}</div></section>}
-  {share&&visible&&<div className="modal-backdrop" onClick={event=>{if(event.target===event.currentTarget)setShare(null);}}><div className="modal invite-modal" role="dialog" aria-modal="true" aria-labelledby="share-title"><button className="modal-close" aria-label="Close sharing" onClick={()=>setShare(null)}><X size={22}/></button><h2 id="share-title">Send your room link</h2><p>Copy the link into a message to your friend.</p><input aria-label="Room link to share" readOnly value={share.data.url} onFocus={event=>event.target.select()}/><div className="share-options"><button className="button primary" onClick={()=>copy(share.data)}><Copy size={20}/>{copied?'Copied':'Copy link'}</button><button className="button secondary" onClick={()=>messages(share.data)}><MessageCircle size={20}/>Open Messages</button></div>{shareError&&<p className="error-banner" role="alert">{shareError}</p>}</div></div>}
- </div></div>;
+  {state.invitations.length>0&&<section className="home-invitations" aria-label="Invitations" aria-live="polite">{state.invitations.map(({player})=><div className="home-invitation" key={player.id}><Avatar id={player.avatar} outfit={player.outfit} size={52}/><div><strong>{player.name} wants to play.</strong><p>Join their waiting room. They’ll start the game.</p></div><button className="button primary" disabled={!!state.starting||state.returning} onClick={()=>acceptInvite(player)}>Join {player.name}<ArrowRight size={18}/></button><button className="icon-button" aria-label={`Dismiss invitation from ${player.name}`} onClick={()=>session.current.dismissInvite(player.id)}><X size={20}/></button></div>)}</section>}
+  {state.visit&&<section className="home-visit" role="status">{state.visit.status==='connecting'?<><Loader2 className="spin" size={28}/><div><h2>Taking you to {state.visit.room}’s home…</h2><p>You’ll appear in their waiting room.</p></div></>:<><Avatar id={state.visit.player.avatar} outfit={state.visit.player.outfit} size={56}/><div><span className="home-eyebrow">YOU’RE READY TO PLAY</span><h2>You’re in {state.visit.player.name}’s waiting room.</h2><p>{state.visit.offline?`${state.visit.player.name} isn’t here yet. Keep this page open while you wait.`:state.visit.busy?`${state.visit.player.name} is finishing a game. They can see you waiting.`:`${state.visit.player.name} can see you. Your game starts when they press Play.`}</p></div></>}<button className="button secondary" onClick={()=>session.current.leaveVisit()}><House size={18}/>Back to my home</button></section>}
+  {!state.visit&&<section className={`home-waiting ${waiting?'has-guests':''}`} aria-label="Your waiting room" aria-live="polite"><div className="home-waiting-heading"><span className="waiting-symbol"><Users size={26}/></span><div><span className="home-eyebrow">YOUR WAITING ROOM</span><h2>{waiting?`${state.guests.length===1?state.guests[0].player.name:'Your friends'} ${state.guests.length===1?'is':'are'} here, ready to play!`:'A place for your friends.'}</h2><p>{waiting?'Choose Play to bring them to the board.':'When a friend opens your invite, you’ll see them here.'}</p></div>{waiting&&<span className="waiting-count">{state.guests.length} waiting</span>}</div>{state.guests.map(guest=><div className="home-waiting-player" key={guest.id}><Avatar id={guest.player.avatar} outfit={guest.player.outfit} size={54}/><div><strong>{guest.player.name}</strong><span>Ready when you are</span></div><button className="button primary" disabled={!!state.starting||state.returning} onClick={()=>session.current.accept(guest.id)}>{state.starting===guest.id?<Loader2 className="spin" size={18}/>:null}Play {guest.player.name}<ArrowRight size={19}/></button><button className="icon-button" aria-label={`Decline ${guest.player.name}`} disabled={!!state.starting} onClick={()=>session.current.decline(guest.id)}><X size={20}/></button></div>)}</section>}
+ </>;
+ return <div hidden={!visible} className="friends-page-wrap">
+  {view==='play'?<><HomeScreen profile={profile} status={state.homeStatus} onComputer={onComputer} onInvite={shareRoom} onReconnect={()=>session.current.open()}>{lobby}
+   {lastGame&&!state.visit&&<section className="home-result" aria-label="Your last game"><span className="result-medallion"><Trophy size={25}/></span><div><span className="home-eyebrow">BACK AT YOUR HOME</span><h2>{lastGame.score===1?'You won!':lastGame.score===0?'A good game. Another round?':'A well-played draw.'}</h2><p>Your game with {lastGame.opponent} has finished.</p></div><button className="button secondary" disabled={state.returning||!!state.inviting||!!state.starting||!!lastGame.friend&&state.sentInvites.includes(lastGame.friend.id)&&!previousReady} onClick={()=>lastGame.friend?playAgain(lastGame.friend):onPlayBotAgain(lastGame)}><RotateCcw size={18}/>{state.returning?'Returning home…':lastGame.friend&&state.sentInvites.includes(lastGame.friend.id)&&!previousReady?'Invitation sent':'Play again'}</button><button className="icon-button" aria-label="Dismiss game result" onClick={onDismissResult}><X size={20}/></button></section>}
+  </HomeScreen><section className="home-friends-section"><div className="home-section-heading"><h2>Your chess friends</h2><button className="text-button" onClick={()=>onNavigate('friends')}>Find a friend <ArrowRight size={18}/></button></div>{friends.length?friendCards(friends.slice(0,4)):<p className="home-friends-empty">Play your first game together and your friend will appear here. Next time, just choose Play again.</p>}</section></>:<section className="home-friends-page page-enter"><h1>Your chess friends</h1><p className="page-subtitle">Invite someone new, or play another game with a familiar face.</p>{lobby}<div className="home-friend-tools"><section className="panel"><Share2 size={29}/><h2>Invite someone to your home</h2><p>Send your personal invitation in a message.</p><button className="button primary" onClick={shareRoom}><Share2 size={19}/>Send invite</button></section><form className="panel" onSubmit={event=>{event.preventDefault();join();}}><Users size={29}/><h2>Go to a friend’s home</h2><label htmlFor="friend-room-name">Their name or invitation link</label><input id="friend-room-name" placeholder="Emma" value={joinName} onChange={event=>setJoinName(event.target.value)} maxLength={400} autoComplete="off" spellCheck="false"/><button className="button secondary" disabled={!joinName.trim()||state.returning}>Join friend <ArrowRight size={19}/></button></form></div>{friends.length>0&&friendCards(friends)}</section>}
+  {share&&visible&&<div className="modal-backdrop" onClick={event=>{if(event.target===event.currentTarget)setShare(null);}}><div className="modal home-share-modal" role="dialog" aria-modal="true" aria-labelledby="share-title"><button className="modal-close" aria-label="Close invitation" onClick={()=>setShare(null)}><X size={22}/></button><span className="share-symbol"><MessageCircle size={31}/></span><h2 id="share-title">Invite a friend over.</h2><p>Choose an app, pick your person, and press Send. Your invitation is already written.</p><div className="home-share-options"><a className="button primary" data-dialog-focus href={links.sms}><MessageCircle size={21}/>Text message <ArrowRight size={18}/></a><a className="button secondary" href={links.whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={21}/>WhatsApp <ArrowRight size={18}/></a><a className="button secondary" href={links.email}><Mail size={21}/>Email <ArrowRight size={18}/></a>{typeof navigator.share==='function'&&<button className="text-button" onClick={moreApps}><Share2 size={18}/>More apps</button>}</div><div className="home-share-copy"><label htmlFor="home-share-link">Or copy your home link</label><div><input id="home-share-link" readOnly value={share.url} onFocus={event=>event.target.select()}/><button className="icon-button" aria-label={copied?'Invitation copied':'Copy invitation'} onClick={()=>copy(share)}>{copied?<Check size={21}/>:<Copy size={21}/>}</button></div></div><p className="home-share-note">Keep Chessmate open. We’ll show you when they arrive.</p>{shareError&&<p className="error-banner" role="alert">{shareError}</p>}</div></div>}
+ </div>;
 }

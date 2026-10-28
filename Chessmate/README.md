@@ -1,4 +1,4 @@
-# Chessmate 2.2 — account-owned home rooms
+# Chessmate 2.3 — Your chess home
 
 A warm, modern chess clubhouse with computer personalities, 2D/3D boards, named home rooms, friends, and progression.
 
@@ -8,13 +8,12 @@ A warm, modern chess clubhouse with computer personalities, 2D/3D boards, named 
 
 ## The player flow
 
-1. Enter **Your name** and **Create a password**, then press **Start playing**. That same name identifies your player and home room. Returning players choose **Sign in** and use the same two fields.
-2. The next screen has two large choices: **Play computer** or **Play a friend**. Progress and avatar options are secondary links.
-3. Under **Play a friend**, choose **Send my room link**, or enter the other person’s name or room link and press **Join my friend**. A signed-in visitor enters the waiting list; the host chooses **Play** next to the person they want to play.
-4. Previous opponents appear in **Familiar faces**. Tap an avatar to invite that friend or choose **Visit their room**. Invitations are stored for the recipient's next visit.
-5. Rating, XP, outfits, history, avatar, and friends are saved to the account. Sign in on another device to retrieve them.
-
-An invitation uses the device's native share sheet where available. The fallback offers copying and **Open Messages**; the sender chooses the recipient and sends the message. Chessmate never reads device contacts or sends an SMS automatically.
+1. Enter **Your name** and **Create a password**, then choose **Create my chess home**. The same name identifies the player and permanent home. Returning players use **Sign in → Open my chess home**; this device remembers the name, and an existing session opens the home directly.
+2. **My home** shows the player's name, whether their home is open, a highlighted waiting room, **Send invite**, and **Choose a computer**. Clear tabs lead to **My home**, **Play computer**, **Friends**, and **My progress**. Avatar and outfits are under the profile button.
+3. **Send invite** offers **Text message**, **WhatsApp**, and **Email**, with the invitation already filled in. **More apps** uses the device's sharing menu where supported. Copying is an optional fallback. The sender picks the recipient and presses Send in their own app; Chessmate does not read contacts or send messages itself. Message-app support varies by device.
+4. Opening the invitation signs an existing player into the waiting flow immediately. A new player first creates their own home using the same two fields. The host sees **“Lily is here, ready to play!”** and a large **Play Lily** button. The visitor sees that they are waiting and who starts the game. The invite is consumed once, so refreshing after the game does not join the old queue again.
+5. Finished games return each player to their own home with a result card and **Play again**. Previous opponents appear under **Your chess friends**. Play again sends an in-app invitation to that friend's home; they join, and the host starts. Friends can also visit by entering a name or pasted invitation under **Friends**.
+6. Rating, XP, outfits, history, avatar, and friends stay saved to the account. Keep the page open to remain present and see arriving friends. An offline owner's home still exists; visitors see that the owner is away.
 
 ## Included features
 
@@ -66,19 +65,19 @@ release/Chessmate/
   _source/              # Editable project, tests, and Supabase schema/setup
 ```
 
-After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.2.zip` before using GitHub's folder-upload interface.
+After connecting and testing accounts, replace only the existing `Chessmate` folder at the root of `kleinlab-yale/kleinlab-yale.github.io` on `main`. Preserve the lab website's root files and publishing settings. Unzip `Chessmate-2.3.zip` before using GitHub's folder-upload interface.
 
-`version.json` identifies version **2.2.0 / Simple play**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
+`version.json` identifies version **2.3.0 / Your chess home**, so you can distinguish it from the older code-based rooms currently on GitHub. Rebuilding `_source` produces a fresh deployable folder. The optional standalone workflow in `_source/.github` does not replace the lab site's deployment.
 
 ## Validation
 
-`pnpm test` runs 24 tests: chess legality and special moves, bot responses, ratings/rewards, room names and sharing, and actual PostgreSQL row policies/functions via PGlite. Database tests cover unique ownership, private progress, stale-save protection, host-only acceptance, match membership, event ordering, malformed payload rejection, durable invitations, and mutual friends.
+`pnpm test` runs 27 tests: chess legality and special moves, bot responses, ratings/rewards, room names and sharing, and actual PostgreSQL row policies/functions via PGlite. Database tests cover unique ownership, private progress, stale-save protection, host-only acceptance, match membership, event ordering, malformed payload rejection, durable invitations, mutual friends, repeat games, and reciprocal waiting requests.
 
-The updated phone board is checked in-browser at narrow and standard phone widths, including a legal move and computer reply. Hosted username login and the room/game database flow passed a live integration check. A full game between two physical phones remains a useful release check.
+This update was exercised with two local simulated players through invitation entry, host approval, six moves, an agreed draw, automatic return to both homes, and a second game. The responsive home and messaging chooser were inspected at phone width. These UI checks create no Supabase accounts; the original hosted login/database integration check predates this update. Actual messaging-app handoff and a full game between two physical phones have not been tested for this release. No database migration is required.
 
 ## Source map
 
-- `src/App.jsx`, `src/HomeScreen.jsx` — welcome, two-choice start screen, progression, wardrobe, and navigation
+- `src/App.jsx`, `src/HomeScreen.jsx` — welcome, permanent home, progression, wardrobe, and navigation
 - `src/AccountForm.jsx`, `src/usernameAuth.js`, `src/useAccount.js`, `src/cloud.js` — authentication and cloud saves
 - `src/RoomLobby.jsx`, `src/CloudRooms.js` — named rooms, waiting guests, friends, realtime transport
 - `src/Game.jsx` — chess, chat, result handling, and worker coordination

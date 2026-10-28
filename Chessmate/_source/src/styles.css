@@ -34,3 +34,118 @@
 @media(max-width:680px){.welcome-screen{padding:25px 18px;justify-content:flex-start}.welcome-brand{margin:9px 0 24px;font-size:27px}.welcome-card{padding:28px 24px;border-radius:17px}.simple-account-form h2{font-size:27px}.account-mode button{font-size:15px}.simple-topbar{padding:19px 20px;gap:10px}.simple-topbar .brand{font-size:23px}.simple-topbar .brand>svg{width:28px;height:32px}.simple-header-actions{gap:16px}.simple-profile{gap:0}.simple-profile>span{display:none}.simple-back{font-size:14px;gap:5px}.simple-app .main-content{padding:26px 20px}.simple-welcome{margin:3px 0 26px}.simple-welcome h1{font-size:31px}.simple-welcome p{font-size:17px}.play-choices{grid-template-columns:1fr;gap:16px}.play-choice{padding:23px 25px;min-height:0;position:relative}.choice-picture{height:56px;font-size:63px;margin-bottom:12px}.choice-picture>svg{width:48px;height:48px}.play-choice h2{font-size:25px}.play-choice p{font-size:15px}.choice-action{font-size:15px;margin-top:18px;padding-top:15px}.simple-extras{gap:24px;margin-top:19px}.simple-extras button{font-size:13px}.simple-room-options{grid-template-columns:1fr;gap:18px;margin-top:24px}.simple-room-options>.panel{padding:24px}.simple-app h1{font-size:30px}.simple-app .page-subtitle{font-size:16px}.simple-friend-list{grid-template-columns:1fr}.simple-room-owner h2,.simple-join-room h2{font-size:24px}.simple-app .button{font-size:16px}.simple-app .directory-bots{grid-template-columns:1fr;gap:22px}.simple-app .directory-bots .bot-portrait{height:180px}.simple-app .directory-bots .bot-portrait .avatar{width:145px!important;height:145px!important}.simple-app .directory-bots .bot-info .bot-description{min-height:0}.simple-app .board-style-options strong{font-size:12px}.simple-app .board-style-options span{font-size:11px}.simple-app .in-game{padding:20px 14px}.simple-app .simple-friend-row .button{padding:10px 12px;font-size:14px}.simple-app .modal{padding:29px 24px}}
 
 .choice-picture .chess-piece{width:72px;height:72px;display:block;filter:none}@media(max-width:680px){.choice-picture .chess-piece{width:55px;height:55px}}
+
+/* A permanent, quiet home for every player. */
+.home-tabs{display:flex;gap:10px;max-width:1140px;margin:auto;padding:14px 36px 0;border-bottom:1px solid #e4dfe7}
+.home-tabs button{position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-height:58px;padding:14px 20px;font-size:16px;font-weight:650;color:#74677e;border-bottom:3px solid transparent}
+.home-tabs button[aria-current=page]{color:#614676;border-color:#816399;background:#eee7f2;border-radius:10px 10px 0 0}
+.home-tab-count{font-size:12px;color:white;background:#52784b;border-radius:20px;min-width:22px;padding:3px 6px}
+.home-arrival-banner{max-width:1068px;margin:20px auto 0;display:flex;align-items:center;gap:15px;padding:19px 22px;background:#e5efdc;border:1px solid #8ea981;border-radius:13px;color:#36512c;font-size:16px}
+.home-arrival-banner>span{flex:1}
+.chess-home{max-width:1068px;margin:auto}
+.chess-home-heading{display:flex;gap:19px;align-items:center;margin:0 0 30px}
+.chess-home-heading>div:nth-child(2){flex:1;min-width:0}
+.home-eyebrow{display:flex;gap:6px;align-items:center;font:700 10px/1.4 'DM Sans',sans-serif;letter-spacing:1.45px;color:#85728e}
+.chess-home-heading h1{font-size:35px;line-height:1.25;letter-spacing:-1.3px;margin:7px 0;overflow-wrap:anywhere}
+.chess-home-heading h1>span{color:#a58ab7}
+.chess-home-heading p{font-size:15px;color:#82728c;line-height:1.6}
+.home-presence{display:flex;align-items:center;gap:8px;border:1px solid #d9e0d1;border-radius:30px;padding:10px 14px;color:#716c74;font-size:13px;background:#f8f9f3;white-space:nowrap}
+.home-presence.ready{color:#4e6b43}
+.home-presence>span{height:7px;width:7px;border-radius:50%;background:#729463}
+.home-presence button{display:flex;align-items:center;gap:6px}
+.home-waiting{border:1px dashed #c8bbd1;border-radius:17px;background:#f5f1f7;padding:23px 25px;margin-bottom:23px}
+.home-waiting.has-guests{background:#edf4e6;border:2px solid #88a575;box-shadow:0 4px 20px #66854e0e}
+.home-waiting-heading{display:flex;align-items:center;gap:16px}
+.waiting-symbol{display:grid;place-items:center;flex-shrink:0;width:51px;height:51px;border-radius:14px;background:#e9e0ef;color:#806390}
+.has-guests .waiting-symbol{background:#dce9d1;color:#4f703e}
+.home-waiting h2,.home-visit h2{font-size:21px;line-height:1.35;letter-spacing:-.5px;margin:5px 0 6px;overflow-wrap:anywhere}
+.home-waiting p,.home-visit p{font-size:14px;line-height:1.65;color:#776b80}
+.has-guests h2{color:#35512b}
+.has-guests p,.has-guests .home-eyebrow{color:#5c744c}
+.waiting-count{margin-left:auto;padding:7px 11px;background:#dce8d2;border-radius:20px;font-size:12px;white-space:nowrap;font-weight:650;color:#4d6b3e}
+.home-waiting-player{display:flex;align-items:center;gap:13px;padding:20px 0 0;margin-top:19px;border-top:1px solid #d2dfc7}
+.home-waiting-player>div{flex:1;min-width:0}
+.home-waiting-player strong{font-size:18px;display:block;overflow-wrap:anywhere}
+.home-waiting-player>div>span{font-size:13px;display:block;margin-top:4px;color:#617253}
+.home-waiting-player .button{background:#526e42;border-color:#526e42;color:#fff}
+.home-waiting-player .icon-button{color:#708463}
+.home-play-options{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.home-play-card{display:grid;grid-template-columns:45px 1fr;align-content:start;column-gap:17px;padding:27px;border-radius:18px;border:1px solid #d9cce1;background:#eee6f3}
+.home-play-card .home-choice-icon{display:grid;place-items:center;color:#79578f;height:45px}
+.home-play-card .home-choice-icon>.piece-svg{width:43px;height:43px}
+.home-play-card h2{font-size:24px;letter-spacing:-.6px;line-height:1.4}
+.home-play-card p{font-size:15px;line-height:1.65;color:#7b6b86;margin-top:6px}
+.home-play-card .button{grid-column:1/-1;justify-content:center;margin-top:25px;width:100%}
+.home-play-card small{grid-column:1/-1;text-align:center;font-size:12px;color:#80718b;margin-top:12px;line-height:1.5}
+.home-computer-card{background:#f3f2ed;border-color:#e0dcd3}
+.home-computer-card .button{background:#fffdf7;border-color:#d7d1c5}
+.home-computer-card p,.home-computer-card small{color:#80796e}
+.home-computer-card .home-choice-icon{color:#827768}
+.home-friends-section{margin:30px auto 0;max-width:1068px}
+.home-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px}
+.home-section-heading h2{font-size:21px;letter-spacing:-.4px}
+.home-section-heading .text-button{font-size:14px;min-height:44px}
+.home-friends-empty{padding:24px;border-radius:12px;border:1px solid #e6dfe9;background:#fcfafb;color:#7b6d83;font-size:15px;line-height:1.75}
+.home-friend-list{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.home-friend{display:flex;align-items:center;gap:13px;padding:20px;border:1px solid #e3dce7;border-radius:14px;background:#fffdfa}
+.home-friend>div{flex:1;min-width:0}
+.home-friend strong{font-size:17px;display:block;overflow-wrap:anywhere}
+.home-friend>div>span{font-size:12px;display:block;line-height:1.5;color:#82708f;margin-top:5px}
+.home-friend .button{padding:10px 14px;font-size:14px;white-space:nowrap}
+.home-invitations{display:grid;gap:14px;margin-bottom:23px}
+.home-invitation{display:flex;align-items:center;gap:14px;padding:23px;border:2px solid #a68cb9;border-radius:16px;background:#f0e8f5}
+.home-invitation>div{flex:1;min-width:0}
+.home-invitation strong{font-size:19px;display:block;overflow-wrap:anywhere}
+.home-invitation p{font-size:14px;color:#786684;line-height:1.6;margin-top:5px}
+.home-visit{display:flex;align-items:center;gap:18px;padding:25px;margin-bottom:23px;border:2px solid #a18bb1;border-radius:17px;background:#f0eaf5}
+.home-visit>div{flex:1;min-width:0}
+.home-visit .button{white-space:nowrap}
+.home-result{display:flex;align-items:center;gap:17px;padding:23px;margin-bottom:23px;border:1px solid #dfcfac;background:#f9f3e7;border-radius:16px}
+.result-medallion{display:grid;place-items:center;flex-shrink:0;width:49px;height:49px;background:#efe1bc;border-radius:50%;color:#9b7c3d}
+.home-result>div{flex:1;min-width:0}
+.home-result h2{font-size:21px;margin:5px 0;letter-spacing:-.5px}
+.home-result p{font-size:14px;color:#877658;line-height:1.5}
+.home-result .home-eyebrow{color:#9a835d}
+.home-result .button{white-space:nowrap;background:#fffdf6;border-color:#decfae}
+.home-friend-tools{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:26px 0}
+.home-friend-tools>.panel{padding:29px;border-radius:16px}
+.home-friend-tools h2{font-size:23px;line-height:1.35;margin:16px 0 12px}
+.home-friend-tools p{font-size:16px;color:#7d6d87;line-height:1.7;margin-bottom:24px}
+.home-friend-tools label{display:block;font-size:15px;font-weight:600;margin:17px 0 8px}
+.home-friend-tools input{display:block;width:100%;min-height:52px;padding:12px 14px;font-size:17px;border:1px solid #d5c9df;border-radius:9px;background:#fff}
+.home-friend-tools .button{width:100%;justify-content:center;margin-top:18px}
+.home-friends-page>.home-waiting,.home-friends-page>.home-invitations,.home-friends-page>.home-visit{margin-top:26px}
+.home-share-modal .share-symbol{display:grid;place-items:center;width:64px;height:64px;background:#eae0f0;color:#805d96;border-radius:18px;margin-bottom:22px}
+.home-share-modal h2{margin-bottom:14px}
+.home-share-modal>p{line-height:1.7;color:#7b6a85}
+.home-share-options{display:grid;gap:11px;margin:23px 0}
+.home-share-options a{display:flex;text-decoration:none;min-height:54px;gap:12px}
+.home-share-options a>svg:last-child{margin-left:auto}
+.home-share-copy{padding-top:19px;border-top:1px solid #e7dfea}
+.home-share-copy label{display:block;font-size:13px;color:#7b6b85;margin-bottom:8px}
+.home-share-copy>div{display:flex;align-items:center;border:1px solid #ded3e5;border-radius:9px;overflow:hidden}
+.home-share-copy input{min-width:0;width:100%;background:transparent;border:0;padding:13px;font-size:13px;color:#7d6b88}
+.simple-app .home-share-note{font-size:13px;margin-top:20px}
+.home-tabs button:focus-visible,.home-play-card .button:focus-visible,.home-friend button:focus-visible,.home-waiting button:focus-visible{outline:3px solid #74568b;outline-offset:3px}
+@media(max-width:850px){
+ .home-tabs{padding-inline:22px;gap:3px}.home-tabs button{padding:13px 16px;font-size:14px}
+ .chess-home-heading{flex-wrap:wrap}.home-presence{margin-left:97px;margin-top:-8px}
+ .home-friend-list{grid-template-columns:1fr}.home-arrival-banner{margin-inline:20px}
+ .home-visit,.home-result{flex-wrap:wrap}.home-visit .button{margin-left:74px}.home-result .button{margin-left:66px}
+}
+@media(max-width:600px){
+ .simple-app .main-content{padding:25px 18px}.simple-topbar{padding:16px 20px}
+ .home-tabs{padding:6px 10px 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+ .home-tabs button{padding:10px 3px;font-size:11px;gap:6px;flex-direction:column;min-height:66px;white-space:nowrap}.home-tab-count{position:absolute;top:3px;right:7px;min-width:19px;font-size:10px;padding:2px 5px}
+ .chess-home-heading{gap:14px;margin-bottom:25px}.chess-home-heading>.avatar{width:59px!important;height:59px!important}.chess-home-heading h1{font-size:26px;letter-spacing:-.8px;line-height:1.3}.chess-home-heading p{font-size:13px}.chess-home-heading .home-eyebrow{font-size:8px;letter-spacing:1px}.home-presence{margin-left:73px;font-size:12px;padding:7px 11px}
+ .home-waiting{padding:20px 18px;margin-bottom:18px}.home-waiting-heading{gap:12px;flex-wrap:wrap}.home-waiting-heading>div{flex:1;min-width:0}.waiting-symbol{width:40px;height:40px;border-radius:11px}.waiting-symbol svg{width:23px}.home-waiting h2{font-size:19px}.home-waiting p{font-size:13px}.home-eyebrow{font-size:9px;letter-spacing:1.2px}.waiting-count{margin-left:52px;font-size:11px}
+ .home-waiting-player{gap:10px;flex-wrap:wrap;padding-top:18px;margin-top:18px}.home-waiting-player>.avatar{width:46px!important;height:46px!important}.home-waiting-player>.button{order:3;width:100%;justify-content:center;margin-top:4px}.home-waiting-player>.icon-button{order:2}
+ .home-play-options{grid-template-columns:1fr;gap:17px}.home-play-card{padding:23px;column-gap:12px}.home-play-card h2{font-size:23px}.home-play-card p{font-size:14px}.home-play-card .button{margin-top:21px}.home-play-card small{font-size:12px}
+ .home-section-heading{gap:6px}.home-section-heading h2{font-size:19px}.home-section-heading .text-button{font-size:13px}.home-friends-empty{font-size:14px;padding:20px}.home-friend{padding:17px;gap:11px}.home-friend>.avatar{width:44px!important;height:44px!important}.home-friend .button{font-size:13px;padding:9px}.home-friend .button svg{display:none}
+ .home-invitation{flex-wrap:wrap;padding:20px;gap:12px}.home-invitation>div{min-width:145px}.home-invitation .button{order:4;width:100%;justify-content:center}.home-invitation>.icon-button{padding:0;min-width:28px}.home-invitation strong{font-size:18px}.home-invitation p{font-size:13px}
+ .home-visit,.home-result{padding:20px;gap:12px}.home-visit>div{flex-basis:180px}.home-visit h2,.home-result h2{font-size:20px}.home-visit .button,.home-result .button{width:100%;margin:0;justify-content:center;order:3}.home-result>.icon-button{position:absolute;top:10px;right:10px}.home-result{position:relative;padding-right:36px}.home-result>div{flex-basis:160px}.home-result .result-medallion{width:38px;height:38px}.home-result p{font-size:13px}
+ .home-friend-tools{grid-template-columns:1fr;gap:18px}.home-friend-tools>.panel{padding:24px}.home-arrival-banner{flex-wrap:wrap;margin-inline:18px;font-size:14px}.home-arrival-banner .button{width:100%;justify-content:center}
+}
+@media(max-width:850px){.chess-home-heading>div:nth-child(2){flex:1 1 calc(100% - 110px)}}
+@media(max-width:600px){.chess-home-heading>div:nth-child(2){flex-basis:calc(100% - 73px)}.simple-profile>.avatar{display:inline-flex}.chess-home-heading>.home-presence{flex:0 0 auto;margin-top:-4px}}
+@media(max-width:600px){.home-tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}.home-tabs button{flex-direction:row;min-height:48px;font-size:14px;gap:8px}.home-tabs button[aria-current=page]{border-radius:8px}.home-tab-count{position:static}}

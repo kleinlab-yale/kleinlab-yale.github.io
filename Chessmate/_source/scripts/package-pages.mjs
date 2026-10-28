@@ -8,7 +8,7 @@ await fs.rm(destination,{recursive:true,force:true});
 await fs.mkdir(destination,{recursive:true});
 await fs.cp(path.join(root,'dist'),destination,{recursive:true});
 await fs.copyFile(path.join(destination,'index.html'),path.join(destination,'room.html'));
-await fs.writeFile(path.join(destination,'version.json'),JSON.stringify({version:'2.2.0',edition:'Simple play',builtAt:new Date().toISOString()},null,2));
+await fs.writeFile(path.join(destination,'version.json'),JSON.stringify({version:'2.3.0',edition:'Your chess home',builtAt:new Date().toISOString()},null,2));
 await fs.writeFile(path.join(destination,'README.md'),(await fs.readFile(path.join(root,'README.md'),'utf8')).replaceAll('(supabase/','(_source/supabase/'));
 const source=path.join(destination,'_source');await fs.mkdir(source,{recursive:true});
 for(const file of ['src','public','tests','scripts','supabase','package.json','pnpm-lock.yaml','vite.config.js','index.html','README.md','.gitignore','.github'])await fs.cp(path.join(root,file),path.join(source,file),{recursive:true});

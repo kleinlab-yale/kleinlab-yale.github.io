@@ -49,3 +49,27 @@ test('saved friends receive persistent invitations, and a completed match releas
  await as(lily);assert.equal((await db.query('select sender_id from cm_invites')).rows[0].sender_id,emma);await action('dismiss',emma);assert.equal((await db.query('select * from cm_invites')).rows.length,0);
  await as(sam);await assert.rejects(action('invite',emma),/Play together/);
 });
+test('both players return to their own homes, accept another invitation, and play again without a new room',async()=>{
+ await as(emma);await action('leave');await action('online');
+ assert.equal((await db.query('select busy from cm_rooms where owner_id=$1',[emma])).rows[0].busy,false);
+ await as(lily);await action('online');await action('invite',emma);
+ assert.equal((await db.query('select room_name from cm_players where id=$1',[lily])).rows[0].room_name,'lily');
+ await as(emma);assert.equal((await db.query('select sender_id from cm_invites')).rows[0].sender_id,lily);
+ await action('join',lily);await action('dismiss',lily);
+ assert.equal((await db.query("select * from cm_matches where status='active'")).rows.length,0);
+ await as(lily);const waiting=(await db.query("select guest_id from cm_visits where status='waiting'")).rows;
+ assert.equal(waiting.length,1);assert.equal(waiting[0].guest_id,emma);
+ const rematch=await action('accept',emma);assert.notEqual(rematch,match);
+ assert.equal((await db.query('select count(*)::integer as n from cm_friends')).rows[0].n,1);
+ await db.query('select cm_send_event($1,$2)',[rematch,{type:'resign'}]);await action('leave');
+ await as(emma);await action('leave');assert.equal((await db.query('select busy from cm_rooms where owner_id=$1',[emma])).rows[0].busy,false);
+ assert.equal((await db.query('select room_name from cm_players where id=$1',[emma])).rows[0].room_name,'emma');
+});
+test('reciprocal waiting requests can start one game with a deterministic host',async()=>{
+ await as(emma);await action('join',lily);
+ await as(lily);await action('join',emma);
+ await as(emma);const next=await action('accept',lily);assert.ok(next);
+ await as(lily);await assert.rejects(action('accept',emma),/already in a game/);
+ await db.query('select cm_send_event($1,$2)',[next,{type:'resign'}]);await action('leave');
+ await as(emma);await action('leave');assert.equal((await db.query("select * from cm_visits where status='waiting'")).rows.length,0);
+});

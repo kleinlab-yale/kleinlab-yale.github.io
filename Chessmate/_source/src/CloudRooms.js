@@ -20,7 +20,7 @@ export class CloudMatchChannel {
 }
 export default class CloudRooms {
  constructor({getProfile,onChange,onStart,onHome,onInvite,onFriends}){
-  Object.assign(this,{getProfile,onChange,onStart,onHome,onInvite,onFriends});this.state={home:'',homeStatus:'closed',guests:[],visit:null,invitations:[],error:'',inviting:''};this.disposed=false;this.active=null;this.seenMatches=new Set();this.notified=new Set();this.polling=false;this.online=false;this.visiting=null;this.sequence=0;
+  Object.assign(this,{getProfile,onChange,onStart,onHome,onInvite,onFriends});this.state={home:'',homeStatus:'closed',guests:[],visit:null,invitations:[],error:'',inviting:'',starting:'',returning:false,sentInvites:[]};this.disposed=false;this.active=null;this.seenMatches=new Set();this.notified=new Set();this.polling=false;this.online=false;this.visiting=null;this.sequence=0;
   this.timer=setInterval(()=>this.poll(),2500);this.heartbeat=setInterval(()=>this.beat(),15000);
   const uid=getProfile().id;
   this.subscription=cloud.channel(`lounge-${uid}-${crypto.randomUUID()}`).on('postgres_changes',{event:'*',schema:'public',table:'cm_visits'},()=>this.poll()).on('postgres_changes',{event:'*',schema:'public',table:'cm_invites',filter:`target_id=eq.${uid}`},()=>this.poll()).subscribe();
@@ -29,7 +29,7 @@ export default class CloudRooms {
  update(patch={}){if(this.disposed)return;Object.assign(this.state,patch);this.onChange({...this.state});}
  async action(action,target=null){return checked(await cloud.rpc('cm_room_action',{p_action:action,p_target:target}));}
  async open(){this.update({homeStatus:'opening',error:''});try{await this.action('online');this.online=true;const name=this.getProfile().homeRoom;this.update({home:name,homeStatus:'open'});this.onHome(name);this.poll();return true;}catch(e){this.update({homeStatus:'closed',error:e.message});return false;}}
- async beat(){try{if(this.online)await this.action('online');if(this.visiting&&!this.active)await this.action('waiting');}catch(e){this.update({error:'Your connection paused. Keep this page open; we’ll reconnect when you’re back online.'});}}
+ async beat(){try{if(this.online){await this.action('online');if(this.state.homeStatus!=='open')this.update({homeStatus:'open',error:''});}if(this.visiting&&!this.active)await this.action('waiting');}catch(e){this.update({homeStatus:'closed',error:'Your connection paused. Keep this page open; we’ll reconnect when you’re back online.'});}}
  async poll(){if(this.polling||this.disposed)return;this.polling=true;const uid=this.getProfile().id;try{
   const [guestRows,invites,contacts,matches]=await Promise.all([
    cloud.from('cm_visits').select('*,player:cm_players!guest_id(*)').eq('host_id',uid).eq('status','waiting').gt('seen_at',new Date(Date.now()-60000).toISOString()),
@@ -42,6 +42,8 @@ export default class CloudRooms {
   for(const invite of invitations){const key=invite.player.id+invite.created;if(!this.notified.has(key)){this.notified.add(key);this.onInvite(invite.player);}}
   this.update({guests,invitations});
   const match=checked(matches)[0];if(match&&!this.active&&!this.seenMatches.has(match.id))await this.start(match);
+  // If both friends explicitly join each other, choose one host so neither gets stuck waiting.
+  if(this.visiting&&!this.active&&!this.state.returning&&guests.some(guest=>guest.id===this.visiting.id)&&uid<this.visiting.id)await this.accept(this.visiting.id);
   if(this.visiting&&!this.active){const target=this.visiting,seq=this.sequence;
    const [presence,visit]=await Promise.all([cloud.from('cm_rooms').select('*').eq('owner_id',target.id).maybeSingle(),cloud.from('cm_visits').select('*').eq('guest_id',uid).maybeSingle()]);
    if(seq!==this.sequence||this.disposed)return;
@@ -56,18 +58,19 @@ export default class CloudRooms {
   if(row.id===this.getProfile().id){this.update({visit:null,error:'This is your home room. Guests appear in your waiting list.'});return;}
   await this.action('join',row.id);if(seq!==this.sequence||this.disposed){if(!this.visiting)await this.action('leave');return;}this.visiting=playerCard(row);this.update({visit:{room:row.room_name,player:this.visiting,status:'waiting'}});this.poll();
  }catch(e){if(seq===this.sequence)this.update({visit:null,error:e.message});}}
- async accept(id){try{this.update({error:''});const matchId=await this.action('accept',id);const match=checked(await cloud.from('cm_matches').select('*').eq('id',matchId).single());await this.start(match);}catch(e){this.update({error:e.message});}}
+ async accept(id){if(this.state.starting||this.state.returning)return;try{this.update({error:'',starting:id});const matchId=await this.action('accept',id);const match=checked(await cloud.from('cm_matches').select('*').eq('id',matchId).single());await this.start(match);}catch(e){this.update({error:e.message});}finally{this.update({starting:''});}}
  async start(match){if(this.active||this.disposed||this.seenMatches.has(match.id))return;this.seenMatches.add(match.id);try{
   const isHost=match.host_id===this.getProfile().id;
   const [opponent,events]=await Promise.all([cloud.from('cm_players').select('*').eq('id',isHost?match.guest_id:match.host_id).single(),cloud.from('cm_events').select('*').eq('match_id',match.id).order('id')]);
   if(this.disposed)return;
-  const history=checked(events),channel=new CloudMatchChannel(match,this.getProfile(),history);this.active=channel;
+  const history=checked(events),channel=new CloudMatchChannel(match,this.getProfile(),history);this.active=channel;this.update({sentInvites:this.state.sentInvites.filter(id=>id!==channel.peer),invitations:this.state.invitations.filter(item=>item.player.id!==channel.peer)});
+  this.action('dismiss',channel.peer).catch(()=>{});
   this.onStart({connection:channel,opponent:playerCard(checked(opponent)),isHost,managed:true,matchId:match.id,history:history.filter(e=>e.data.type==='move').map(e=>e.data.move)});
  }catch(e){this.seenMatches.delete(match.id);this.update({error:e.message});}}
  async decline(id){try{await this.action('decline',id);this.poll();}catch(e){this.update({error:e.message});}}
  async leaveVisit(){this.sequence++;this.visiting=null;this.update({visit:null});try{await this.action('leave');}catch(e){this.update({error:e.message});}}
- async endGame(){const match=this.active;this.active=null;await match?.leave();await this.leaveVisit();this.poll();}
- async invite(friend){this.update({inviting:friend.id,error:''});try{if(!this.online&&!await this.open())return false;await this.action('invite',friend.id);return true;}catch(e){this.update({error:e.message});return false;}finally{this.update({inviting:''});}}
+ async endGame(){if(this.ending)return this.ending;this.update({returning:true});this.ending=(async()=>{const match=this.active;try{await match?.leave();await this.leaveVisit();}catch(e){this.update({error:e.message});}finally{this.active=null;this.update({returning:false});this.ending=null;this.poll();}})();return this.ending;}
+ async invite(friend){this.update({inviting:friend.id,error:''});try{if(!this.online&&!await this.open())return false;await this.action('invite',friend.id);this.update({sentInvites:[...new Set([...this.state.sentInvites,friend.id])]});return true;}catch(e){this.update({error:e.message});return false;}finally{this.update({inviting:''});}}
  async dismissInvite(id){try{await this.action('dismiss',id);this.update({invitations:this.state.invitations.filter(i=>i.player.id!==id)});}catch(e){this.update({error:e.message});}}
  async closeHome(){this.online=false;this.update({homeStatus:'closed'});try{await this.action('offline');}catch(e){this.update({error:e.message});}}
  destroy(){this.disposed=true;clearInterval(this.timer);clearInterval(this.heartbeat);document.removeEventListener('visibilitychange',this.wake);cloud.removeChannel(this.subscription);this.active?.close();if(this.online)this.action('offline').catch(()=>{});if(this.visiting)this.action('leave').catch(()=>{});}
