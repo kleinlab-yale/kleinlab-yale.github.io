@@ -121,6 +121,14 @@ content:
           - name: featured
             label: Feature this tool
             type: boolean
+          - name: backupUrl
+            label: Alternative app address (optional)
+            type: string
+            pattern: '^https?://'
+          - name: backupLabel
+            label: Alternative button text (optional)
+            type: string
+            description: Required when an alternative app address is provided.
 
   - name: people
     label: Lab members

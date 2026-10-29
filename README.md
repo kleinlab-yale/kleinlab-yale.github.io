@@ -25,7 +25,7 @@ The homepage reads these editable files. Changes to them appear after GitHub Pag
 
 There is no new framework, package installation, or custom server to maintain. The site stays on GitHub Pages. `content.js` renders text safely and retains the static HTML content if a JSON request fails. The HTML fallbacks are a snapshot; refresh them when making source changes. Routine editor updates use the JSON content. JSON errors are reported in the browser console.
 
-## One-time editor setup (not yet activated)
+## One-time editor setup
 
 1. Publish this prepared update, including `.pages.yml`, `content.js`, all four `content/*.json` files, the updated HTML/CSS/JS, and `images/uploads/.gitkeep`.
 2. Open https://app.pagescms.org and sign in with the GitHub account that owns this repository.
@@ -33,7 +33,7 @@ There is no new framework, package installation, or custom server to maintain. T
 4. Open `kleinlab-yale/kleinlab-yale.github.io` and select `main`.
 5. The configured forms are **Lab photos**, **Lab news**, **Research tools**, and **Lab members**.
 
-The editor is a separate service. Its GitHub sign-in and authorization must be completed by the repository owner. This local preparation does not activate the service or test that authenticated connection.
+The editor is a separate service. Its GitHub sign-in and authorization are completed by the repository owner. Use the `main` branch for updates to the public website.
 
 Official setup guide: https://pagescms.org/docs/quick-start/
 
@@ -62,15 +62,15 @@ Open http://127.0.0.1:8849. Use the server rather than opening the HTML file dir
 
 ## Publishing and repository scope
 
-Changes prepared here are on `codex/website-refresh`. They are not live until pushed and published by GitHub Pages. The MIXA URL is https://kleinlab-yale-mixa.streamlit.app/.
+The public website publishes from `main`. Source changes can be prepared on `codex/website-refresh`; publish them to `main` after validation. MIXA has two launch buttons: https://kleinlab-yale-mixa.streamlit.app/ and https://huggingface.co/spaces/Ewaldssphere/MIXA_beta0.3. The homepage Run MIXA button leads to this choice. Both addresses and button labels are editable under Research tools.
 
 This is a sparse checkout: the root website files and `images/` are present. The same repository also hosts independent apps and games. Their folders remain in GitHub and are not part of this homepage refresh. Do not replace the entire repository with this local folder. Commit only the intended website changes.
 
-Before publishing, fetch the latest `main` and reconcile any newer changes. Use an authenticated Git client or the GitHub editor/upload interface. The connected GitHub integration returned a write-permission error during preparation; local HTTPS Git also had no available login. No deployment was completed.
+Before publishing source changes, fetch the latest `main` and reconcile any newer changes, including edits made in Pages CMS. Use an authenticated Git client or the GitHub editor/upload interface. Credentials belong in your local credential manager, not this repository.
 
 ## Validation
 
 - Check JavaScript syntax with `node --check script.js` and `node --check content.js`.
 - Validate all `content/*.json` as JSON, and check `.pages.yml` as YAML.
-- Preview desktop and phone layouts, verify MIXA opens the Streamlit app, and test the photo gallery and Instagram disclosure.
-- All existing scientific copy and research-tool destinations other than MIXA are preserved.
+- Preview desktop and phone layouts, verify both MIXA buttons open their respective apps, and test the photo gallery and Instagram disclosure.
+- Existing scientific copy and research-tool destinations are preserved; MIXA now offers both Streamlit and Hugging Face.

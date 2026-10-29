@@ -4,7 +4,9 @@
       "title": "MIXA",
       "description": "Analyze molecular interactions in your browser: kinetic and equilibrium fitting, model comparison, and publication reports.",
       "url": "https://kleinlab-yale-mixa.streamlit.app/",
-      "linkLabel": "Launch MIXA",
+      "linkLabel": "Open on Streamlit",
+      "backupUrl": "https://huggingface.co/spaces/Ewaldssphere/MIXA_beta0.3",
+      "backupLabel": "Open on Hugging Face",
       "featured": true
     },
     {

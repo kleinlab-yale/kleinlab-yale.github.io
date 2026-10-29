@@ -848,7 +848,12 @@ body {
 
 .tool-featured .eyebrow { margin: 0 0 0.65rem; color: var(--brand); }
 .tool-featured > p:not(.eyebrow) { max-width: 66ch; }
-.tool-featured .tool-link { margin-top: 1.1rem; color: #fff; }
+.tool-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.tool-featured .tool-actions { margin-top: 1.1rem; }
+.tool-featured .tool-link { margin-top: 0; }
+.tool-featured .btn-primary { color: #fff; }
+.tool-featured .btn-secondary { color: var(--brand); }
+.tool-featured .tool-host-note { margin-top: 0.9rem; font-size: 0.9rem; }
 .tool-card, .person-card, .lab-photo { overflow-wrap: anywhere; }
 
 @media (max-width: 930px) {

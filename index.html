@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261029-01">
+  <link rel="stylesheet" href="styles.css?v=20261029-02">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -63,7 +63,7 @@
           </p>
           <div class="hero-primary-actions">
             <a class="btn btn-primary" href="#research">Explore our research</a>
-            <a class="btn btn-secondary" href="https://kleinlab-yale-mixa.streamlit.app/" target="_blank" rel="noopener noreferrer">Run MIXA <span aria-hidden="true">↗</span></a>
+            <a class="btn btn-secondary" href="#tools">Run MIXA <span aria-hidden="true">↓</span></a>
           </div>
           <div class="hero-affiliations" aria-label="Affiliations">
             <p>Yale Cancer Biology Institute (YCBI)</p>
@@ -265,7 +265,11 @@
             <p class="eyebrow">Run online</p>
             <h3>MIXA</h3>
             <p>Analyze molecular interactions in your browser: kinetic and equilibrium fitting, model comparison, and publication reports.</p>
-            <a class="btn btn-primary tool-link" href="https://kleinlab-yale-mixa.streamlit.app/" target="_blank" rel="noopener noreferrer">Launch MIXA</a>
+            <div class="tool-actions">
+              <a class="btn btn-primary tool-link" href="https://kleinlab-yale-mixa.streamlit.app/" target="_blank" rel="noopener noreferrer">Open on Streamlit</a>
+              <a class="btn btn-secondary tool-link" href="https://huggingface.co/spaces/Ewaldssphere/MIXA_beta0.3" target="_blank" rel="noopener noreferrer">Open on Hugging Face</a>
+            </div>
+            <p class="tool-host-note">If one host is unavailable, try the other.</p>
           </article>
           <article class="tool-card reveal">
             <h3>Ewaldssphere</h3>
@@ -399,6 +403,6 @@
 
   <script src="instagram_links.js?v=20260212-01"></script>
   <script src="script.js?v=20261029-01"></script>
-  <script src="content.js?v=20261029-01"></script>
+  <script src="content.js?v=20261029-02"></script>
 </body>
 </html>

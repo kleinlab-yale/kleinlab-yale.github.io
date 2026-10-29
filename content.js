@@ -42,12 +42,19 @@
     return data[key];
   };
   const renderTools = (data) => {
-    const items = requireItems(data, "items", item => text(item.title) && text(item.description) && safeLink(item.url) && text(item.linkLabel));
+    const items = requireItems(data, "items", item => text(item.title) && text(item.description) && safeLink(item.url) && text(item.linkLabel)
+      && (!text(item.backupUrl) || (safeLink(item.backupUrl) && text(item.backupLabel))));
     const cards = items.map(item => {
       const card = node("article", `tool-card${item.featured === true ? " tool-featured" : ""}`);
       if (item.featured === true) card.append(node("p", "eyebrow", "Run online"));
-      card.append(node("h3", "", item.title), node("p", "", item.description),
-        link(item.url, item.linkLabel, item.featured === true ? "btn btn-primary tool-link" : "tool-link"));
+      card.append(node("h3", "", item.title), node("p", "", item.description));
+      const actions = node("div", "tool-actions");
+      actions.append(link(item.url, item.linkLabel, item.featured === true ? "btn btn-primary tool-link" : "tool-link"));
+      if (safeLink(item.backupUrl)) {
+        actions.append(link(item.backupUrl, item.backupLabel, item.featured === true ? "btn btn-secondary tool-link" : "tool-link"));
+      }
+      card.append(actions);
+      if (safeLink(item.backupUrl)) card.append(node("p", "tool-host-note", "If one host is unavailable, try the other."));
       return card;
     });
     document.querySelector(".tool-grid").replaceChildren(...cards);
