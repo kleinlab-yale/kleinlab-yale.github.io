@@ -16,7 +16,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="css/styles.css?v=22" />
+  <link rel="stylesheet" href="css/styles.css?v=25" />
   <!-- PeerJS for Serverless WebRTC P2P Multiplayer on GitHub Pages -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -203,8 +203,8 @@
           </div>
 
           <div class="mp-step-field">
-            <label class="mp-step-label" for="input-single-name">2. Enter Your Name</label>
-            <input type="text" id="input-single-name" class="mp-name-big-input" placeholder="Type your name (or leave blank for 'You')..." value="" />
+            <label class="mp-step-label" for="input-single-name">2. Enter Your Name <span style="font-weight: 600; color: var(--text-muted); text-transform: none;">(or leave blank for a random Adventurer!)</span></label>
+            <input type="text" id="input-single-name" class="mp-name-big-input" placeholder="Leave blank for Indiana Jones, Lara Croft, Dr. Watson..." value="" />
           </div>
 
           <div class="mp-step1-actions">
@@ -250,8 +250,8 @@
           </div>
 
           <div class="mp-step-field">
-            <label class="mp-step-label" for="input-invite-guest-name">Enter Your Name</label>
-            <input type="text" id="input-invite-guest-name" class="mp-name-big-input" placeholder="Type your name..." maxlength="24" value="" />
+            <label class="mp-step-label" for="input-invite-guest-name">Enter Your Name <span style="font-weight: 600; color: var(--text-muted); text-transform: none;">(or leave blank for a random Adventurer!)</span></label>
+            <input type="text" id="input-invite-guest-name" class="mp-name-big-input" placeholder="Leave blank for Indiana Jones, Lara Croft, Howard Carter..." maxlength="24" value="" />
           </div>
 
           <div class="mp-step1-actions">
@@ -280,8 +280,8 @@
              =============================================================== -->
         <div id="mp-wizard-step1" class="mp-wizard-step">
           <div class="mp-step-field">
-            <label class="mp-step-label" for="input-player-name">1. Enter Your Name</label>
-            <input type="text" id="input-player-name" class="mp-name-big-input" placeholder="Type your name..." value="Explorer 1" />
+            <label class="mp-step-label" for="input-player-name">1. Enter Your Name <span style="font-weight: 600; color: var(--text-muted); text-transform: none;">(or leave blank for a random Adventurer!)</span></label>
+            <input type="text" id="input-player-name" class="mp-name-big-input" placeholder="Leave blank for Indiana Jones, Lara Croft, Dr. Watson..." value="" />
           </div>
 
           <div class="mp-step-field">
@@ -467,6 +467,6 @@
   </div>
 
   <!-- Main Application Script -->
-  <script type="module" src="js/app.js?v=22"></script>
+  <script type="module" src="js/app.js?v=25"></script>
 </body>
 </html>

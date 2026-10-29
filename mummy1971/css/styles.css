@@ -3064,7 +3064,10 @@ body {
   }
 
   .explorer-pawn-tag {
-    font-size: 6px;
+    font-size: 5.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .temple-deity-thumb {
@@ -3085,11 +3088,12 @@ body {
   }
 
   .temple-player-title-strong {
-    font-size: 10.5px;
+    font-size: 9.5px;
     font-weight: 900;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .temple-score-box {

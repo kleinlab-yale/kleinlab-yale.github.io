@@ -9,11 +9,13 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=22';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=22';
-import { Mummy3DView } from './view_3d.js?v=22';
-import { Mummy2DView } from './view_2d.js?v=22';
-import { MultiplayerManager } from './multiplayer.js?v=22';
+  FAMOUS_ADVENTURER_NAMES,
+  pickAdventurerNames,
+} from './board_data.js?v=25';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=25';
+import { Mummy3DView } from './view_3d.js?v=25';
+import { Mummy2DView } from './view_2d.js?v=25';
+import { MultiplayerManager } from './multiplayer.js?v=25';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -40,6 +42,13 @@ class VoiceOfTheMummyApp {
       red: { rightHanded: true, ageEven: true },
       yellow: { rightHanded: false, ageEven: false },
       green: { rightHanded: true, ageEven: false },
+    };
+    const initBotPool = pickAdventurerNames(4);
+    this.botAdventurerNames = {
+      blue: initBotPool[0],
+      red: initBotPool[1],
+      yellow: initBotPool[2],
+      green: initBotPool[3],
     };
     this.selectedHostSeatId = 'blue';
     this.selectedHumanCount = 2;
@@ -388,7 +397,10 @@ class VoiceOfTheMummyApp {
 
     // Step 1 -> Step 2: Host Online Game & Get Invite Link
     document.getElementById('btn-host-room')?.addEventListener('click', async () => {
-      const hostName = document.getElementById('input-player-name')?.value?.trim() || 'Explorer 1';
+      const rawHostName = document.getElementById('input-player-name')?.value?.trim() || '';
+      const hostName = rawHostName || pickAdventurerNames(1)[0];
+      const hostInput = document.getElementById('input-player-name');
+      if (hostInput && !rawHostName) hostInput.value = hostName;
       const fillWithAi = document.getElementById('chk-fill-ai')?.checked ?? true;
       const code = await this.mp.hostRoom(hostName, {
         preferredSeatId: this.selectedHostSeatId,
@@ -402,25 +414,30 @@ class VoiceOfTheMummyApp {
 
     // Step 1 Alternative: Local Pass & Play on This Device
     document.getElementById('btn-start-pass-play')?.addEventListener('click', () => {
-      const hostName = document.getElementById('input-player-name')?.value?.trim() || 'Player 1';
+      const rawHostName = document.getElementById('input-player-name')?.value?.trim() || '';
+      const hostName = rawHostName || pickAdventurerNames(1)[0];
+      const usedNames = [hostName];
       const fillWithAi = document.getElementById('chk-fill-ai')?.checked ?? true;
       this.mp.disconnect();
       let humansRemaining = this.selectedHumanCount - 1;
       for (const s of this.mp.lobbyState.seats) {
-        const cfg = PLAYERS_CONFIG.find((c) => c.id === s.id);
         if (s.id === this.selectedHostSeatId) {
           s.control = 'human';
           s.peerId = 'local';
           s.name = hostName;
         } else if (humansRemaining > 0) {
+          const nextAdv = pickAdventurerNames(1, usedNames)[0];
+          usedNames.push(nextAdv);
           s.control = 'human';
           s.peerId = 'local';
-          s.name = `${cfg.name} (Human)`;
+          s.name = nextAdv;
           humansRemaining--;
         } else {
+          const nextAdv = pickAdventurerNames(1, usedNames)[0];
+          usedNames.push(nextAdv);
           s.control = fillWithAi ? 'ai' : 'none';
           s.peerId = null;
-          s.name = fillWithAi ? `${cfg.name} (Bot)` : cfg.name;
+          s.name = nextAdv;
         }
       }
       document.getElementById('modal-lobby')?.classList.add('hidden');
@@ -550,6 +567,13 @@ class VoiceOfTheMummyApp {
   }
 
   _openSingleSetupModal() {
+    const freshPool = pickAdventurerNames(4);
+    this.botAdventurerNames = {
+      blue: freshPool[0],
+      red: freshPool[1],
+      yellow: freshPool[2],
+      green: freshPool[3],
+    };
     this._renderSingleCharacterPicker();
     this._renderSingleBotPicker();
     // Always start with the Advanced Bot Settings tab collapsed for a clean, instant "Pick Piece -> Enter Name -> Start Playing" flow
@@ -630,16 +654,17 @@ class VoiceOfTheMummyApp {
       .map((cfg) => {
         const isActiveBot = this.selectedSingleBotIds.has(cfg.id);
         const traits = this.botTraits[cfg.id] || { rightHanded: true, ageEven: true };
+        const botAdvName = this.botAdventurerNames?.[cfg.id] || cfg.name;
         return `
           <div class="single-bot-card ${isActiveBot ? 'bot-active' : 'bot-off'}" style="--bot-color: ${cfg.colorHex}">
-            <button type="button" class="single-bot-toggle-head" data-toggle-single-bot="${cfg.id}" title="Tap to turn ${cfg.name} Bot On or Off">
+            <button type="button" class="single-bot-toggle-head" data-toggle-single-bot="${cfg.id}" title="Tap to turn ${botAdvName} (${cfg.name}) Bot On or Off">
               <div class="single-bot-visuals">
                 <img src="${cfg.portraitImg}" alt="${cfg.name}" class="single-bot-fig" />
                 <img src="${cfg.templeImg}" alt="${cfg.deity}" class="single-bot-temple" />
               </div>
               <div class="single-bot-title-wrap">
-                <div class="single-bot-name">${cfg.name}</div>
-                <div class="single-bot-deity">${cfg.deityTitle}</div>
+                <div class="single-bot-name">🤖 ${botAdvName}</div>
+                <div class="single-bot-deity">${cfg.name} • ${cfg.deityTitle}</div>
               </div>
               <div class="single-bot-status-pill" style="${isActiveBot ? `background: ${cfg.colorHex}; color: #fff;` : ''}">
                 ${isActiveBot ? '✓ 🤖 AI BOT PLAYING' : '🚫 NOT PLAYING (TAP TO ADD)'}
@@ -726,17 +751,29 @@ class VoiceOfTheMummyApp {
     const rawName = document.getElementById('input-single-name')?.value?.trim() || '';
     this.mp.disconnect();
 
+    const activeBotNames = Array.from(this.selectedSingleBotIds).map(
+      (id) => this.botAdventurerNames?.[id]
+    ).filter(Boolean);
+
+    const humanName = rawName || pickAdventurerNames(1, activeBotNames)[0];
+    const usedNames = [humanName];
+
     for (const s of this.mp.lobbyState.seats) {
       const cfg = PLAYERS_CONFIG.find((c) => c.id === s.id);
       const traits = this.botTraits[s.id] || { rightHanded: true, ageEven: true };
       if (s.id === this.selectedSingleSeatId) {
         s.control = 'human';
         s.peerId = 'local';
-        s.name = rawName || 'You';
+        s.name = humanName;
       } else if (this.selectedSingleBotIds.has(s.id)) {
+        let botName = this.botAdventurerNames?.[s.id];
+        if (!botName || usedNames.some((n) => n.toLowerCase() === botName.toLowerCase())) {
+          botName = pickAdventurerNames(1, usedNames)[0];
+        }
+        usedNames.push(botName);
         s.control = 'ai';
         s.peerId = null;
-        s.name = `${cfg.name} (Bot)`;
+        s.name = botName;
         s.rightHanded = Boolean(traits.rightHanded);
         s.ageEven = Boolean(traits.ageEven);
       } else {
@@ -939,7 +976,8 @@ class VoiceOfTheMummyApp {
     const cleanCode = this.pendingInviteRoomCode;
     if (!cleanCode) return;
     const rawName = document.getElementById('input-invite-guest-name')?.value?.trim() || '';
-    const guestName = rawName || `Explorer ${Math.floor(2 + Math.random() * 8)}`;
+    const takenNames = (this.mp.lobbyState?.seats || []).map((s) => s.name);
+    const guestName = rawName || pickAdventurerNames(1, takenNames)[0];
 
     document.getElementById('modal-guest-invite')?.classList.add('hidden');
     document.getElementById('modal-lobby')?.classList.remove('hidden');
@@ -975,29 +1013,36 @@ class VoiceOfTheMummyApp {
 
   _applySeatPreset(preset) {
     const seats = this.mp.lobbyState.seats;
+    const advPool = pickAdventurerNames(4);
     if (preset === 'solo_3ai') {
       seats[0].control = 'human';
       seats[0].peerId = 'local';
-      seats[0].name = 'Blue Explorer';
+      seats[0].name = advPool[0];
       seats[1].control = 'ai';
       seats[1].peerId = null;
-      seats[1].name = 'Red Explorer (Bot)';
+      seats[1].name = advPool[1];
       seats[2].control = 'ai';
       seats[2].peerId = null;
-      seats[2].name = 'Yellow Explorer (Bot)';
+      seats[2].name = advPool[2];
       seats[3].control = 'ai';
       seats[3].peerId = null;
-      seats[3].name = 'Green Explorer (Bot)';
+      seats[3].name = advPool[3];
     } else if (preset === 'pass_2p') {
       seats[0].control = 'human';
+      seats[0].name = advPool[0];
       seats[1].control = 'human';
+      seats[1].name = advPool[1];
       seats[2].control = 'none';
       seats[3].control = 'none';
     } else if (preset === 'pass_4p') {
       seats[0].control = 'human';
+      seats[0].name = advPool[0];
       seats[1].control = 'human';
+      seats[1].name = advPool[1];
       seats[2].control = 'human';
+      seats[2].name = advPool[2];
       seats[3].control = 'human';
+      seats[3].name = advPool[3];
     }
     this._renderLobbySeats(this.mp.lobbyState);
   }
@@ -1085,7 +1130,12 @@ class VoiceOfTheMummyApp {
 
     container.querySelectorAll('.seat-name-input').forEach((inp) => {
       inp.addEventListener('change', () => {
-        this.mp.updateSeat(inp.dataset.seatId, { name: inp.value.trim() || 'Explorer' });
+        const otherNames = lobbyState.seats
+          .filter((s) => s.id !== inp.dataset.seatId)
+          .map((s) => s.name);
+        this.mp.updateSeat(inp.dataset.seatId, {
+          name: inp.value.trim() || pickAdventurerNames(1, otherNames)[0],
+        });
       });
     });
 
@@ -1095,6 +1145,10 @@ class VoiceOfTheMummyApp {
         const cfg = PLAYERS_CONFIG.find((c) => c.id === seatId);
         const newControl = sel.value;
         const traits = this.botTraits[seatId] || { rightHanded: true, ageEven: true };
+        const otherNames = lobbyState.seats
+          .filter((s) => s.id !== seatId)
+          .map((s) => s.name);
+        const nextAdvName = pickAdventurerNames(1, otherNames)[0];
         this.mp.updateSeat(seatId, {
           control: newControl,
           peerId: null,
@@ -1104,7 +1158,7 @@ class VoiceOfTheMummyApp {
             newControl === 'human'
               ? 'Waiting for Friend...'
               : newControl === 'ai'
-              ? `${cfg?.name || 'Explorer'} (Bot)`
+              ? nextAdvName
               : cfg?.name || 'Explorer',
         });
       });
@@ -1135,7 +1189,11 @@ class VoiceOfTheMummyApp {
     container.querySelectorAll('[data-claim-seat]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const nameInputId = this.mp.mode === 'guest' ? 'input-guest-name' : 'input-player-name';
-        const myName = document.getElementById(nameInputId)?.value?.trim() || 'Explorer';
+        const rawInput = document.getElementById(nameInputId)?.value?.trim() || '';
+        const otherNames = lobbyState.seats
+          .filter((s) => s.id !== btn.dataset.claimSeat)
+          .map((s) => s.name);
+        const myName = rawInput || pickAdventurerNames(1, otherNames)[0];
         this.mp.claimExplorerSeat(btn.dataset.claimSeat, myName);
       });
     });
@@ -1149,13 +1207,18 @@ class VoiceOfTheMummyApp {
   _startWithCurrentPlayers(emptySlotMode = 'none') {
     if (this.mp.mode === 'guest') return;
     const seats = this.mp.lobbyState.seats;
+    const usedNames = seats
+      .filter((s) => !(s.control === 'human' && !s.peerId))
+      .map((s) => s.name);
 
     for (const s of seats) {
       if (s.control === 'human' && !s.peerId) {
         const cfg = PLAYERS_CONFIG.find((c) => c.id === s.id);
         if (emptySlotMode === 'ai') {
+          const botAdv = pickAdventurerNames(1, usedNames)[0];
+          usedNames.push(botAdv);
           s.control = 'ai';
-          s.name = `${cfg?.name || 'Explorer'} (Bot)`;
+          s.name = botAdv;
         } else {
           s.control = 'none';
           s.name = cfg?.name || 'Explorer';
@@ -1168,9 +1231,10 @@ class VoiceOfTheMummyApp {
     if (activeCount < 2) {
       const fallbackSeat = seats.find((s) => s.control === 'none');
       if (fallbackSeat) {
-        const cfg = PLAYERS_CONFIG.find((c) => c.id === fallbackSeat.id);
+        const botAdv = pickAdventurerNames(1, usedNames)[0];
+        usedNames.push(botAdv);
         fallbackSeat.control = 'ai';
-        fallbackSeat.name = `${cfg?.name || 'Explorer'} (Bot)`;
+        fallbackSeat.name = botAdv;
       }
     }
 
@@ -1651,21 +1715,24 @@ class VoiceOfTheMummyApp {
           p.control === 'human' &&
           (humanPlayers.length === 1 ||
             (this.mp.mode !== 'local' && p.peerId === this.mp.myPeerId));
-        const isDefaultName = /^(Blue|Red|Yellow|Green)\s+Explorer/i.test(p.name || '') || /^Explorer\s*\d*$/i.test(p.name || '') || /^Player\s*\d*$/i.test(p.name || '');
 
-        let cardTitle = p.name;
-        if (p.control === 'ai') {
-          cardTitle = 'Bot';
-        } else if (isLocalYou) {
-          cardTitle = isDefaultName ? 'You' : p.name;
-        } else if (isDefaultName) {
-          cardTitle = 'Player';
-        }
+        const cleanName = (p.name || cfg.name || 'Explorer')
+          .replace(/\s*\(Bot\)\s*$/i, '')
+          .trim();
+        const cardTitle = cleanName;
+        const pawnRoleTag =
+          p.control === 'ai'
+            ? `${p.id.toUpperCase()} • BOT`
+            : isLocalYou
+            ? `${p.id.toUpperCase()} • YOU`
+            : p.id.toUpperCase();
 
         const botTraitBadge =
           p.control === 'ai'
             ? `🤖 Bot • ${p.rightHanded !== false ? '✋Right' : '🤚Left'} • ${p.ageEven !== false ? '🎂Even' : '🎂Odd'}`
-            : '🧑 You/Human';
+            : isLocalYou
+            ? '🧑 You'
+            : '🧑 Human';
 
         return `
           <div class="temple-player-card ${isTurn ? 'active-turn' : ''}" style="--player-color: ${p.colorHex}; --player-accent: ${p.accentHex}">
@@ -1678,7 +1745,7 @@ class VoiceOfTheMummyApp {
               <div class="temple-card-visuals">
                 <div class="explorer-figure-box" style="border-color: ${p.colorHex}; background: ${p.colorHex}28" title="${p.name} Character Figure">
                   <img src="${cfg.portraitImg}" alt="${p.name} Figure" class="explorer-figure-thumb" />
-                  <span class="explorer-pawn-tag" style="background: ${p.colorHex}">${p.id.toUpperCase()}</span>
+                  <span class="explorer-pawn-tag" style="background: ${p.colorHex}">${pawnRoleTag}</span>
                 </div>
                 <img src="${cfg.templeImg}" alt="${p.deity} Temple" class="temple-deity-thumb" title="${p.deityTitle} Gem Holder" />
               </div>

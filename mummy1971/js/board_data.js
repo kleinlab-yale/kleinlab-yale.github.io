@@ -24,6 +24,50 @@ export function pxToThree(px, py, zLevel = Z_TIER1) {
   };
 }
 
+export const FAMOUS_ADVENTURER_NAMES = [
+  'Indiana Jones',
+  'Lara Croft',
+  'Howard Carter',
+  'Dr. Watson',
+  'Nathan Drake',
+  'Amelia Earhart',
+  'Ben Gates',
+  'Riley Poole',
+  'Abigail Chase',
+  "Rick O'Connell",
+  'Evie Carnahan',
+  'Marion Ravenwood',
+  'Prof. Henry Jones',
+  'Short Round',
+  'Sallah',
+];
+
+/**
+ * Picks `count` unique famous Egyptologist / tomb raider / adventurer names,
+ * avoiding any names present in `excludeNames`.
+ */
+export function pickAdventurerNames(count = 4, excludeNames = []) {
+  const excludedLower = new Set(
+    excludeNames
+      .filter(Boolean)
+      .map((n) => String(n).replace(/\s*\(Bot\)\s*$/i, '').trim().toLowerCase())
+  );
+  const pool = FAMOUS_ADVENTURER_NAMES.filter(
+    (name) => !excludedLower.has(name.toLowerCase())
+  );
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  while (shuffled.length < count) {
+    shuffled.push(
+      FAMOUS_ADVENTURER_NAMES[shuffled.length % FAMOUS_ADVENTURER_NAMES.length]
+    );
+  }
+  return shuffled.slice(0, count);
+}
+
 export const PLAYERS_CONFIG = [
   {
     id: 'blue',

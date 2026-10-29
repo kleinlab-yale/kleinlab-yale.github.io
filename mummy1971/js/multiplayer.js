@@ -4,6 +4,8 @@
  * + BroadcastChannel for instant multi-tab testing on the same device.
  */
 
+import { pickAdventurerNames } from './board_data.js?v=25';
+
 const PEER_PREFIX = 'votm1971-tomb-';
 
 const PEER_CONFIG = {
@@ -29,14 +31,15 @@ export class MultiplayerManager {
     this.hostConn = null; // DataConnection to Host (Guest only)
     this.bc = null; // BroadcastChannel for same-device multi-tab sync
 
+    const initialNames = pickAdventurerNames(4);
     this.lobbyState = {
       roomCode: null,
       hostPeerId: null,
       seats: [
-        { id: 'blue', name: 'Blue Explorer', control: 'human', peerId: 'local', ageEven: true, rightHanded: true },
-        { id: 'red', name: 'Red Explorer', control: 'ai', peerId: null, ageEven: false, rightHanded: true },
-        { id: 'yellow', name: 'Yellow Explorer', control: 'ai', peerId: null, ageEven: true, rightHanded: false },
-        { id: 'green', name: 'Green Explorer', control: 'none', peerId: null, ageEven: false, rightHanded: true },
+        { id: 'blue', name: initialNames[0], control: 'human', peerId: 'local', ageEven: true, rightHanded: true },
+        { id: 'red', name: initialNames[1], control: 'ai', peerId: null, ageEven: false, rightHanded: true },
+        { id: 'yellow', name: initialNames[2], control: 'ai', peerId: null, ageEven: true, rightHanded: false },
+        { id: 'green', name: initialNames[3], control: 'none', peerId: null, ageEven: false, rightHanded: true },
       ],
       connectedPeers: [],
     };
@@ -56,7 +59,7 @@ export class MultiplayerManager {
   /**
    * Generates a 4-digit Room Code and initializes Host mode with the Host's chosen Explorer seat & player count.
    */
-  async hostRoom(playerName = 'Host Explorer', options = {}) {
+  async hostRoom(playerName = '', options = {}) {
     const preferredSeatId = options.preferredSeatId || 'blue';
     const humanCount = Math.max(2, Math.min(4, Number(options.humanCount) || 2));
     const fillWithAi = options.fillWithAi !== undefined ? Boolean(options.fillWithAi) : true;
@@ -68,12 +71,10 @@ export class MultiplayerManager {
     this.lobbyState.roomCode = this.roomCode;
     this.lobbyState.hostPeerId = this.myPeerId;
 
-    const defaultNames = {
-      blue: 'Blue Explorer',
-      red: 'Red Explorer',
-      yellow: 'Yellow Explorer',
-      green: 'Green Explorer',
-    };
+    const cleanHostInput = (playerName || '').trim();
+    const isGenericHost = !cleanHostInput || /^(Host\s+Explorer|Explorer\s*\d*|Player\s*\d*)$/i.test(cleanHostInput);
+    const resolvedHostName = isGenericHost ? pickAdventurerNames(1)[0] : cleanHostInput;
+    const usedNames = [resolvedHostName];
 
     let openHumanFriendsToAssign = humanCount - 1;
     // First configure Host's preferred seat
@@ -81,7 +82,7 @@ export class MultiplayerManager {
       if (s.id === preferredSeatId) {
         s.control = 'human';
         s.peerId = this.myPeerId;
-        s.name = playerName || defaultNames[s.id];
+        s.name = resolvedHostName;
       }
     }
     // Configure remaining seats in order
@@ -93,13 +94,17 @@ export class MultiplayerManager {
         s.name = 'Waiting for Friend...';
         openHumanFriendsToAssign--;
       } else if (fillWithAi) {
+        const botName = pickAdventurerNames(1, usedNames)[0];
+        usedNames.push(botName);
         s.control = 'ai';
         s.peerId = null;
-        s.name = `${defaultNames[s.id]} (Bot)`;
+        s.name = botName;
       } else {
+        const unusedName = pickAdventurerNames(1, usedNames)[0];
+        usedNames.push(unusedName);
         s.control = 'none';
         s.peerId = null;
-        s.name = defaultNames[s.id];
+        s.name = unusedName;
       }
     }
 
@@ -224,7 +229,10 @@ export class MultiplayerManager {
   _handleHostMessage(msg, conn) {
     if (msg.type === 'JOIN_REQUEST') {
       const guestPeerId = msg.peerId;
-      const guestName = msg.playerName || 'Explorer';
+      const rawGuest = (msg.playerName || '').trim();
+      const isGenericGuest = !rawGuest || /^(Guest\s+Explorer|Explorer\s*\d*|Player\s*\d*)$/i.test(rawGuest);
+      const takenNames = this.lobbyState.seats.map((s) => s.name);
+      const guestName = isGenericGuest ? pickAdventurerNames(1, takenNames)[0] : rawGuest;
       if (conn) {
         this.connections.set(guestPeerId, conn);
       }
