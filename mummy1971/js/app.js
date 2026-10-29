@@ -9,11 +9,11 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=17';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=17';
-import { Mummy3DView } from './view_3d.js?v=17';
-import { Mummy2DView } from './view_2d.js?v=17';
-import { MultiplayerManager } from './multiplayer.js?v=17';
+} from './board_data.js?v=19';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=19';
+import { Mummy3DView } from './view_3d.js?v=19';
+import { Mummy2DView } from './view_2d.js?v=19';
+import { MultiplayerManager } from './multiplayer.js?v=19';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -417,12 +417,38 @@ class VoiceOfTheMummyApp {
       this._setMultiplayerWizardStep(1);
     });
 
+    // Guest Invite Accept Modal ("Enter Your Name" when opening an Invite Link)
+    document.getElementById('btn-accept-invite-join')?.addEventListener('click', () => {
+      this._acceptInviteAndJoinRoom();
+    });
+    document.getElementById('input-invite-guest-name')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this._acceptInviteAndJoinRoom();
+      }
+    });
+
     // Guest Name Update Button (for friends who clicked the Invite Link)
-    document.getElementById('btn-save-guest-name')?.addEventListener('click', () => {
+    const saveGuestName = () => {
       const guestName = document.getElementById('input-guest-name')?.value?.trim() || 'Explorer';
       const mySeat = this.mp.lobbyState.seats.find((s) => s.peerId === this.mp.myPeerId);
       if (mySeat) {
         this.mp.claimExplorerSeat(mySeat.id, guestName);
+      }
+      const btn = document.getElementById('btn-save-guest-name');
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✅ Name Saved!';
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 1800);
+      }
+    };
+    document.getElementById('btn-save-guest-name')?.addEventListener('click', saveGuestName);
+    document.getElementById('input-guest-name')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveGuestName();
       }
     });
 
@@ -860,23 +886,42 @@ class VoiceOfTheMummyApp {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
     if (roomParam) {
+      const cleanCode = roomParam.trim().toUpperCase().startsWith('TOMB-')
+        ? roomParam.trim().toUpperCase()
+        : `TOMB-${roomParam.trim().toUpperCase()}`;
+      this.pendingInviteRoomCode = cleanCode;
       document.getElementById('modal-intro-landing')?.classList.add('hidden');
-      document.getElementById('modal-lobby')?.classList.remove('hidden');
-      const guestName = `Explorer ${Math.floor(2 + Math.random() * 8)}`;
-      const guestInput = document.getElementById('input-guest-name');
-      if (guestInput) guestInput.value = guestName;
-      this.mp.joinRoom(roomParam, guestName);
-      const cleanCode = roomParam.toUpperCase().startsWith('TOMB-')
-        ? roomParam.toUpperCase()
-        : `TOMB-${roomParam.toUpperCase()}`;
-      this._setMultiplayerWizardStep(2);
-      this._showRoomShareBox(cleanCode);
-      this._updateWaitingStatusUI();
+      const codeEl = document.getElementById('invite-prompt-room-code');
+      if (codeEl) codeEl.textContent = cleanCode;
+      document.getElementById('modal-guest-invite')?.classList.remove('hidden');
+      // Start showcase board behind the invite modal while the friend types their name
+      this.engine.initGame(this.mp.lobbyState.seats);
+      setTimeout(() => {
+        document.getElementById('input-invite-guest-name')?.focus();
+      }, 80);
     } else {
       // Start a default 4-explorer showcase game right away in the background so the 3D & 2D boards are immediately alive,
       // while the Intro Landing Card welcomes the player!
       this.engine.initGame(this.mp.lobbyState.seats);
     }
+  }
+
+  _acceptInviteAndJoinRoom() {
+    const cleanCode = this.pendingInviteRoomCode;
+    if (!cleanCode) return;
+    const rawName = document.getElementById('input-invite-guest-name')?.value?.trim() || '';
+    const guestName = rawName || `Explorer ${Math.floor(2 + Math.random() * 8)}`;
+
+    document.getElementById('modal-guest-invite')?.classList.add('hidden');
+    document.getElementById('modal-lobby')?.classList.remove('hidden');
+
+    const guestInput = document.getElementById('input-guest-name');
+    if (guestInput) guestInput.value = guestName;
+
+    this.mp.joinRoom(cleanCode, guestName);
+    this._setMultiplayerWizardStep(2);
+    this._showRoomShareBox(cleanCode);
+    this._updateWaitingStatusUI();
   }
 
   _showRoomShareBox(code) {
@@ -1881,7 +1926,7 @@ class VoiceOfTheMummyApp {
     // Spawn falling celebration gems/crowns (on Victory) or cursed cobras/skulls (on Defeat)
     if (particlesEl) {
       const icons = didLocalWin
-        ? ['💎', '👑', '✨', '🏺', '🪙', '💎']
+        ? ['💎', '👑', '✨', '🏺', '🏆', '💎']
         : ['🐍', '⚰️', '💀', '🕸️', '🐍', '💎'];
       particlesEl.innerHTML = Array.from({ length: 28 })
         .map((_, idx) => {

@@ -1292,7 +1292,7 @@ export class Mummy3DView {
    * triangles and exact per-facet flat normals so every cut facet catches crisp gemstone highlights
    * and dark pavilion shadows naturally (with NO artificial circle base!).
    */
-  _createFacetedGemGeometry(THREE, rx = 0.095, rz = 0.072, h = 0.072, segs = 8) {
+  _createFacetedGemGeometry(THREE, rx = 0.095, rz = 0.072, h = 0.072, segs = 8, pointedBottom = false) {
     const R0 = [];
     const R1 = [];
     const R2 = [];
@@ -1311,6 +1311,7 @@ export class Mummy3DView {
       R3.push([Math.cos(a) * rx * 0.44, h * 0.98, Math.sin(a) * rz * 0.44]);
     }
     const C = [0.0, h, 0.0];
+    const B = [0.0, pointedBottom ? -h * 0.75 : 0.0, 0.0];
 
     const positions = [];
     const pushTri = (p0, p1, p2) => {
@@ -1319,6 +1320,8 @@ export class Mummy3DView {
 
     for (let i = 0; i < segs; i++) {
       const i1 = (i + 1) % segs;
+      // Bottom Culet / Pavilion Cap (closes bottom completely so there is never a hollow ring)
+      pushTri(B, R0[i], R0[i1]);
       // Lower Pavilion Facets (R0 -> R1)
       pushTri(R0[i], R1[i], R0[i1]);
       pushTri(R0[i1], R1[i], R1[i1]);
@@ -1830,15 +1833,37 @@ export class Mummy3DView {
     winLight.position.set(wPos.x, wPos.y + 1.2, wPos.z);
     group.add(winLight);
 
-    // 32 Faceted 3D Gems raining & fountaining around the Winner
-    const gemGeo = this._createFacetedGemGeometry(THREE, 0.075, 0.095, 0.055, 8);
+    // 28 Upright Pointed Diamond (💎) 3D Crystals with crisp facet edge lines raining around the Winner
+    const gemGeo = this._createFacetedGemGeometry(THREE, 0.105, 0.105, 0.085, 6, true);
+    const gemEdgesGeo = new THREE.EdgesGeometry(gemGeo, 12);
+    const emeraldEdgeMat = new THREE.LineBasicMaterial({ color: 0xaaffcf, transparent: true, opacity: 0.85 });
+    const rubyEdgeMat = new THREE.LineBasicMaterial({ color: 0xffbfd0, transparent: true, opacity: 0.85 });
+    const goldMat = new THREE.MeshPhongMaterial({
+      color: 0xffc814,
+      emissive: 0x4a3200,
+      specular: 0xfff5bd,
+      shininess: 120,
+      flatShading: true,
+    });
+    const goldEdgeMat = new THREE.LineBasicMaterial({ color: 0xfff4ad, transparent: true, opacity: 0.9 });
+
     this.victoryGems = [];
-    for (let i = 0; i < 32; i++) {
+    for (let i = 0; i < 28; i++) {
       const isRuby = i % 5 === 0;
-      const mat = isRuby ? this.rubyMat || new THREE.MeshPhongMaterial({ color: 0xd4001c, flatShading: true }) : this.emeraldMat || new THREE.MeshPhongMaterial({ color: 0x00a838, flatShading: true });
+      const isGold = i % 4 === 1;
+      const mat = isRuby
+        ? this.rubyMat || new THREE.MeshPhongMaterial({ color: 0xd4001c, flatShading: true })
+        : isGold
+        ? goldMat
+        : this.emeraldMat || new THREE.MeshPhongMaterial({ color: 0x00a838, flatShading: true });
+      const edgeMat = isRuby ? rubyEdgeMat : isGold ? goldEdgeMat : emeraldEdgeMat;
+
       const gem = new THREE.Mesh(gemGeo, mat);
-      const angle = (i / 32) * Math.PI * 2 + Math.random() * 0.4;
-      const radius = 0.25 + Math.random() * 1.15;
+      const wireframe = new THREE.LineSegments(gemEdgesGeo, edgeMat);
+      gem.add(wireframe);
+
+      const angle = (i / 28) * Math.PI * 2 + Math.random() * 0.4;
+      const radius = 0.28 + Math.random() * 1.15;
       gem.position.set(
         wPos.x + Math.cos(angle) * radius,
         wPos.y + 0.4 + Math.random() * 3.2,
@@ -1849,10 +1874,11 @@ export class Mummy3DView {
         mesh: gem,
         baseX: wPos.x + Math.cos(angle) * radius,
         baseZ: wPos.z + Math.sin(angle) * radius,
-        minY: wPos.y + 0.12,
+        minY: wPos.y + 0.18,
         maxY: wPos.y + 3.4,
-        speedY: 1.2 + Math.random() * 1.4,
-        rotSpeed: 2.0 + Math.random() * 3.0,
+        speedY: 1.15 + Math.random() * 1.25,
+        rotSpeed: 1.8 + Math.random() * 2.4,
+        seed: i * 0.7,
       });
     }
 
@@ -2443,8 +2469,7 @@ export class Mummy3DView {
         if (vg.mesh.position.y < vg.minY) {
           vg.mesh.position.y = vg.maxY;
         }
-        vg.mesh.rotation.x += vg.rotSpeed * 0.016;
-        vg.mesh.rotation.y += vg.rotSpeed * 0.022;
+        vg.mesh.rotation.y += vg.rotSpeed * 0.024;
       }
     }
 

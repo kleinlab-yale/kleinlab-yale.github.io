@@ -16,7 +16,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="css/styles.css?v=17" />
+  <link rel="stylesheet" href="css/styles.css?v=19" />
   <!-- PeerJS for Serverless WebRTC P2P Multiplayer on GitHub Pages -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -229,6 +229,36 @@
   </div>
 
   <!-- =======================================================================
+       MODAL 0C: MULTIPLAYER INVITE ACCEPT (ENTER YOUR NAME BEFORE JOINING ROOM)
+       ======================================================================= -->
+  <div id="modal-guest-invite" class="modal-backdrop hidden">
+    <div class="modal-card mp-wizard-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h2>🎟️ You're Invited to the Tomb Expedition!</h2>
+      </div>
+      <div class="modal-body">
+        <div class="mp-wizard-step">
+          <div class="mp-invite-hero-box" style="text-align: center; align-items: center;">
+            <div class="mp-invite-kicker">🔗 MULTIPLAYER TOMB INVITE</div>
+            <div class="mp-invite-sub">Enter your name below to join Room <strong id="invite-prompt-room-code">TOMB-0000</strong>!</div>
+          </div>
+
+          <div class="mp-step-field">
+            <label class="mp-step-label" for="input-invite-guest-name">Enter Your Name</label>
+            <input type="text" id="input-invite-guest-name" class="mp-name-big-input" placeholder="Type your name..." maxlength="24" value="" />
+          </div>
+
+          <div class="mp-step1-actions">
+            <button type="button" class="btn-primary-action pulse-gold" id="btn-accept-invite-join">
+              🏺 Accept Invite &amp; Join Game ➔
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
        MODAL 1: STEP-BY-STEP MULTIPLAYER WIZARD (STEP 1: CREATE -> STEP 2: WAITING ROOM)
        ======================================================================= -->
   <div id="modal-lobby" class="modal-backdrop hidden">
@@ -431,6 +461,6 @@
   </div>
 
   <!-- Main Application Script -->
-  <script type="module" src="js/app.js?v=17"></script>
+  <script type="module" src="js/app.js?v=19"></script>
 </body>
 </html>
