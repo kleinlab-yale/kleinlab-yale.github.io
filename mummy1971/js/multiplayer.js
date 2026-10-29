@@ -9,17 +9,18 @@
  *   3. BroadcastChannel for zero-latency multi-tab testing on the same device.
  */
 
-import { pickAdventurerNames } from './board_data.js?v=29';
+import { pickAdventurerNames } from './board_data.js?v=30';
 
 const PEER_PREFIX = 'votm1971-tomb-';
-const MQTT_TOPIC_PREFIX = 'votm1971/v28/room';
-const STORAGE_HOST_KEY = 'votm1971_active_host_session_v28';
-const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v28_';
-const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v28';
+const MQTT_TOPIC_PREFIX = 'votm1971/v30/room';
+const STORAGE_HOST_KEY = 'votm1971_active_host_session_v30';
+const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v30_';
+const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v30';
 
 const WSS_BROKERS = [
   'wss://broker.emqx.io:8084/mqtt',
   'wss://broker.hivemq.com:8884/mqtt',
+  'wss://test.mosquitto.org:8081/mqtt',
 ];
 
 const PEER_CONFIG = {
@@ -63,6 +64,7 @@ export class MultiplayerManager {
     this.mqttClients = []; // Active MQTT-over-WSS clients
     this.processedMsgIds = new Set(); // Deduplication across Hybrid Transports
     this.guestJoinPayload = null; // Saved Guest join info for auto-reannounce on reconnect
+    this.knownGuestClaims = new Map(); // peerId -> { playerName, preferredSeatId }
     this.lastPublishedGameState = null;
     this.heartbeatTimer = null;
 
@@ -145,14 +147,28 @@ export class MultiplayerManager {
       }
     }
 
-    // 2. Ensure WSS MQTT brokers are connected
+    // 2. Ensure WSS MQTT brokers are connected and re-subscribed after background wake
     if (this.mqttClients.length === 0) {
       this._setupMqttBrokers(this.roomCode);
     } else {
+      const baseTopic = `${MQTT_TOPIC_PREFIX}/${this.roomCode}`;
       for (const client of this.mqttClients) {
         if (client && !client.connected && typeof client.reconnect === 'function') {
           try {
             client.reconnect();
+          } catch (e) {
+            // Ignore
+          }
+        } else if (client && client.connected) {
+          try {
+            if (this.mode === 'host') {
+              client.subscribe([`${baseTopic}/to-host`, `${baseTopic}/guest/+`], { qos: 1 });
+            } else if (this.mode === 'guest') {
+              client.subscribe(
+                [`${baseTopic}/lobby`, `${baseTopic}/gamestate`, `${baseTopic}/events`, `${baseTopic}/guest/+`],
+                { qos: 1 }
+              );
+            }
           } catch (e) {
             // Ignore
           }
@@ -449,9 +465,48 @@ export class MultiplayerManager {
   }
 
   /**
-   * Connects to an existing Host room in preview mode as soon as the Guest opens the Invite Link,
-   * fetching live LOBBY_STATE so the Guest can see which Explorer color pieces are open vs taken.
+   * Seeds the Guest's initial lobbyState from the Invite URL query parameters (?hs=red&hn=Daryl&hc=2&ai=1)
+   * at 0ms on page load so the Host's chosen color piece is IMMEDIATELY shown as Taken even before
+   * the live WebSocket/WebRTC packet arrives!
    */
+  seedLobbyFromUrlParams({ roomCode, hostSeatId, hostName, humanCount, fillWithAi }) {
+    if (!hostSeatId) return;
+    const hCount = Math.max(2, Math.min(4, Number(humanCount) || 2));
+    const useAi = fillWithAi !== undefined ? Boolean(fillWithAi) : true;
+    const resolvedHostName = (hostName || '').trim() || 'Host';
+    const usedNames = [resolvedHostName];
+    let openHumanFriends = hCount - 1;
+
+    this.lobbyState.roomCode = roomCode || this.roomCode;
+    for (const s of this.lobbyState.seats) {
+      if (s.id === hostSeatId) {
+        s.control = 'human';
+        s.peerId = 'host-seeded';
+        s.name = resolvedHostName;
+      }
+    }
+    for (const s of this.lobbyState.seats) {
+      if (s.id === hostSeatId) continue;
+      if (openHumanFriends > 0) {
+        s.control = 'human';
+        s.peerId = null;
+        s.name = 'Waiting for Friend...';
+        openHumanFriends--;
+      } else if (useAi) {
+        const botName = pickAdventurerNames(1, usedNames)[0];
+        usedNames.push(botName);
+        s.control = 'ai';
+        s.peerId = null;
+        s.name = botName;
+      } else {
+        const unusedName = pickAdventurerNames(1, usedNames)[0];
+        usedNames.push(unusedName);
+        s.control = 'none';
+        s.peerId = null;
+        s.name = unusedName;
+      }
+    }
+  }
   async connectRoomPreview(rawCode) {
     const cleanCode = (rawCode || '').trim().toUpperCase();
     if (!cleanCode) return;
@@ -593,6 +648,18 @@ export class MultiplayerManager {
         this.lobbyState.seats.find((s) => s.control === 'human' && !s.peerId);
     }
     if (seat) {
+      const prevControl = seat.control;
+      if (prevControl !== 'human') {
+        const emptyHumanSlot = this.lobbyState.seats.find(
+          (s) => s.id !== seat.id && s.control === 'human' && !s.peerId
+        );
+        if (emptyHumanSlot) {
+          const usedNames = this.lobbyState.seats.map((x) => x.name);
+          emptyHumanSlot.control = prevControl;
+          emptyHumanSlot.peerId = null;
+          emptyHumanSlot.name = pickAdventurerNames(1, usedNames)[0];
+        }
+      }
       seat.control = 'human';
       seat.peerId = guestPeerId;
       if (playerName) seat.name = playerName;
@@ -624,8 +691,9 @@ export class MultiplayerManager {
           clientId: `votm-${this.myPeerId}-${Math.random().toString(36).slice(2, 6)}`,
           clean: true,
           keepalive: 30,
-          reconnectPeriod: 2500,
-          connectTimeout: 8000,
+          protocolVersion: 4,
+          reconnectPeriod: 2000,
+          connectTimeout: 7000,
         });
 
         client.on('connect', () => {
@@ -671,7 +739,10 @@ export class MultiplayerManager {
           if (this.roomCode !== roomCode) return;
           let msg = null;
           try {
-            const str = payloadBuf.toString();
+            const str =
+              typeof payloadBuf === 'string'
+                ? payloadBuf
+                : new TextDecoder('utf-8').decode(payloadBuf);
             if (!str) return;
             msg = JSON.parse(str);
           } catch (e) {
@@ -700,6 +771,10 @@ export class MultiplayerManager {
             } else if (topic.startsWith(`${baseTopic}/guest/`)) {
               // Another Guest published their retained seat claim — reflect it immediately even if Host is in Messages app!
               if (msg.type === 'JOIN_REQUEST' && msg.peerId && msg.peerId !== this.myPeerId) {
+                this.knownGuestClaims.set(msg.peerId, {
+                  playerName: msg.playerName,
+                  preferredSeatId: msg.preferredSeatId,
+                });
                 this._applyOptimisticGuestClaim(msg.peerId, msg.playerName, msg.preferredSeatId);
               }
             }
@@ -897,6 +972,21 @@ export class MultiplayerManager {
       }
 
       if (assignedSeat) {
+        // If Guest picked a seat that was previously 'ai' or 'none' (e.g. Host picked Red, Blue was 'Waiting for Friend...',
+        // and Guest picked Yellow which was 'ai'), swap that 'ai'/'none' status onto the unused 'Waiting for Friend...' slot
+        // so the total expected human player count stays exact!
+        const prevControl = assignedSeat.control;
+        if (prevControl !== 'human') {
+          const unusedHumanSlot = this.lobbyState.seats.find(
+            (s) => s.id !== assignedSeat.id && s.control === 'human' && !s.peerId
+          );
+          if (unusedHumanSlot) {
+            const currentNames = this.lobbyState.seats.map((x) => x.name);
+            unusedHumanSlot.control = prevControl;
+            unusedHumanSlot.peerId = null;
+            unusedHumanSlot.name = pickAdventurerNames(1, currentNames)[0];
+          }
+        }
         assignedSeat.control = 'human';
         assignedSeat.peerId = guestPeerId;
         assignedSeat.name = guestName;
@@ -913,13 +1003,30 @@ export class MultiplayerManager {
       const { seatId, peerId, name, control, ageEven, rightHanded, exclusiveClaim } = msg;
       const seat = this.lobbyState.seats.find((s) => s.id === seatId);
       if (seat) {
+        const targetPrevControl = seat.control;
         if (exclusiveClaim && peerId) {
           for (const prev of this.lobbyState.seats) {
             if (prev.id !== seatId && prev.peerId === peerId) {
               prev.peerId = null;
-              prev.control = 'human';
-              prev.name = 'Waiting for Friend...';
+              if (targetPrevControl !== 'human') {
+                const usedNames = this.lobbyState.seats.map((x) => x.name);
+                prev.control = targetPrevControl;
+                prev.name = pickAdventurerNames(1, usedNames)[0];
+              } else {
+                prev.control = 'human';
+                prev.name = 'Waiting for Friend...';
+              }
             }
+          }
+        } else if (control === 'human' && targetPrevControl !== 'human') {
+          const unusedHumanSlot = this.lobbyState.seats.find(
+            (s) => s.id !== seat.id && s.control === 'human' && !s.peerId
+          );
+          if (unusedHumanSlot) {
+            const usedNames = this.lobbyState.seats.map((x) => x.name);
+            unusedHumanSlot.control = targetPrevControl;
+            unusedHumanSlot.peerId = null;
+            unusedHumanSlot.name = pickAdventurerNames(1, usedNames)[0];
           }
         }
         seat.control = control;
@@ -943,8 +1050,13 @@ export class MultiplayerManager {
   _handleGuestMessage(msg) {
     if (msg.type === 'LOBBY_STATE' && msg.lobbyState) {
       this.lobbyState = msg.lobbyState;
-      // If Guest already clicked Join, but the incoming LOBBY_STATE was a cached snapshot from before Host processed our join,
-      // preserve our optimistic seat display while re-sending JOIN_REQUEST to Host!
+      // Preserve any known retained Guest claims if this LOBBY_STATE snapshot was published before Host processed them
+      for (const [peerId, claim] of this.knownGuestClaims.entries()) {
+        if (!this.lobbyState.seats.some((s) => s.peerId === peerId)) {
+          this._applyOptimisticGuestClaim(peerId, claim.playerName, claim.preferredSeatId);
+        }
+      }
+      // If Guest already clicked Join, preserve our own optimistic seat display while re-sending JOIN_REQUEST to Host
       if (this.guestJoinPayload && !this.lobbyState.seats.some((s) => s.peerId === this.myPeerId)) {
         this._applyOptimisticGuestClaim(
           this.myPeerId,
@@ -994,14 +1106,20 @@ export class MultiplayerManager {
       return;
     }
 
+    const target = this.lobbyState.seats.find((s) => s.id === seatId);
+    const targetPrevControl = target ? target.control : 'human';
     for (const prev of this.lobbyState.seats) {
       if (prev.id !== seatId && prev.peerId === this.myPeerId) {
         prev.peerId = null;
-        prev.control = 'human';
-        prev.name = 'Waiting for Friend...';
+        prev.control = targetPrevControl;
+        if (targetPrevControl === 'human') {
+          prev.name = 'Waiting for Friend...';
+        } else {
+          const usedNames = this.lobbyState.seats.map((x) => x.name);
+          prev.name = pickAdventurerNames(1, usedNames)[0];
+        }
       }
     }
-    const target = this.lobbyState.seats.find((s) => s.id === seatId);
     if (target) {
       target.control = 'human';
       target.peerId = this.myPeerId;
@@ -1162,6 +1280,21 @@ export class MultiplayerManager {
     const url = new URL(window.location.href);
     url.searchParams.set('room', this.roomCode);
     url.searchParams.delete('host');
+    // Also embed Host's seat, name, and human player count so the Invite URL locks the Host's color at 0ms!
+    const seats = this.lobbyState?.seats || [];
+    const hostSeat =
+      seats.find((s) => s.peerId === this.lobbyState?.hostPeerId) ||
+      seats.find((s) => s.peerId === this.myPeerId);
+    const humanCount = seats.filter((s) => s.control === 'human').length;
+    const hasAi = seats.some((s) => s.control === 'ai');
+    if (hostSeat) {
+      url.searchParams.set('hs', hostSeat.id);
+      url.searchParams.set('hn', hostSeat.name || 'Host');
+    }
+    if (humanCount >= 2) {
+      url.searchParams.set('hc', String(humanCount));
+    }
+    url.searchParams.set('ai', hasAi ? '1' : '0');
     return url.toString();
   }
 
@@ -1191,6 +1324,7 @@ export class MultiplayerManager {
     this.hostConn = null;
     this.outboundQueue = [];
     this.guestJoinPayload = null;
+    this.knownGuestClaims.clear();
     this.lastPublishedGameState = null;
     if (clearStorage) {
       this.clearSavedHostSession();

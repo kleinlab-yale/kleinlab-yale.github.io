@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=29';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=29';
-import { Mummy3DView } from './view_3d.js?v=29';
-import { Mummy2DView } from './view_2d.js?v=29';
-import { MultiplayerManager } from './multiplayer.js?v=29';
+} from './board_data.js?v=30';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=30';
+import { Mummy3DView } from './view_3d.js?v=30';
+import { Mummy2DView } from './view_2d.js?v=30';
+import { MultiplayerManager } from './multiplayer.js?v=30';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -62,6 +62,14 @@ class VoiceOfTheMummyApp {
 
     this.mp = new MultiplayerManager({
       onLobbyUpdate: (lobby) => {
+        const myAssignedSeat = lobby?.seats?.find((s) => s.peerId === this.mp.myPeerId);
+        if (myAssignedSeat) {
+          this.selectedGuestSeatId = myAssignedSeat.id;
+        }
+        const urlInput = document.getElementById('share-invite-url');
+        if (urlInput && this.mp.roomCode) {
+          urlInput.value = this.mp.getShareableInviteUrl();
+        }
         this._renderLobbySeats(lobby);
         this._renderGuestInviteCharPicker();
         this._renderGuestWaitingCaveUI();
@@ -1027,6 +1035,22 @@ class VoiceOfTheMummyApp {
       if (codeEl) codeEl.textContent = cleanCode;
       const pillEl = document.getElementById('guest-waiting-room-pill');
       if (pillEl) pillEl.textContent = `🏺 PYRAMID TOMB EXPEDITION • ROOM ${cleanCode}`;
+
+      // Seed Host's chosen color & name at 0ms from URL query parameters (?hs=red&hn=Daryl&hc=2&ai=1)
+      // so the Host's piece is immediately locked (🔒 Taken) before the network packet even arrives!
+      const hsParam = params.get('hs');
+      const hnParam = params.get('hn');
+      const hcParam = params.get('hc');
+      const aiParam = params.get('ai');
+      if (hsParam) {
+        this.mp.seedLobbyFromUrlParams({
+          roomCode: cleanCode,
+          hostSeatId: hsParam,
+          hostName: hnParam,
+          humanCount: hcParam,
+          fillWithAi: aiParam !== '0',
+        });
+      }
 
       // Check if Guest already picked their piece & name before refreshing the tab
       const savedGuest = this.mp.getSavedGuestSession(cleanCode);
