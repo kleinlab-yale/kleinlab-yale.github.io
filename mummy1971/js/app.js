@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=25';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=25';
-import { Mummy3DView } from './view_3d.js?v=25';
-import { Mummy2DView } from './view_2d.js?v=25';
-import { MultiplayerManager } from './multiplayer.js?v=25';
+} from './board_data.js?v=30';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=30';
+import { Mummy3DView } from './view_3d.js?v=30';
+import { Mummy2DView } from './view_2d.js?v=30';
+import { MultiplayerManager } from './multiplayer.js?v=30';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -51,7 +51,9 @@ class VoiceOfTheMummyApp {
       green: initBotPool[3],
     };
     this.selectedHostSeatId = 'blue';
+    this.selectedGuestSeatId = 'red';
     this.selectedHumanCount = 2;
+    this.mpGameStarted = false;
 
     this.engine = new VoiceOfTheMummyEngine(
       (state) => this._onAuthoritativeStateChange(state),
@@ -60,7 +62,17 @@ class VoiceOfTheMummyApp {
 
     this.mp = new MultiplayerManager({
       onLobbyUpdate: (lobby) => {
+        const myAssignedSeat = lobby?.seats?.find((s) => s.peerId === this.mp.myPeerId);
+        if (myAssignedSeat) {
+          this.selectedGuestSeatId = myAssignedSeat.id;
+        }
+        const urlInput = document.getElementById('share-invite-url');
+        if (urlInput && this.mp.roomCode) {
+          urlInput.value = this.mp.getShareableInviteUrl();
+        }
         this._renderLobbySeats(lobby);
+        this._renderGuestInviteCharPicker();
+        this._renderGuestWaitingCaveUI();
         this._updateWaitingStatusUI();
       },
       onGameState: (state) => this._onClientReceiveState(state),
@@ -75,8 +87,8 @@ class VoiceOfTheMummyApp {
           title: `${(name || 'FRIEND').toUpperCase()} JOINED THE GAME!`,
           subtitle: `Playing as ${seatCfg ? seatCfg.name : 'Explorer'} (${seatCfg ? seatCfg.deity : ''})`,
         });
-        if (this.engine.state && assignedSeatId) {
-          // Ensure no other player in active game holds this same peerId
+        if (this.mpGameStarted && this.engine.state && assignedSeatId) {
+          // Late joiner into an already-started multiplayer game
           for (const pl of this.engine.state.players) {
             if (pl.id !== assignedSeatId && pl.peerId === peerId) {
               pl.peerId = null;
@@ -397,6 +409,8 @@ class VoiceOfTheMummyApp {
 
     // Step 1 -> Step 2: Host Online Game & Get Invite Link
     document.getElementById('btn-host-room')?.addEventListener('click', async () => {
+      this.mpGameStarted = false;
+      clearTimeout(this.botTimer);
       const rawHostName = document.getElementById('input-player-name')?.value?.trim() || '';
       const hostName = rawHostName || pickAdventurerNames(1)[0];
       const hostInput = document.getElementById('input-player-name');
@@ -447,10 +461,37 @@ class VoiceOfTheMummyApp {
 
     // Step 2 -> Back to Step 1
     document.getElementById('btn-mp-back-step1')?.addEventListener('click', () => {
+      this.mpGameStarted = false;
+      this.mp.disconnect(true);
       this._setMultiplayerWizardStep(1);
     });
 
-    // Guest Invite Accept Modal ("Enter Your Name" when opening an Invite Link)
+    // Refresh Room Status Buttons (Host & Guest)
+    document.getElementById('btn-host-refresh-sync')?.addEventListener('click', () => {
+      this.mp.refreshRoomSync();
+      const btn = document.getElementById('btn-host-refresh-sync');
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✅ Room Synced!';
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 1600);
+      }
+    });
+    document.getElementById('btn-guest-refresh-sync')?.addEventListener('click', () => {
+      this.mp.refreshRoomSync();
+      this._renderGuestWaitingCaveUI();
+      const btn = document.getElementById('btn-guest-refresh-sync');
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = '✅ Room Status Refreshed!';
+        setTimeout(() => {
+          btn.textContent = orig;
+        }, 1600);
+      }
+    });
+
+    // Guest Invite Accept Modal ("Pick Your Piece & Enter Your Name" -> "Pyramid Cave Waiting Screen")
     document.getElementById('btn-accept-invite-join')?.addEventListener('click', () => {
       this._acceptInviteAndJoinRoom();
     });
@@ -459,6 +500,11 @@ class VoiceOfTheMummyApp {
         e.preventDefault();
         this._acceptInviteAndJoinRoom();
       }
+    });
+    document.getElementById('btn-guest-edit-choice')?.addEventListener('click', () => {
+      document.getElementById('guest-invite-step-waiting')?.classList.add('hidden');
+      document.getElementById('guest-invite-step-setup')?.classList.remove('hidden');
+      this._renderGuestInviteCharPicker();
     });
 
     // Guest Name Update Button (for friends who clicked the Invite Link)
@@ -508,13 +554,12 @@ class VoiceOfTheMummyApp {
     });
 
     // Native Share Button (iPhone / macOS share sheet)
+    // Pass ONLY { url } (no extra text prefix) so Apple iMessage renders the full Rich Image Preview Card!
     document.getElementById('btn-share-invite')?.addEventListener('click', async () => {
       const url = this.mp.getShareableInviteUrl();
       if (navigator.share) {
         try {
           await navigator.share({
-            title: 'Join My Voice of the Mummy (1971) Game!',
-            text: 'Click to join my Egyptian Tomb Expedition in Voice of the Mummy:',
             url,
           });
           return;
@@ -873,12 +918,12 @@ class VoiceOfTheMummyApp {
 
   /**
    * Opens the user's native Messaging app (iMessage / Messages on Mac & iPhone, SMS on Android)
-   * with the Multiplayer Invite Link pre-filled in the message body so they can immediately text it to friends!
+   * with ONLY the Invite URL in the message body so Apple iMessage automatically displays the
+   * Rich Link Preview Card with the Tomb Hero Picture (Apple suppresses link preview images if extra text precedes the URL).
    */
   _sendInviteViaMessagesApp() {
     const url = this.mp.getShareableInviteUrl();
-    const bodyText = `Join my 1971 Voice of the Mummy game! Tap this link to enter the Tomb: ${url}`;
-    const smsHref = `sms:?&body=${encodeURIComponent(bodyText)}`;
+    const smsHref = `sms:?&body=${encodeURIComponent(url)}`;
     const link = document.createElement('a');
     link.href = smsHref;
     link.style.display = 'none';
@@ -951,20 +996,91 @@ class VoiceOfTheMummyApp {
   _checkUrlRoomParam() {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
+    const isHostParam = params.get('host') === '1';
+
     if (roomParam) {
       const cleanCode = roomParam.trim().toUpperCase().startsWith('TOMB-')
         ? roomParam.trim().toUpperCase()
         : `TOMB-${roomParam.trim().toUpperCase()}`;
+
+      // 1. Check if this user is the HOST of this room (e.g. Host clicked Browser Refresh!)
+      const savedHost = this.mp.getSavedHostSession(cleanCode);
+      if (savedHost && (isHostParam || savedHost.hostPeerId === this.mp.myPeerId)) {
+        document.getElementById('modal-intro-landing')?.classList.add('hidden');
+        document.getElementById('modal-guest-invite')?.classList.add('hidden');
+        this.mpGameStarted = Boolean(savedHost.mpGameStarted);
+        this.mp.resumeHostRoom(savedHost);
+        this._showRoomShareBox(cleanCode);
+        if (this.mpGameStarted && savedHost.gameState) {
+          document.getElementById('modal-lobby')?.classList.add('hidden');
+          this.engine.state = savedHost.gameState;
+          this._applyStateToUI(savedHost.gameState);
+          this._scheduleBotTurnIfNeeded(savedHost.gameState);
+        } else {
+          this.engine.initGame(this.mp.lobbyState.seats);
+          clearTimeout(this.botTimer);
+          document.getElementById('modal-lobby')?.classList.remove('hidden');
+          this._setMultiplayerWizardStep(2);
+          this._renderLobbySeats(this.mp.lobbyState);
+          this._updateWaitingStatusUI();
+        }
+        return;
+      }
+
+      // 2. Otherwise, this user is a GUEST opening or refreshing the Invite Link
       this.pendingInviteRoomCode = cleanCode;
+      this.mpGameStarted = false;
       document.getElementById('modal-intro-landing')?.classList.add('hidden');
       const codeEl = document.getElementById('invite-prompt-room-code');
       if (codeEl) codeEl.textContent = cleanCode;
-      document.getElementById('modal-guest-invite')?.classList.remove('hidden');
-      // Start showcase board behind the invite modal while the friend types their name
+      const pillEl = document.getElementById('guest-waiting-room-pill');
+      if (pillEl) pillEl.textContent = `🏺 PYRAMID TOMB EXPEDITION • ROOM ${cleanCode}`;
+
+      // Seed Host's chosen color & name at 0ms from URL query parameters (?hs=red&hn=Daryl&hc=2&ai=1)
+      // so the Host's piece is immediately locked (🔒 Taken) before the network packet even arrives!
+      const hsParam = params.get('hs');
+      const hnParam = params.get('hn');
+      const hcParam = params.get('hc');
+      const aiParam = params.get('ai');
+      if (hsParam) {
+        this.mp.seedLobbyFromUrlParams({
+          roomCode: cleanCode,
+          hostSeatId: hsParam,
+          hostName: hnParam,
+          humanCount: hcParam,
+          fillWithAi: aiParam !== '0',
+        });
+      }
+
+      // Check if Guest already picked their piece & name before refreshing the tab
+      const savedGuest = this.mp.getSavedGuestSession(cleanCode);
       this.engine.initGame(this.mp.lobbyState.seats);
-      setTimeout(() => {
-        document.getElementById('input-invite-guest-name')?.focus();
-      }, 80);
+      clearTimeout(this.botTimer);
+
+      if (savedGuest && savedGuest.hasJoined) {
+        this.selectedGuestSeatId = savedGuest.preferredSeatId || 'red';
+        const nameInput = document.getElementById('input-invite-guest-name');
+        if (nameInput && savedGuest.playerName) nameInput.value = savedGuest.playerName;
+        const guestInput = document.getElementById('input-guest-name');
+        if (guestInput && savedGuest.playerName) guestInput.value = savedGuest.playerName;
+        document.getElementById('guest-invite-step-setup')?.classList.add('hidden');
+        document.getElementById('guest-invite-step-waiting')?.classList.remove('hidden');
+        document.getElementById('modal-guest-invite')?.classList.remove('hidden');
+        this.mp.joinRoom(cleanCode, savedGuest.playerName, this.selectedGuestSeatId);
+        this._renderGuestWaitingCaveUI(savedGuest.playerName);
+        this._showRoomShareBox(cleanCode);
+        this._updateWaitingStatusUI();
+      } else {
+        document.getElementById('guest-invite-step-setup')?.classList.remove('hidden');
+        document.getElementById('guest-invite-step-waiting')?.classList.add('hidden');
+        document.getElementById('modal-guest-invite')?.classList.remove('hidden');
+        // Immediately connect to the Host room in preview mode so we receive live LOBBY_STATE (which colors are taken vs open)
+        this.mp.connectRoomPreview(cleanCode);
+        this._renderGuestInviteCharPicker();
+        setTimeout(() => {
+          document.getElementById('input-invite-guest-name')?.focus();
+        }, 80);
+      }
     } else {
       // Start a default 4-explorer showcase game right away in the background so the 3D & 2D boards are immediately alive,
       // while the Intro Landing Card welcomes the player!
@@ -972,23 +1088,165 @@ class VoiceOfTheMummyApp {
     }
   }
 
+  _renderGuestInviteCharPicker() {
+    const container = document.getElementById('guest-invite-char-picker');
+    if (!container) return;
+
+    const seats = this.mp.lobbyState?.seats || [];
+    const isSeatTakenByOther = (seatId) => {
+      const s = seats.find((x) => x.id === seatId);
+      return Boolean(s && s.control === 'human' && s.peerId && s.peerId !== 'local' && s.peerId !== this.mp.myPeerId);
+    };
+
+    // If current selectedGuestSeatId is taken by the Host or another friend, auto-select the first open seat
+    if (!this.selectedGuestSeatId || isSeatTakenByOther(this.selectedGuestSeatId)) {
+      const openSeat =
+        seats.find((s) => s.control === 'human' && !s.peerId) ||
+        seats.find((s) => !isSeatTakenByOther(s.id));
+      if (openSeat) {
+        this.selectedGuestSeatId = openSeat.id;
+      }
+    }
+
+    container.innerHTML = PLAYERS_CONFIG.map((cfg) => {
+      const seat = seats.find((s) => s.id === cfg.id);
+      const takenByOther = isSeatTakenByOther(cfg.id);
+      const isSelected = !takenByOther && cfg.id === this.selectedGuestSeatId;
+      const badgeLabel = takenByOther
+        ? `🔒 Taken (${seat?.name || 'Host'})`
+        : isSelected
+        ? '✓ YOUR PIECE'
+        : 'Tap to Pick';
+
+      return `
+        <button type="button" class="mp-char-pick-card ${isSelected ? 'selected' : ''} ${takenByOther ? 'taken-disabled' : ''}" data-pick-guest-seat="${cfg.id}" style="--char-color: ${cfg.colorHex}" ${takenByOther ? 'disabled' : ''}>
+          <div class="mp-char-visuals">
+            <img src="${cfg.portraitImg}" alt="${cfg.name}" class="mp-char-fig" />
+            <img src="${cfg.templeImg}" alt="${cfg.deity}" class="mp-char-temple" />
+          </div>
+          <div class="mp-char-name">${cfg.name}</div>
+          <div class="mp-char-deity">${cfg.deityTitle}</div>
+          <div class="mp-char-badge" style="background: ${takenByOther ? '#5a3e28' : cfg.colorHex}">
+            ${badgeLabel}
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    container.querySelectorAll('[data-pick-guest-seat]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        this.selectedGuestSeatId = btn.dataset.pickGuestSeat;
+        this._renderGuestInviteCharPicker();
+      });
+    });
+  }
+
   _acceptInviteAndJoinRoom() {
     const cleanCode = this.pendingInviteRoomCode;
     if (!cleanCode) return;
     const rawName = document.getElementById('input-invite-guest-name')?.value?.trim() || '';
-    const takenNames = (this.mp.lobbyState?.seats || []).map((s) => s.name);
+    const takenNames = (this.mp.lobbyState?.seats || [])
+      .filter((s) => s.peerId !== this.mp.myPeerId)
+      .map((s) => s.name);
     const guestName = rawName || pickAdventurerNames(1, takenNames)[0];
 
-    document.getElementById('modal-guest-invite')?.classList.add('hidden');
-    document.getElementById('modal-lobby')?.classList.remove('hidden');
-
+    const nameInput = document.getElementById('input-invite-guest-name');
+    if (nameInput) nameInput.value = guestName;
     const guestInput = document.getElementById('input-guest-name');
     if (guestInput) guestInput.value = guestName;
 
-    this.mp.joinRoom(cleanCode, guestName);
-    this._setMultiplayerWizardStep(2);
+    // Transition inside #modal-guest-invite from Step A (Pick Piece & Name) to Step B (Explorer Entering Pyramid Cave Waiting Screen)
+    document.getElementById('guest-invite-step-setup')?.classList.add('hidden');
+    document.getElementById('guest-invite-step-waiting')?.classList.remove('hidden');
+
+    this.mp.joinRoom(cleanCode, guestName, this.selectedGuestSeatId);
+    this._renderGuestWaitingCaveUI(guestName);
     this._showRoomShareBox(cleanCode);
     this._updateWaitingStatusUI();
+  }
+
+  _renderGuestWaitingCaveUI(fallbackMyName = '') {
+    const seats = this.mp.lobbyState?.seats || [];
+    const { totalHumanSeats, connectedHumans, waitingCount } = this.mp.getWaitingStats();
+    const mySeat =
+      seats.find((s) => s.peerId === this.mp.myPeerId) ||
+      seats.find((s) => s.id === this.selectedGuestSeatId);
+    const myCfg = PLAYERS_CONFIG.find((c) => c.id === (mySeat?.id || this.selectedGuestSeatId));
+    const myName =
+      mySeat?.peerId === this.mp.myPeerId
+        ? mySeat.name
+        : fallbackMyName || document.getElementById('input-invite-guest-name')?.value?.trim() || 'Explorer';
+
+    const countBadge = document.getElementById('guest-waiting-count-badge');
+    const statusLine = document.getElementById('guest-waiting-status-line');
+    const counterBox = document.getElementById('guest-waiting-counter-box');
+    const caveTitle = document.getElementById('guest-waiting-cave-title');
+    const rosterGrid = document.getElementById('guest-waiting-roster-grid');
+
+    const shownConnected = Math.max(1, connectedHumans);
+    const shownTotal = Math.max(shownConnected, totalHumanSeats || 2);
+
+    if (countBadge) {
+      countBadge.textContent = `👥 ${shownConnected} of ${shownTotal} Explorers Joined`;
+    }
+
+    if (waitingCount > 0) {
+      counterBox?.classList.add('waiting');
+      counterBox?.classList.remove('ready');
+      if (caveTitle) {
+        caveTitle.textContent = `⏳ Waiting on ${waitingCount} More Explorer${waitingCount === 1 ? '' : 's'} to Join...`;
+      }
+      if (statusLine) {
+        statusLine.textContent = `✅ You are ready as ${myName} (${myCfg ? myCfg.name : 'Explorer'}) — Waiting for ${waitingCount} more friend${waitingCount === 1 ? '' : 's'} & Host to start!`;
+      }
+    } else {
+      counterBox?.classList.remove('waiting');
+      counterBox?.classList.add('ready');
+      if (caveTitle) {
+        caveTitle.textContent = `✅ All ${shownTotal} Explorers Have Joined!`;
+      }
+      if (statusLine) {
+        statusLine.textContent = `🏺 You are ${myName} (${myCfg ? myCfg.name : 'Explorer'}) — Waiting for the Host to click "Start Tomb Expedition"!`;
+      }
+    }
+
+    if (rosterGrid) {
+      rosterGrid.innerHTML = seats
+        .filter((s) => s.control !== 'none')
+        .map((seat) => {
+          const cfg = PLAYERS_CONFIG.find((c) => c.id === seat.id);
+          const isMe =
+            seat.peerId === this.mp.myPeerId ||
+            (!seats.some((x) => x.peerId === this.mp.myPeerId) && seat.id === this.selectedGuestSeatId);
+          const isConnectedHuman = Boolean(seat.control === 'human' && (seat.peerId || isMe));
+          const isWaitingHuman = seat.control === 'human' && !seat.peerId && !isMe;
+          const displayName = isMe ? myName : seat.name;
+
+          let statusPill = '';
+          if (isMe) {
+            statusPill = `<span class="guest-roster-pill pill-me">🟢 YOU • Joined</span>`;
+          } else if (isConnectedHuman) {
+            statusPill = `<span class="guest-roster-pill pill-joined">🟢 Joined</span>`;
+          } else if (isWaitingHuman) {
+            statusPill = `<span class="guest-roster-pill pill-waiting">⏳ Waiting to Join...</span>`;
+          } else if (seat.control === 'ai') {
+            statusPill = `<span class="guest-roster-pill pill-bot">🤖 AI Tomb Bot</span>`;
+          }
+
+          return `
+            <div class="guest-roster-card ${isMe ? 'roster-is-me' : ''} ${isWaitingHuman ? 'roster-is-waiting' : ''}" style="--roster-color: ${cfg.colorHex}">
+              <img src="${cfg.portraitImg}" alt="${cfg.name}" class="guest-roster-fig" />
+              <div class="guest-roster-info">
+                <div class="guest-roster-name">${isWaitingHuman ? 'Open Friend Slot' : displayName}</div>
+                <div class="guest-roster-sub" style="color: ${cfg.accentHex}">${cfg.name} • ${cfg.deity}</div>
+              </div>
+              ${statusPill}
+            </div>
+          `;
+        })
+        .join('');
+    }
   }
 
   _showRoomShareBox(code) {
@@ -1240,8 +1498,10 @@ class VoiceOfTheMummyApp {
 
     this.mp._broadcastLobby();
     this._updateWaitingStatusUI();
+    document.getElementById('modal-guest-invite')?.classList.add('hidden');
     document.getElementById('modal-lobby')?.classList.add('hidden');
     document.getElementById('modal-gameover')?.classList.add('hidden');
+    this.mpGameStarted = true;
     this._resetViewForNewGame();
     this.engine.initGame(this.mp.lobbyState.seats);
   }
@@ -1266,8 +1526,10 @@ class VoiceOfTheMummyApp {
       alert('Please enable at least 2 Explorers (Human or AI Bot) to start a game.');
       return;
     }
+    document.getElementById('modal-guest-invite')?.classList.add('hidden');
     document.getElementById('modal-lobby')?.classList.add('hidden');
     document.getElementById('modal-gameover')?.classList.add('hidden');
+    this.mpGameStarted = true;
     this._resetViewForNewGame();
     this.engine.initGame(this.mp.lobbyState.seats);
   }
@@ -1345,19 +1607,27 @@ class VoiceOfTheMummyApp {
   }
 
   _onAuthoritativeStateChange(state) {
-    this.mp.broadcastGameState(state);
+    if (this.mp.mode !== 'host' || this.mpGameStarted) {
+      this.mp.broadcastGameState(state);
+    }
     this._applyStateToUI(state);
-    this._scheduleBotTurnIfNeeded(state);
+    if (this.mp.mode === 'local' || this.mpGameStarted) {
+      this._scheduleBotTurnIfNeeded(state);
+    }
   }
 
   _onAuthoritativeEvent(event) {
-    this.mp.broadcastGameEvent(event);
+    if (this.mp.mode !== 'host' || this.mpGameStarted) {
+      this.mp.broadcastGameEvent(event);
+    }
     this._playVisualAndAudioEvent(event);
   }
 
   _onClientReceiveState(state) {
     const isInitialTurn = !this.activeState || (state.turnNumber === 1 && state.turnIndex === 0 && state.phase === 'ROLL_DIE');
+    this.mpGameStarted = true;
     document.getElementById('modal-intro-landing')?.classList.add('hidden');
+    document.getElementById('modal-guest-invite')?.classList.add('hidden');
     document.getElementById('modal-lobby')?.classList.add('hidden');
     if (isInitialTurn) {
       this._resetViewForNewGame();

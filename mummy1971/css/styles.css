@@ -1393,8 +1393,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 12px;
   z-index: 100;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .modal-card {
@@ -1402,12 +1405,22 @@ body {
   border: 2px solid var(--gold-bright);
   border-radius: 16px;
   width: min(880px, 96vw);
-  max-height: 90vh;
-  max-height: 90dvh;
+  max-height: 92vh;
+  max-height: 92dvh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.92);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.guest-invite-step-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
 }
 
 .modal-header {
@@ -1444,7 +1457,11 @@ body {
 
 .modal-body {
   padding: 18px 20px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1576,6 +1593,147 @@ body {
   border-radius: 999px;
   margin-top: 2px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+.mp-char-pick-card.taken-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.45);
+  transform: none !important;
+}
+
+/* Guest Pyramid Cave Waiting Screen (#guest-invite-step-waiting) */
+.guest-cave-hero-wrap {
+  aspect-ratio: 16 / 8.5;
+  max-height: 245px;
+  border-bottom: 2px solid var(--gold-bright);
+}
+
+.guest-cave-overlay {
+  padding: 16px 20px 14px;
+}
+
+.guest-cave-title {
+  margin: 6px 0 3px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #ffe885;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
+}
+
+.guest-cave-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #f2e5cb;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.95);
+}
+
+.guest-waiting-count-badge {
+  display: inline-block;
+  align-self: center;
+  background: linear-gradient(180deg, #ffe252 0%, #dfa01c 100%);
+  color: #1a1004;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 5px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 3px 12px rgba(245, 200, 76, 0.45);
+  margin-bottom: 4px;
+}
+
+.guest-waiting-roster-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.guest-roster-card {
+  background: #140f0a;
+  border: 1.5px solid rgba(140, 106, 48, 0.55);
+  border-left: 5px solid var(--roster-color, #f5c84c);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.guest-roster-card.roster-is-me {
+  background: linear-gradient(135deg, rgba(245, 200, 76, 0.2), rgba(28, 19, 10, 0.95));
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 14px rgba(245, 200, 76, 0.28);
+}
+
+.guest-roster-card.roster-is-waiting {
+  border-style: dashed;
+  opacity: 0.78;
+}
+
+.guest-roster-fig {
+  width: 30px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.guest-roster-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.guest-roster-name {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guest-roster-sub {
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.guest-roster-pill {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.guest-roster-pill.pill-me {
+  background: #2ee675;
+  color: #05210e;
+}
+
+.guest-roster-pill.pill-joined {
+  background: rgba(46, 230, 117, 0.22);
+  color: #7dffb3;
+  border: 1px solid #2ee675;
+}
+
+.guest-roster-pill.pill-waiting {
+  background: rgba(245, 200, 76, 0.16);
+  color: #ffe266;
+  border: 1px dashed var(--gold-bright);
+}
+
+.guest-roster-pill.pill-bot {
+  background: rgba(99, 179, 255, 0.18);
+  color: #99ceff;
+  border: 1px solid #63b3ff;
+}
+
+@media (max-width: 600px) {
+  .guest-waiting-roster-grid {
+    grid-template-columns: 1fr;
+  }
+  .guest-cave-title {
+    font-size: 19px;
+  }
 }
 
 .mp-count-pills-row {
@@ -3215,9 +3373,97 @@ body {
     font-size: 11px;
   }
 
+  .modal-backdrop {
+    align-items: flex-start;
+    padding: 8px 6px;
+  }
+
+  .modal-card {
+    width: 96vw;
+    max-height: 94dvh;
+    margin: auto 0;
+  }
+
+  .modal-header {
+    padding: 10px 14px;
+    flex-shrink: 0;
+  }
+
+  .modal-header h2 {
+    font-size: 14.5px;
+  }
+
+  .modal-body {
+    padding: 12px 12px 16px;
+    gap: 10px;
+  }
+
+  .mp-wizard-step {
+    gap: 10px;
+  }
+
+  .mp-step-field {
+    padding: 10px 10px;
+    gap: 7px;
+  }
+
+  .mp-step-label {
+    font-size: 11.5px;
+  }
+
+  .mp-name-big-input {
+    padding: 9px 11px;
+    font-size: 16px; /* 16px prevents iOS Safari auto-zoom on focus */
+  }
+
+  /* Compact 4-Across Character Picker on iPhone so Piece Picker + Name Input + Start/Join Button all fit on 1 screen without scrolling! */
   .mp-char-picker-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .mp-char-pick-card {
+    padding: 6px 3px;
+    gap: 3px;
+    border-radius: 9px;
+    min-width: 0;
+  }
+
+  .mp-char-visuals {
+    gap: 2px;
+  }
+
+  .mp-char-fig {
+    width: 26px;
+    height: 36px;
+  }
+
+  .mp-char-temple {
+    width: 24px;
+    height: 36px;
+  }
+
+  .mp-char-name {
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .mp-char-deity {
+    display: none;
+  }
+
+  .mp-char-badge {
+    font-size: 8px;
+    padding: 2px 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .guest-cave-hero-wrap {
+    max-height: 155px;
+    flex-shrink: 0;
   }
 
   .single-bot-picker-grid {
