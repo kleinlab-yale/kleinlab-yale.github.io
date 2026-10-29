@@ -1,0 +1,163 @@
+# Pages CMS edits only these content files and the upload folder.
+# Connect at https://app.pagescms.org using the repository owner's GitHub account.
+media:
+  input: images/uploads
+  output: /images/uploads
+  extensions: [jpg, jpeg, png, webp, gif, avif]
+  rename: random
+
+content:
+  - name: lab
+    label: Lab photos
+    type: file
+    path: content/lab.json
+    format: json
+    operations:
+      delete: false
+    fields:
+      - name: photos
+        label: Photos (first item appears first)
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.caption}"
+        fields:
+          - name: image
+            label: Photo
+            type: image
+            required: true
+            description: Choose a JPG, PNG, WebP, GIF, or AVIF photo. Convert HEIC photos to JPEG before uploading.
+          - name: caption
+            label: Caption
+            type: text
+            required: true
+          - name: alt
+            label: Image description
+            type: string
+            required: true
+            description: A short description of what the photo shows, for people using screen readers.
+          - name: date
+            label: Date (optional)
+            type: string
+            description: "For example: October 2026"
+          - name: url
+            label: Read more link (optional)
+            type: string
+            pattern: '^https?://'
+
+  - name: news
+    label: Lab news
+    type: file
+    path: content/news.json
+    format: json
+    operations:
+      delete: false
+    fields:
+      - name: items
+        label: Updates (newest first)
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.date} — {fields.text}"
+        fields:
+          - name: date
+            label: Date
+            type: string
+            required: true
+          - name: text
+            label: Update
+            type: text
+            required: true
+          - name: links
+            label: Related links
+            type: object
+            list: true
+            fields:
+              - name: label
+                label: Link text
+                type: string
+                required: true
+              - name: url
+                label: Web address
+                type: string
+                required: true
+                pattern: '^https?://'
+
+  - name: tools
+    label: Research tools
+    type: file
+    path: content/tools.json
+    format: json
+    operations:
+      delete: false
+    fields:
+      - name: items
+        label: Tools (in display order)
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.title}"
+        fields:
+          - name: title
+            label: Tool name
+            type: string
+            required: true
+          - name: description
+            label: Description
+            type: text
+            required: true
+          - name: url
+            label: App address
+            type: string
+            required: true
+            pattern: '^https?://'
+          - name: linkLabel
+            label: Button text
+            type: string
+            required: true
+          - name: featured
+            label: Feature this tool
+            type: boolean
+
+  - name: people
+    label: Lab members
+    type: file
+    path: content/people.json
+    format: json
+    operations:
+      delete: false
+    fields:
+      - name: items
+        label: Members (in display order)
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.name}"
+        fields:
+          - name: name
+            label: Name
+            type: string
+            required: true
+          - name: initials
+            label: Initials
+            type: string
+            required: true
+          - name: role
+            label: Role
+            type: string
+            required: true
+          - name: photo
+            label: Portrait (optional)
+            type: image
+          - name: url
+            label: Profile address (optional)
+            type: string
+            pattern: '^https?://'
+          - name: linkLabel
+            label: Profile link text
+            type: string
+            required: true

@@ -1,0 +1,41 @@
+{
+  "items": [
+    {
+      "title": "MIXA",
+      "description": "Analyze molecular interactions in your browser: kinetic and equilibrium fitting, model comparison, and publication reports.",
+      "url": "https://kleinlab-yale-mixa.streamlit.app/",
+      "linkLabel": "Launch MIXA",
+      "featured": true
+    },
+    {
+      "title": "Ewaldssphere",
+      "description": "Klein Lab Hugging Face resource hub.",
+      "url": "https://huggingface.co/Ewaldssphere",
+      "linkLabel": "Open Ewaldssphere"
+    },
+    {
+      "title": "PHLEX",
+      "description": "Interactive PHARM program for Klein Lab research workflows.",
+      "url": "https://kleinlab-yale.github.io/pharm",
+      "linkLabel": "Open PHLEX"
+    },
+    {
+      "title": "SIGCOOP",
+      "description": "Interactive program for exploring receptor cooperativity and signalling.",
+      "url": "https://kleinlab-yale.github.io/negcoop/",
+      "linkLabel": "Open SIGCOOP"
+    },
+    {
+      "title": "ROS1 Mechanistic Viewer",
+      "description": "Interactive viewer for exploring ROS1 mechanistic models and signaling behavior.",
+      "url": "https://kleinlab-yale.github.io/ros1/",
+      "linkLabel": "Open ROS1 Viewer"
+    },
+    {
+      "title": "ALK Mechanistic Viewer",
+      "description": "Interactive viewer for exploring ALK mechanistic models and signaling behavior.",
+      "url": "https://kleinlab-yale.github.io/alk/",
+      "linkLabel": "Open ALK Viewer"
+    }
+  ]
+}

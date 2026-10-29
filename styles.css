@@ -779,6 +779,87 @@ body {
   text-decoration-thickness: 2px;
 }
 
+/* October 2026 refresh: clear entry points and photos owned by the lab. */
+.hero-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0 0 1.7rem;
+}
+
+.hero-primary-actions .btn { min-height: 48px; }
+
+.instagram-archive {
+  padding: 1.2rem 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.instagram-archive summary {
+  cursor: pointer;
+  color: var(--brand);
+  font-weight: 700;
+  padding: 0.35rem 0;
+}
+
+.instagram-archive > p { color: var(--ink-soft); }
+
+.lab-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+[hidden] { display: none !important; }
+
+.lab-photo {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--card);
+}
+
+.lab-photo-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.lab-photo-caption { padding: 1.1rem; }
+.lab-photo-caption p { margin: 0.45rem 0 0; }
+.person-avatar { position: relative; overflow: hidden; }
+.person-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.tool-featured {
+  grid-column: 1 / -1;
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+  border-color: rgba(19, 78, 143, 0.3);
+  background: linear-gradient(120deg, #edf5ff, #f4faf7);
+}
+
+.tool-featured h3 {
+  font-family: "Fraunces", "Times New Roman", serif;
+  font-size: 2.3rem;
+}
+
+.tool-featured .eyebrow { margin: 0 0 0.65rem; color: var(--brand); }
+.tool-featured > p:not(.eyebrow) { max-width: 66ch; }
+.tool-featured .tool-link { margin-top: 1.1rem; color: #fff; }
+.tool-card, .person-card, .lab-photo { overflow-wrap: anywhere; }
+
+@media (max-width: 930px) {
+  .lab-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .lab-gallery { grid-template-columns: 1fr; }
+  .hero-primary-actions .btn { flex: 1 1 auto; text-align: center; }
+}
+
 .news-list {
   margin: 0;
   padding: 0;

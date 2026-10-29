@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260212-09">
+  <link rel="stylesheet" href="styles.css?v=20261029-01">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -36,7 +36,7 @@
         <span class="menu-text">Menu</span>
       </button>
       <ul class="nav-links" id="nav-links">
-        <li><a href="#instagram">Live</a></li>
+        <li><a href="#instagram">Lab life</a></li>
         <li><a href="#research">Research</a></li>
         <li><a href="#people">People</a></li>
         <li><a href="#publications">Publications</a></li>
@@ -61,6 +61,10 @@
             At KLAY, we sculpt the structural foundations of cancer signaling and forge
             biologic therapeutics for invasive disease.
           </p>
+          <div class="hero-primary-actions">
+            <a class="btn btn-primary" href="#research">Explore our research</a>
+            <a class="btn btn-secondary" href="https://kleinlab-yale-mixa.streamlit.app/" target="_blank" rel="noopener noreferrer">Run MIXA <span aria-hidden="true">↗</span></a>
+          </div>
           <div class="hero-affiliations" aria-label="Affiliations">
             <p>Yale Cancer Biology Institute (YCBI)</p>
             <p>Yale Pharmacology Department</p>
@@ -91,13 +95,18 @@
     <section class="section instagram-section" id="instagram">
       <div class="container">
         <header class="section-head reveal">
-          <p class="eyebrow">Instagram</p>
+          <p class="eyebrow">Lab life</p>
           <h2>From the Lab</h2>
-          <p>Live feed from @kleinlab.yale.</p>
+          <p>People, discoveries, and moments from KLAY.</p>
         </header>
-        <div class="ig-embed reveal" id="instagram-feed" aria-live="polite"></div>
+        <div class="lab-gallery" id="lab-gallery" hidden></div>
+        <details class="instagram-archive">
+          <summary>Browse highlights from Instagram</summary>
+          <p>Selected posts from @kleinlab.yale.</p>
+          <div class="ig-embed" id="instagram-feed" aria-live="polite"></div>
+        </details>
         <p class="ig-account reveal">
-          <a class="btn btn-secondary" href="https://www.instagram.com/kleinlab.yale/?hl=en" target="_blank" rel="noopener noreferrer">View Full Instagram Account</a>
+          <a class="btn btn-secondary" href="https://www.instagram.com/kleinlab.yale/?hl=en" target="_blank" rel="noopener noreferrer">Follow @kleinlab.yale <span aria-hidden="true">↗</span></a>
         </p>
       </div>
     </section>
@@ -248,19 +257,20 @@
       <div class="container">
         <header class="section-head reveal">
           <p class="eyebrow">Tools</p>
-          <h2>Klein Lab developed tools</h2>
+          <h2>Explore. Analyze. Discover.</h2>
           <p>Public resources released by the lab for the research community.</p>
         </header>
         <div class="tool-grid">
+          <article class="tool-card tool-featured reveal">
+            <p class="eyebrow">Run online</p>
+            <h3>MIXA</h3>
+            <p>Analyze molecular interactions in your browser: kinetic and equilibrium fitting, model comparison, and publication reports.</p>
+            <a class="btn btn-primary tool-link" href="https://kleinlab-yale-mixa.streamlit.app/" target="_blank" rel="noopener noreferrer">Launch MIXA</a>
+          </article>
           <article class="tool-card reveal">
             <h3>Ewaldssphere</h3>
             <p>Klein Lab Hugging Face resource hub.</p>
             <a class="tool-link" href="https://huggingface.co/Ewaldssphere" target="_blank" rel="noopener noreferrer">Open Ewaldssphere</a>
-          </article>
-          <article class="tool-card reveal">
-            <h3>MIXA (Molecular Interaction Analysis)</h3>
-            <p>Interactive space for molecular interaction analysis.</p>
-            <a class="tool-link" href="https://kleinlab-yale-mixa.streamlit.app/" target="_blank" rel="noopener noreferrer">Open MIXA</a>
           </article>
           <article class="tool-card reveal">
             <h3>PHLEX</h3>
@@ -388,6 +398,7 @@
   </footer>
 
   <script src="instagram_links.js?v=20260212-01"></script>
-  <script src="script.js?v=20260212-10"></script>
+  <script src="script.js?v=20261029-01"></script>
+  <script src="content.js?v=20261029-01"></script>
 </body>
 </html>

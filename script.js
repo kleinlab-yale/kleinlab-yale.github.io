@@ -293,5 +293,16 @@ setupRevealAnimation();
 setupMobileMenu();
 setupTopLinks();
 setupHeroVideoAudio();
-setupInstagramFeed();
+const instagramArchive = document.querySelector(".instagram-archive");
+if (instagramArchive) {
+  let instagramLoaded = false;
+  instagramArchive.addEventListener("toggle", () => {
+    if (instagramArchive.open && !instagramLoaded) {
+      setupInstagramFeed();
+      instagramLoaded = true;
+    }
+  });
+} else {
+  setupInstagramFeed();
+}
 setCopyrightYear();

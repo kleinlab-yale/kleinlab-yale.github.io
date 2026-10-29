@@ -1,0 +1,52 @@
+{
+  "items": [
+    {
+      "name": "Tongqing Li, PhD",
+      "initials": "TL",
+      "role": "Research Scientist",
+      "url": "https://medicine.yale.edu/profile/tongqing-li/",
+      "linkLabel": "Yale School of Medicine profile",
+      "photo": ""
+    },
+    {
+      "name": "Hengyi Li, PhD",
+      "initials": "HL",
+      "role": "Associate Research Scientist",
+      "url": "https://medicine.yale.edu/profile/hengyi-li/",
+      "linkLabel": "Yale School of Medicine profile",
+      "photo": ""
+    },
+    {
+      "name": "Pouyan Rahmani",
+      "initials": "PR",
+      "role": "Research Associate (YCBI Coordinator)",
+      "url": "https://medicine.yale.edu/profile/pouyan-rahmani/",
+      "linkLabel": "Yale School of Medicine profile",
+      "photo": ""
+    },
+    {
+      "name": "Elaine Kupec",
+      "initials": "EK",
+      "role": "Senior Administrative Assistant",
+      "url": "https://medicine.yale.edu/profile/elaine-kupec/",
+      "linkLabel": "Yale School of Medicine profile",
+      "photo": ""
+    },
+    {
+      "name": "Sophia Alarcon-Frias",
+      "initials": "SA",
+      "role": "Researcher",
+      "url": "https://www.umd.edu/",
+      "linkLabel": "UMD-College Park",
+      "photo": ""
+    },
+    {
+      "name": "Jackson St. Aubyn",
+      "initials": "JS",
+      "role": "Yale Undergraduate Student",
+      "url": "https://yalebulldogs.com/sports/football/roster/jackson-st--aubyn/22157",
+      "linkLabel": "Yale student profile",
+      "photo": ""
+    }
+  ]
+}

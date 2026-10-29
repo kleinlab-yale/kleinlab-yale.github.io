@@ -1,0 +1,33 @@
+{
+  "items": [
+    {
+      "date": "February 2026",
+      "text": "Klein Lab receives a 2nd Blavatnik Award for developing ROS1 biologics to treat cancer, following a first-place prize in 2023.",
+      "links": [
+        {
+          "label": "Award news",
+          "url": "https://ventures.yale.edu/news/yales-life-science-community-celebrates-innovation-2023-yale-life-science-pitchfest-4-yale"
+        },
+        {
+          "label": "Original pitch",
+          "url": "https://ventures.yale.edu/yale-technologies/rosevix-rosziqumab-ros1-biologic-invasive-cancers"
+        }
+      ]
+    },
+    {
+      "date": "January 2026",
+      "text": "Nature Communications paper accepted, describing the structural basis for regulating oncogene ROS1 activity.",
+      "links": []
+    },
+    {
+      "date": "December 2025",
+      "text": "Klein Lab awarded the Golden Token by Connecticut Innovations and Yale Ventures to support the foundation of a newco spinout.",
+      "links": [
+        {
+          "label": "Pitchfest 2025 announcement",
+          "url": "https://ventures.yale.edu/news/yale-life-science-pitchfest-2025-breaks-records-attendance-and-awards"
+        }
+      ]
+    }
+  ]
+}

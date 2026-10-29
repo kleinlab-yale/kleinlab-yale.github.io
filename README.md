@@ -1,104 +1,76 @@
-[README.md](https://github.com/user-attachments/files/25271318/README.md)
-# KLAY Lab Website Template
+# Klein Lab at Yale website
 
-A stylish, editable static website template for **Klein Lab at Yale (KLAY)**.
+Live site: https://kleinlab-yale.github.io/
 
-## Files
+Repository: https://github.com/kleinlab-yale/kleinlab-yale.github.io
 
-- `index.html` - page structure and all primary site content (people, publications, tools, news)
-- `styles.css` - visual design, layout, and responsive behavior
-- `script.js` - small interactions only (menu, reveal animation, copyright year)
+Working folder: `/Users/daryl/Documents/ChatGPT/website`
 
-## Quick customization
+The previous source folder is `/Users/daryl/Documents/4/codex/github`. This checkout was restored from the current GitHub repository, which has newer files. Use this working folder for future updates.
 
-1. Edit headline copy, research themes, people, publications, tools, news, and contact info in `index.html`.
-2. Optional: change colors in CSS variables at the top of `styles.css`.
+## Everyday updates
 
-## Manual Instagram Update (Personal Account)
+The homepage reads these editable files. Changes to them appear after GitHub Pages publishes the commit and the visitor refreshes the page.
 
-If your Instagram is a personal account, this template uses a manual 5-card feed:
+| What to change | File |
+| --- | --- |
+| Lab photos and captions | `content/lab.json` |
+| News items | `content/news.json` |
+| Research tools and app links | `content/tools.json` |
+| Lab members, roles, portraits, profile links | `content/people.json` |
+| Photo uploads | `images/uploads/` |
+| Research text, PI biography, alumni, publications, contact information | `index.html` |
+| Design | `styles.css` |
+| Editor configuration | `.pages.yml` |
 
-1. Replace image files in `images/instagram/`:
-   - `post-1.svg` ... `post-5.svg` (you can use `.jpg`/`.png` too)
-2. In `index.html`, in the Instagram section:
-   - update each card `href` to the specific Instagram post URL
-   - update each card `img src` to your matching local image file
-3. Keep the account button linked to your profile:
-   - `https://www.instagram.com/kleinlab_yale/`
+There is no new framework, package installation, or custom server to maintain. The site stays on GitHub Pages. `content.js` renders text safely and retains the static HTML content if a JSON request fails. The HTML fallbacks are a snapshot; refresh them when making source changes. Routine editor updates use the JSON content. JSON errors are reported in the browser console.
 
-## Instagram Single-File Update (Current Setup)
+## One-time editor setup (not yet activated)
 
-You can now update the Instagram feed by editing only:
+1. Publish this prepared update, including `.pages.yml`, `content.js`, all four `content/*.json` files, the updated HTML/CSS/JS, and `images/uploads/.gitkeep`.
+2. Open https://app.pagescms.org and sign in with the GitHub account that owns this repository.
+3. Install/authorize the Pages CMS GitHub App for **only `kleinlab-yale.github.io`**.
+4. Open `kleinlab-yale/kleinlab-yale.github.io` and select `main`.
+5. The configured forms are **Lab photos**, **Lab news**, **Research tools**, and **Lab members**.
 
-- `instagram_links.js`
+The editor is a separate service. Its GitHub sign-in and authorization must be completed by the repository owner. This local preparation does not activate the service or test that authenticated connection.
 
-Format:
+Official setup guide: https://pagescms.org/docs/quick-start/
 
-```js
-window.instagramFeedItems = [
-  { postUrl: "https://www.instagram.com/p/POST_ID/", caption: "Hover text here" }
-];
-```
+## Add a photo from your phone
 
-Notes:
-- `postUrl` can be either `/p/.../` or `/reel/.../`.
-- `caption` is the white text shown on hover.
+After setup, open Pages CMS in your phone browser (you can bookmark it).
+
+1. Open **Lab photos** and add an item under **Photos**.
+2. Select/upload a photo, add a caption, and write a short image description for screen readers.
+3. Optionally add a date and a related link. Put the newest entry first.
+4. Save the changes. The editor commits to GitHub; wait for GitHub Pages to finish publishing, then refresh the site.
+
+Use JPG/JPEG, PNG, WebP, GIF, or AVIF. Convert HEIC to JPEG before upload; HEIC is deliberately excluded because it is not consistently supported by browsers. Resize large phone photos to about 1600–2000 pixels across when practical. Images are displayed in 4:3 frames.
+
+The gallery starts empty because no new lab photos have been supplied. Nothing invented is shown. The existing Instagram posts remain under **Browse highlights from Instagram** and load only when that section is opened. They are selected posts from `instagram_links.js`, not an automatically synchronized feed.
 
 ## Local preview
 
-Open `index.html` directly in your browser, or run a local server:
+Run from this folder:
 
-```bash
-python3 -m http.server 8000
+```sh
+python3 -m http.server 8849 --bind 127.0.0.1
 ```
 
-Then go to `http://localhost:8000`.
+Open http://127.0.0.1:8849. Use the server rather than opening the HTML file directly; browsers restrict local-file JSON requests. Stop the server with Ctrl+C when finished.
 
-## Easiest upload (no terminal)
+## Publishing and repository scope
 
-1. Create a new empty repository on GitHub.
-2. Open the repo page, click **Add file -> Upload files**.
-3. Drag in these 4 files:
-   - `index.html`
-   - `styles.css`
-   - `script.js`
-   - `README.md`
-4. Commit directly to `main`.
-5. Go to **Settings -> Pages**, set:
-   - **Source:** Deploy from a branch
-   - **Branch:** `main` and `/ (root)`
-6. Save and wait 1-3 minutes for your site URL.
+Changes prepared here are on `codex/website-refresh`. They are not live until pushed and published by GitHub Pages. The MIXA URL is https://kleinlab-yale-mixa.streamlit.app/.
 
-## Deploy to GitHub Pages
+This is a sparse checkout: the root website files and `images/` are present. The same repository also hosts independent apps and games. Their folders remain in GitHub and are not part of this homepage refresh. Do not replace the entire repository with this local folder. Commit only the intended website changes.
 
-From this folder:
+Before publishing, fetch the latest `main` and reconcile any newer changes. Use an authenticated Git client or the GitHub editor/upload interface. The connected GitHub integration returned a write-permission error during preparation; local HTTPS Git also had no available login. No deployment was completed.
 
-```bash
-git init
-git add .
-git commit -m "Initial KLAY website template"
-git branch -M main
-git remote add origin https://github.com/<YOUR-USERNAME>/<YOUR-REPO>.git
-git push -u origin main
-```
+## Validation
 
-Then in GitHub:
-
-1. Open your repository.
-2. Go to **Settings -> Pages**.
-3. Under **Build and deployment**, choose:
-   - **Source:** Deploy from a branch
-   - **Branch:** `main` and `/ (root)`
-4. Save. Your site will publish in about 1-3 minutes.
-
-Your URL will be one of:
-
-- `https://<YOUR-USERNAME>.github.io/<YOUR-REPO>/` (project site)
-- `https://<YOUR-USERNAME>.github.io/` (if repo name is `<YOUR-USERNAME>.github.io`)
-
-## Next edits you may want
-
-- Add real photos (PI, team, lab spaces)
-- Add a full publications page
-- Add a detailed "Open Positions" section
-- Connect a custom domain later (optional)
+- Check JavaScript syntax with `node --check script.js` and `node --check content.js`.
+- Validate all `content/*.json` as JSON, and check `.pages.yml` as YAML.
+- Preview desktop and phone layouts, verify MIXA opens the Streamlit app, and test the photo gallery and Instagram disclosure.
+- All existing scientific copy and research-tool destinations other than MIXA are preserved.
