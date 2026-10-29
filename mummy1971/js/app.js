@@ -9,11 +9,11 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=16';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=16';
-import { Mummy3DView } from './view_3d.js?v=16';
-import { Mummy2DView } from './view_2d.js?v=16';
-import { MultiplayerManager } from './multiplayer.js?v=16';
+} from './board_data.js?v=17';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=17';
+import { Mummy3DView } from './view_3d.js?v=17';
+import { Mummy2DView } from './view_2d.js?v=17';
+import { MultiplayerManager } from './multiplayer.js?v=17';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -1228,6 +1228,16 @@ class VoiceOfTheMummyApp {
   }
 
   _onClientReceiveEvent(event) {
+    if (event.type === 'player_moved' && this.activeState?.players) {
+      const movedPlayer = this.activeState.players.find((pl) => pl.id === event.playerId);
+      const targetSp = event.toSpaceId ? SPACES_BY_ID[event.toSpaceId] : null;
+      if (movedPlayer && targetSp) {
+        movedPlayer.spaceId = targetSp.id;
+        movedPlayer.level = targetSp.level;
+        this.activeState.moveOptions = null;
+        this.view2D.syncWithState(this.activeState);
+      }
+    }
     this._playVisualAndAudioEvent(event);
   }
 
@@ -1279,13 +1289,13 @@ class VoiceOfTheMummyApp {
 
       case 'player_moved':
         this._playSfx('step');
-        this.view3D.animateExplorerPath(event.playerId, event.path);
+        this.view3D.animateExplorerPath(event.playerId, event.path, event.fromSpaceId);
         break;
 
       case 'jewel_collected':
         this._playSfx('jewel');
         if (event.jewelMesh) {
-          this.view3D.animateJewelCollection(event.jewelMesh, event.playerId);
+          this.view3D.animateJewelCollection(event.jewelMesh, event.playerId, event.slotIndex);
         }
         break;
 

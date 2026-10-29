@@ -373,6 +373,7 @@ export class VoiceOfTheMummyEngine {
       playerId: player.id,
       spaceId,
       jewelMesh: sp.jewelMesh,
+      slotIndex: Math.max(0, player.collectedMeshes.length - 1),
     });
     this._checkTopLevelJewelsUnlocked();
     return true;

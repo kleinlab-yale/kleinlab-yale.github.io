@@ -2207,7 +2207,7 @@ export class Mummy3DView {
     });
   }
 
-  animateExplorerPath(playerId, pathSpaceIds) {
+  animateExplorerPath(playerId, pathSpaceIds, fromSpaceId = null) {
     if (this.fallbackMode || !this.THREE) return;
     const THREE = this.THREE;
     const expObj = this.explorers[playerId];
@@ -2218,7 +2218,20 @@ export class Mummy3DView {
     this.userPausedFollowUntilNextMove = false;
     this.activeMovingExplorerId = playerId;
 
-    const waypoints = [expObj.position.clone()];
+    const existingPlayer = this.currentGameState?.players?.find((pl) => pl.id === playerId);
+    let startPos = expObj.position.clone();
+    if (fromSpaceId && SPACES_BY_ID[fromSpaceId] && !this._hasActiveAnimFor(expObj)) {
+      const fromVirtual = { ...(existingPlayer || {}), id: playerId, spaceId: fromSpaceId };
+      const fromOcc = (this.currentGameState?.players || []).filter(
+        (pl) => pl.id === playerId || pl.spaceId === fromSpaceId
+      );
+      startPos = this._getExplorerWorldPosition(
+        fromVirtual,
+        fromOcc.length > 0 ? fromOcc : [fromVirtual]
+      );
+    }
+
+    const waypoints = [startPos];
     for (const spId of pathSpaceIds) {
       const sp = SPACES_BY_ID[spId];
       if (sp) {
@@ -2227,12 +2240,20 @@ export class Mummy3DView {
       }
     }
 
-    if (this.currentGameState) {
-      const player = this.currentGameState.players.find((pl) => pl.id === playerId);
-      if (player) {
-        const occ = this.currentGameState.players.filter((pl) => pl.spaceId === player.spaceId);
-        waypoints[waypoints.length - 1] = this._getExplorerWorldPosition(player, occ);
-      }
+    // IMPORTANT: Always compute final waypoint using the destination space from pathSpaceIds
+    // (NOT this.currentGameState.players[...].spaceId, which on a Guest client may still hold the pre-move spaceId!)
+    const finalSpaceId = pathSpaceIds[pathSpaceIds.length - 1];
+    if (finalSpaceId && SPACES_BY_ID[finalSpaceId]) {
+      const movedPlayer = {
+        ...(existingPlayer || {}),
+        id: playerId,
+        spaceId: finalSpaceId,
+      };
+      const otherOccupants = (this.currentGameState?.players || []).filter(
+        (pl) => pl.id !== playerId && pl.spaceId === finalSpaceId
+      );
+      const occ = [...otherOccupants, movedPlayer];
+      waypoints[waypoints.length - 1] = this._getExplorerWorldPosition(movedPlayer, occ);
     }
 
     const totalSegs = waypoints.length - 1;
@@ -2254,20 +2275,34 @@ export class Mummy3DView {
         const p1 = waypoints[segIdx + 1];
         expObj.position.lerpVectors(p0, p1, localT);
         expObj.position.y += Math.sin(localT * Math.PI) * 0.22;
-        if (overallT >= 1 && this.activeMovingExplorerId === playerId) {
-          this.activeMovingExplorerId = null;
+        if (overallT >= 1) {
+          if (this.activeMovingExplorerId === playerId) {
+            this.activeMovingExplorerId = null;
+          }
+          // Snap cleanly to the final destination (or authoritative state if updated)
+          expObj.position.copy(waypoints[waypoints.length - 1]);
+          if (this.currentGameState) {
+            const authPlayer = this.currentGameState.players.find((pl) => pl.id === playerId);
+            if (authPlayer && authPlayer.spaceId === finalSpaceId) {
+              const authOcc = this.currentGameState.players.filter((pl) => pl.spaceId === authPlayer.spaceId);
+              expObj.position.copy(this._getExplorerWorldPosition(authPlayer, authOcc));
+            }
+          }
         }
         return overallT >= 1;
       },
     });
   }
 
-  animateJewelCollection(jewelMeshName, toPlayerId) {
+  animateJewelCollection(jewelMeshName, toPlayerId, explicitSlotIdx = null) {
     if (this.fallbackMode) return;
     const meshObj = this.scarabMeshes[jewelMeshName];
-    if (!meshObj || !this.currentGameState) return;
-    const player = this.currentGameState.players.find((p) => p.id === toPlayerId);
-    const slotIdx = Math.max(0, (player?.collectedMeshes?.length || 1) - 1);
+    if (!meshObj) return;
+    const player = this.currentGameState?.players?.find((p) => p.id === toPlayerId);
+    const slotIdx =
+      typeof explicitSlotIdx === 'number'
+        ? Math.max(0, explicitSlotIdx)
+        : Math.max(0, (player?.collectedMeshes?.length || 1) - 1);
     const startPos = meshObj.position.clone();
     const endPos = this._getHolderGemPosition(toPlayerId, slotIdx);
     const startTime = performance.now();
@@ -2282,6 +2317,9 @@ export class Mummy3DView {
         meshObj.position.lerpVectors(startPos, endPos, ease);
         meshObj.position.y += Math.sin(ease * Math.PI) * 1.45;
         meshObj.rotation.y += 0.14;
+        if (t >= 1) {
+          meshObj.position.copy(endPos);
+        }
         return t >= 1;
       },
     });
