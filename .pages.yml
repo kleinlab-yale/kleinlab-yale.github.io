@@ -44,7 +44,7 @@ content:
           - name: url
             label: Read more link (optional)
             type: string
-            pattern: '^https?://'
+            pattern: '^(https?://.*)?$'
 
   - name: news
     label: Lab news
@@ -118,13 +118,10 @@ content:
             label: Button text
             type: string
             required: true
-          - name: featured
-            label: Feature this tool
-            type: boolean
           - name: backupUrl
             label: Alternative app address (optional)
             type: string
-            pattern: '^https?://'
+            pattern: '^(https?://.*)?$'
           - name: backupLabel
             label: Alternative button text (optional)
             type: string
@@ -164,7 +161,7 @@ content:
           - name: url
             label: Profile address (optional)
             type: string
-            pattern: '^https?://'
+            pattern: '^(https?://.*)?$'
           - name: linkLabel
             label: Profile link text
             type: string

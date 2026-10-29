@@ -62,7 +62,7 @@ Open http://127.0.0.1:8849. Use the server rather than opening the HTML file dir
 
 ## Publishing and repository scope
 
-The public website publishes from `main`. Source changes can be prepared on `codex/website-refresh`; publish them to `main` after validation. MIXA has two launch buttons: https://kleinlab-yale-mixa.streamlit.app/ and https://huggingface.co/spaces/Ewaldssphere/MIXA_beta0.3. The homepage Run MIXA button leads to this choice. Both addresses and button labels are editable under Research tools.
+The public website publishes from `main`. Source changes can be prepared on `codex/website-refresh`; publish them to `main` after validation. MIXA has two launch buttons: https://kleinlab-yale-mixa.streamlit.app/ and https://huggingface.co/spaces/Ewaldssphere/MIXA_beta0.3. Both buttons appear only in the Tools section, alongside the other lab tools. The introduction focuses on the lab, followed by the lab-life photo section. Both addresses and button labels are editable under Research tools.
 
 This is a sparse checkout: the root website files and `images/` are present. The same repository also hosts independent apps and games. Their folders remain in GitHub and are not part of this homepage refresh. Do not replace the entire repository with this local folder. Commit only the intended website changes.
 
