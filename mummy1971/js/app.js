@@ -9,11 +9,11 @@ import {
   SPACES_BY_ID,
   SIDE_A_TRACKS,
   SIDE_B_TRACKS,
-} from './board_data.js?v=19';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=19';
-import { Mummy3DView } from './view_3d.js?v=19';
-import { Mummy2DView } from './view_2d.js?v=19';
-import { MultiplayerManager } from './multiplayer.js?v=19';
+} from './board_data.js?v=22';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=22';
+import { Mummy3DView } from './view_3d.js?v=22';
+import { Mummy2DView } from './view_2d.js?v=22';
+import { MultiplayerManager } from './multiplayer.js?v=22';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -315,6 +315,22 @@ class VoiceOfTheMummyApp {
       }
     });
 
+    // Toggle Collapsible "Advanced Bot Settings" Tab in Single Player Setup
+    document.getElementById('btn-toggle-single-advanced')?.addEventListener('click', () => {
+      const panel = document.getElementById('single-advanced-panel');
+      const btn = document.getElementById('btn-toggle-single-advanced');
+      const chev = document.getElementById('single-advanced-chevron');
+      if (!panel) return;
+      const isNowOpen = panel.classList.toggle('hidden') === false;
+      if (btn) {
+        btn.classList.toggle('open', isNowOpen);
+        btn.setAttribute('aria-expanded', String(isNowOpen));
+      }
+      if (chev) {
+        chev.textContent = isNowOpen ? '▴' : '▾';
+      }
+    });
+
     // Single Player Bot Count Pills (1 Bot, 2 Bots, 3 Bots)
     document.querySelectorAll('[data-single-bot-count]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -536,6 +552,15 @@ class VoiceOfTheMummyApp {
   _openSingleSetupModal() {
     this._renderSingleCharacterPicker();
     this._renderSingleBotPicker();
+    // Always start with the Advanced Bot Settings tab collapsed for a clean, instant "Pick Piece -> Enter Name -> Start Playing" flow
+    document.getElementById('single-advanced-panel')?.classList.add('hidden');
+    const advBtn = document.getElementById('btn-toggle-single-advanced');
+    if (advBtn) {
+      advBtn.classList.remove('open');
+      advBtn.setAttribute('aria-expanded', 'false');
+    }
+    const chev = document.getElementById('single-advanced-chevron');
+    if (chev) chev.textContent = '▾';
     document.getElementById('modal-single-setup')?.classList.remove('hidden');
   }
 
@@ -596,6 +621,10 @@ class VoiceOfTheMummyApp {
     document.querySelectorAll('[data-single-bot-count]').forEach((btn) => {
       btn.classList.toggle('active', Number(btn.dataset.singleBotCount) === activeBotCount);
     });
+    const summaryEl = document.getElementById('single-advanced-summary');
+    if (summaryEl) {
+      summaryEl.textContent = `(${activeBotCount} Bot${activeBotCount === 1 ? '' : 's'} • Right/Left & Even/Odd)`;
+    }
 
     container.innerHTML = availableConfigs
       .map((cfg) => {
@@ -1346,14 +1375,33 @@ class VoiceOfTheMummyApp {
 
       case 'jewel_transferred': {
         this._playSfx('jewel');
+        if (event.jewelMesh) {
+          this.view3D.animateJewelCollection(event.jewelMesh, event.toPlayerId, event.slotIndex);
+        }
         const fromName = this._getPlayerDisplayName(event.fromPlayerId);
         const toName = this._getPlayerDisplayName(event.toPlayerId);
-        this._showBigEventPopup({
-          theme: 'emerald',
-          icon: '💎',
-          title: `${toName.toUpperCase()} STOLE A GEM!`,
-          subtitle: `Took 1 Precious Scarab Gem from ${fromName}`,
-        });
+        if (event.reason === 'robot_no_blood') {
+          this._showBigEventPopup({
+            theme: 'emerald',
+            icon: '🤖💎',
+            title: `ROBOT NEVER TASTED BLOOD — GAVE 1 GEM!`,
+            subtitle: `${fromName} gave 1 Precious Scarab Gem to ${toName}!`,
+          });
+        } else if (event.reason === 'gave') {
+          this._showBigEventPopup({
+            theme: 'emerald',
+            icon: '💎',
+            title: `${fromName.toUpperCase()} GAVE 1 GEM TO ${toName.toUpperCase()}!`,
+            subtitle: `Obeyed the Voice of the Mummy (1 Precious Scarab Gem)`,
+          });
+        } else {
+          this._showBigEventPopup({
+            theme: 'emerald',
+            icon: '💎',
+            title: `${toName.toUpperCase()} STOLE A GEM!`,
+            subtitle: `Took 1 Precious Scarab Gem from ${fromName}`,
+          });
+        }
         break;
       }
 

@@ -1769,8 +1769,20 @@ export class Mummy3DView {
     const winnerExp = this.explorers[winnerId];
     if (!winnerExp) return;
 
+    // Determine the Winner's FINAL board destination (since animateExplorerPath may still be mid-hop to the Home Temple!)
+    let wPos = winnerExp.userData?.finalTargetPos
+      ? winnerExp.userData.finalTargetPos.clone()
+      : winnerExp.position.clone();
+    if (this.currentGameState?.players) {
+      const winnerPlayer = this.currentGameState.players.find((pl) => pl.id === winnerId);
+      if (winnerPlayer) {
+        const occ = this.currentGameState.players.filter((pl) => pl.spaceId === winnerPlayer.spaceId);
+        wPos = this._getExplorerWorldPosition(winnerPlayer, occ);
+      }
+    }
+
     this.victoryWinnerId = winnerId;
-    this.victoryBaseY = winnerExp.position.y;
+    this.victoryBaseY = wPos.y;
     this.userPausedFollowUntilNextMove = true;
 
     // Tilt losing explorers on the board in defeat
@@ -1781,8 +1793,7 @@ export class Mummy3DView {
       }
     }
 
-    // Swoop camera to frame the Winner and the Pyramid
-    const wPos = winnerExp.position.clone();
+    // Swoop camera to frame the Winner at their final location and the Pyramid
     const radial = new THREE.Vector3(wPos.x, 0, wPos.z);
     if (radial.lengthSq() < 0.001) radial.set(-0.707, 0, -0.707);
     else radial.normalize();
@@ -1799,9 +1810,10 @@ export class Mummy3DView {
     );
     this._transitionCamera(camPos, lookTarget, 950);
 
-    // Build Golden Pharaoh Sunbeam & Gem Fountain Group
+    // Build Golden Pharaoh Sunbeam & Gem Fountain Group positioned directly at the Winner's final location (wPos)
     const group = new THREE.Group();
     group.name = 'VictoryCelebrationGroup';
+    group.position.copy(wPos);
 
     const beamGeo = new THREE.CylinderGeometry(0.32, 0.52, 6.5, 24, 1, true);
     const beamMat = new THREE.MeshBasicMaterial({
@@ -1813,7 +1825,7 @@ export class Mummy3DView {
       blending: THREE.AdditiveBlending,
     });
     const beamMesh = new THREE.Mesh(beamGeo, beamMat);
-    beamMesh.position.set(wPos.x, wPos.y + 3.1, wPos.z);
+    beamMesh.position.set(0, 3.1, 0);
     group.add(beamMesh);
 
     const ringGeo = new THREE.RingGeometry(0.22, 0.56, 32);
@@ -1826,11 +1838,11 @@ export class Mummy3DView {
     });
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);
     ringMesh.rotation.x = -Math.PI / 2;
-    ringMesh.position.set(wPos.x, wPos.y + 0.02, wPos.z);
+    ringMesh.position.set(0, 0.02, 0);
     group.add(ringMesh);
 
     const winLight = new THREE.PointLight(0xffe066, 3.2, 4.5);
-    winLight.position.set(wPos.x, wPos.y + 1.2, wPos.z);
+    winLight.position.set(0, 1.2, 0);
     group.add(winLight);
 
     // 28 Upright Pointed Diamond (💎) 3D Crystals with crisp facet edge lines raining around the Winner
@@ -1865,17 +1877,15 @@ export class Mummy3DView {
       const angle = (i / 28) * Math.PI * 2 + Math.random() * 0.4;
       const radius = 0.28 + Math.random() * 1.15;
       gem.position.set(
-        wPos.x + Math.cos(angle) * radius,
-        wPos.y + 0.4 + Math.random() * 3.2,
-        wPos.z + Math.sin(angle) * radius
+        Math.cos(angle) * radius,
+        0.4 + Math.random() * 3.2,
+        Math.sin(angle) * radius
       );
       group.add(gem);
       this.victoryGems.push({
         mesh: gem,
-        baseX: wPos.x + Math.cos(angle) * radius,
-        baseZ: wPos.z + Math.sin(angle) * radius,
-        minY: wPos.y + 0.18,
-        maxY: wPos.y + 3.4,
+        minY: 0.18,
+        maxY: 3.4,
         speedY: 1.15 + Math.random() * 1.25,
         rotSpeed: 1.8 + Math.random() * 2.4,
         seed: i * 0.7,
@@ -2282,6 +2292,8 @@ export class Mummy3DView {
       waypoints[waypoints.length - 1] = this._getExplorerWorldPosition(movedPlayer, occ);
     }
 
+    expObj.userData.finalTargetPos = waypoints[waypoints.length - 1].clone();
+
     const totalSegs = waypoints.length - 1;
     const segDuration = Math.min(180, Math.max(95, 650 / totalSegs));
     const totalDuration = totalSegs * segDuration;
@@ -2456,12 +2468,18 @@ export class Mummy3DView {
       this.dustParticles.rotation.y = sec * 0.018;
     }
 
-    // Animate 3D Victory Celebration (Winner jumping + 32 Faceted Gems raining around Winner)
+    // Animate 3D Victory Celebration (Winner jumping + 28 Faceted Gems raining around Winner)
     if (this.victoryWinnerId && this.explorers[this.victoryWinnerId]) {
       const wExp = this.explorers[this.victoryWinnerId];
-      const baseY = this.victoryBaseY ?? 0.36;
-      wExp.position.y = baseY + Math.abs(Math.sin(sec * 6.5)) * 0.34;
-      wExp.rotation.y = Math.sin(sec * 3.2) * 0.35;
+      // Wait until the winning hop animation into the Home Temple finishes before bouncing in place
+      if (!this._hasActiveAnimFor(wExp)) {
+        const baseY = this.victoryBaseY ?? 0.36;
+        wExp.position.y = baseY + Math.abs(Math.sin(sec * 6.5)) * 0.34;
+        wExp.rotation.y = Math.sin(sec * 3.2) * 0.35;
+        if (this.victoryCelebrationGroup) {
+          this.victoryCelebrationGroup.position.set(wExp.position.x, baseY, wExp.position.z);
+        }
+      }
     }
     if (this.victoryGems && this.victoryGems.length > 0) {
       for (const vg of this.victoryGems) {

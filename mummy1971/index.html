@@ -16,7 +16,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="css/styles.css?v=19" />
+  <link rel="stylesheet" href="css/styles.css?v=22" />
   <!-- PeerJS for Serverless WebRTC P2P Multiplayer on GitHub Pages -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
 </head>
@@ -207,21 +207,27 @@
             <input type="text" id="input-single-name" class="mp-name-big-input" placeholder="Type your name (or leave blank for 'You')..." value="" />
           </div>
 
-          <div class="mp-step-field">
-            <label class="mp-step-label">3. How Many AI Bots &amp; Which Colors Are Playing?</label>
-            <div class="mp-count-pills-row">
-              <button type="button" class="mp-count-pill" data-single-bot-count="1">🤖 1 Bot</button>
-              <button type="button" class="mp-count-pill" data-single-bot-count="2">🤖 2 Bots</button>
-              <button type="button" class="mp-count-pill active" data-single-bot-count="3">🤖 3 Bots (All)</button>
-            </div>
-            <div class="single-bot-sublabel">Tap any Explorer card below to choose which colors are AI Bots:</div>
-            <div id="single-bot-picker" class="single-bot-picker-grid"></div>
-          </div>
-
           <div class="mp-step1-actions">
             <button type="button" class="btn-primary-action pulse-gold" id="btn-start-single-game">
-              🎲 Start Tomb Expedition ➔
+              🎲 Start Playing ➔
             </button>
+            <button type="button" class="btn-single-advanced-tab" id="btn-toggle-single-advanced" aria-expanded="false">
+              ⚙️ Advanced Bot Settings <span id="single-advanced-summary">(3 Bots • Right/Left &amp; Even/Odd)</span> <span id="single-advanced-chevron">▾</span>
+            </button>
+          </div>
+
+          <!-- Hidden by default: Advanced Bot Count, Bot Color Selection & Honest Trait Settings -->
+          <div id="single-advanced-panel" class="single-advanced-panel hidden">
+            <div class="mp-step-field">
+              <label class="mp-step-label">How Many AI Bots &amp; Which Colors Are Playing?</label>
+              <div class="mp-count-pills-row">
+                <button type="button" class="mp-count-pill" data-single-bot-count="1">🤖 1 Bot</button>
+                <button type="button" class="mp-count-pill" data-single-bot-count="2">🤖 2 Bots</button>
+                <button type="button" class="mp-count-pill active" data-single-bot-count="3">🤖 3 Bots (All)</button>
+              </div>
+              <div class="single-bot-sublabel">Tap any Explorer card below to turn that Bot On/Off or customize their Right/Left-Handed &amp; Even/Odd traits:</div>
+              <div id="single-bot-picker" class="single-bot-picker-grid"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -461,6 +467,6 @@
   </div>
 
   <!-- Main Application Script -->
-  <script type="module" src="js/app.js?v=19"></script>
+  <script type="module" src="js/app.js?v=22"></script>
 </body>
 </html>

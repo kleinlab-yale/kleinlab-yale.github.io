@@ -404,7 +404,7 @@ export class VoiceOfTheMummyEngine {
     return taken;
   }
 
-  _transferJewelBetweenPlayers(fromPlayer, toPlayer) {
+  _transferJewelBetweenPlayers(fromPlayer, toPlayer, reason = 'stole') {
     if (fromPlayer.jewels <= 0) return false;
     fromPlayer.jewels -= 1;
     toPlayer.jewels += 1;
@@ -416,6 +416,8 @@ export class VoiceOfTheMummyEngine {
       fromPlayerId: fromPlayer.id,
       toPlayerId: toPlayer.id,
       jewelMesh: meshName || null,
+      slotIndex: Math.max(0, toPlayer.collectedMeshes.length - 1),
+      reason,
     });
     return true;
   }
@@ -522,7 +524,7 @@ export class VoiceOfTheMummyEngine {
           this.state.activeTrack = null;
           this._checkEndTurnLevelChange();
         } else if (opponents.length === 1) {
-          this._transferJewelBetweenPlayers(player, opponents[0]);
+          this._transferJewelBetweenPlayers(player, opponents[0], 'gave');
           this._log(`${player.name} gave 1 Precious Jewel to ${opponents[0].name}.`, 'jewel');
           this.state.activeTrack = null;
           this._checkEndTurnLevelChange();
@@ -542,9 +544,32 @@ export class VoiceOfTheMummyEngine {
       case 'give_to_one_opponent_conditional': {
         if (player.jewels <= 0) {
           this._log(
-            `Special Rule 1: ${player.name} has no Jewels, so the Mummy cannot make them give one up!`,
+            player.control === 'ai'
+              ? `🤖 ${player.name} is a Robot and has NEVER tasted blood, but has 0 Jewels to give (Special Rule 1)!`
+              : `Special Rule 1: ${player.name} has no Jewels, so the Mummy cannot make them give one up!`,
             'info'
           );
+          if (player.control === 'ai') {
+            this._emitEvent('major_announcement', {
+              theme: 'gold',
+              icon: '🤖',
+              title: `${player.name.toUpperCase()} NEVER TASTED BLOOD!`,
+              subtitle: `Robot has 0 Scarab Gems to give (Special Rule 1)`,
+            });
+          }
+          this.state.activeTrack = null;
+          this._checkEndTurnLevelChange();
+        } else if (player.control === 'ai') {
+          // None of the Robot players have EVER tasted blood! Immediately give 1 Jewel to an opponent.
+          const humanOpps = opponents.filter((o) => o.control === 'human');
+          const targetOpp = humanOpps[0] || opponents[0];
+          if (targetOpp) {
+            this._transferJewelBetweenPlayers(player, targetOpp, 'robot_no_blood');
+            this._log(
+              `🤖 ${player.name} is a Robot and has NEVER tasted blood — gave 1 Precious Jewel to ${targetOpp.name}!`,
+              'jewel'
+            );
+          }
           this.state.activeTrack = null;
           this._checkEndTurnLevelChange();
         } else {
@@ -684,7 +709,7 @@ export class VoiceOfTheMummyEngine {
         const sameLvlOpps = opponents.filter((o) => o.level === player.level);
         let count = 0;
         for (const opp of sameLvlOpps) {
-          if (player.jewels > 0 && this._transferJewelBetweenPlayers(player, opp)) {
+          if (player.jewels > 0 && this._transferJewelBetweenPlayers(player, opp, 'gave')) {
             count++;
           }
         }
@@ -812,9 +837,17 @@ export class VoiceOfTheMummyEngine {
     }
 
     if (choice.type === 'tasted_blood_check') {
-      if (optionId === 'no') {
+      // Robot / AI players have NEVER tasted blood! Enforce 'no' for all AI Bots.
+      const effectiveOpt = player.control === 'ai' ? 'no' : optionId;
+      if (effectiveOpt === 'no') {
+        if (player.control === 'ai') {
+          this._log(
+            `🤖 ${player.name} is a Robot and has NEVER tasted blood — must give 1 Precious Jewel to an opponent!`,
+            'info'
+          );
+        }
         if (opponents.length === 1) {
-          this._transferJewelBetweenPlayers(player, opponents[0]);
+          this._transferJewelBetweenPlayers(player, opponents[0], 'gave');
           this._log(`${player.name} gave 1 Precious Jewel to ${opponents[0].name}.`, 'jewel');
           this.state.activeTrack = null;
           this._checkEndTurnLevelChange();
@@ -859,7 +892,7 @@ export class VoiceOfTheMummyEngine {
 
     if (choice.type === 'choose_opponent_give_jewel') {
       const opp = opponents.find((o) => o.id === optionId) || opponents[0];
-      if (opp && this._transferJewelBetweenPlayers(player, opp)) {
+      if (opp && this._transferJewelBetweenPlayers(player, opp, 'gave')) {
         this._log(`${player.name} gave 1 Precious Jewel to ${opp.name}.`, 'jewel');
       }
       this.state.activeTrack = null;
@@ -1216,7 +1249,8 @@ export class VoiceOfTheMummyEngine {
           }
         }
         if (choice.type === 'tasted_blood_check') {
-          return { action: 'choice', optionId: player.tastedBlood ? 'yes' : 'no' };
+          // Robot / AI players have NEVER tasted blood!
+          return { action: 'choice', optionId: 'no' };
         }
 
         // Prefer giving spell, taking extra turn, or taking jewels
