@@ -1,0 +1,34 @@
+{
+  "version": "0.5.10-preview",
+  "section": "performance",
+  "created_utc": "2026-10-21T01:38:00.681458+00:00",
+  "seed": 20362026,
+  "protocol": {
+    "section": "performance",
+    "repeats": 3,
+    "draws": 400,
+    "warmup": 2000,
+    "runtime": 30.0
+  },
+  "production_code_sha256": {
+    "mixa_mechanisms.py": "a3bf6c0a5b2e7b0e9a800830342e5c79f05cde3d48cd3b1273b61b5b7664ded2",
+    "mixa_science.py": "eb5c2490eb7292a1bd63af6a3381d1a9b4904b81f31bf933a1a134f1d13e23be",
+    "mixa_uncertainty.py": "3d1051f390503f47dacd3ec9376d84e7fea9e1e7f4f66225b103e90340a6c7d2",
+    "mixa_input_uncertainty.py": "a0db184c02b67945268816bbd84934f14d65227b4afac9facaedb62261e30b8a"
+  },
+  "validation_code_sha256": {
+    "audits/validate_frontier.py": "22ee48496711c6744370afb1f6e883976641dda9b4be4489174b2d96ac1a8b8b",
+    "audits/validate_refit_review.py": "3c1f3257d3cfe379cb66d1709bb8f2a4e4c912710331a76c07383f9826b057a2",
+    "audits/validate_input_uncertainty.py": "c351a82356ed80cb56fc8093fbca4a49ed888bd1e6308e73239547aba2e9c5fe",
+    "validation/reference_simulator.py": "dbc94501d5ea5aede75d563623e606ed60ba2f5de9da752e1e32dba65cb63b22"
+  },
+  "converged": 30,
+  "complete_search": 30,
+  "requested": 30,
+  "scope": "Same ten prespecified designs, independent reaction-network generator, software-default plus two broad free starts, same seeds and 30-second budget as 0.5.9 when --runtime 30 is used. One effective response-to-M transport calibration remains supplied. Prediction timings are single-call descriptive measurements, not a hardware-normalized speed guarantee. Radau and LSODA coincide on analytic paths. Prediction accuracy is separate from parameter resolution.",
+  "raw_sha256": {
+    "blind_estimates.csv": "c6cbabcee7db2282c186528a763789e7e6ae4a810ad595d4cd791978785adc21",
+    "prediction_accuracy.csv": "e92b8b9da3ebfcaf72ac857ba232d6ddd4debeb78cd24aca15e5de1ca0a02c8f",
+    "runs.json": "09d27c09a5a1e2a9c934605ce1b939a93872581b5f725fef3b236362dc285ca2"
+  }
+}

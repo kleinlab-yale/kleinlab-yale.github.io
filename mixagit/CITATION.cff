@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+title: "MIXA: Transparent Mechanistic, Equilibrium, and Hierarchical Statistical Analysis of SPR and BLI Binding Data"
+message: "If you use MIXA in published research, please cite the software version, archive the exported reproducibility package (including analysis_code_sha256.json and methods/equations_and_sources.json), and cite the applicable primary methodological references."
+type: software
+version: "0.5.10-preview"
+date-released: "2026-10-29"
+license: MIT
+authors:
+  - name: "MIXA Contributors"
+keywords:
+  - surface plasmon resonance
+  - bio-layer interferometry
+  - binding kinetics
+  - equilibrium isotherm
+  - single-cycle kinetics
+  - mass transport
+  - uncertainty propagation
+  - hierarchical Bayesian inference
+  - reproducible research
+abstract: >-
+  MIXA (Molecular Interaction Kinetics & Affinity Analyzer) is an open-source
+  scientific platform and Python library for transparent kinetic and equilibrium
+  analysis of Surface Plasmon Resonance (SPR) and Bio-Layer Interferometry (BLI)
+  sensorgrams. It provides explicit reaction and mass-transport ODE/analytic
+  models (1:1 Langmuir, two-state conformational change, heterogeneous ligand,
+  bivalent analyte, sequential two-step binding, and Karlsson single-cycle
+  kinetics), strict separation of measurement uncertainty (JCGM 100/102
+  shared-control and stock/dilution covariance, measured-baseline propagation,
+  profile likelihood, and parametric bootstrap calibration) from independent-repeat
+  statistics and 4-chain hierarchical Bayesian joint repeat inference, and
+  self-contained cryptographic reproducibility exports.

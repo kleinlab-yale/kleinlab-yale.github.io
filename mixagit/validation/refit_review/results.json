@@ -1,0 +1,273 @@
+{
+  "version": "0.5.9-preview",
+  "created_utc": "2026-10-20T18:37:31.079006+00:00",
+  "seed": 10202026,
+  "protocol": {
+    "coverage_experiments_per_scenario": 100,
+    "scenarios": 3,
+    "inner_draws": 400,
+    "blind_experiments_per_scenario": 3,
+    "blind_scenarios": 10,
+    "blind_runtime": 30.0
+  },
+  "production_code_sha256": {
+    "mixa_inference.py": "6e1c60155bf40e2d92e106c2e3a7665051433512cc60c826cd2826dad0fea84c",
+    "mixa_mechanisms.py": "485f66ab2e95f22300ba19599dcd5dfc23a8b0422932c782eee277879ea51721",
+    "mixa_science.py": "eb5c2490eb7292a1bd63af6a3381d1a9b4904b81f31bf933a1a134f1d13e23be",
+    "mixa_uncertainty.py": "3d1051f390503f47dacd3ec9376d84e7fea9e1e7f4f66225b103e90340a6c7d2",
+    "mixa_input_uncertainty.py": "a0db184c02b67945268816bbd84934f14d65227b4afac9facaedb62261e30b8a",
+    "mixa_automation.py": "1c12de6f6a11503e76e1777eae8f81c0efeff9d8dc1ee1e1a5b04325042b7705",
+    "mixa_data.py": "530d22714953c3e0da6cbf2f2a64e681d34d7a1b876a50330690562662e08767"
+  },
+  "validation_code_sha256": {
+    "audits/validate_refit_review.py": "3c1f3257d3cfe379cb66d1709bb8f2a4e4c912710331a76c07383f9826b057a2",
+    "validation/reference_simulator.py": "dbc94501d5ea5aede75d563623e606ed60ba2f5de9da752e1e32dba65cb63b22",
+    "audits/validate_input_uncertainty.py": "c351a82356ed80cb56fc8093fbca4a49ed888bd1e6308e73239547aba2e9c5fe",
+    "audits/validate_methods.py": "a1856c835fbfacd595244f5ed466c210286b3e480508b75d960e25026fb4203c"
+  },
+  "summaries": [
+    {
+      "scenario": "measured_baseline_IID",
+      "parameter": "kon",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 92,
+        "fraction": 0.92,
+        "mc95_low": 0.8500189229905127,
+        "mc95_high": 0.9589065385156194
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 92,
+        "fraction": 0.92,
+        "mc95_low": 0.8500189229905127,
+        "mc95_high": 0.9589065385156194
+      },
+      "mean_relative_bias": -2.2988013902154324e-05
+    },
+    {
+      "scenario": "measured_baseline_IID",
+      "parameter": "koff",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 92,
+        "fraction": 0.92,
+        "mc95_low": 0.8500189229905127,
+        "mc95_high": 0.9589065385156194
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 92,
+        "fraction": 0.92,
+        "mc95_low": 0.8500189229905127,
+        "mc95_high": 0.9589065385156194
+      },
+      "mean_relative_bias": 0.00042071782578302576
+    },
+    {
+      "scenario": "measured_baseline_IID",
+      "parameter": "KD_nM",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 91,
+        "fraction": 0.91,
+        "mc95_low": 0.837737871472837,
+        "mc95_high": 0.9519274599974348
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 91,
+        "fraction": 0.91,
+        "mc95_low": 0.837737871472837,
+        "mc95_high": 0.9519274599974348
+      },
+      "mean_relative_bias": 0.0005023221348345896
+    },
+    {
+      "scenario": "measured_baseline_OU",
+      "parameter": "kon",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 98,
+        "fraction": 0.98,
+        "mc95_low": 0.929988209271456,
+        "mc95_high": 0.9944980324498376
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 98,
+        "fraction": 0.98,
+        "mc95_low": 0.929988209271456,
+        "mc95_high": 0.9944980324498376
+      },
+      "mean_relative_bias": -0.0005899060595215866
+    },
+    {
+      "scenario": "measured_baseline_OU",
+      "parameter": "koff",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 93,
+        "fraction": 0.93,
+        "mc95_low": 0.8625048526092651,
+        "mc95_high": 0.9656807389327273
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 93,
+        "fraction": 0.93,
+        "mc95_low": 0.8625048526092651,
+        "mc95_high": 0.9656807389327273
+      },
+      "mean_relative_bias": 2.8750588202811623e-05
+    },
+    {
+      "scenario": "measured_baseline_OU",
+      "parameter": "KD_nM",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 95,
+        "fraction": 0.95,
+        "mc95_low": 0.8882495307680808,
+        "mc95_high": 0.9784563208456319
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 95,
+        "fraction": 0.95,
+        "mc95_low": 0.8882495307680808,
+        "mc95_high": 0.9784563208456319
+      },
+      "mean_relative_bias": 0.000689856791339577
+    },
+    {
+      "scenario": "shared_control_and_stock",
+      "parameter": "kon",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 98,
+        "fraction": 0.98,
+        "mc95_low": 0.929988209271456,
+        "mc95_high": 0.9944980324498376
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 98,
+        "fraction": 0.98,
+        "mc95_low": 0.929988209271456,
+        "mc95_high": 0.9944980324498376
+      },
+      "mean_relative_bias": 0.0010236439652201602
+    },
+    {
+      "scenario": "shared_control_and_stock",
+      "parameter": "koff",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 96,
+        "fraction": 0.96,
+        "mc95_low": 0.9016292856411208,
+        "mc95_high": 0.9843366960084523
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 96,
+        "fraction": 0.96,
+        "mc95_low": 0.9016292856411208,
+        "mc95_high": 0.9843366960084523
+      },
+      "mean_relative_bias": -0.00041537074099245677
+    },
+    {
+      "scenario": "shared_control_and_stock",
+      "parameter": "KD_nM",
+      "availability": {
+        "n": 100,
+        "count": 100,
+        "fraction": 1.0,
+        "mc95_low": 0.9630065017930143,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 100,
+        "count": 99,
+        "fraction": 0.99,
+        "mc95_low": 0.9455138038212946,
+        "mc95_high": 0.9982325679358593
+      },
+      "coverage_all_requested": {
+        "n": 100,
+        "count": 99,
+        "fraction": 0.99,
+        "mc95_low": 0.9455138038212946,
+        "mc95_high": 0.9982325679358593
+      },
+      "mean_relative_bias": 0.00757985260424579
+    }
+  ],
+  "blind_completed": 15,
+  "blind_requested": 30,
+  "scope": "Prespecified known-truth Gaussian IID/OU and shared-zero-control/common-stock simulations. Noise SDs and phase times are supplied correctly. Source-level draws and finite median preprocessing are refitted. Blind starts use defaults, not truth-derived free starts; one fixed response-to-M calibration remains a known input. No threshold tuning, automatic model-selection coverage or experimental SPR/BLI validation is claimed.",
+  "raw_sha256": {
+    "intervals.csv": "886b2d3240eac2b4be03a97ff01ba92e360fef5df95e4ff9c88f83de074cfaaf",
+    "blind_estimates.csv": "20f27a05228dcc1ae2943fcd28a43b318d56cf54e5ab571b714d332f40fbb28e",
+    "simulation_runs.json": "71d6082fe61329f8f45b65b695b0d7e40adf7c0af974396cf9aadb7bfb2e4a89",
+    "blind_runs.json": "5906873fc12306d16af6c8d8c5b715d13952f3c7993aca154943266efcf0ba69"
+  }
+}

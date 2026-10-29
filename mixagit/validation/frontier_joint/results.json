@@ -1,0 +1,33 @@
+{
+  "version": "0.5.10-preview",
+  "section": "joint",
+  "created_utc": "2026-10-21T02:11:46.668041+00:00",
+  "seed": 20362026,
+  "protocol": {
+    "section": "joint",
+    "repeats": 5,
+    "draws": 4000,
+    "warmup": 2000,
+    "runtime": 600.0
+  },
+  "production_code_sha256": {
+    "mixa_mechanisms.py": "a3bf6c0a5b2e7b0e9a800830342e5c79f05cde3d48cd3b1273b61b5b7664ded2",
+    "mixa_science.py": "eb5c2490eb7292a1bd63af6a3381d1a9b4904b81f31bf933a1a134f1d13e23be",
+    "mixa_uncertainty.py": "3d1051f390503f47dacd3ec9376d84e7fea9e1e7f4f66225b103e90340a6c7d2",
+    "mixa_input_uncertainty.py": "a0db184c02b67945268816bbd84934f14d65227b4afac9facaedb62261e30b8a",
+    "mixa_joint.py": "6f04a5dfa920685eeda5a4e7de0939777bed69d09e7667765c69854a673b3819",
+    "mixa_inference.py": "6e1c60155bf40e2d92e106c2e3a7665051433512cc60c826cd2826dad0fea84c"
+  },
+  "validation_code_sha256": {
+    "audits/validate_frontier.py": "eb687884ac33be8ebb4cf55506a35abd816a5a546d66263b405d5339b6a8991d",
+    "audits/validate_refit_review.py": "3c1f3257d3cfe379cb66d1709bb8f2a4e4c912710331a76c07383f9826b057a2",
+    "audits/validate_input_uncertainty.py": "c351a82356ed80cb56fc8093fbca4a49ed888bd1e6308e73239547aba2e9c5fe",
+    "validation/reference_simulator.py": "dbc94501d5ea5aede75d563623e606ed60ba2f5de9da752e1e32dba65cb63b22"
+  },
+  "scope": "Prespecified nonlinear response-level 1:1 hierarchical studies with 3/6 independent repeats, reused zero control, 10% common stock and 3% shared concentration-level uncertainty. Population parameters are fixed truth; random repeat rates are generated independently. Small outer counts assess recovery, computational diagnostics and interval availability; they are not nominal-coverage certification. Fixed source SD ratios and OU times, priors, seeds and every incomplete chain are retained. No fitted-rate averages are used as likelihood observations.",
+  "raw_sha256": {
+    "intervals.csv": "4873956835a2ceb5adeb1c5d6f71fef326732c2622b36dc4f31e08957dedde77",
+    "all_parameters.csv": "58859858f5827b038648ff4930b80f2c1aa21fbece078576ac23080abeb45d95",
+    "runs.json": "b004eaa74d54df95629676a5e1601e085a7e69f5cf31f7a75d76d1c71677e65b"
+  }
+}

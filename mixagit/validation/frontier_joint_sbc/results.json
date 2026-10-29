@@ -1,0 +1,32 @@
+{
+  "version": "0.5.10-preview",
+  "section": "joint_sbc",
+  "created_utc": "2026-10-21T02:17:22.744381+00:00",
+  "seed": 20362026,
+  "protocol": {
+    "section": "joint_sbc",
+    "repeats": 12,
+    "draws": 8000,
+    "warmup": 2000,
+    "runtime": 600.0
+  },
+  "production_code_sha256": {
+    "mixa_mechanisms.py": "a3bf6c0a5b2e7b0e9a800830342e5c79f05cde3d48cd3b1273b61b5b7664ded2",
+    "mixa_science.py": "eb5c2490eb7292a1bd63af6a3381d1a9b4904b81f31bf933a1a134f1d13e23be",
+    "mixa_uncertainty.py": "3d1051f390503f47dacd3ec9376d84e7fea9e1e7f4f66225b103e90340a6c7d2",
+    "mixa_input_uncertainty.py": "a0db184c02b67945268816bbd84934f14d65227b4afac9facaedb62261e30b8a",
+    "mixa_joint.py": "6f04a5dfa920685eeda5a4e7de0939777bed69d09e7667765c69854a673b3819",
+    "mixa_inference.py": "6e1c60155bf40e2d92e106c2e3a7665051433512cc60c826cd2826dad0fea84c"
+  },
+  "validation_code_sha256": {
+    "audits/validate_frontier.py": "eb687884ac33be8ebb4cf55506a35abd816a5a546d66263b405d5339b6a8991d",
+    "audits/validate_refit_review.py": "3c1f3257d3cfe379cb66d1709bb8f2a4e4c912710331a76c07383f9826b057a2",
+    "audits/validate_input_uncertainty.py": "c351a82356ed80cb56fc8093fbca4a49ed888bd1e6308e73239547aba2e9c5fe",
+    "validation/reference_simulator.py": "dbc94501d5ea5aede75d563623e606ed60ba2f5de9da752e1e32dba65cb63b22"
+  },
+  "scope": "Prior-generated nonlinear joint 1:1 simulation-based calibration screen: 3 repeats, correlated random rates, capacities and per-trace baselines drawn from the exact exported proper priors, unknown half-t noise multiplier, shared raw reference, common stock and concentration levels. An explicit restricted prior family is used to bound this initial screen's numerical regimes; this is not a certificate for arbitrary priors or advanced models. At most 100 evenly spaced draws per chain form rank records; all failures, convergence gates and ranks remain visible. Small rank counts cannot establish uniform calibration.",
+  "raw_sha256": {
+    "ranks.csv": "ccb270039da96efd5d049abfd5157db0b7a4757bfc8c4fcabcdc940fb60bfa2d",
+    "runs.json": "2a82d896bdcd373ff79a69e73170ec0fa1c9e380be7fabbc3b278e7e62432602"
+  }
+}

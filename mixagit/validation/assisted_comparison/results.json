@@ -1,0 +1,162 @@
+{
+  "version": "0.5.9-preview",
+  "created_utc": "2026-10-20T18:30:10.907668+00:00",
+  "seed": 10202027,
+  "production_code_sha256": {
+    "mixa_automation.py": "b3785f2882184213e5d68a536a5440946ca3321c665b3cc112e713e6b0f1aa4a",
+    "mixa_mechanisms.py": "485f66ab2e95f22300ba19599dcd5dfc23a8b0422932c782eee277879ea51721",
+    "mixa_science.py": "eb5c2490eb7292a1bd63af6a3381d1a9b4904b81f31bf933a1a134f1d13e23be",
+    "mixa_uncertainty.py": "3d1051f390503f47dacd3ec9376d84e7fea9e1e7f4f66225b103e90340a6c7d2",
+    "mixa_input_uncertainty.py": "a0db184c02b67945268816bbd84934f14d65227b4afac9facaedb62261e30b8a",
+    "mixa_residual_tests.py": "da160d660c57d77522771a6397f122ba389297fd9d514e77b030e1b90222f9e1",
+    "mixa_inference.py": "6e1c60155bf40e2d92e106c2e3a7665051433512cc60c826cd2826dad0fea84c"
+  },
+  "validation_code_sha256": {
+    "audits/validate_assisted_comparison.py": "762d8110c6382e2349844eff1c3ae61d400f3c17e238c5ce87c1d91d11a9f212",
+    "validation/reference_simulator.py": "dbc94501d5ea5aede75d563623e606ed60ba2f5de9da752e1e32dba65cb63b22",
+    "audits/validate_methods.py": "a1856c835fbfacd595244f5ed466c210286b3e480508b75d960e25026fb4203c"
+  },
+  "raw_sha256": {
+    "runs.json": "4bce3587bdb41e573f067ed5f6e51ee1a3d9cc178acd3ac41822a5da96e58ec1"
+  },
+  "policy": {
+    "runtime_s": 30.0,
+    "max_candidates": 10,
+    "starts": 2,
+    "max_nfev": 1000,
+    "capacity_scope": "Per file",
+    "rate_scope": "Global",
+    "correlation_time": 0.0,
+    "noise_ratio_limit": 1.5,
+    "relative_se_limit": 1.0,
+    "aicc_tolerance": 2.0,
+    "compare_all": true
+  },
+  "summaries": [
+    {
+      "scenario": "simple",
+      "qualified": {
+        "n": 40,
+        "count": 37,
+        "fraction": 0.925,
+        "mc95_low": 0.8013576647568946,
+        "mc95_high": 0.9741639742254119
+      },
+      "correct_selection": {
+        "n": 40,
+        "count": 37,
+        "fraction": 0.925,
+        "mc95_low": 0.8013576647568946,
+        "mc95_high": 0.9741639742254119
+      },
+      "unnecessary_terms": {
+        "n": 40,
+        "count": 0,
+        "fraction": 0.0,
+        "mc95_low": 0.0,
+        "mc95_high": 0.08762160119728664
+      },
+      "completed_searches": {
+        "n": 40,
+        "count": 40,
+        "fraction": 1.0,
+        "mc95_low": 0.9123783988027135,
+        "mc95_high": 1.0
+      }
+    },
+    {
+      "scenario": "drift",
+      "qualified": {
+        "n": 40,
+        "count": 37,
+        "fraction": 0.925,
+        "mc95_low": 0.8013576647568946,
+        "mc95_high": 0.9741639742254119
+      },
+      "correct_selection": {
+        "n": 40,
+        "count": 37,
+        "fraction": 0.925,
+        "mc95_low": 0.8013576647568946,
+        "mc95_high": 0.9741639742254119
+      },
+      "unnecessary_terms": {
+        "n": 40,
+        "count": 0,
+        "fraction": 0.0,
+        "mc95_low": 0.0,
+        "mc95_high": 0.08762160119728664
+      },
+      "completed_searches": {
+        "n": 40,
+        "count": 40,
+        "fraction": 1.0,
+        "mc95_low": 0.9123783988027135,
+        "mc95_high": 1.0
+      }
+    },
+    {
+      "scenario": "linear_background",
+      "qualified": {
+        "n": 40,
+        "count": 38,
+        "fraction": 0.95,
+        "mc95_low": 0.8349612263085903,
+        "mc95_high": 0.9861793326138516
+      },
+      "correct_selection": {
+        "n": 40,
+        "count": 38,
+        "fraction": 0.95,
+        "mc95_low": 0.8349612263085903,
+        "mc95_high": 0.9861793326138516
+      },
+      "unnecessary_terms": {
+        "n": 40,
+        "count": 0,
+        "fraction": 0.0,
+        "mc95_low": 0.0,
+        "mc95_high": 0.08762160119728664
+      },
+      "completed_searches": {
+        "n": 40,
+        "count": 40,
+        "fraction": 1.0,
+        "mc95_low": 0.9123783988027135,
+        "mc95_high": 1.0
+      }
+    },
+    {
+      "scenario": "drift_and_linear",
+      "qualified": {
+        "n": 40,
+        "count": 39,
+        "fraction": 0.975,
+        "mc95_low": 0.8711863103652591,
+        "mc95_high": 0.9955731684973186
+      },
+      "correct_selection": {
+        "n": 40,
+        "count": 39,
+        "fraction": 0.975,
+        "mc95_low": 0.8711863103652591,
+        "mc95_high": 0.9955731684973186
+      },
+      "unnecessary_terms": {
+        "n": 40,
+        "count": 0,
+        "fraction": 0.0,
+        "mc95_low": 0.0,
+        "mc95_high": 0.08762160119728664
+      },
+      "completed_searches": {
+        "n": 40,
+        "count": 40,
+        "fraction": 1.0,
+        "mc95_low": 0.9123783988027135,
+        "mc95_high": 1.0
+      }
+    }
+  ],
+  "scope": "Prespecified Gaussian IID experiments with known phase times, absolute SD and correct candidate set. All requested fits remain in selection denominators. This tests correction selection, not advanced-mechanism selection, uncertain-baseline detection or arbitrary real-data performance. No policy threshold was changed in response to these outcomes."
+}

@@ -1,0 +1,3406 @@
+{
+  "version": "0.5.8-preview",
+  "created_utc": "2026-10-20T12:46:45.828568+00:00",
+  "seed": 9202026,
+  "counts": {
+    "input_experiments_per_scenario": 200,
+    "advanced_experiments_per_scenario": 10,
+    "advanced_scenarios": 10
+  },
+  "production_code_sha256": {
+    "mixa_app.py": "3f580dd833c19a910f7fd0c9c20048f7efe66b057e65ca832c75470977b5450a",
+    "mixa_data.py": "774dca5957330d068e1f41e805060c29f52cc91f16bc0e6b17830eac69a0ae10",
+    "mixa_mechanisms.py": "5544879e7ff38ad67213323785977fd4bcb756065f8727a2c4b048b532e2751b",
+    "mixa_input_uncertainty.py": "a0db184c02b67945268816bbd84934f14d65227b4afac9facaedb62261e30b8a",
+    "mixa_uncertainty.py": "3d1051f390503f47dacd3ec9376d84e7fea9e1e7f4f66225b103e90340a6c7d2",
+    "mixa_science.py": "eb5c2490eb7292a1bd63af6a3381d1a9b4904b81f31bf933a1a134f1d13e23be",
+    "mixa_selection.py": "c1c8eed44c4d709224627ca1beab872f7e1b03f99c08f2ceb833c000b576d0bc",
+    "mixa_automation.py": "2f9008ac1d14be42ded63a70829d4214d9de14cf62b314710943d67b77edda92"
+  },
+  "validation_code_sha256": {
+    "audits/validate_input_uncertainty.py": "c351a82356ed80cb56fc8093fbca4a49ed888bd1e6308e73239547aba2e9c5fe",
+    "audits/validate_methods.py": "a1856c835fbfacd595244f5ed466c210286b3e480508b75d960e25026fb4203c",
+    "validation/reference_simulator.py": "dbc94501d5ea5aede75d563623e606ed60ba2f5de9da752e1e32dba65cb63b22"
+  },
+  "input_summary": [
+    {
+      "scenario": "kinetic_shared_zero_reference",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 6.697776794150956e-05,
+      "relative_rmse": 0.0055055592118830494,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 192,
+        "fraction": 0.96,
+        "mc95_low": 0.923067931799067,
+        "mc95_high": 0.9795943679338476
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 192,
+        "fraction": 0.96,
+        "mc95_low": 0.923067931799067,
+        "mc95_high": 0.9795943679338476
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_shared_zero_reference",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0003874686227383661,
+      "relative_rmse": 0.0040124097518576774,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 153,
+        "fraction": 0.765,
+        "mc95_low": 0.7015863111723746,
+        "mc95_high": 0.8184256658476741
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 153,
+        "fraction": 0.765,
+        "mc95_low": 0.7015863111723746,
+        "mc95_high": 0.8184256658476741
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_shared_zero_reference",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0003645247301003529,
+      "relative_rmse": 0.008600669800725842,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 181,
+        "fraction": 0.905,
+        "mc95_low": 0.8563983883518006,
+        "mc95_high": 0.9383368972826135
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 181,
+        "fraction": 0.905,
+        "mc95_low": 0.8563983883518006,
+        "mc95_high": 0.9383368972826135
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_shared_reference_OU",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -0.0006240780273841706,
+      "relative_rmse": 0.012278304691225862,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 130,
+        "fraction": 0.65,
+        "mc95_low": 0.5816346433604008,
+        "mc95_high": 0.7127117587264192
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 130,
+        "fraction": 0.65,
+        "mc95_low": 0.5816346433604008,
+        "mc95_high": 0.7127117587264192
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_shared_reference_OU",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0001571359974595893,
+      "relative_rmse": 0.008897635983278702,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 88,
+        "fraction": 0.44,
+        "mc95_low": 0.37297819251185865,
+        "mc95_high": 0.5092832466534134
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 88,
+        "fraction": 0.44,
+        "mc95_low": 0.37297819251185865,
+        "mc95_high": 0.5092832466534134
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_shared_reference_OU",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0009880605189316822,
+      "relative_rmse": 0.018526307622710507,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 122,
+        "fraction": 0.61,
+        "mc95_low": 0.5409374595716976,
+        "mc95_high": 0.6749165686253038
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 122,
+        "fraction": 0.61,
+        "mc95_low": 0.5409374595716976,
+        "mc95_high": 0.6749165686253038
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_common_stock_10pct",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0056631296216710725,
+      "relative_rmse": 0.09569134733183675,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 6,
+        "fraction": 0.03,
+        "mc95_low": 0.013820314340111346,
+        "mc95_high": 0.06389429245451925
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 6,
+        "fraction": 0.03,
+        "mc95_low": 0.013820314340111346,
+        "mc95_high": 0.06389429245451925
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_common_stock_10pct",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -3.332938682683195e-05,
+      "relative_rmse": 0.0008617081688000913,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 186,
+        "fraction": 0.93,
+        "mc95_low": 0.8859451911438936,
+        "mc95_high": 0.9578478281716571
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 186,
+        "fraction": 0.93,
+        "mc95_low": 0.8859451911438936,
+        "mc95_high": 0.9578478281716571
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_common_stock_10pct",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.003481312680081412,
+      "relative_rmse": 0.09704562294811707,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 7,
+        "fraction": 0.035,
+        "mc95_low": 0.017055542008567192,
+        "mc95_high": 0.07047061152229073
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 7,
+        "fraction": 0.035,
+        "mc95_low": 0.017055542008567192,
+        "mc95_high": 0.07047061152229073
+      },
+      "statuses": {
+        "Conditional IID model SE (not independent-repeat SD)": 200
+      },
+      "analysis": "budget_off"
+    },
+    {
+      "scenario": "kinetic_shared_zero_reference",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 6.697776794150956e-05,
+      "relative_rmse": 0.0055055592118830494,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 191,
+        "fraction": 0.955,
+        "mc95_low": 0.9167032959981803,
+        "mc95_high": 0.976147456998507
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 191,
+        "fraction": 0.955,
+        "mc95_low": 0.9167032959981803,
+        "mc95_high": 0.976147456998507
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kinetic_shared_zero_reference",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0003874686227383661,
+      "relative_rmse": 0.0040124097518576774,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 189,
+        "fraction": 0.945,
+        "mc95_low": 0.9042130012276914,
+        "mc95_high": 0.9690146582965411
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 189,
+        "fraction": 0.945,
+        "mc95_low": 0.9042130012276914,
+        "mc95_high": 0.9690146582965411
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kinetic_shared_zero_reference",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0003645247301003529,
+      "relative_rmse": 0.008600669800725842,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 192,
+        "fraction": 0.96,
+        "mc95_low": 0.923067931799067,
+        "mc95_high": 0.9795943679338476
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 192,
+        "fraction": 0.96,
+        "mc95_low": 0.923067931799067,
+        "mc95_high": 0.9795943679338476
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kinetic_shared_reference_OU",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -0.0006240780273841706,
+      "relative_rmse": 0.012278304691225862,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 188,
+        "fraction": 0.94,
+        "mc95_low": 0.8980683070423372,
+        "mc95_high": 0.9653478057456681
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 188,
+        "fraction": 0.94,
+        "mc95_low": 0.8980683070423372,
+        "mc95_high": 0.9653478057456681
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kinetic_shared_reference_OU",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0001571359974595893,
+      "relative_rmse": 0.008897635983278702,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 187,
+        "fraction": 0.935,
+        "mc95_low": 0.8919809207009312,
+        "mc95_high": 0.961623645350847
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 187,
+        "fraction": 0.935,
+        "mc95_low": 0.8919809207009312,
+        "mc95_high": 0.961623645350847
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kinetic_shared_reference_OU",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0009880605189316822,
+      "relative_rmse": 0.018526307622710507,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 184,
+        "fraction": 0.92,
+        "mc95_low": 0.874010511732856,
+        "mc95_high": 0.9501594141102401
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 184,
+        "fraction": 0.92,
+        "mc95_low": 0.874010511732856,
+        "mc95_high": 0.9501594141102401
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kinetic_common_stock_10pct",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0056631296216710725,
+      "relative_rmse": 0.09569134733183675,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 190,
+        "fraction": 0.95,
+        "mc95_low": 0.9104218518612239,
+        "mc95_high": 0.972617354399236
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 190,
+        "fraction": 0.95,
+        "mc95_low": 0.9104218518612239,
+        "mc95_high": 0.972617354399236
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kinetic_common_stock_10pct",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -3.332938682683195e-05,
+      "relative_rmse": 0.0008617081688000913,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 186,
+        "fraction": 0.93,
+        "mc95_low": 0.8859451911438936,
+        "mc95_high": 0.9578478281716571
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 186,
+        "fraction": 0.93,
+        "mc95_low": 0.8859451911438936,
+        "mc95_high": 0.9578478281716571
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kinetic_common_stock_10pct",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.003481312680081412,
+      "relative_rmse": 0.09704562294811707,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 194,
+        "fraction": 0.97,
+        "mc95_low": 0.9361057075454807,
+        "mc95_high": 0.9861796856598887
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 194,
+        "fraction": 0.97,
+        "mc95_low": 0.9361057075454807,
+        "mc95_high": 0.9861796856598887
+      },
+      "statuses": {
+        "Local combined input standard uncertainty (not independent-repeat SD)": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_first_stage_IID",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -6.996884837861539e-06,
+      "relative_rmse": 0.020666016758542523,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 191,
+        "fraction": 0.955,
+        "mc95_low": 0.9167032959981803,
+        "mc95_high": 0.976147456998507
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 191,
+        "fraction": 0.955,
+        "mc95_low": 0.9167032959981803,
+        "mc95_high": 0.976147456998507
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_first_stage_IID",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -0.0001395404608326356,
+      "relative_rmse": 0.0814426826650928,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 189,
+        "fraction": 0.945,
+        "mc95_low": 0.9042130012276914,
+        "mc95_high": 0.9690146582965411
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 189,
+        "fraction": 0.945,
+        "mc95_low": 0.9042130012276914,
+        "mc95_high": 0.9690146582965411
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_first_stage_IID",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0019503429843287128,
+      "relative_rmse": 0.10175801290879884,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 190,
+        "fraction": 0.95,
+        "mc95_low": 0.9104218518612239,
+        "mc95_high": 0.972617354399236
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 190,
+        "fraction": 0.95,
+        "mc95_low": 0.9104218518612239,
+        "mc95_high": 0.972617354399236
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_shared_zero_reference",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0053128299194697285,
+      "relative_rmse": 0.04682059250824084,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 192,
+        "fraction": 0.96,
+        "mc95_low": 0.923067931799067,
+        "mc95_high": 0.9795943679338476
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 192,
+        "fraction": 0.96,
+        "mc95_low": 0.923067931799067,
+        "mc95_high": 0.9795943679338476
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_shared_zero_reference",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -0.022972450907157316,
+      "relative_rmse": 0.2066036573993579,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 191,
+        "fraction": 0.955,
+        "mc95_low": 0.9167032959981803,
+        "mc95_high": 0.976147456998507
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 191,
+        "fraction": 0.955,
+        "mc95_low": 0.9167032959981803,
+        "mc95_high": 0.976147456998507
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_shared_zero_reference",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -0.01638478123990744,
+      "relative_rmse": 0.25621610499450176,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 187,
+        "fraction": 0.935,
+        "mc95_low": 0.8919809207009312,
+        "mc95_high": 0.961623645350847
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 187,
+        "fraction": 0.935,
+        "mc95_low": 0.8919809207009312,
+        "mc95_high": 0.961623645350847
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_common_stock_10pct",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.018088613674344573,
+      "relative_rmse": 0.09650793679713071,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 193,
+        "fraction": 0.965,
+        "mc95_low": 0.9295293884777092,
+        "mc95_high": 0.9829444579914328
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 193,
+        "fraction": 0.965,
+        "mc95_low": 0.9295293884777092,
+        "mc95_high": 0.9829444579914328
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_common_stock_10pct",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.011562447846782764,
+      "relative_rmse": 0.07471215273803422,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 193,
+        "fraction": 0.965,
+        "mc95_low": 0.9295293884777092,
+        "mc95_high": 0.9829444579914328
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 193,
+        "fraction": 0.965,
+        "mc95_low": 0.9295293884777092,
+        "mc95_high": 0.9829444579914328
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_common_stock_10pct",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.004009814730123465,
+      "relative_rmse": 0.13477168471759263,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 194,
+        "fraction": 0.97,
+        "mc95_low": 0.9361057075454807,
+        "mc95_high": 0.9861796856598887
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 194,
+        "fraction": 0.97,
+        "mc95_low": 0.9361057075454807,
+        "mc95_high": 0.9861796856598887
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "current"
+    },
+    {
+      "scenario": "kobs_first_stage_IID",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -6.996884837861539e-06,
+      "relative_rmse": 0.020666016758542523,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 194,
+        "fraction": 0.97,
+        "mc95_low": 0.9361057075454807,
+        "mc95_high": 0.9861796856598887
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 194,
+        "fraction": 0.97,
+        "mc95_low": 0.9361057075454807,
+        "mc95_high": 0.9861796856598887
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    },
+    {
+      "scenario": "kobs_first_stage_IID",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -0.0001395404608326356,
+      "relative_rmse": 0.0814426826650928,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 178,
+        "fraction": 0.89,
+        "mc95_low": 0.839073090026985,
+        "mc95_high": 0.926227555398747
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 178,
+        "fraction": 0.89,
+        "mc95_low": 0.839073090026985,
+        "mc95_high": 0.926227555398747
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    },
+    {
+      "scenario": "kobs_first_stage_IID",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0019503429843287128,
+      "relative_rmse": 0.10175801290879884,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 181,
+        "fraction": 0.905,
+        "mc95_low": 0.8563983883518006,
+        "mc95_high": 0.9383368972826135
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 181,
+        "fraction": 0.905,
+        "mc95_low": 0.8563983883518006,
+        "mc95_high": 0.9383368972826135
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    },
+    {
+      "scenario": "kobs_shared_zero_reference",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.0053128299194697285,
+      "relative_rmse": 0.04682059250824084,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 192,
+        "fraction": 0.96,
+        "mc95_low": 0.923067931799067,
+        "mc95_high": 0.9795943679338476
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 192,
+        "fraction": 0.96,
+        "mc95_low": 0.923067931799067,
+        "mc95_high": 0.9795943679338476
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    },
+    {
+      "scenario": "kobs_shared_zero_reference",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -0.022972450907157316,
+      "relative_rmse": 0.2066036573993579,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 108,
+        "fraction": 0.54,
+        "mc95_low": 0.4708228918895333,
+        "mc95_high": 0.6076694820002854
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 108,
+        "fraction": 0.54,
+        "mc95_low": 0.4708228918895333,
+        "mc95_high": 0.6076694820002854
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    },
+    {
+      "scenario": "kobs_shared_zero_reference",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": -0.01638478123990744,
+      "relative_rmse": 0.25621610499450176,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 119,
+        "fraction": 0.595,
+        "mc95_low": 0.525797100813387,
+        "mc95_high": 0.6606222871749323
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 119,
+        "fraction": 0.595,
+        "mc95_low": 0.525797100813387,
+        "mc95_high": 0.6606222871749323
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    },
+    {
+      "scenario": "kobs_common_stock_10pct",
+      "parameter": "kon",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.018088613674344573,
+      "relative_rmse": 0.09650793679713071,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 69,
+        "fraction": 0.345,
+        "mc95_low": 0.2825979437674894,
+        "mc95_high": 0.4132441074094632
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 69,
+        "fraction": 0.345,
+        "mc95_low": 0.2825979437674894,
+        "mc95_high": 0.4132441074094632
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    },
+    {
+      "scenario": "kobs_common_stock_10pct",
+      "parameter": "koff",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.011562447846782764,
+      "relative_rmse": 0.07471215273803422,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 176,
+        "fraction": 0.88,
+        "mc95_low": 0.8276574790170326,
+        "mc95_high": 0.9180200729362449
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 176,
+        "fraction": 0.88,
+        "mc95_low": 0.8276574790170326,
+        "mc95_high": 0.9180200729362449
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    },
+    {
+      "scenario": "kobs_common_stock_10pct",
+      "parameter": "KD_nM",
+      "simulations": 200,
+      "finite_estimates": 200,
+      "mean_relative_bias": 0.004009814730123465,
+      "relative_rmse": 0.13477168471759263,
+      "interval_availability": {
+        "n": 200,
+        "count": 200,
+        "fraction": 1.0,
+        "mc95_low": 0.9811546736227335,
+        "mc95_high": 1.0
+      },
+      "coverage_when_available": {
+        "n": 200,
+        "count": 139,
+        "fraction": 0.695,
+        "mc95_low": 0.6280144790202163,
+        "mc95_high": 0.7546358436926496
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 200,
+        "count": 139,
+        "fraction": 0.695,
+        "mc95_low": 0.6280144790202163,
+        "mc95_high": 0.7546358436926496
+      },
+      "statuses": {
+        "Completed": 200
+      },
+      "analysis": "old_line_RSS"
+    }
+  ],
+  "advanced_summary": [
+    {
+      "scenario": "two_state_resolved",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.00043652471913321336,
+      "relative_rmse": 0.006112240742980626,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_resolved",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0007733160029533281,
+      "relative_rmse": 0.028618605540927756,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_resolved",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 7.700068907783298e-05,
+      "relative_rmse": 0.0002587356936387122,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_resolved",
+      "parameter": "k_forward",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.0005385054136074041,
+      "relative_rmse": 0.020077006808174716,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_resolved",
+      "parameter": "k_reverse",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.0019563178394059856,
+      "relative_rmse": 0.010118638575287461,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_resolved",
+      "parameter": "KD_first_step_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0004706491915935529,
+      "relative_rmse": 0.02257134625064001,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_resolved",
+      "parameter": "KD_overall_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.0004123049104959753,
+      "relative_rmse": 0.0011518906700672682,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_weak_conversion",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.014734409968550143,
+      "relative_rmse": 0.02081621677611175,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_weak_conversion",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.23479883462414453,
+      "relative_rmse": 0.3767524954050493,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_weak_conversion",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.00011903956963642548,
+      "relative_rmse": 0.000831946516698207,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_weak_conversion",
+      "parameter": "k_forward",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 27.42503662072616,
+      "relative_rmse": 52.23491152933639,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_weak_conversion",
+      "parameter": "k_reverse",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 4.174514197128987,
+      "relative_rmse": 10.928363637964365,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_weak_conversion",
+      "parameter": "KD_first_step_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.2138875235527049,
+      "relative_rmse": 0.3484807983734292,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_state_weak_conversion",
+      "parameter": "KD_overall_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0015115541819984424,
+      "relative_rmse": 0.0025708336323397017,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_separated",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.000987005895650106,
+      "relative_rmse": 0.001819278744116989,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_separated",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.0003001814522089807,
+      "relative_rmse": 0.0019807481591186853,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_separated",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 1.3719662417333022e-05,
+      "relative_rmse": 0.0013140408275561638,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_separated",
+      "parameter": "kon2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.007160788678608776,
+      "relative_rmse": 0.011683787962560442,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_separated",
+      "parameter": "koff2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0031301581106246367,
+      "relative_rmse": 0.01302209914288557,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_separated",
+      "parameter": "Rmax2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.0011962722814154226,
+      "relative_rmse": 0.004109674035159005,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_separated",
+      "parameter": "KD_population_1_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0006841747877409765,
+      "relative_rmse": 0.0024326052828160384,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_separated",
+      "parameter": "KD_population_2_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.004155651461789511,
+      "relative_rmse": 0.016830616006445375,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_overlapping",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.02944407444631223,
+      "relative_rmse": 0.11096176752456062,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_overlapping",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.024102681906201982,
+      "relative_rmse": 0.09044395009911632,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_overlapping",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0596160946036263,
+      "relative_rmse": 0.49214280911474884,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_overlapping",
+      "parameter": "kon2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.09862740932712147,
+      "relative_rmse": 0.2889654521740873,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_overlapping",
+      "parameter": "koff2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.2315877004767993,
+      "relative_rmse": 0.4877094183196718,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_overlapping",
+      "parameter": "Rmax2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.09482803040509524,
+      "relative_rmse": 0.7722889425426029,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_overlapping",
+      "parameter": "KD_population_1_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.03350003868834796,
+      "relative_rmse": 0.1842883981516517,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 7,
+        "fraction": 0.7,
+        "mc95_low": 0.39677814746114537,
+        "mc95_high": 0.8922087325936989
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "heterogeneous_overlapping",
+      "parameter": "KD_population_2_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.837684174764162,
+      "relative_rmse": 1.8319478420856523,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_standard_density",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0004097068673861948,
+      "relative_rmse": 0.00294225618210939,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_standard_density",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.0006174849190563325,
+      "relative_rmse": 0.00844496105416097,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_standard_density",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.00017287022260619177,
+      "relative_rmse": 0.002157325005575144,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_standard_density",
+      "parameter": "kon2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.002260244953524748,
+      "relative_rmse": 0.014299260843054364,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_standard_density",
+      "parameter": "koff2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.002605188987463236,
+      "relative_rmse": 0.013193739832298247,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_standard_density",
+      "parameter": "KD_per_arm_first_step_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.001056367842982564,
+      "relative_rmse": 0.011003400759479955,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_standard_density",
+      "parameter": "KD_macroscopic_capture_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.001056367842982564,
+      "relative_rmse": 0.011003400759479955,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_low_density",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.005125965137603028,
+      "relative_rmse": 0.028943278382745127,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 8,
+        "fraction": 0.8,
+        "mc95_low": 0.49016247153664183,
+        "mc95_high": 0.9433178485456247
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_low_density",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.00956766878253199,
+      "relative_rmse": 0.026085302302002147,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_low_density",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.001514570673356741,
+      "relative_rmse": 0.008408273685781979,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_low_density",
+      "parameter": "kon2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.03689481282546751,
+      "relative_rmse": 0.12913785979489717,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_low_density",
+      "parameter": "koff2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.033104449231432055,
+      "relative_rmse": 0.1456299252107255,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_low_density",
+      "parameter": "KD_per_arm_first_step_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.005541488489396873,
+      "relative_rmse": 0.045837704162150494,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "bivalent_low_density",
+      "parameter": "KD_macroscopic_capture_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.005541488489396873,
+      "relative_rmse": 0.045837704162150494,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_second_capture",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.00019663856526582756,
+      "relative_rmse": 0.0012523361881421689,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_second_capture",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 7.427644529223176e-05,
+      "relative_rmse": 0.0008115785717245083,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_second_capture",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.00039863769193334566,
+      "relative_rmse": 0.0007515259124358783,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_second_capture",
+      "parameter": "kon2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.0015582046653726533,
+      "relative_rmse": 0.0032667687910344304,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_second_capture",
+      "parameter": "koff2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0006182032100821688,
+      "relative_rmse": 0.001993648836614895,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_second_capture",
+      "parameter": "KD_step_1_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.00012159306972083783,
+      "relative_rmse": 0.0007929030099161997,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_second_capture",
+      "parameter": "KD_step_2_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.002163506357690448,
+      "relative_rmse": 0.004369110043256254,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_weak_second_capture",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.000588494497811598,
+      "relative_rmse": 0.00542118923075566,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_weak_second_capture",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0006425018206682842,
+      "relative_rmse": 0.0019441601099346355,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_weak_second_capture",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.0002910885286034226,
+      "relative_rmse": 0.001966595682746503,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_weak_second_capture",
+      "parameter": "kon2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.002472953465217953,
+      "relative_rmse": 0.07516946206255651,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_weak_second_capture",
+      "parameter": "koff2",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.007963774068991458,
+      "relative_rmse": 0.07354765640467496,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_weak_second_capture",
+      "parameter": "KD_step_1_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -2.4730110014092866e-05,
+      "relative_rmse": 0.005736213791185838,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "sequential_weak_second_capture",
+      "parameter": "KD_step_2_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.007276627235825362,
+      "relative_rmse": 0.05644476419168804,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "quasi_steady_transport",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.00028080957269467356,
+      "relative_rmse": 0.0026026908884715957,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "quasi_steady_transport",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.00014854060477647034,
+      "relative_rmse": 0.0030827788349151357,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "quasi_steady_transport",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -2.0803851102535464e-05,
+      "relative_rmse": 0.000307188201761835,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "quasi_steady_transport",
+      "parameter": "k_transport",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.00011695886298084268,
+      "relative_rmse": 0.0025190276745967123,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "quasi_steady_transport",
+      "parameter": "KD_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.00013311998120866254,
+      "relative_rmse": 0.0010129748172676362,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_compartment_transport",
+      "parameter": "kon",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0009296710258016483,
+      "relative_rmse": 0.002741775319230632,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_compartment_transport",
+      "parameter": "koff",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": -0.0006062366362549088,
+      "relative_rmse": 0.0016030918464935277,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 9,
+        "fraction": 0.9,
+        "mc95_low": 0.5958499732047615,
+        "mc95_high": 0.9821237869049271
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_compartment_transport",
+      "parameter": "Rmax",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.00012342592618719284,
+      "relative_rmse": 0.00033111080864412895,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_compartment_transport",
+      "parameter": "k_exchange",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.002331522358158422,
+      "relative_rmse": 0.006276303765466849,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    },
+    {
+      "scenario": "two_compartment_transport",
+      "parameter": "KD_nM",
+      "simulations": 10,
+      "finite_estimates": 10,
+      "mean_relative_bias": 0.00032723978154345355,
+      "relative_rmse": 0.0016293931480398983,
+      "interval_availability": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "coverage_when_available": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "covered_and_available_fraction_all_runs": {
+        "n": 10,
+        "count": 10,
+        "fraction": 1.0,
+        "mc95_low": 0.7224672001371107,
+        "mc95_high": 0.9999999999999999
+      },
+      "statuses": {
+        "Available": 10
+      }
+    }
+  ],
+  "input_failures": [],
+  "advanced_optimizer": {
+    "starts": 1,
+    "initial_values": "Predeclared alternating 1.2/0.8 times generating values; intentionally local-recovery designs, not uninformed initialization or a multistart qualification",
+    "max_nfev": 400,
+    "runtime_s": 30.0
+  },
+  "scope": "Known-truth Gaussian designs with known phase times and source SDs; common-stock errors are zero-median lognormal. Input covariance remains local. Advanced noisy tests include weak regimes, all kinetic/capacity parameters free except stated transport calibration, affinity-order label matching, held-out concentration and all failures. Not model-selection or uncertain-phase coverage.",
+  "raw_sha256": {
+    "input_intervals.csv": "13c15056fe31afb83a1c9e1acbbdfe3627b8647cb5f7ad04a4ab0ca2c2098776",
+    "advanced_intervals.csv": "da2e2afee67f72fa0384bd274f5aa6a94c20c336a7bf692c57ac1e006015ea3b",
+    "advanced_runs.json": "640c260704d6a41cd417530b12cb11c703c28643a0941acb13a7e07c1983887a"
+  }
+}
