@@ -1,3 +1,9 @@
 {
-  "photos": []
+  "photos": [
+    {
+      "image": "/images/uploads/mvtzjoaa-iv74axao.jpeg",
+      "caption": "Harvard at Yale?",
+      "alt": "Harvard Crest at Yale Library"
+    }
+  ]
 }
