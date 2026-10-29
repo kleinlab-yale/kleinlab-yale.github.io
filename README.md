@@ -25,7 +25,11 @@ The homepage reads these editable files. Changes to them appear after GitHub Pag
 
 There is no new framework, package installation, or custom server to maintain. The site stays on GitHub Pages. `content.js` renders text safely and retains the static HTML content if a JSON request fails. The HTML fallbacks are a snapshot; refresh them when making source changes. Routine editor updates use the JSON content. JSON errors are reported in the browser console.
 
-## One-time editor setup
+## Editor access
+
+Pages CMS is connected to the repository. The photo upload and caption-save workflow was checked on the draft branch, including saving with no optional link. The temporary test entry was removed before publication.
+
+For setup on a new account or browser:
 
 1. Publish this prepared update, including `.pages.yml`, `content.js`, all four `content/*.json` files, the updated HTML/CSS/JS, and `images/uploads/.gitkeep`.
 2. Open https://app.pagescms.org and sign in with the GitHub account that owns this repository.
