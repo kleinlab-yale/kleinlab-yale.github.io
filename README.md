@@ -52,7 +52,7 @@ After setup, open Pages CMS in your phone browser (you can bookmark it).
 
 Use JPG/JPEG, PNG, WebP, GIF, or AVIF. Convert HEIC to JPEG before upload; HEIC is deliberately excluded because it is not consistently supported by browsers. Resize large phone photos to about 1600–2000 pixels across when practical. Images are displayed in 4:3 frames.
 
-The gallery starts empty because no new lab photos have been supplied. Nothing invented is shown. The existing Instagram posts remain under **Browse highlights from Instagram** and load only when that section is opened. They are selected posts from `instagram_links.js`, not an automatically synchronized feed.
+Photos saved in Pages CMS appear in the From the Lab gallery at https://kleinlab-yale.github.io/#lab-life.
 
 ## Local preview
 
@@ -76,5 +76,5 @@ Before publishing source changes, fetch the latest `main` and reconcile any newe
 
 - Check JavaScript syntax with `node --check script.js` and `node --check content.js`.
 - Validate all `content/*.json` as JSON, and check `.pages.yml` as YAML.
-- Preview desktop and phone layouts, verify both MIXA buttons open their respective apps, and test the photo gallery and Instagram disclosure.
+- Preview desktop and phone layouts, verify both MIXA buttons open their respective apps, and test the photo gallery.
 - Existing scientific copy and research-tool destinations are preserved; MIXA now offers both Streamlit and Hugging Face.

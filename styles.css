@@ -440,152 +440,29 @@ body {
   gap: 0.7rem;
 }
 
-.instagram-section {
+.lab-life-section {
   padding-top: 1.2rem;
 }
 
-.ig-embed {
-  min-height: 220px;
-}
 
-.ig-help {
-  margin: 0;
-  color: var(--ink-soft);
-  font-size: 0.94rem;
-}
 
-.ig-help code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 0.9em;
-  background: rgba(19, 78, 143, 0.08);
-  border-radius: 6px;
-  padding: 0.1rem 0.28rem;
-}
 
-.ig-slider {
-  position: relative;
-}
 
-.ig-viewport {
-  overflow: hidden;
-  border-radius: 18px;
-  box-shadow: 0 12px 26px rgba(16, 36, 62, 0.11);
-}
 
-.ig-track {
-  display: flex;
-  transition: transform 0.35s ease;
-  will-change: transform;
-}
 
-.ig-page {
-  min-width: 100%;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.18rem;
-  background: rgba(16, 36, 62, 0.08);
-}
 
-.ig-tile {
-  position: relative;
-  display: block;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  text-decoration: none;
-  background: #d4dce7;
-}
 
-.ig-media-shell {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
 
-.ig-embed-frame {
-  border: 0;
-  position: absolute;
-  left: 50%;
-  top: -24%;
-  width: 136%;
-  height: 170%;
-  transform: translateX(-50%);
-  pointer-events: none;
-}
 
-.ig-overlay {
-  position: absolute;
-  inset: 0;
-  padding: 0.8rem;
-  display: flex;
-  align-items: end;
-  background: linear-gradient(180deg, rgba(5, 14, 28, 0.04), rgba(5, 14, 28, 0.62) 58%, rgba(5, 14, 28, 0.78));
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
 
-.ig-caption {
-  margin: 0;
-  color: #fff;
-  font-size: 0.82rem;
-  line-height: 1.36;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 
-.ig-tile:hover .ig-overlay,
-.ig-tile:focus-visible .ig-overlay {
-  opacity: 1;
-}
 
-.ig-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  appearance: none;
-  border: 0;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: rgba(10, 26, 46, 0.58);
-  color: #fff;
-  font-size: 2.05rem;
-  line-height: 1;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  z-index: 2;
-  transition: background 0.2s ease, opacity 0.2s ease;
-}
 
-.ig-nav:hover,
-.ig-nav:focus-visible {
-  background: rgba(10, 26, 46, 0.78);
-  outline: none;
-}
 
-.ig-nav-prev {
-  left: 0.65rem;
-}
 
-.ig-nav-next {
-  right: 0.65rem;
-}
 
-.ig-nav:disabled {
-  opacity: 0;
-  pointer-events: none;
-}
 
-.ig-slider.is-static .ig-nav {
-  display: none;
-}
 
-.ig-account {
-  margin: 1rem 0 0;
-}
 
 .pi-card {
   display: grid;
@@ -780,21 +657,8 @@ body {
 }
 
 /* Lab photos and community updates. */
-.instagram-archive {
-  padding: 1.2rem 1.4rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.75);
-}
 
-.instagram-archive summary {
-  cursor: pointer;
-  color: var(--brand);
-  font-weight: 700;
-  padding: 0.35rem 0;
-}
 
-.instagram-archive > p { color: var(--ink-soft); }
 
 .lab-gallery {
   display: grid;
@@ -914,7 +778,7 @@ body {
 
 .qr-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 540px);
   gap: 1rem;
 }
 
@@ -1021,12 +885,6 @@ body {
   transform: none;
 }
 
-@media (max-width: 1280px) {
-  .ig-page {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 930px) {
   .menu-toggle {
     display: inline-flex;
@@ -1075,20 +933,11 @@ body {
 
   .research-grid,
   .people-grid,
-  .tool-grid,
-  .qr-grid {
+  .tool-grid {
     grid-template-columns: 1fr 1fr;
   }
 
-  .ig-page {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
-  .ig-nav {
-    width: 38px;
-    height: 38px;
-    font-size: 1.85rem;
-  }
 
   .footer-grid {
     grid-template-columns: 1fr;
@@ -1103,28 +952,13 @@ body {
   .stats-grid,
   .research-grid,
   .people-grid,
-  .tool-grid,
-  .qr-grid {
+  .tool-grid {
     grid-template-columns: 1fr;
   }
 
-  .ig-page {
-    grid-template-columns: 1fr;
-  }
 
-  .ig-nav {
-    width: 34px;
-    height: 34px;
-    font-size: 1.6rem;
-  }
 
-  .ig-nav-prev {
-    left: 0.45rem;
-  }
 
-  .ig-nav-next {
-    right: 0.45rem;
-  }
 
   .pi-card {
     grid-template-columns: 1fr;
