@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=28';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=28';
-import { Mummy3DView } from './view_3d.js?v=28';
-import { Mummy2DView } from './view_2d.js?v=28';
-import { MultiplayerManager } from './multiplayer.js?v=28';
+} from './board_data.js?v=29';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=29';
+import { Mummy3DView } from './view_3d.js?v=29';
+import { Mummy2DView } from './view_2d.js?v=29';
+import { MultiplayerManager } from './multiplayer.js?v=29';
 
 class VoiceOfTheMummyApp {
   constructor() {

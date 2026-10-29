@@ -35,7 +35,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="css/styles.css?v=28" />
+  <link rel="stylesheet" href="css/styles.css?v=29" />
   <!-- PeerJS + MQTT-over-WSS for Firewall-Proof Real-Time Multiplayer on GitHub Pages -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/mqtt@5.3.4/dist/mqtt.min.js" defer></script>
@@ -258,9 +258,9 @@
        MODAL 0C: MULTIPLAYER INVITE ACCEPT & PYRAMID CAVE WAITING SCREEN
        ======================================================================= -->
   <div id="modal-guest-invite" class="modal-backdrop hidden">
-    <div class="modal-card mp-wizard-card" style="max-width: 680px; overflow: hidden;">
+    <div class="modal-card mp-wizard-card" style="max-width: 680px;">
       <!-- STEP A: PICK YOUR EXPLORER COLOR PIECE & ENTER YOUR NAME -->
-      <div id="guest-invite-step-setup">
+      <div id="guest-invite-step-setup" class="guest-invite-step-wrap">
         <div class="modal-header">
           <h2>🎟️ Invited to Tomb Room <span id="invite-prompt-room-code" style="color: #7dffb3;">TOMB-0000</span></h2>
         </div>
@@ -286,7 +286,7 @@
       </div>
 
       <!-- STEP B: EXPLORER ENTERING PYRAMID CAVE — WAITING ON OTHERS TO JOIN -->
-      <div id="guest-invite-step-waiting" class="hidden">
+      <div id="guest-invite-step-waiting" class="guest-invite-step-wrap hidden">
         <div class="intro-hero-artwork-wrap guest-cave-hero-wrap">
           <img src="textures/landing_hero_tomb.jpg" alt="Explorers Entering the Pyramid Cave — Voice of the Mummy" class="intro-hero-img" />
           <div class="intro-hero-overlay guest-cave-overlay">
@@ -534,6 +534,6 @@
   </div>
 
   <!-- Main Application Script -->
-  <script type="module" src="js/app.js?v=28"></script>
+  <script type="module" src="js/app.js?v=29"></script>
 </body>
 </html>

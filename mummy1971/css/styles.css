@@ -1393,8 +1393,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 12px;
   z-index: 100;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .modal-card {
@@ -1402,12 +1405,22 @@ body {
   border: 2px solid var(--gold-bright);
   border-radius: 16px;
   width: min(880px, 96vw);
-  max-height: 90vh;
-  max-height: 90dvh;
+  max-height: 92vh;
+  max-height: 92dvh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.92);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.guest-invite-step-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
 }
 
 .modal-header {
@@ -1444,7 +1457,11 @@ body {
 
 .modal-body {
   padding: 18px 20px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -3356,9 +3373,97 @@ body {
     font-size: 11px;
   }
 
+  .modal-backdrop {
+    align-items: flex-start;
+    padding: 8px 6px;
+  }
+
+  .modal-card {
+    width: 96vw;
+    max-height: 94dvh;
+    margin: auto 0;
+  }
+
+  .modal-header {
+    padding: 10px 14px;
+    flex-shrink: 0;
+  }
+
+  .modal-header h2 {
+    font-size: 14.5px;
+  }
+
+  .modal-body {
+    padding: 12px 12px 16px;
+    gap: 10px;
+  }
+
+  .mp-wizard-step {
+    gap: 10px;
+  }
+
+  .mp-step-field {
+    padding: 10px 10px;
+    gap: 7px;
+  }
+
+  .mp-step-label {
+    font-size: 11.5px;
+  }
+
+  .mp-name-big-input {
+    padding: 9px 11px;
+    font-size: 16px; /* 16px prevents iOS Safari auto-zoom on focus */
+  }
+
+  /* Compact 4-Across Character Picker on iPhone so Piece Picker + Name Input + Start/Join Button all fit on 1 screen without scrolling! */
   .mp-char-picker-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .mp-char-pick-card {
+    padding: 6px 3px;
+    gap: 3px;
+    border-radius: 9px;
+    min-width: 0;
+  }
+
+  .mp-char-visuals {
+    gap: 2px;
+  }
+
+  .mp-char-fig {
+    width: 26px;
+    height: 36px;
+  }
+
+  .mp-char-temple {
+    width: 24px;
+    height: 36px;
+  }
+
+  .mp-char-name {
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .mp-char-deity {
+    display: none;
+  }
+
+  .mp-char-badge {
+    font-size: 8px;
+    padding: 2px 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .guest-cave-hero-wrap {
+    max-height: 155px;
+    flex-shrink: 0;
   }
 
   .single-bot-picker-grid {

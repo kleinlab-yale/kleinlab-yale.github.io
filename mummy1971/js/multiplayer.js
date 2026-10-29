@@ -9,7 +9,7 @@
  *   3. BroadcastChannel for zero-latency multi-tab testing on the same device.
  */
 
-import { pickAdventurerNames } from './board_data.js?v=28';
+import { pickAdventurerNames } from './board_data.js?v=29';
 
 const PEER_PREFIX = 'votm1971-tomb-';
 const MQTT_TOPIC_PREFIX = 'votm1971/v28/room';
