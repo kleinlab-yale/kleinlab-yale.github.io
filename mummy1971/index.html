@@ -3,10 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>Voice of the Mummy (1971 Milton Bradley) — 3D &amp; 2D Online Multiplayer</title>
+  <title>Voice of the Mummy (1971 Milton Bradley) — Tap to Join the Tomb Expedition!</title>
+  <meta name="description" content="Ascend the Pharaoh's Stepped Pyramid, claim the 26 Emerald Scarabs, and beware the Cursed Ruby Cobra in this 3D &amp; 2D Online Multiplayer edition of the 1971 Milton Bradley classic!" />
+
+  <!-- Open Graph / iMessage / SMS Rich Link Preview Card Metadata -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Voice of the Mummy (1971)" />
+  <meta property="og:title" content="Voice of the Mummy (1971) — Tap to Join the Tomb Expedition!" />
+  <meta property="og:description" content="Ascend the Pharaoh's Stepped Pyramid, claim the 26 Emerald Scarabs, and beware the Cursed Ruby Cobra as the Mummy speaks from his golden Sarcophagus!" />
+  <meta property="og:image" content="textures/landing_hero_tomb.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1376" />
+  <meta property="og:image:height" content="768" />
+  <meta property="og:image:alt" content="Explorers Entering the Pharaoh's Tomb — Voice of the Mummy (1971)" />
+
+  <!-- Twitter / Large Summary Card Preview -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Voice of the Mummy (1971) — Tap to Join the Tomb Expedition!" />
+  <meta name="twitter:description" content="Ascend the Pharaoh's Stepped Pyramid, claim the 26 Emerald Scarabs, and beware the Cursed Ruby Cobra!" />
+  <meta name="twitter:image" content="textures/landing_hero_tomb.jpg" />
+
+  <link rel="image_src" href="textures/landing_hero_tomb.jpg" />
+  <link rel="apple-touch-icon" href="textures/landing_hero_tomb.jpg" />
+
   <!-- IMPORTANT: importmap MUST appear before any other <script> tag in <head> -->
   <script type="importmap">
     {
@@ -16,9 +35,10 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="css/styles.css?v=25" />
-  <!-- PeerJS for Serverless WebRTC P2P Multiplayer on GitHub Pages -->
+  <link rel="stylesheet" href="css/styles.css?v=28" />
+  <!-- PeerJS + MQTT-over-WSS for Firewall-Proof Real-Time Multiplayer on GitHub Pages -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mqtt@5.3.4/dist/mqtt.min.js" defer></script>
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
@@ -235,29 +255,71 @@
   </div>
 
   <!-- =======================================================================
-       MODAL 0C: MULTIPLAYER INVITE ACCEPT (ENTER YOUR NAME BEFORE JOINING ROOM)
+       MODAL 0C: MULTIPLAYER INVITE ACCEPT & PYRAMID CAVE WAITING SCREEN
        ======================================================================= -->
   <div id="modal-guest-invite" class="modal-backdrop hidden">
-    <div class="modal-card mp-wizard-card" style="max-width: 520px;">
-      <div class="modal-header">
-        <h2>🎟️ You're Invited to the Tomb Expedition!</h2>
+    <div class="modal-card mp-wizard-card" style="max-width: 680px; overflow: hidden;">
+      <!-- STEP A: PICK YOUR EXPLORER COLOR PIECE & ENTER YOUR NAME -->
+      <div id="guest-invite-step-setup">
+        <div class="modal-header">
+          <h2>🎟️ Invited to Tomb Room <span id="invite-prompt-room-code" style="color: #7dffb3;">TOMB-0000</span></h2>
+        </div>
+        <div class="modal-body">
+          <div class="mp-wizard-step">
+            <div class="mp-step-field">
+              <label class="mp-step-label">1. Pick Your Explorer Color Piece</label>
+              <div id="guest-invite-char-picker" class="mp-char-picker-grid"></div>
+            </div>
+
+            <div class="mp-step-field">
+              <label class="mp-step-label" for="input-invite-guest-name">2. Enter Your Name <span style="font-weight: 600; color: var(--text-muted); text-transform: none;">(or leave blank for a random Adventurer!)</span></label>
+              <input type="text" id="input-invite-guest-name" class="mp-name-big-input" placeholder="Leave blank for Indiana Jones, Lara Croft, Howard Carter..." maxlength="24" value="" />
+            </div>
+
+            <div class="mp-step1-actions">
+              <button type="button" class="btn-primary-action pulse-gold" id="btn-accept-invite-join">
+                🏺 Join Expedition &amp; Enter Tomb ➔
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="modal-body">
-        <div class="mp-wizard-step">
-          <div class="mp-invite-hero-box" style="text-align: center; align-items: center;">
-            <div class="mp-invite-kicker">🔗 MULTIPLAYER TOMB INVITE</div>
-            <div class="mp-invite-sub">Enter your name below to join Room <strong id="invite-prompt-room-code">TOMB-0000</strong>!</div>
-          </div>
 
-          <div class="mp-step-field">
-            <label class="mp-step-label" for="input-invite-guest-name">Enter Your Name <span style="font-weight: 600; color: var(--text-muted); text-transform: none;">(or leave blank for a random Adventurer!)</span></label>
-            <input type="text" id="input-invite-guest-name" class="mp-name-big-input" placeholder="Leave blank for Indiana Jones, Lara Croft, Howard Carter..." maxlength="24" value="" />
+      <!-- STEP B: EXPLORER ENTERING PYRAMID CAVE — WAITING ON OTHERS TO JOIN -->
+      <div id="guest-invite-step-waiting" class="hidden">
+        <div class="intro-hero-artwork-wrap guest-cave-hero-wrap">
+          <img src="textures/landing_hero_tomb.jpg" alt="Explorers Entering the Pyramid Cave — Voice of the Mummy" class="intro-hero-img" />
+          <div class="intro-hero-overlay guest-cave-overlay">
+            <div class="intro-vintage-pill" id="guest-waiting-room-pill">🏺 PYRAMID TOMB EXPEDITION • ROOM TOMB-0000</div>
+            <h2 class="guest-cave-title" id="guest-waiting-cave-title">⏳ Waiting on Others to Join...</h2>
+            <p class="guest-cave-sub" id="guest-waiting-cave-sub">
+              Your torch is lit at the pyramid entrance! The Host will launch the game as soon as the expedition party is ready.
+            </p>
           </div>
+        </div>
 
-          <div class="mp-step1-actions">
-            <button type="button" class="btn-primary-action pulse-gold" id="btn-accept-invite-join">
-              🏺 Accept Invite &amp; Join Game ➔
-            </button>
+        <div class="modal-body">
+          <div class="mp-wizard-step">
+            <!-- Live Counter & Status Box -->
+            <div id="guest-waiting-counter-box" class="mp-waiting-status-box waiting">
+              <div class="guest-waiting-count-badge" id="guest-waiting-count-badge">👥 1 of 2 Explorers Joined</div>
+              <div class="mp-waiting-headline" id="guest-waiting-status-line">Connecting to Host's Tomb Room...</div>
+            </div>
+
+            <!-- Live Roster showing WHO has joined and which Explorer piece they have -->
+            <div class="mp-step-field">
+              <label class="mp-step-label">🏛️ Expedition Party — Who Has Joined:</label>
+              <div id="guest-waiting-roster-grid" class="guest-waiting-roster-grid"></div>
+            </div>
+
+            <div class="mp-step1-actions" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+              <button type="button" class="btn-secondary-action" id="btn-guest-refresh-sync" style="flex: 1; min-width: 190px;">
+                🔄 Refresh Room Status
+              </button>
+              <button type="button" class="btn-secondary-action" id="btn-guest-edit-choice" style="flex: 1; min-width: 190px;">
+                ✏️ Change My Color Piece or Name
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -346,6 +408,11 @@
           <div id="mp-waiting-status-box" class="mp-waiting-status-box waiting">
             <div class="mp-waiting-headline" id="mp-waiting-headline">⏳ Waiting for Friends to Join... (1 of 2 Players Connected)</div>
             <div class="mp-waiting-sub" id="mp-status-banner">Send the Invite Link above — this screen updates live as soon as your friends click it!</div>
+            <div style="margin-top: 6px;">
+              <button type="button" class="nav-btn" id="btn-host-refresh-sync" title="Ping room &amp; refresh connected players without losing your room code">
+                🔄 Refresh Connected Players
+              </button>
+            </div>
           </div>
 
           <!-- Host Quick-Start Box: Play with Current Players without needing a new link! -->
@@ -467,6 +534,6 @@
   </div>
 
   <!-- Main Application Script -->
-  <script type="module" src="js/app.js?v=25"></script>
+  <script type="module" src="js/app.js?v=28"></script>
 </body>
 </html>

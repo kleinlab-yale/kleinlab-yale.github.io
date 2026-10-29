@@ -1,12 +1,26 @@
 /**
- * 1971 Milton Bradley "Voice of the Mummy" — Real-Time P2P Multiplayer Manager (GitHub Pages Ready)
- * Uses PeerJS (WebRTC DataChannels with Google STUN servers) for cross-internet multiplayer
- * + BroadcastChannel for instant multi-tab testing on the same device.
+ * 1971 Milton Bradley "Voice of the Mummy" — Multi-Transport Real-Time Multiplayer Manager (GitHub Pages Ready)
+ *
+ * Uses a 3-Layer Hybrid Transport so invites & room joins work 100% reliably across iPhones, cellular 5G/LTE,
+ * Wi-Fi routers, background app-switching (e.g. switching to Messages to text the link), and page refreshes:
+ *   1. Secure WebSocket Pub/Sub (MQTT over WSS via broker.emqx.io + broker.hivemq.com) with Retained State
+ *      — never blocked by cellular Symmetric CGNAT and persists room/guest state while Host is in the Messages app!
+ *   2. PeerJS WebRTC DataChannels (with Google STUN + OpenRelay TURN servers & auto-reconnect)
+ *   3. BroadcastChannel for zero-latency multi-tab testing on the same device.
  */
 
-import { pickAdventurerNames } from './board_data.js?v=25';
+import { pickAdventurerNames } from './board_data.js?v=28';
 
 const PEER_PREFIX = 'votm1971-tomb-';
+const MQTT_TOPIC_PREFIX = 'votm1971/v28/room';
+const STORAGE_HOST_KEY = 'votm1971_active_host_session_v28';
+const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v28_';
+const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v28';
+
+const WSS_BROKERS = [
+  'wss://broker.emqx.io:8084/mqtt',
+  'wss://broker.hivemq.com:8884/mqtt',
+];
 
 const PEER_CONFIG = {
   debug: 1,
@@ -15,7 +29,22 @@ const PEER_CONFIG = {
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
       { urls: 'stun:stun2.l.google.com:19302' },
-      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:openrelay.metered.ca:80' },
+      {
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
     ],
   },
 };
@@ -25,11 +54,17 @@ export class MultiplayerManager {
     this.callbacks = callbacks; // { onLobbyUpdate, onGameState, onGameEvent, onPlayerAction, onStatusChange, onGuestJoined }
     this.mode = 'local'; // 'local' | 'host' | 'guest'
     this.roomCode = null;
-    this.myPeerId = `client-${Math.random().toString(36).slice(2, 9)}`;
+    this.myPeerId = this._loadOrCreatePeerId();
     this.peer = null;
     this.connections = new Map(); // guestPeerId -> DataConnection (Host only)
     this.hostConn = null; // DataConnection to Host (Guest only)
+    this.outboundQueue = []; // Queued packets while Guest DataConnection is opening
     this.bc = null; // BroadcastChannel for same-device multi-tab sync
+    this.mqttClients = []; // Active MQTT-over-WSS clients
+    this.processedMsgIds = new Set(); // Deduplication across Hybrid Transports
+    this.guestJoinPayload = null; // Saved Guest join info for auto-reannounce on reconnect
+    this.lastPublishedGameState = null;
+    this.heartbeatTimer = null;
 
     const initialNames = pickAdventurerNames(4);
     this.lobbyState = {
@@ -43,6 +78,110 @@ export class MultiplayerManager {
       ],
       connectedPeers: [],
     };
+
+    this._bindLifecycleAutoReconnect();
+  }
+
+  _loadOrCreatePeerId() {
+    try {
+      let existing = sessionStorage.getItem(STORAGE_PEER_ID_KEY);
+      if (!existing) {
+        existing = `client-${Math.random().toString(36).slice(2, 10)}`;
+        sessionStorage.setItem(STORAGE_PEER_ID_KEY, existing);
+      }
+      return existing;
+    } catch (e) {
+      return `client-${Math.random().toString(36).slice(2, 10)}`;
+    }
+  }
+
+  _makeMsgId() {
+    return `${this.myPeerId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  }
+
+  _isDuplicateMsg(msg) {
+    if (!msg || !msg.msgId) return false;
+    if (this.processedMsgIds.has(msg.msgId)) return true;
+    this.processedMsgIds.add(msg.msgId);
+    if (this.processedMsgIds.size > 600) {
+      const first = this.processedMsgIds.values().next().value;
+      this.processedMsgIds.delete(first);
+    }
+    return false;
+  }
+
+  /**
+   * Automatically reconnects & syncs room state when user switches back from Messages app on iPhone/Mac
+   * or when network connectivity resumes.
+   */
+  _bindLifecycleAutoReconnect() {
+    const onWake = () => {
+      if (this.mode === 'host' || this.mode === 'guest') {
+        this.refreshRoomSync();
+      }
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        onWake();
+      }
+    });
+    window.addEventListener('focus', onWake);
+    window.addEventListener('pageshow', onWake);
+    window.addEventListener('online', onWake);
+  }
+
+  /**
+   * Actively pings / resyncs the room without losing the Host or Guest session.
+   */
+  refreshRoomSync() {
+    if (!this.roomCode || this.mode === 'local') return;
+
+    // 1. Reconnect PeerJS signaling if iOS Safari suspended it in background
+    if (this.peer && this.peer.disconnected && !this.peer.destroyed) {
+      try {
+        this.peer.reconnect();
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    // 2. Ensure WSS MQTT brokers are connected
+    if (this.mqttClients.length === 0) {
+      this._setupMqttBrokers(this.roomCode);
+    } else {
+      for (const client of this.mqttClients) {
+        if (client && !client.connected && typeof client.reconnect === 'function') {
+          try {
+            client.reconnect();
+          } catch (e) {
+            // Ignore
+          }
+        }
+      }
+    }
+
+    // 3. Re-announce state or request sync
+    if (this.mode === 'host') {
+      this._broadcastLobby();
+      if (this.lastPublishedGameState) {
+        this.broadcastGameState(this.lastPublishedGameState);
+      }
+    } else if (this.mode === 'guest') {
+      if (this.guestJoinPayload) {
+        this.sendToHost({
+          type: 'JOIN_REQUEST',
+          peerId: this.myPeerId,
+          playerName: this.guestJoinPayload.playerName,
+          preferredSeatId: this.guestJoinPayload.preferredSeatId,
+        });
+        this._publishRetainedGuestSeat(this.guestJoinPayload);
+      } else {
+        this.sendToHost({
+          type: 'LOBBY_PREVIEW_REQUEST',
+          peerId: this.myPeerId,
+        });
+      }
+    }
   }
 
   async _ensurePeerJS() {
@@ -56,6 +195,155 @@ export class MultiplayerManager {
     });
   }
 
+  async _ensureMqttJS() {
+    if (window.mqtt) return window.mqtt;
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/mqtt@5.3.4/dist/mqtt.min.js';
+      script.onload = () => resolve(window.mqtt || null);
+      script.onerror = () => {
+        const fallback = document.createElement('script');
+        fallback.src = 'https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js';
+        fallback.onload = () => resolve(window.mqtt || null);
+        fallback.onerror = () => resolve(null);
+        document.head.appendChild(fallback);
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  /**
+   * Saves the active Host room in localStorage and updates the URL (?room=TOMB-XXXX&host=1)
+   * so clicking Browser Refresh NEVER erases the Host's room or connected players!
+   */
+  saveHostSession(extra = {}) {
+    if (this.mode !== 'host' || !this.roomCode) return;
+    try {
+      const existingRaw = localStorage.getItem(STORAGE_HOST_KEY);
+      const existing = existingRaw ? JSON.parse(existingRaw) : {};
+      const payload = {
+        roomCode: this.roomCode,
+        hostPeerId: this.myPeerId,
+        lobbyState: this.lobbyState,
+        mpGameStarted: extra.mpGameStarted !== undefined ? extra.mpGameStarted : Boolean(existing.mpGameStarted),
+        gameState: extra.gameState !== undefined ? extra.gameState : (this.lastPublishedGameState || existing.gameState || null),
+        savedAt: Date.now(),
+      };
+      localStorage.setItem(STORAGE_HOST_KEY, JSON.stringify(payload));
+    } catch (e) {
+      // Ignore storage quota errors
+    }
+  }
+
+  getSavedHostSession(expectedRoomCode = null) {
+    try {
+      const raw = localStorage.getItem(STORAGE_HOST_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!data || !data.roomCode || !data.lobbyState) return null;
+      // Expire after 12 hours
+      if (Date.now() - (data.savedAt || 0) > 12 * 60 * 60 * 1000) {
+        localStorage.removeItem(STORAGE_HOST_KEY);
+        return null;
+      }
+      if (expectedRoomCode && data.roomCode.toUpperCase() !== expectedRoomCode.toUpperCase()) {
+        return null;
+      }
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  clearSavedHostSession() {
+    try {
+      localStorage.removeItem(STORAGE_HOST_KEY);
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('room') || url.searchParams.has('host')) {
+        url.searchParams.delete('room');
+        url.searchParams.delete('host');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  saveGuestSession(roomCode, guestInfo) {
+    if (!roomCode) return;
+    try {
+      sessionStorage.setItem(
+        `${STORAGE_GUEST_PREFIX}${roomCode.toUpperCase()}`,
+        JSON.stringify({
+          ...guestInfo,
+          peerId: this.myPeerId,
+          savedAt: Date.now(),
+        })
+      );
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  getSavedGuestSession(roomCode) {
+    if (!roomCode) return null;
+    try {
+      const raw = sessionStorage.getItem(`${STORAGE_GUEST_PREFIX}${roomCode.toUpperCase()}`);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Restores an active Host room after the Host clicks Browser Refresh!
+   */
+  async resumeHostRoom(savedSession) {
+    if (!savedSession || !savedSession.roomCode) return null;
+    this.disconnect(false);
+    this.mode = 'host';
+    this.roomCode = savedSession.roomCode;
+    if (savedSession.hostPeerId) {
+      this.myPeerId = savedSession.hostPeerId;
+      try {
+        sessionStorage.setItem(STORAGE_PEER_ID_KEY, this.myPeerId);
+      } catch (e) {
+        // Ignore
+      }
+    }
+    this.lobbyState = savedSession.lobbyState;
+    this.lobbyState.roomCode = this.roomCode;
+    this.lobbyState.hostPeerId = this.myPeerId;
+    this.lastPublishedGameState = savedSession.gameState || null;
+
+    this._updateBrowserUrlForHost(this.roomCode);
+    this.saveHostSession({
+      mpGameStarted: Boolean(savedSession.mpGameStarted),
+      gameState: this.lastPublishedGameState,
+    });
+
+    this._setupBroadcastChannel(this.roomCode);
+    this._setupMqttBrokers(this.roomCode);
+    this._startHeartbeat();
+    this._emitStatus(`✅ Restored Room ${this.roomCode} — Waiting for Players / Syncing...`);
+    this._broadcastLobby();
+
+    this._initHostPeerJS(this.roomCode);
+    return this.roomCode;
+  }
+
+  _updateBrowserUrlForHost(roomCode) {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', roomCode);
+      url.searchParams.set('host', '1');
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {
+      // Ignore
+    }
+  }
+
   /**
    * Generates a 4-digit Room Code and initializes Host mode with the Host's chosen Explorer seat & player count.
    */
@@ -64,12 +352,13 @@ export class MultiplayerManager {
     const humanCount = Math.max(2, Math.min(4, Number(options.humanCount) || 2));
     const fillWithAi = options.fillWithAi !== undefined ? Boolean(options.fillWithAi) : true;
 
-    this.disconnect();
+    this.disconnect(false);
     this.mode = 'host';
     const num = Math.floor(1000 + Math.random() * 9000);
     this.roomCode = `TOMB-${num}`;
     this.lobbyState.roomCode = this.roomCode;
     this.lobbyState.hostPeerId = this.myPeerId;
+    this.lastPublishedGameState = null;
 
     const cleanHostInput = (playerName || '').trim();
     const isGenericHost = !cleanHostInput || /^(Host\s+Explorer|Explorer\s*\d*|Player\s*\d*)$/i.test(cleanHostInput);
@@ -108,17 +397,29 @@ export class MultiplayerManager {
       }
     }
 
+    this._updateBrowserUrlForHost(this.roomCode);
+    this.saveHostSession({ mpGameStarted: false, gameState: null });
+
     this._setupBroadcastChannel(this.roomCode);
-    this._emitStatus(`Creating Room ${this.roomCode}...`);
+    this._setupMqttBrokers(this.roomCode);
+    this._startHeartbeat();
+    this._emitStatus(`✅ Room ${this.roomCode} Ready — Copy or Send the Invite Link to your friends!`);
     this._broadcastLobby();
 
+    this._initHostPeerJS(this.roomCode);
+    return this.roomCode;
+  }
+
+  async _initHostPeerJS(roomCode) {
     const PeerClass = await this._ensurePeerJS();
-    if (PeerClass) {
-      const fullPeerId = `${PEER_PREFIX}${this.roomCode}`;
+    if (!PeerClass || this.mode !== 'host' || this.roomCode !== roomCode) return;
+
+    const fullPeerId = `${PEER_PREFIX}${roomCode}`;
+    try {
       this.peer = new PeerClass(fullPeerId, PEER_CONFIG);
 
       this.peer.on('open', () => {
-        this._emitStatus(`✅ Room ${this.roomCode} Ready — Copy the Invite Link and send it to your friends!`);
+        this._emitStatus(`✅ Room ${this.roomCode} Ready — Copy or Send the Invite Link to your friends!`);
         this._broadcastLobby();
       });
 
@@ -126,68 +427,380 @@ export class MultiplayerManager {
         this._handleIncomingPeerConnection(conn);
       });
 
-      this.peer.on('error', (err) => {
-        console.warn('PeerJS Host notice:', err);
-        this._emitStatus(`Room ${this.roomCode} active`);
+      this.peer.on('disconnected', () => {
+        if (this.peer && !this.peer.destroyed) {
+          setTimeout(() => {
+            try {
+              this.peer.reconnect();
+            } catch (e) {
+              // Ignore
+            }
+          }, 1000);
+        }
       });
-    } else {
-      this._emitStatus(`Room ${this.roomCode} active (Local Broadcast Mode)`);
-    }
 
-    return this.roomCode;
+      this.peer.on('error', (err) => {
+        console.warn('PeerJS Host notice (WSS Pub/Sub backup is active):', err?.type || err);
+        this._emitStatus(`✅ Room ${this.roomCode} Live — Ready for Friends to Join!`);
+      });
+    } catch (e) {
+      console.warn('PeerJS Host init fallback to WSS:', e);
+    }
   }
 
   /**
-   * Joins an existing Host room by Room Code.
+   * Connects to an existing Host room in preview mode as soon as the Guest opens the Invite Link,
+   * fetching live LOBBY_STATE so the Guest can see which Explorer color pieces are open vs taken.
    */
-  async joinRoom(rawCode, playerName = 'Guest Explorer') {
-    const cleanCode = rawCode.trim().toUpperCase();
+  async connectRoomPreview(rawCode) {
+    const cleanCode = (rawCode || '').trim().toUpperCase();
     if (!cleanCode) return;
-    this.disconnect();
+    const formattedCode = cleanCode.startsWith('TOMB-') ? cleanCode : `TOMB-${cleanCode}`;
+    if (this.mode === 'guest' && this.roomCode === formattedCode && (this.mqttClients.length > 0 || this.peer || this.bc)) {
+      this.sendToHost({
+        type: 'LOBBY_PREVIEW_REQUEST',
+        peerId: this.myPeerId,
+      });
+      return;
+    }
+
+    this.disconnect(false);
     this.mode = 'guest';
-    this.roomCode = cleanCode.startsWith('TOMB-') ? cleanCode : `TOMB-${cleanCode}`;
+    this.roomCode = formattedCode;
+    // Clear local default 'local' peerId so Guest doesn't think Blue is taken before Host state arrives
+    for (const s of this.lobbyState.seats) {
+      if (s.peerId === 'local') {
+        s.peerId = null;
+      }
+    }
 
     this._emitStatus(`⏳ Connecting to Room ${this.roomCode}...`);
     this._setupBroadcastChannel(this.roomCode);
+    this._setupMqttBrokers(this.roomCode);
+    this._startHeartbeat();
 
-    // Announce join over BroadcastChannel for instant same-browser multi-tab support
-    this._sendViaBroadcastChannel({
-      type: 'JOIN_REQUEST',
+    this.sendToHost({
+      type: 'LOBBY_PREVIEW_REQUEST',
       peerId: this.myPeerId,
-      playerName,
     });
 
     const PeerClass = await this._ensurePeerJS();
-    if (PeerClass) {
-      this.peer = new PeerClass(undefined, PEER_CONFIG);
-      this.peer.on('open', () => {
-        const hostFullId = `${PEER_PREFIX}${this.roomCode}`;
-        const conn = this.peer.connect(hostFullId, { reliable: true });
-        this.hostConn = conn;
+    if (PeerClass && this.mode === 'guest' && this.roomCode === formattedCode) {
+      try {
+        this.peer = new PeerClass(undefined, PEER_CONFIG);
+        this.peer.on('open', () => {
+          if (this.mode !== 'guest' || this.roomCode !== formattedCode) return;
+          const hostFullId = `${PEER_PREFIX}${this.roomCode}`;
+          const conn = this.peer.connect(hostFullId, { reliable: true });
+          this.hostConn = conn;
 
-        conn.on('open', () => {
-          this._emitStatus(`✅ Connected to Room ${this.roomCode}! Pick your Explorer seat below or wait for Host to start.`);
-          conn.send({
-            type: 'JOIN_REQUEST',
-            peerId: this.myPeerId,
-            playerName,
+          conn.on('open', () => {
+            this._emitStatus(`✅ Connected to Room ${this.roomCode}!`);
+            conn.send({
+              type: 'LOBBY_PREVIEW_REQUEST',
+              peerId: this.myPeerId,
+              msgId: this._makeMsgId(),
+            });
+            while (this.outboundQueue.length > 0) {
+              const pkt = this.outboundQueue.shift();
+              conn.send(pkt);
+            }
+          });
+
+          conn.on('data', (msg) => {
+            this._handleGuestMessage(msg);
+          });
+
+          conn.on('close', () => {
+            // WSS broker remains active even if direct P2P closes
           });
         });
 
-        conn.on('data', (msg) => {
-          this._handleGuestMessage(msg);
+        this.peer.on('disconnected', () => {
+          if (this.peer && !this.peer.destroyed) {
+            try {
+              this.peer.reconnect();
+            } catch (e) {
+              // Ignore
+            }
+          }
         });
 
-        conn.on('close', () => {
-          this._emitStatus('⚠️ Disconnected from Host.');
+        this.peer.on('error', (err) => {
+          console.warn('PeerJS Guest notice (using WSS Pub/Sub):', err?.type || err);
         });
-      });
-
-      this.peer.on('error', (err) => {
-        console.warn('PeerJS Guest notice:', err);
-        this._emitStatus(`⚠️ Could not reach Room ${this.roomCode} — verify the Host has the room open.`);
-      });
+      } catch (e) {
+        // Ignore PeerJS error, WSS handles it
+      }
     }
+  }
+
+  /**
+   * Joins an existing Host room by Room Code with the Guest's chosen Explorer seat & name.
+   */
+  async joinRoom(rawCode, playerName = 'Guest Explorer', preferredSeatId = null) {
+    const cleanCode = (rawCode || '').trim().toUpperCase();
+    if (!cleanCode) return;
+    const formattedCode = cleanCode.startsWith('TOMB-') ? cleanCode : `TOMB-${cleanCode}`;
+
+    this.guestJoinPayload = {
+      peerId: this.myPeerId,
+      playerName,
+      preferredSeatId,
+    };
+    this.saveGuestSession(formattedCode, {
+      playerName,
+      preferredSeatId,
+      hasJoined: true,
+    });
+
+    // Optimistically reflect Guest's own seat locally right away so Guest UI never feels stuck
+    this._applyOptimisticGuestClaim(this.myPeerId, playerName, preferredSeatId);
+
+    // If not yet connected to this room, establish the connection first
+    if (this.mode !== 'guest' || this.roomCode !== formattedCode || (this.mqttClients.length === 0 && !this.peer && !this.bc)) {
+      await this.connectRoomPreview(formattedCode);
+    }
+
+    this.sendToHost({
+      type: 'JOIN_REQUEST',
+      peerId: this.myPeerId,
+      playerName,
+      preferredSeatId,
+    });
+    this._publishRetainedGuestSeat(this.guestJoinPayload);
+  }
+
+  _applyOptimisticGuestClaim(guestPeerId, playerName, preferredSeatId) {
+    if (!this.lobbyState || !this.lobbyState.seats) return;
+    for (const prev of this.lobbyState.seats) {
+      if (prev.peerId === guestPeerId && (!preferredSeatId || prev.id !== preferredSeatId)) {
+        prev.peerId = null;
+        prev.control = 'human';
+        prev.name = 'Waiting for Friend...';
+      }
+    }
+    let seat = null;
+    if (preferredSeatId) {
+      const cand = this.lobbyState.seats.find((s) => s.id === preferredSeatId);
+      if (cand && (!cand.peerId || cand.peerId === guestPeerId)) {
+        seat = cand;
+      }
+    }
+    if (!seat) {
+      seat =
+        this.lobbyState.seats.find((s) => s.peerId === guestPeerId) ||
+        this.lobbyState.seats.find((s) => s.control === 'human' && !s.peerId);
+    }
+    if (seat) {
+      seat.control = 'human';
+      seat.peerId = guestPeerId;
+      if (playerName) seat.name = playerName;
+    }
+    if (this.callbacks.onLobbyUpdate) {
+      this.callbacks.onLobbyUpdate(this.lobbyState);
+    }
+  }
+
+  /**
+   * Connects to public MQTT-over-WSS brokers so Host & Guests can exchange retained lobby state,
+   * seat joins, and game events across any cellular or Wi-Fi firewall!
+   */
+  async _setupMqttBrokers(roomCode) {
+    this._closeMqttBrokers();
+    const mqttLib = await this._ensureMqttJS();
+    if (!mqttLib || !this.roomCode || this.roomCode !== roomCode) return;
+
+    const baseTopic = `${MQTT_TOPIC_PREFIX}/${roomCode}`;
+    const topicLobby = `${baseTopic}/lobby`;
+    const topicGameState = `${baseTopic}/gamestate`;
+    const topicEvents = `${baseTopic}/events`;
+    const topicToHost = `${baseTopic}/to-host`;
+    const topicGuestWildcard = `${baseTopic}/guest/+`;
+
+    for (const brokerUrl of WSS_BROKERS) {
+      try {
+        const client = mqttLib.connect(brokerUrl, {
+          clientId: `votm-${this.myPeerId}-${Math.random().toString(36).slice(2, 6)}`,
+          clean: true,
+          keepalive: 30,
+          reconnectPeriod: 2500,
+          connectTimeout: 8000,
+        });
+
+        client.on('connect', () => {
+          if (this.roomCode !== roomCode) {
+            client.end(true);
+            return;
+          }
+          if (this.mode === 'host') {
+            client.subscribe([topicToHost, topicGuestWildcard], { qos: 1 });
+            // Publish current authoritative Lobby State (and Game State if started) with retain: true
+            this._publishMqttFromHost(client);
+          } else if (this.mode === 'guest') {
+            client.subscribe([topicLobby, topicGameState, topicEvents, topicGuestWildcard], { qos: 1 });
+            this._emitStatus(`✅ Connected to Room ${this.roomCode}!`);
+            if (this.guestJoinPayload) {
+              const joinPkt = {
+                type: 'JOIN_REQUEST',
+                peerId: this.myPeerId,
+                playerName: this.guestJoinPayload.playerName,
+                preferredSeatId: this.guestJoinPayload.preferredSeatId,
+                msgId: this._makeMsgId(),
+                senderId: this.myPeerId,
+              };
+              client.publish(topicToHost, JSON.stringify(joinPkt), { qos: 1 });
+              client.publish(
+                `${baseTopic}/guest/${this.myPeerId}`,
+                JSON.stringify(joinPkt),
+                { qos: 1, retain: true }
+              );
+            } else {
+              const previewPkt = {
+                type: 'LOBBY_PREVIEW_REQUEST',
+                peerId: this.myPeerId,
+                msgId: this._makeMsgId(),
+                senderId: this.myPeerId,
+              };
+              client.publish(topicToHost, JSON.stringify(previewPkt), { qos: 1 });
+            }
+          }
+        });
+
+        client.on('message', (topic, payloadBuf) => {
+          if (this.roomCode !== roomCode) return;
+          let msg = null;
+          try {
+            const str = payloadBuf.toString();
+            if (!str) return;
+            msg = JSON.parse(str);
+          } catch (e) {
+            return;
+          }
+          if (!msg || msg.senderId === this.myPeerId) return;
+
+          if (this.mode === 'host') {
+            if (topic === topicToHost || topic.startsWith(`${baseTopic}/guest/`)) {
+              // For retained guest seat messages, allow processing if that guest isn't in that seat yet
+              const isRetainedGuestTopic = topic.startsWith(`${baseTopic}/guest/`);
+              if (isRetainedGuestTopic) {
+                const alreadySeated = this.lobbyState.seats.find(
+                  (s) => s.peerId === msg.peerId && s.name === msg.playerName && (!msg.preferredSeatId || s.id === msg.preferredSeatId)
+                );
+                if (alreadySeated) return;
+              } else if (this._isDuplicateMsg(msg)) {
+                return;
+              }
+              this._handleHostMessage(msg, null);
+            }
+          } else if (this.mode === 'guest') {
+            if (topic === topicLobby || topic === topicGameState || topic === topicEvents) {
+              if (topic === topicEvents && this._isDuplicateMsg(msg)) return;
+              this._handleGuestMessage(msg);
+            } else if (topic.startsWith(`${baseTopic}/guest/`)) {
+              // Another Guest published their retained seat claim — reflect it immediately even if Host is in Messages app!
+              if (msg.type === 'JOIN_REQUEST' && msg.peerId && msg.peerId !== this.myPeerId) {
+                this._applyOptimisticGuestClaim(msg.peerId, msg.playerName, msg.preferredSeatId);
+              }
+            }
+          }
+        });
+
+        client.on('error', () => {
+          // Handled silently by multi-broker redundancy
+        });
+
+        this.mqttClients.push(client);
+      } catch (e) {
+        // Ignore individual broker init failure
+      }
+    }
+  }
+
+  _publishMqttFromHost(singleClient = null) {
+    if (this.mode !== 'host' || !this.roomCode) return;
+    const baseTopic = `${MQTT_TOPIC_PREFIX}/${this.roomCode}`;
+    const lobbyPacket = JSON.stringify({
+      type: 'LOBBY_STATE',
+      lobbyState: this.lobbyState,
+      senderId: this.myPeerId,
+      msgId: this._makeMsgId(),
+    });
+    const clients = singleClient ? [singleClient] : this.mqttClients;
+    for (const c of clients) {
+      if (c && c.connected) {
+        try {
+          c.publish(`${baseTopic}/lobby`, lobbyPacket, { qos: 1, retain: true });
+          if (this.lastPublishedGameState) {
+            const statePacket = JSON.stringify({
+              type: 'GAME_STATE',
+              state: this.lastPublishedGameState,
+              senderId: this.myPeerId,
+              msgId: this._makeMsgId(),
+            });
+            c.publish(`${baseTopic}/gamestate`, statePacket, { qos: 1, retain: true });
+          } else {
+            // Clear any stale retained game state for this room code
+            c.publish(`${baseTopic}/gamestate`, '', { qos: 1, retain: true });
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+  }
+
+  _publishRetainedGuestSeat(guestInfo) {
+    if (!this.roomCode || !guestInfo) return;
+    const baseTopic = `${MQTT_TOPIC_PREFIX}/${this.roomCode}`;
+    const pkt = JSON.stringify({
+      type: 'JOIN_REQUEST',
+      peerId: this.myPeerId,
+      playerName: guestInfo.playerName,
+      preferredSeatId: guestInfo.preferredSeatId,
+      senderId: this.myPeerId,
+      msgId: this._makeMsgId(),
+    });
+    for (const c of this.mqttClients) {
+      if (c && c.connected) {
+        try {
+          c.publish(`${baseTopic}/guest/${this.myPeerId}`, pkt, { qos: 1, retain: true });
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+  }
+
+  _closeMqttBrokers() {
+    for (const c of this.mqttClients) {
+      if (c) {
+        try {
+          c.end(true);
+        } catch (e) {
+          // Ignore
+        }
+      }
+    }
+    this.mqttClients = [];
+  }
+
+  _startHeartbeat() {
+    clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = setInterval(() => {
+      if (this.mode === 'guest' && this.guestJoinPayload) {
+        // Check if our peerId is confirmed in lobbyState; if not, re-send JOIN_REQUEST
+        const isConfirmed = this.lobbyState?.seats?.some((s) => s.peerId === this.myPeerId);
+        if (!isConfirmed) {
+          this.sendToHost({
+            type: 'JOIN_REQUEST',
+            peerId: this.myPeerId,
+            playerName: this.guestJoinPayload.playerName,
+            preferredSeatId: this.guestJoinPayload.preferredSeatId,
+          });
+        }
+      }
+    }, 2500);
   }
 
   _handleIncomingPeerConnection(conn) {
@@ -195,6 +808,7 @@ export class MultiplayerManager {
       this.connections.set(conn.peer, conn);
     });
     conn.on('data', (msg) => {
+      if (this._isDuplicateMsg(msg)) return;
       this._handleHostMessage(msg, conn);
     });
     conn.on('close', () => {
@@ -211,6 +825,7 @@ export class MultiplayerManager {
       this.bc.onmessage = (ev) => {
         const msg = ev.data;
         if (!msg || msg.senderId === this.myPeerId) return;
+        if (this._isDuplicateMsg(msg)) return;
         if (this.mode === 'host') {
           this._handleHostMessage(msg, null);
         } else if (this.mode === 'guest') {
@@ -227,43 +842,77 @@ export class MultiplayerManager {
   }
 
   _handleHostMessage(msg, conn) {
+    if (msg.type === 'LOBBY_PREVIEW_REQUEST') {
+      if (conn && msg.peerId) {
+        this.connections.set(msg.peerId, conn);
+      }
+      this._broadcastLobby();
+      return;
+    }
+
     if (msg.type === 'JOIN_REQUEST') {
       const guestPeerId = msg.peerId;
+      if (!guestPeerId) return;
+      const preferredSeatId = msg.preferredSeatId || null;
       const rawGuest = (msg.playerName || '').trim();
       const isGenericGuest = !rawGuest || /^(Guest\s+Explorer|Explorer\s*\d*|Player\s*\d*)$/i.test(rawGuest);
-      const takenNames = this.lobbyState.seats.map((s) => s.name);
+      const takenNames = this.lobbyState.seats
+        .filter((s) => s.peerId !== guestPeerId)
+        .map((s) => s.name);
       const guestName = isGenericGuest ? pickAdventurerNames(1, takenNames)[0] : rawGuest;
       if (conn) {
         this.connections.set(guestPeerId, conn);
       }
 
-      // Assign guest to an open human seat first, or any non-taken seat
-      let assignedSeat = this.lobbyState.seats.find((s) => s.peerId === guestPeerId);
+      // Check if this guest is already seated in the exact same seat with the same name
+      const existingIdenticalSeat = this.lobbyState.seats.find(
+        (s) => s.peerId === guestPeerId && s.name === guestName && (!preferredSeatId || s.id === preferredSeatId)
+      );
+
+      // Free any previous seat held by this same guestPeerId if they are switching seats
+      for (const prev of this.lobbyState.seats) {
+        if (prev.peerId === guestPeerId && (!preferredSeatId || prev.id !== preferredSeatId)) {
+          prev.peerId = null;
+          prev.control = 'human';
+          prev.name = 'Waiting for Friend...';
+        }
+      }
+
+      // 1. Honor Guest's preferredSeatId if available (not taken by another connected human)
+      let assignedSeat = null;
+      if (preferredSeatId) {
+        const candidate = this.lobbyState.seats.find((s) => s.id === preferredSeatId);
+        if (candidate && (!candidate.peerId || candidate.peerId === guestPeerId)) {
+          assignedSeat = candidate;
+        }
+      }
+
+      // 2. Otherwise assign guest to an open human seat first, or any non-taken seat
       if (!assignedSeat) {
         assignedSeat =
+          this.lobbyState.seats.find((s) => s.peerId === guestPeerId) ||
           this.lobbyState.seats.find((s) => s.control === 'human' && !s.peerId) ||
           this.lobbyState.seats.find((s) => !s.peerId && s.control !== 'human') ||
           this.lobbyState.seats.find((s) => s.peerId !== this.myPeerId);
-        if (assignedSeat) {
-          assignedSeat.control = 'human';
-          assignedSeat.peerId = guestPeerId;
-          assignedSeat.name = guestName;
-        }
-      } else if (guestName) {
+      }
+
+      if (assignedSeat) {
+        assignedSeat.control = 'human';
+        assignedSeat.peerId = guestPeerId;
         assignedSeat.name = guestName;
       }
 
+      this.saveHostSession();
       this._emitStatus(`🎉 ${guestName} joined as ${assignedSeat ? assignedSeat.id.toUpperCase() : 'Explorer'}!`);
       this._broadcastLobby();
 
-      if (this.callbacks.onGuestJoined) {
+      if (!existingIdenticalSeat && this.callbacks.onGuestJoined) {
         this.callbacks.onGuestJoined(guestPeerId, guestName, assignedSeat?.id);
       }
     } else if (msg.type === 'CLAIM_SEAT') {
       const { seatId, peerId, name, control, ageEven, rightHanded, exclusiveClaim } = msg;
       const seat = this.lobbyState.seats.find((s) => s.id === seatId);
       if (seat) {
-        // If a player is switching to a new seat, free their previous seat first
         if (exclusiveClaim && peerId) {
           for (const prev of this.lobbyState.seats) {
             if (prev.id !== seatId && prev.peerId === peerId) {
@@ -278,6 +927,7 @@ export class MultiplayerManager {
         if (name !== undefined) seat.name = name;
         if (ageEven !== undefined) seat.ageEven = ageEven;
         if (rightHanded !== undefined) seat.rightHanded = rightHanded;
+        this.saveHostSession();
         this._broadcastLobby();
         if (this.callbacks.onGuestJoined && peerId) {
           this.callbacks.onGuestJoined(peerId, seat.name, seat.id);
@@ -291,16 +941,25 @@ export class MultiplayerManager {
   }
 
   _handleGuestMessage(msg) {
-    if (msg.type === 'LOBBY_STATE') {
+    if (msg.type === 'LOBBY_STATE' && msg.lobbyState) {
       this.lobbyState = msg.lobbyState;
+      // If Guest already clicked Join, but the incoming LOBBY_STATE was a cached snapshot from before Host processed our join,
+      // preserve our optimistic seat display while re-sending JOIN_REQUEST to Host!
+      if (this.guestJoinPayload && !this.lobbyState.seats.some((s) => s.peerId === this.myPeerId)) {
+        this._applyOptimisticGuestClaim(
+          this.myPeerId,
+          this.guestJoinPayload.playerName,
+          this.guestJoinPayload.preferredSeatId
+        );
+      }
       if (this.callbacks.onLobbyUpdate) {
         this.callbacks.onLobbyUpdate(this.lobbyState);
       }
-    } else if (msg.type === 'GAME_STATE') {
+    } else if (msg.type === 'GAME_STATE' && msg.state) {
       if (this.callbacks.onGameState) {
         this.callbacks.onGameState(msg.state);
       }
-    } else if (msg.type === 'GAME_EVENT') {
+    } else if (msg.type === 'GAME_EVENT' && msg.event) {
       if (this.callbacks.onGameEvent) {
         this.callbacks.onGameEvent(msg.event);
       }
@@ -312,6 +971,17 @@ export class MultiplayerManager {
    */
   claimExplorerSeat(seatId, playerName) {
     if (this.mode === 'guest') {
+      this.guestJoinPayload = {
+        peerId: this.myPeerId,
+        playerName,
+        preferredSeatId: seatId,
+      };
+      this.saveGuestSession(this.roomCode, {
+        playerName,
+        preferredSeatId: seatId,
+        hasJoined: true,
+      });
+      this._applyOptimisticGuestClaim(this.myPeerId, playerName, seatId);
       this.sendToHost({
         type: 'CLAIM_SEAT',
         seatId,
@@ -320,6 +990,7 @@ export class MultiplayerManager {
         name: playerName,
         exclusiveClaim: true,
       });
+      this._publishRetainedGuestSeat(this.guestJoinPayload);
       return;
     }
 
@@ -335,6 +1006,7 @@ export class MultiplayerManager {
       target.control = 'human';
       target.peerId = this.myPeerId;
       if (playerName) target.name = playerName;
+      this.saveHostSession();
       this._broadcastLobby();
     }
   }
@@ -346,7 +1018,7 @@ export class MultiplayerManager {
     const seats = this.lobbyState?.seats || [];
     const humanSeats = seats.filter((s) => s.control === 'human');
     const totalHumanSeats = humanSeats.length;
-    const connectedHumans = humanSeats.filter((s) => Boolean(s.peerId)).length;
+    const connectedHumans = humanSeats.filter((s) => Boolean(s.peerId && s.peerId !== 'local')).length;
     const waitingCount = Math.max(0, totalHumanSeats - connectedHumans);
     return {
       totalHumanSeats,
@@ -370,6 +1042,7 @@ export class MultiplayerManager {
     const seat = this.lobbyState.seats.find((s) => s.id === seatId);
     if (seat) {
       Object.assign(seat, updates);
+      this.saveHostSession();
       this._broadcastLobby();
     }
   }
@@ -383,39 +1056,84 @@ export class MultiplayerManager {
         type: 'LOBBY_STATE',
         lobbyState: this.lobbyState,
       });
+      this._publishMqttFromHost();
     }
   }
 
   broadcastGameState(state) {
     if (this.mode !== 'host') return;
+    this.lastPublishedGameState = state;
+    this.saveHostSession({ mpGameStarted: true, gameState: state });
     this.broadcastToAll({
       type: 'GAME_STATE',
       state,
     });
+    this._publishMqttFromHost();
   }
 
   broadcastGameEvent(event) {
     if (this.mode !== 'host') return;
-    this.broadcastToAll({
+    const packet = {
       type: 'GAME_EVENT',
       event,
-    });
+      senderId: this.myPeerId,
+      msgId: this._makeMsgId(),
+    };
+    this.broadcastToAll(packet);
+    if (this.roomCode) {
+      const topicEvents = `${MQTT_TOPIC_PREFIX}/${this.roomCode}/events`;
+      const str = JSON.stringify(packet);
+      for (const c of this.mqttClients) {
+        if (c && c.connected) {
+          try {
+            c.publish(topicEvents, str, { qos: 1 });
+          } catch (e) {
+            // Ignore
+          }
+        }
+      }
+    }
   }
 
   broadcastToAll(packet) {
+    const fullPacket = {
+      ...packet,
+      senderId: this.myPeerId,
+      msgId: packet.msgId || this._makeMsgId(),
+    };
     for (const conn of this.connections.values()) {
       if (conn && conn.open) {
-        conn.send(packet);
+        conn.send(fullPacket);
       }
     }
-    this._sendViaBroadcastChannel(packet);
+    this._sendViaBroadcastChannel(fullPacket);
   }
 
   sendToHost(packet) {
+    const fullPacket = {
+      ...packet,
+      senderId: this.myPeerId,
+      msgId: packet.msgId || this._makeMsgId(),
+    };
     if (this.hostConn && this.hostConn.open) {
-      this.hostConn.send(packet);
+      this.hostConn.send(fullPacket);
+    } else if (this.mode === 'guest') {
+      this.outboundQueue.push(fullPacket);
     }
-    this._sendViaBroadcastChannel(packet);
+    if (this.roomCode) {
+      const topicToHost = `${MQTT_TOPIC_PREFIX}/${this.roomCode}/to-host`;
+      const str = JSON.stringify(fullPacket);
+      for (const c of this.mqttClients) {
+        if (c && c.connected) {
+          try {
+            c.publish(topicToHost, str, { qos: 1 });
+          } catch (e) {
+            // Ignore
+          }
+        }
+      }
+    }
+    this._sendViaBroadcastChannel(fullPacket);
   }
 
   sendPlayerAction(action, payload = {}) {
@@ -443,6 +1161,7 @@ export class MultiplayerManager {
     if (!this.roomCode) return window.location.href;
     const url = new URL(window.location.href);
     url.searchParams.set('room', this.roomCode);
+    url.searchParams.delete('host');
     return url.toString();
   }
 
@@ -452,17 +1171,30 @@ export class MultiplayerManager {
     }
   }
 
-  disconnect() {
+  disconnect(clearStorage = true) {
+    clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = null;
     if (this.peer) {
-      this.peer.destroy();
+      try {
+        this.peer.destroy();
+      } catch (e) {
+        // Ignore
+      }
       this.peer = null;
     }
     if (this.bc) {
       this.bc.close();
       this.bc = null;
     }
+    this._closeMqttBrokers();
     this.connections.clear();
     this.hostConn = null;
+    this.outboundQueue = [];
+    this.guestJoinPayload = null;
+    this.lastPublishedGameState = null;
+    if (clearStorage) {
+      this.clearSavedHostSession();
+    }
     this.mode = 'local';
     this.roomCode = null;
   }
