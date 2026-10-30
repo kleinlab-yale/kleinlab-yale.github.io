@@ -41,7 +41,7 @@
     }
     return data[key];
   };
-  const renderTools = (data) => {
+  const renderTools = (data, selector = ".tool-grid") => {
     const items = requireItems(data, "items", item => text(item.title) && text(item.description) && safeLink(item.url) && text(item.linkLabel)
       && (!text(item.backupUrl) || (safeLink(item.backupUrl) && text(item.backupLabel))));
     const cards = items.map(item => {
@@ -57,7 +57,7 @@
       if (safeLink(item.backupUrl)) card.append(node("p", "tool-host-note", "If one host is unavailable, try the other."));
       return card;
     });
-    document.querySelector(".tool-grid").replaceChildren(...cards);
+    document.querySelector(selector).replaceChildren(...cards);
   };
   const renderNews = (data) => {
     const items = requireItems(data, "items", item => text(item.date) && text(item.text)
@@ -128,6 +128,7 @@
   };
   void Promise.all([
     document.querySelector(".tool-grid") && load("tools", renderTools),
+    document.querySelector(".games-grid") && load("games", data => renderTools(data, ".games-grid")),
     document.querySelector(".news-list") && load("news", renderNews),
     document.querySelector(".people-grid") && load("people", renderPeople),
     document.getElementById("lab-gallery") && load("lab", renderGallery)

@@ -28,7 +28,7 @@ content:
             label: Photo
             type: image
             required: true
-            description: "Upload a photo under 2 MB. If upload fails with 413, make a smaller JPEG at https://kleinlab-yale.github.io/prepare-photo.html, then upload the saved copy. Convert unsupported HEIC photos to JPEG first."
+            description: "Upload a photo under 2 MB. If upload fails with 413, crop, filter, and make a smaller JPEG at https://kleinlab-yale.github.io/prepare-photo.html, then upload the saved copy. Convert unsupported HEIC photos to JPEG first."
           - name: caption
             label: Caption
             type: text
@@ -112,6 +112,48 @@ content:
             required: true
           - name: url
             label: App address
+            type: string
+            required: true
+            pattern: '^https?://'
+          - name: linkLabel
+            label: Button text
+            type: string
+            required: true
+          - name: backupUrl
+            label: Alternative app address (optional)
+            type: string
+            pattern: '^(https?://.*)?$'
+          - name: backupLabel
+            label: Alternative button text (optional)
+            type: string
+            description: Required when an alternative app address is provided.
+
+  - name: games
+    label: Games
+    type: file
+    path: content/games.json
+    format: json
+    operations:
+      delete: false
+    fields:
+      - name: items
+        label: Games (in display order)
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.title}"
+        fields:
+          - name: title
+            label: Game name
+            type: string
+            required: true
+          - name: description
+            label: Description
+            type: text
+            required: true
+          - name: url
+            label: Game address
             type: string
             required: true
             pattern: '^https?://'

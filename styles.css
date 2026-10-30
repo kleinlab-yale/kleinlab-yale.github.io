@@ -952,3 +952,8 @@ body {
 .gallery-intro { max-width: 65ch; }
 .gallery-home-link { margin-top: 1.5rem; }
 @media (max-width: 640px) { .lab-gallery-preview { grid-template-columns: 1fr; } }
+
+.games-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+@media (max-width: 1280px) { .nav-links { gap: 0.8rem; font-size: 0.9rem; } }
+@media (max-width: 930px) { .games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .games-grid { grid-template-columns: 1fr; } }

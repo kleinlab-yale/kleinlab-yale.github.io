@@ -7,16 +7,27 @@
 <title>Prepare a lab photo · KLAY</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f6f3ee;color:#10243e;font:17px/1.6 system-ui,sans-serif}main{max-width:680px;margin:0 auto;padding:35px 22px 70px}a{color:#134e8f}header{display:flex;align-items:center;gap:16px;margin-bottom:35px}header img{width:110px;height:auto}h1{font:700 clamp(30px,6vw,42px)/1.15 Georgia,serif;margin:12px 0}h2{font-size:20px;margin:0 0 12px}.eyebrow{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#134e8f;font-weight:700}.card{padding:24px;border:1px solid #d4d7de;background:white;border-radius:16px;margin:22px 0}input{max-width:100%;font:inherit}input::file-selector-button,.button{display:inline-block;border:0;border-radius:10px;background:#134e8f;color:white;padding:13px 18px;font:600 16px system-ui;text-decoration:none;cursor:pointer;margin:0 8px 10px 0}.secondary{background:#eaf0f6;color:#134e8f}#preview{width:100%;max-height:360px;object-fit:contain;background:#f4f6f8;border-radius:10px}#status{margin:14px 0 0}small{display:block;color:#465971}#sizes{font-weight:600}#error{color:#9b2424}[hidden]{display:none!important}footer{margin-top:25px;font-size:14px}a:focus-visible,input:focus-visible{outline:3px solid #dc8b18;outline-offset:4px}
+label{display:block;font-weight:600;margin:18px 0 6px}select{width:100%;padding:12px;border:1px solid #c5ccd5;border-radius:8px;font:inherit;background:white;color:#10243e}input[type=range]{width:100%;min-height:36px;accent-color:#134e8f}#crop-preview{display:block;max-width:100%;max-height:420px;width:auto;height:auto;margin:18px auto;background:#f4f6f8;touch-action:none;cursor:grab;border-radius:8px}#crop-preview:active{cursor:grabbing}#reset{margin-top:18px}[aria-disabled=true]{opacity:.55;pointer-events:none}select:focus-visible,button:focus-visible{outline:3px solid #dc8b18;outline-offset:4px}
 </style>
 </head>
 <body><main>
 <header><img src="images/klay_logo.png" alt="KLAY"><a href="/">Klein Lab at Yale</a></header>
 <p class="eyebrow">Lab photo editor</p><h1>Prepare a photo for the website</h1>
-<p>Make a smaller JPEG that’s ready to upload in Pages CMS. Your photo is processed here in your browser.</p>
+<p>Crop, adjust, and save a smaller JPEG that’s ready to upload in Pages CMS. Your photo is processed here in your browser.</p>
 <section class="card"><h2>1. Choose your photo</h2><input id="photo" type="file" accept="image/*" aria-label="Choose a photo"><small>Your original photo stays unchanged.</small><p id="status" role="status" aria-live="polite">Choose a photo to get started.</p><p id="error" role="alert" hidden></p></section>
-<section class="card" id="result" hidden><h2>2. Save the smaller copy</h2><img id="preview" alt="Preview of the resized photo"><p id="sizes"></p><a id="download" class="button">Save smaller JPEG</a><p>On your phone, save the downloaded file in Files or Downloads.</p></section>
+<section class="card" id="editor" hidden><h2>2. Crop and adjust</h2>
+<label for="aspect">Crop shape</label><select id="aspect"><option value="original">Original proportions</option><option value="1">Square</option><option value="1.3333333333">Landscape (4:3)</option><option value="0.75">Portrait (3:4)</option><option value="1.7777777778">Wide (16:9)</option></select>
+<canvas id="crop-preview" role="img" aria-label="Preview of the cropped and filtered photo"></canvas>
+<small>Drag the photo to reposition it, or use the position sliders. Zoom in to crop more closely.</small>
+<label for="zoom">Zoom <output id="zoom-value">1.0×</output></label><input id="zoom" type="range" min="1" max="4" step="0.05" value="1">
+<label for="horizontal">Horizontal position</label><input id="horizontal" type="range" min="0" max="100" value="50">
+<label for="vertical">Vertical position</label><input id="vertical" type="range" min="0" max="100" value="50">
+<label for="filter">Filter</label><select id="filter"><option value="original">Original</option><option value="bright">Bright</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="mono">Black &amp; white</option><option value="vintage">Vintage</option></select>
+<button class="button secondary" id="reset" type="button">Reset edits</button>
+</section>
+<section class="card" id="result" hidden><h2>Save your edited copy</h2><p id="sizes"></p><a id="download" class="button">Save edited JPEG</a><p>On your phone, save the downloaded file in Files or Downloads.</p></section>
 <section class="card"><h2>3. Add it to the website</h2><p>Open <strong>Lab photos</strong> in the editor and tap <strong>Add an item</strong>. Upload the smaller JPEG from Files or Downloads, enter your caption and image description, then tap <strong>Save</strong>.</p><a class="button secondary" href="https://app.pagescms.org/kleinlab-yale/kleinlab-yale.github.io/main/file/lab" target="_blank" rel="noopener noreferrer">Open photo editor ↗</a><small>After saving in the editor, allow a minute or two for publishing, then refresh the website.</small></section>
 <footer>This page prepares your file. Publication happens when you save the photo entry in Pages CMS.</footer>
 </main>
-<script src="prepare-photo.js?v=20261029-01"></script>
+<script src="prepare-photo.js?v=20261030-01"></script>
 </body></html>

@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "title": "Chessmate",
+      "description": "Your chess home: play chess in your browser.",
+      "url": "https://kleinlab-yale.github.io/Chessmate/",
+      "linkLabel": "Play Chessmate"
+    },
+    {
+      "title": "Town Lyfe",
+      "description": "A cozy 3D adventure.",
+      "url": "https://kleinlab-yale.github.io/3d/",
+      "linkLabel": "Play Town Lyfe"
+    },
+    {
+      "title": "Mummy 1971",
+      "description": "Explore the tomb in this digital adventure inspired by Voice of the Mummy.",
+      "url": "https://kleinlab-yale.github.io/mummy1971/",
+      "linkLabel": "Play Mummy 1971"
+    }
+  ]
+}
