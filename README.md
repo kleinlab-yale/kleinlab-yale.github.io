@@ -81,12 +81,16 @@ Before publishing source changes, fetch the latest `main` and reconcile any newe
 
 ## Large phone photos (413 upload errors)
 
-The hosted Pages CMS upload endpoint has a hosting request-size limit. This cannot be raised in `.pages.yml`. Before uploading a large photo, open https://kleinlab-yale.github.io/prepare-photo.html on your phone. Choose the photo, save the smaller JPEG, then select that saved file from Files/Downloads in the CMS uploader.
+The hosted Pages CMS upload endpoint has a hosting request-size limit. This cannot be raised in `.pages.yml`. Before uploading a large photo, open https://kleinlab-yale.github.io/prepare-photo.html on your phone. Choose the photo, tap Save photo and choose Photos or On My iPhone, then select that saved copy in the CMS uploader.
 
 The preparation page runs in the browser. It caps the longest image edge at 1800 pixels and outputs a JPEG no larger than 1.8 MB. It does not upload or publish a photo. The original stays unchanged. Formats that the browser cannot decode show an error; convert those to JPEG first.
 
 ## Photo edits and games
 
-The photo preparation page supports original, square, landscape, portrait, and wide crops. Select a shape, zoom, and drag the preview or use the position sliders. Choose a filter, then save the edited JPEG and upload it in CMS. Reset edits returns to the original crop and color. The downloaded file includes the crop and filter, capped at 1800 pixels and 1.8 MB.
+The photo preparation page supports original, square, landscape, portrait, and wide crops. Select a shape, zoom, and drag the preview or use the position sliders. Choose a filter, then tap Save photo, choose Photos or On My iPhone, and upload that copy in CMS. Reset edits returns to the original crop and color. The downloaded file includes the crop and filter, capped at 1800 pixels and 1.8 MB.
 
 The Games section links to Chessmate, Town Lyfe, and Mummy 1971. Edit titles, descriptions, and links in the Games form in CMS (`content/games.json`).
+
+## Saving edited photos on iPhone
+
+The main Save photo button opens the native share/save sheet when the browser supports sharing JPEG files. Choose Save Image / Save to Photos, or Save to Files and select On My iPhone. Cancellation does not trigger a download. If file sharing is unavailable or fails, the page displays the edited image for touch-and-hold saving. A separate download option remains available; Safari's download location must be set to On My iPhone for local storage. The website cannot select the OS destination or change iCloud Photos synchronization.

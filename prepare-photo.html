@@ -8,6 +8,7 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f6f3ee;color:#10243e;font:17px/1.6 system-ui,sans-serif}main{max-width:680px;margin:0 auto;padding:35px 22px 70px}a{color:#134e8f}header{display:flex;align-items:center;gap:16px;margin-bottom:35px}header img{width:110px;height:auto}h1{font:700 clamp(30px,6vw,42px)/1.15 Georgia,serif;margin:12px 0}h2{font-size:20px;margin:0 0 12px}.eyebrow{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#134e8f;font-weight:700}.card{padding:24px;border:1px solid #d4d7de;background:white;border-radius:16px;margin:22px 0}input{max-width:100%;font:inherit}input::file-selector-button,.button{display:inline-block;border:0;border-radius:10px;background:#134e8f;color:white;padding:13px 18px;font:600 16px system-ui;text-decoration:none;cursor:pointer;margin:0 8px 10px 0}.secondary{background:#eaf0f6;color:#134e8f}#preview{width:100%;max-height:360px;object-fit:contain;background:#f4f6f8;border-radius:10px}#status{margin:14px 0 0}small{display:block;color:#465971}#sizes{font-weight:600}#error{color:#9b2424}[hidden]{display:none!important}footer{margin-top:25px;font-size:14px}a:focus-visible,input:focus-visible{outline:3px solid #dc8b18;outline-offset:4px}
 label{display:block;font-weight:600;margin:18px 0 6px}select{width:100%;padding:12px;border:1px solid #c5ccd5;border-radius:8px;font:inherit;background:white;color:#10243e}input[type=range]{width:100%;min-height:36px;accent-color:#134e8f}#crop-preview{display:block;max-width:100%;max-height:420px;width:auto;height:auto;margin:18px auto;background:#f4f6f8;touch-action:none;cursor:grab;border-radius:8px}#crop-preview:active{cursor:grabbing}#reset{margin-top:18px}[aria-disabled=true]{opacity:.55;pointer-events:none}select:focus-visible,button:focus-visible{outline:3px solid #dc8b18;outline-offset:4px}
+#save-preview{display:block;max-width:100%;max-height:420px;object-fit:contain;margin:14px auto}button:disabled{opacity:.55;cursor:wait}details{margin-top:18px}summary{cursor:pointer;font-weight:600}
 </style>
 </head>
 <body><main>
@@ -25,9 +26,15 @@ label{display:block;font-weight:600;margin:18px 0 6px}select{width:100%;padding:
 <label for="filter">Filter</label><select id="filter"><option value="original">Original</option><option value="bright">Bright</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="mono">Black &amp; white</option><option value="vintage">Vintage</option></select>
 <button class="button secondary" id="reset" type="button">Reset edits</button>
 </section>
-<section class="card" id="result" hidden><h2>Save your edited copy</h2><p id="sizes"></p><a id="download" class="button">Save edited JPEG</a><p>On your phone, save the downloaded file in Files or Downloads.</p></section>
-<section class="card"><h2>3. Add it to the website</h2><p>Open <strong>Lab photos</strong> in the editor and tap <strong>Add an item</strong>. Upload the smaller JPEG from Files or Downloads, enter your caption and image description, then tap <strong>Save</strong>.</p><a class="button secondary" href="https://app.pagescms.org/kleinlab-yale/kleinlab-yale.github.io/main/file/lab" target="_blank" rel="noopener noreferrer">Open photo editor ↗</a><small>After saving in the editor, allow a minute or two for publishing, then refresh the website.</small></section>
+<section class="card" id="result" hidden><h2>Save your edited copy</h2><p id="sizes"></p>
+<button id="save-photo" class="button" type="button" disabled>Save photo…</button>
+<p>In the save options, choose <strong>Save Image</strong> or <strong>Save to Photos</strong>. For a file stored on your phone, choose <strong>Save to Files → On My iPhone</strong>.</p>
+<small>Photos follows your phone’s existing iCloud Photos setting. Choose On My iPhone for a device-only file.</small>
+<div id="manual-save" hidden><p>Touch and hold this edited image, then choose <strong>Save to Photos</strong> or <strong>Save Image</strong>.</p><img id="save-preview" alt="Edited photo ready to save to Photos"></div>
+<details><summary>Download a JPEG instead</summary><p>To keep Safari downloads on your phone, first set <strong>Settings → Apps → Safari → Downloads → On My iPhone</strong>. The download button uses your browser’s chosen location.</p><a id="download" class="button secondary">Download JPEG</a></details>
+</section>
+<section class="card"><h2>3. Add it to the website</h2><p>Open <strong>Lab photos</strong> in the editor and tap <strong>Add an item</strong>. Upload the edited JPEG from Photos or On My iPhone, enter your caption and image description, then tap <strong>Save</strong>.</p><a class="button secondary" href="https://app.pagescms.org/kleinlab-yale/kleinlab-yale.github.io/main/file/lab" target="_blank" rel="noopener noreferrer">Open photo editor ↗</a><small>After saving in the editor, allow a minute or two for publishing, then refresh the website.</small></section>
 <footer>This page prepares your file. Publication happens when you save the photo entry in Pages CMS.</footer>
 </main>
-<script src="prepare-photo.js?v=20261030-01"></script>
+<script type="module" src="prepare-photo.js?v=20261030-02"></script>
 </body></html>

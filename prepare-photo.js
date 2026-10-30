@@ -1,9 +1,10 @@
+import { choosePhotoDestination } from './photo-save.mjs?v=20261030-01';
 (() => {
   const $ = id => document.getElementById(id);
   const input = $('photo'), status = $('status'), error = $('error'), result = $('result');
-  const canvas = $('crop-preview'), download = $('download');
+  const canvas = $('crop-preview'), download = $('download'), saveButton = $('save-photo');
   const controls = ['aspect','zoom','horizontal','vertical','filter'];
-  let image, filename, fileSize, outputUrl, revision = 0, timer, frame, drag;
+  let image, filename, fileSize, outputUrl, outputFile, revision = 0, timer, frame, drag;
   const size = bytes => `${(bytes / 1000000).toFixed(2)} MB`;
   const settings = () => ({aspect:$('aspect').value,zoom:Number($('zoom').value),x:Number($('horizontal').value)/100,y:Number($('vertical').value)/100,filter:$('filter').value});
   const crop = () => {
@@ -46,14 +47,18 @@
       if(outputUrl)URL.revokeObjectURL(outputUrl);
       outputUrl=URL.createObjectURL(blob);download.href=outputUrl;
       download.download=`${filename.replace(/\.[^.]+$/,'').replace(/[^a-zA-Z0-9_-]/g,'-').slice(0,60)||'lab-photo'}-web.jpg`;
-      download.removeAttribute('aria-disabled');download.textContent='Save edited JPEG';
+      download.removeAttribute('aria-disabled');download.textContent='Download JPEG';
+      outputFile = new File([blob], download.download, { type: 'image/jpeg' });
+      saveButton.disabled = false; saveButton.textContent = 'Save photo…';
+      $('save-preview').src = outputUrl;
       $('sizes').textContent=`${size(fileSize)} → ${size(blob.size)} · ${output.width} × ${output.height} pixels`;
-      result.hidden=false;status.textContent='Ready. Save the edited JPEG, then upload that copy in CMS.';
+      result.hidden=false;status.textContent='Ready. Tap Save photo, then choose Save Image for Photos or Save to Files → On My iPhone.';
     }catch(failure){if(version===revision)showError(failure);}
   };
   const update = () => {
     if(!image)return;
     const version=++revision;clearTimeout(timer);cancelAnimationFrame(frame);
+    outputFile=null;saveButton.disabled=true;$('manual-save').hidden=true;
     download.removeAttribute('href');download.setAttribute('aria-disabled','true');download.textContent='Preparing JPEG…';
     error.hidden=true;status.textContent='Updating your photo…';
     frame=requestAnimationFrame(()=>{try{draw(canvas,640);}catch(failure){showError(failure);}});
@@ -62,7 +67,7 @@
   };
   const reset = () => {$('aspect').value='original';$('zoom').value='1';$('horizontal').value='50';$('vertical').value='50';$('filter').value='original';update();};
   input.addEventListener('change',async()=>{
-    const version=++revision;clearTimeout(timer);cancelAnimationFrame(frame);image=null;result.hidden=true;$('editor').hidden=true;error.hidden=true;
+    const version=++revision;clearTimeout(timer);cancelAnimationFrame(frame);image=null;outputFile=null;saveButton.disabled=true;$('manual-save').hidden=true;result.hidden=true;$('editor').hidden=true;error.hidden=true;
     if(outputUrl){URL.revokeObjectURL(outputUrl);outputUrl=null;}
     const file=input.files[0];if(!file){status.textContent='Choose a photo to get started.';return;}
     status.textContent='Opening your photo…';const url=URL.createObjectURL(file);
@@ -71,6 +76,23 @@
       if(version!==revision)return;
       image=next;filename=file.name;fileSize=file.size;$('editor').hidden=false;reset();
     }catch(failure){if(version===revision)showError(failure);}finally{URL.revokeObjectURL(url);}
+  });
+  saveButton.addEventListener('click', async () => {
+    if (!outputFile || saveButton.disabled) return;
+    const version = revision;
+    saveButton.disabled = true;
+    const outcome = await choosePhotoDestination(outputFile);
+    if (version !== revision) return;
+    saveButton.disabled = false;
+    if (outcome === 'cancelled') {
+      status.textContent = 'Save cancelled. Tap Save photo whenever you are ready.';
+    } else if (outcome === 'preview') {
+      $('manual-save').hidden = false;
+      status.textContent = 'Touch and hold the edited image below, then choose Save to Photos or Save Image.';
+      $('manual-save').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      status.textContent = 'Save options closed. Upload the copy you saved from Photos or On My iPhone in CMS.';
+    }
   });
   controls.forEach(id=>$(id).addEventListener('input',update));
   $('reset').addEventListener('click',reset);
