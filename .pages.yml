@@ -27,7 +27,7 @@ content:
             label: Photo
             type: image
             required: true
-            description: Choose a JPG, PNG, WebP, GIF, or AVIF photo. Convert HEIC photos to JPEG before uploading.
+            description: "Upload a photo under 2 MB. If upload fails with 413, make a smaller JPEG at https://kleinlab-yale.github.io/prepare-photo.html, then upload the saved copy. Convert unsupported HEIC photos to JPEG first."
           - name: caption
             label: Caption
             type: text

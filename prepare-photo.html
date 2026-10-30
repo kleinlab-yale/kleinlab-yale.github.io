@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Prepare a lab photo · KLAY</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f3ee;color:#10243e;font:17px/1.6 system-ui,sans-serif}main{max-width:680px;margin:0 auto;padding:35px 22px 70px}a{color:#134e8f}header{display:flex;align-items:center;gap:16px;margin-bottom:35px}header img{width:110px;height:auto}h1{font:700 clamp(30px,6vw,42px)/1.15 Georgia,serif;margin:12px 0}h2{font-size:20px;margin:0 0 12px}.eyebrow{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:#134e8f;font-weight:700}.card{padding:24px;border:1px solid #d4d7de;background:white;border-radius:16px;margin:22px 0}input{max-width:100%;font:inherit}input::file-selector-button,.button{display:inline-block;border:0;border-radius:10px;background:#134e8f;color:white;padding:13px 18px;font:600 16px system-ui;text-decoration:none;cursor:pointer;margin:0 8px 10px 0}.secondary{background:#eaf0f6;color:#134e8f}#preview{width:100%;max-height:360px;object-fit:contain;background:#f4f6f8;border-radius:10px}#status{margin:14px 0 0}small{display:block;color:#465971}#sizes{font-weight:600}#error{color:#9b2424}[hidden]{display:none!important}footer{margin-top:25px;font-size:14px}a:focus-visible,input:focus-visible{outline:3px solid #dc8b18;outline-offset:4px}
+</style>
+</head>
+<body><main>
+<header><img src="images/klay_logo.png" alt="KLAY"><a href="/">Klein Lab at Yale</a></header>
+<p class="eyebrow">Lab photo editor</p><h1>Prepare a photo for the website</h1>
+<p>Make a smaller JPEG that’s ready to upload in Pages CMS. Your photo is processed here in your browser.</p>
+<section class="card"><h2>1. Choose your photo</h2><input id="photo" type="file" accept="image/*" aria-label="Choose a photo"><small>Your original photo stays unchanged.</small><p id="status" role="status" aria-live="polite">Choose a photo to get started.</p><p id="error" role="alert" hidden></p></section>
+<section class="card" id="result" hidden><h2>2. Save the smaller copy</h2><img id="preview" alt="Preview of the resized photo"><p id="sizes"></p><a id="download" class="button">Save smaller JPEG</a><p>On your phone, save the downloaded file in Files or Downloads.</p></section>
+<section class="card"><h2>3. Add it to the website</h2><p>Open <strong>Lab photos</strong> in the editor and tap <strong>Add an item</strong>. Upload the smaller JPEG from Files or Downloads, enter your caption and image description, then tap <strong>Save</strong>.</p><a class="button secondary" href="https://app.pagescms.org/kleinlab-yale/kleinlab-yale.github.io/main/file/lab" target="_blank" rel="noopener noreferrer">Open photo editor ↗</a><small>After saving in the editor, allow a minute or two for publishing, then refresh the website.</small></section>
+<footer>This page prepares your file. Publication happens when you save the photo entry in Pages CMS.</footer>
+</main>
+<script src="prepare-photo.js?v=20261029-01"></script>
+</body></html>

@@ -78,3 +78,9 @@ Before publishing source changes, fetch the latest `main` and reconcile any newe
 - Validate all `content/*.json` as JSON, and check `.pages.yml` as YAML.
 - Preview desktop and phone layouts, verify both MIXA buttons open their respective apps, and test the photo gallery.
 - Existing scientific copy and research-tool destinations are preserved; MIXA now offers both Streamlit and Hugging Face.
+
+## Large phone photos (413 upload errors)
+
+The hosted Pages CMS upload endpoint has a hosting request-size limit. This cannot be raised in `.pages.yml`. Before uploading a large photo, open https://kleinlab-yale.github.io/prepare-photo.html on your phone. Choose the photo, save the smaller JPEG, then select that saved file from Files/Downloads in the CMS uploader.
+
+The preparation page runs in the browser. It caps the longest image edge at 1800 pixels and outputs a JPEG no larger than 1.8 MB. It does not upload or publish a photo. The original stays unchanged. Formats that the browser cannot decode show an error; convert those to JPEG first.
