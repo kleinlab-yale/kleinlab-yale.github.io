@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=36';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=36';
-import { Mummy3DView } from './view_3d.js?v=36';
-import { Mummy2DView } from './view_2d.js?v=36';
-import { MultiplayerManager } from './multiplayer.js?v=36';
+} from './board_data.js?v=37';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=37';
+import { Mummy3DView } from './view_3d.js?v=37';
+import { Mummy2DView } from './view_2d.js?v=37';
+import { MultiplayerManager } from './multiplayer.js?v=37';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -2284,7 +2284,7 @@ class VoiceOfTheMummyApp {
                   <img src="${cfg.portraitImg}" alt="${p.name} Figure" class="explorer-figure-thumb" />
                   <span class="explorer-pawn-tag" style="background: ${p.colorHex}">${pawnRoleTag}</span>
                 </div>
-                <img src="${cfg.templeImg}" alt="${p.deity} Temple" class="temple-deity-thumb" title="${p.deityTitle} Gem Holder" />
+                <img src="${cfg.templeImg}" alt="${p.deity} Temple" class="temple-deity-thumb" data-focus-gembox="${p.id}" style="cursor: pointer;" title="Tap to view ${p.name}'s 3D Gem Box" />
               </div>
               <div class="temple-player-info">
                 <div class="temple-player-name-row">
@@ -2295,7 +2295,7 @@ class VoiceOfTheMummyApp {
                 <div class="temple-deity-sub">${p.deityTitle} • Level ${p.level}</div>
                 <div class="temple-space-sub">📍 ${sp ? sp.label : ''}</div>
               </div>
-              <div class="temple-score-box" title="Total Gems Value (${p.jewels} Scarab Gems${hasGreatJewel ? ' + 5 Great Jewel' : ''}${hasCobra ? ' - 5 Cobra Curse' : ''})">
+              <div class="temple-score-box" data-focus-gembox="${p.id}" style="cursor: pointer;" title="Tap to view ${p.name}'s 3D Gem Box (${p.jewels} Scarab Gems${hasGreatJewel ? ' + 5 Great Jewel' : ''}${hasCobra ? ' - 5 Cobra Curse' : ''})">
                 <div class="score-num">${totalScore}</div>
                 <svg class="score-gem-icon" viewBox="0 0 28 22" aria-label="Gems">
                   <polygon points="8,1 20,1 27,7 27,15 20,21 8,21 1,15 1,7" fill="#00a838" stroke="#85ffba" stroke-width="1.5" />
@@ -2332,6 +2332,15 @@ class VoiceOfTheMummyApp {
         `;
       })
       .join('');
+
+    container.querySelectorAll('[data-focus-gembox]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const pid = el.dataset.focusGembox;
+        if (pid) {
+          this.view3D.focusPlayerGemBox(pid);
+        }
+      });
+    });
   }
 
   _renderTurnActionDeck(state) {

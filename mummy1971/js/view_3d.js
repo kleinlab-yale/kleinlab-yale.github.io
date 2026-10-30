@@ -13,7 +13,7 @@ import {
   SPACES_BY_ID,
   PLAYERS_CONFIG,
   pxToThree,
-} from './board_data.js?v=36';
+} from './board_data.js?v=37';
 
 export class Mummy3DView {
   constructor(containerEl, callbacks = {}) {
@@ -161,7 +161,7 @@ export class Mummy3DView {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.07;
     this.controls.maxPolarAngle = Math.PI * 0.495;
-    this.controls.minDistance = 2.2;
+    this.controls.minDistance = 1.25;
     this.controls.maxDistance = 13.2;
     this.controls.addEventListener('start', () => {
       this.isUserInteracting = true;
@@ -2118,6 +2118,82 @@ export class Mummy3DView {
     return { camPos, lookTarget };
   }
 
+  /**
+   * Computes a close-up overhead 3D camera pose directly over top of a player's Temple Gem Collection Box
+   * (defaults to the local player who clicked the "💎 Gem Box" button).
+   */
+  _computeGemBoxCameraTarget(playerId = null) {
+    if (!this.THREE) return null;
+    const THREE = this.THREE;
+    const targetPlayer = playerId
+      ? (this.currentGameState?.players?.find((p) => p.id === playerId) || { id: playerId })
+      : this._getFollowedPlayer();
+    const pid = targetPlayer?.id || 'blue';
+    const cfg = PLAYERS_CONFIG.find((c) => c.id === pid) || PLAYERS_CONFIG[0];
+    const holder = this.holders[pid];
+
+    let basePos;
+    if (holder) {
+      basePos = holder.position.clone();
+    } else if (cfg.holderPx) {
+      const p = pxToThree(cfg.holderPx.px, cfg.holderPx.py, cfg.holderPx.z || 0.045);
+      basePos = new THREE.Vector3(p.x, p.y, p.z);
+    } else {
+      basePos = new THREE.Vector3(-2.96, 0.05, -3.61);
+    }
+
+    const signX = basePos.x < 0 ? -1 : 1;
+    const signZ = basePos.z < 0 ? -1 : 1;
+
+    const lookTarget = new THREE.Vector3(
+      basePos.x + signX * 0.08,
+      0.08,
+      basePos.z
+    );
+    const camPos = new THREE.Vector3(
+      basePos.x + signX * 0.24,
+      2.15,
+      basePos.z + signZ * 0.36
+    );
+
+    return { camPos, lookTarget };
+  }
+
+  /**
+   * Centers the 3D camera directly over top of the specified (or local) player's Temple Gem Box,
+   * and automatically returns to Follow mode as soon as anyone rolls the die or moves.
+   */
+  focusPlayerGemBox(playerId = null) {
+    this.cameraPreset = 'gembox';
+    this.cinematicIntro = null;
+    this.userPausedFollowUntilNextMove = false;
+    this.isUserInteracting = false;
+    this.initialTopDownHold = false;
+    document.querySelectorAll('[data-cam-preset]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.camPreset === 'gembox');
+    });
+    const gemPose = this._computeGemBoxCameraTarget(playerId);
+    if (gemPose) {
+      this._transitionCamera(gemPose.camPos, gemPose.lookTarget, 650);
+    }
+  }
+
+  /**
+   * Automatically exits "💎 Gem Box" inspection view and returns to "🧭 Follow" mode
+   * whenever a player rolls the die, moves, or pulls the Sarcophagus lever.
+   */
+  _resumeFollowAfterGemBox() {
+    if (this.cameraPreset === 'gembox') {
+      this.cameraPreset = 'follow';
+      this.initialTopDownHold = false;
+      this.userPausedFollowUntilNextMove = false;
+      this.cameraTransition = null;
+      document.querySelectorAll('[data-cam-preset]').forEach((b) => {
+        b.classList.toggle('active', b.dataset.camPreset === 'follow');
+      });
+    }
+  }
+
   setCameraPreset(presetName) {
     this.cameraPreset = presetName;
     this.cinematicIntro = null;
@@ -2144,6 +2220,8 @@ export class Mummy3DView {
       this._transitionCamera(new THREE.Vector3(0.0, 10.2, 0.01), new THREE.Vector3(0.0, 1.0, 0.0));
     } else if (presetName === 'sarcophagus') {
       this._transitionCamera(new THREE.Vector3(-3.2, 3.4, 1.55), new THREE.Vector3(0.0, 1.48, 0.0));
+    } else if (presetName === 'gembox') {
+      this.focusPlayerGemBox(null);
     } else if (presetName === 'follow') {
       this.initialTopDownHold = false;
       const followPose = this._computeFollowCameraTarget();
@@ -2368,6 +2446,7 @@ export class Mummy3DView {
    * Animates the 6-sided 3D Die tumbling and landing with the exact `rollValue` (1..6) face on top!
    */
   animateDieRoll(rollValue = 1) {
+    this._resumeFollowAfterGemBox();
     if (this.fallbackMode || !this.dieMesh || !this.dieHomePos) return;
     const startTime = performance.now();
     const duration = 640;
@@ -2404,6 +2483,7 @@ export class Mummy3DView {
     if (!expObj || !pathSpaceIds || pathSpaceIds.length === 0) return;
 
     // Release initial Top-Down hold and resume Follow mode when movement starts
+    this._resumeFollowAfterGemBox();
     this.cinematicIntro = null;
     this.initialTopDownHold = false;
     this.userPausedFollowUntilNextMove = false;
@@ -2519,6 +2599,7 @@ export class Mummy3DView {
   }
 
   animateSarcophagusLeverPull() {
+    this._resumeFollowAfterGemBox();
     if (this.fallbackMode || !this.leverTab || !this.leverHomePos) return;
     const startPos = this.leverHomePos.clone();
     const startTime = performance.now();
