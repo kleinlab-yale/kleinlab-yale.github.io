@@ -57,6 +57,7 @@ content:
     fields:
       - name: items
         label: Updates (newest first)
+        description: The first update also appears as Latest news below the homepage introduction. Add new updates at the top.
         type: object
         list:
           collapsible:

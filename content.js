@@ -62,15 +62,21 @@
   const renderNews = (data) => {
     const items = requireItems(data, "items", item => text(item.date) && text(item.text)
       && (item.links == null || (Array.isArray(item.links) && item.links.every(value => value && text(value.label) && safeLink(value.url)))));
-    const cards = items.map(item => {
-      const card = node("li", "news-item");
+    const createCard = (item, tag = "li") => {
+      const card = node(tag, "news-item");
       card.append(node("span", "news-date", item.date), node("p", "news-text", item.text));
       const links = node("div", "news-links");
       (item.links || []).forEach(value => links.append(link(value.url, value.label)));
       if (links.children.length) card.append(links);
       return card;
-    });
-    document.querySelector(".news-list").replaceChildren(...cards);
+    };
+    const list = document.querySelector(".news-list");
+    if (list) list.replaceChildren(...items.map(item => createCard(item)));
+    const preview = document.getElementById("latest-news-preview");
+    if (preview) {
+      preview.replaceChildren(...(items.length ? [createCard(items[0], "article")] : []));
+      document.getElementById("latest-news").hidden = items.length === 0;
+    }
   };
   const renderPeople = (data) => {
     const items = requireItems(data, "items", item => text(item.name) && text(item.role) && text(item.initials)
@@ -129,7 +135,7 @@
   void Promise.all([
     document.querySelector(".tool-grid") && load("tools", renderTools),
     document.querySelector(".games-grid") && load("games", data => renderTools(data, ".games-grid")),
-    document.querySelector(".news-list") && load("news", renderNews),
+    (document.querySelector(".news-list") || document.getElementById("latest-news-preview")) && load("news", renderNews),
     document.querySelector(".people-grid") && load("people", renderPeople),
     document.getElementById("lab-gallery") && load("lab", renderGallery)
   ]);

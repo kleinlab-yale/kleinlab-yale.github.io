@@ -98,3 +98,7 @@ The main Save photo button opens the native share/save sheet when the browser su
 ## Public developer credits
 
 Credit tools, games, and other developed resources to **KLAY** (Klein Lab at Yale). Avoid personal developer credits naming Daryl Klein.
+
+## Homepage latest news
+
+The first item in `content/news.json` appears beneath the visits counter in the introduction, including its related links. All items also appear in News. In CMS, keep the newest update at the top of Lab news; no separate homepage edit is needed.

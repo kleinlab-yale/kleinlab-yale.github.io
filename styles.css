@@ -958,3 +958,10 @@ body {
 @media (max-width: 1280px) { .nav-links { gap: 0.8rem; font-size: 0.9rem; } }
 @media (max-width: 930px) { .games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .games-grid { grid-template-columns: 1fr; } }
+
+.latest-news { margin-top: 1.4rem; padding: 1.2rem 1.3rem; border: 1px solid var(--line); border-left: 4px solid var(--brand); border-radius: var(--radius-md); background: rgba(255,255,255,0.9); }
+.latest-news h2.eyebrow { margin: 0 0 0.7rem; font-size: 0.8rem; }
+.latest-news .news-item { padding: 0; border: 0; background: transparent; }
+.latest-news .news-text { margin: 0.2rem 0; font-size: 0.95rem; }
+.latest-news-all { display: inline-block; margin-top: 0.85rem; color: var(--brand); font-size: 0.9rem; }
+.latest-news .news-links { flex-wrap: wrap; }
