@@ -35,7 +35,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="css/styles.css?v=33" />
+  <link rel="stylesheet" href="css/styles.css?v=35" />
   <!-- PeerJS + MQTT-over-WSS for Firewall-Proof Real-Time Multiplayer on GitHub Pages -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/mqtt@5.3.4/dist/mqtt.min.js" defer></script>
@@ -43,7 +43,7 @@
 <body>
   <!-- TOP NAVIGATION BAR -->
   <header class="top-navbar">
-    <div class="brand-group">
+    <div class="brand-group" id="brand-home-link" style="cursor: pointer;" title="Return to Main Front Page">
       <span class="brand-emblem">🏺</span>
       <div>
         <div class="brand-title">Voice of the Mummy</div>
@@ -75,6 +75,7 @@
       <button class="nav-btn nav-sms-btn hidden" id="btn-top-sms-invite" title="Open Messaging App to Send Invite Link">
         💬 <span class="nav-btn-label">Send Link</span>
       </button>
+      <button class="nav-btn" id="btn-open-home" title="Return to Main Front Page (Single Player or Multiplayer)">🏠 <span class="nav-btn-label">Main Menu</span></button>
       <button class="nav-btn" id="btn-open-lobby" title="Multiplayer &amp; Game Setup">🌐 <span class="nav-btn-label">Multiplayer</span></button>
       <button class="nav-btn" id="btn-open-rules" title="1971 Rulebook &amp; 40 Audio Tracks">📜 <span class="nav-btn-label">Rules</span></button>
       <button class="nav-btn" id="btn-toggle-mute" title="Toggle Audio">🔊 <span class="nav-btn-label">Audio On</span></button>
@@ -263,6 +264,7 @@
       <div id="guest-invite-step-setup" class="guest-invite-step-wrap">
         <div class="modal-header">
           <h2>🎟️ Invited to Tomb Room <span id="invite-prompt-room-code" style="color: #7dffb3;">TOMB-0000</span></h2>
+          <button class="btn-close-modal" id="btn-invite-home" title="Leave Room &amp; Return to Main Front Page">🏠 Main Menu</button>
         </div>
         <div class="modal-body">
           <div class="mp-wizard-step">
@@ -313,11 +315,14 @@
             </div>
 
             <div class="mp-step1-actions" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-              <button type="button" class="btn-secondary-action" id="btn-guest-refresh-sync" style="flex: 1; min-width: 190px;">
+              <button type="button" class="btn-secondary-action" id="btn-guest-refresh-sync" style="flex: 1; min-width: 170px;">
                 🔄 Refresh Room Status
               </button>
-              <button type="button" class="btn-secondary-action" id="btn-guest-edit-choice" style="flex: 1; min-width: 190px;">
-                ✏️ Change My Color Piece or Name
+              <button type="button" class="btn-secondary-action" id="btn-guest-edit-choice" style="flex: 1; min-width: 170px;">
+                ✏️ Change My Piece / Name
+              </button>
+              <button type="button" class="btn-secondary-action" id="btn-waiting-home" style="flex: 1; min-width: 170px;">
+                🏠 Main Front Page
               </button>
             </div>
           </div>
@@ -333,7 +338,10 @@
     <div class="modal-card mp-wizard-card">
       <div class="modal-header">
         <h2 id="mp-modal-heading">🌐 Step 1: Create Your Multiplayer Game</h2>
-        <button class="btn-close-modal" id="btn-close-lobby">✕ Return to Board</button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="btn-close-modal" id="btn-lobby-home" title="Return to Main Front Page (Single Player / Multiplayer)">🏠 Main Front Page</button>
+          <button class="btn-close-modal" id="btn-close-lobby">✕ Return to Board</button>
+        </div>
       </div>
 
       <div class="modal-body">
@@ -521,12 +529,18 @@
       </div>
       <div class="modal-body">
         <div id="gameover-scores-body" class="gameover-scores-body"></div>
-        <div class="gameover-actions-row">
-          <button class="btn-secondary-action" id="btn-view-gameover-board" style="max-width: 220px;">
-            🎥 View 3D Finale Board
+        <div class="gameover-actions-row" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+          <button class="btn-primary-action pulse-gold" id="btn-gameover-home" style="max-width: 240px;">
+            🏠 Main Front Page
           </button>
-          <button class="btn-primary-action pulse-gold" id="btn-play-again" style="max-width: 240px;">
-            🏺 Play Another Expedition
+          <button class="btn-secondary-action" id="btn-gameover-single" style="max-width: 220px;">
+            🏺 New Single Player
+          </button>
+          <button class="btn-secondary-action" id="btn-play-again" style="max-width: 220px;">
+            🔄 Play Again (Same Mode)
+          </button>
+          <button class="btn-secondary-action" id="btn-view-gameover-board" style="max-width: 200px;">
+            🎥 View 3D Board
           </button>
         </div>
       </div>
@@ -534,6 +548,6 @@
   </div>
 
   <!-- Main Application Script -->
-  <script type="module" src="js/app.js?v=33"></script>
+  <script type="module" src="js/app.js?v=35"></script>
 </body>
 </html>

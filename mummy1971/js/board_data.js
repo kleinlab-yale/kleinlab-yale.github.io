@@ -28,6 +28,7 @@ export const FAMOUS_ADVENTURER_NAMES = [
   'Indiana Jones',
   'Lara Croft',
   'Howard Carter',
+  'Zahi Hawass',
   'Dr. Watson',
   'Nathan Drake',
   'Amelia Earhart',

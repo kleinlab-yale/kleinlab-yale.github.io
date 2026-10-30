@@ -9,13 +9,13 @@
  *   3. BroadcastChannel for zero-latency multi-tab testing on the same device.
  */
 
-import { pickAdventurerNames } from './board_data.js?v=33';
+import { pickAdventurerNames } from './board_data.js?v=35';
 
 const PEER_PREFIX = 'votm1971-tomb-';
-const MQTT_TOPIC_PREFIX = 'votm1971/v33/room';
-const STORAGE_HOST_KEY = 'votm1971_active_host_session_v33';
-const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v33_';
-const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v33';
+const MQTT_TOPIC_PREFIX = 'votm1971/v35/room';
+const STORAGE_HOST_KEY = 'votm1971_active_host_session_v35';
+const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v35_';
+const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v35';
 
 const WSS_BROKERS = [
   'wss://broker.emqx.io:8084/mqtt',
@@ -283,10 +283,19 @@ export class MultiplayerManager {
   clearSavedHostSession() {
     try {
       localStorage.removeItem(STORAGE_HOST_KEY);
+      if (this.roomCode) {
+        sessionStorage.removeItem(`${STORAGE_GUEST_PREFIX}${this.roomCode.toUpperCase()}`);
+      }
       const url = new URL(window.location.href);
-      if (url.searchParams.has('room') || url.searchParams.has('host')) {
-        url.searchParams.delete('room');
-        url.searchParams.delete('host');
+      const mpParams = ['room', 'host', 'hs', 'hn', 'hc', 'ai'];
+      let changed = false;
+      for (const p of mpParams) {
+        if (url.searchParams.has(p)) {
+          url.searchParams.delete(p);
+          changed = true;
+        }
+      }
+      if (changed) {
         window.history.replaceState({}, '', url.toString());
       }
     } catch (e) {

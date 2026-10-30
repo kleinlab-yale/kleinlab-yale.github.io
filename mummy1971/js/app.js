@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=33';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=33';
-import { Mummy3DView } from './view_3d.js?v=33';
-import { Mummy2DView } from './view_2d.js?v=33';
-import { MultiplayerManager } from './multiplayer.js?v=33';
+} from './board_data.js?v=35';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=35';
+import { Mummy3DView } from './view_3d.js?v=35';
+import { Mummy2DView } from './view_2d.js?v=35';
+import { MultiplayerManager } from './multiplayer.js?v=35';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -415,10 +415,25 @@ class VoiceOfTheMummyApp {
       });
     }
 
-    // Intro Landing Card ("Single Player" vs "Multiplayer")
+    // Intro Landing Card ("Single Player" vs "Multiplayer") & Global "Return to Main Front Page" Buttons
     document.getElementById('btn-landing-single')?.addEventListener('click', () => {
-      document.getElementById('modal-intro-landing')?.classList.add('hidden');
-      this._openSingleSetupModal();
+      this._leaveMultiplayerAndOpenSinglePlayer();
+    });
+
+    document.getElementById('btn-open-home')?.addEventListener('click', () => {
+      this._returnToMainFrontPage();
+    });
+    document.getElementById('brand-home-link')?.addEventListener('click', () => {
+      this._returnToMainFrontPage();
+    });
+    document.getElementById('btn-lobby-home')?.addEventListener('click', () => {
+      this._returnToMainFrontPage();
+    });
+    document.getElementById('btn-invite-home')?.addEventListener('click', () => {
+      this._returnToMainFrontPage();
+    });
+    document.getElementById('btn-waiting-home')?.addEventListener('click', () => {
+      this._returnToMainFrontPage();
     });
 
     document.getElementById('btn-close-single-setup')?.addEventListener('click', () => {
@@ -688,7 +703,13 @@ class VoiceOfTheMummyApp {
       this._startNewGameFromLobby();
     });
 
-    // Victory Modal Buttons ("Play Another Expedition" & "View 3D Finale Board")
+    // Victory Modal Buttons ("Main Front Page", "New Single Player", "Play Again", & "View 3D Board")
+    document.getElementById('btn-gameover-home')?.addEventListener('click', () => {
+      this._returnToMainFrontPage();
+    });
+    document.getElementById('btn-gameover-single')?.addEventListener('click', () => {
+      this._leaveMultiplayerAndOpenSinglePlayer();
+    });
     document.getElementById('btn-play-again')?.addEventListener('click', () => {
       document.getElementById('modal-gameover')?.classList.add('hidden');
       const humans = (this.activeState?.players || []).filter((p) => p.control === 'human');
@@ -710,6 +731,50 @@ class VoiceOfTheMummyApp {
     this._renderSingleBotPicker();
     this._renderStep1HostCharacterPicker();
     this._renderLobbySeats(this.mp.lobbyState);
+  }
+
+  /**
+   * Cleanly leaves any active or finished Multiplayer room and returns to the Main Front Page
+   * so the player can choose Single Player or Multiplayer at any time.
+   */
+  _returnToMainFrontPage() {
+    clearTimeout(this.botTimer);
+    this.botTimer = null;
+    this._stopCurrentMummyAudio();
+    this.mpGameStarted = false;
+    this.pendingInviteRoomCode = null;
+    this.mp.disconnect(true);
+    document.getElementById('top-room-badge')?.classList.add('hidden');
+    document.getElementById('btn-top-copy-invite')?.classList.add('hidden');
+    document.getElementById('btn-top-sms-invite')?.classList.add('hidden');
+    document.getElementById('mp-main-waiting-banner')?.classList.add('hidden');
+    document.getElementById('modal-gameover')?.classList.add('hidden');
+    document.getElementById('modal-lobby')?.classList.add('hidden');
+    document.getElementById('modal-single-setup')?.classList.add('hidden');
+    document.getElementById('modal-guest-invite')?.classList.add('hidden');
+    document.getElementById('modal-rules')?.classList.add('hidden');
+    document.getElementById('modal-intro-landing')?.classList.remove('hidden');
+  }
+
+  /**
+   * Cleanly leaves any Multiplayer room and opens the Single Player Setup modal directly.
+   */
+  _leaveMultiplayerAndOpenSinglePlayer() {
+    clearTimeout(this.botTimer);
+    this.botTimer = null;
+    this._stopCurrentMummyAudio();
+    this.mpGameStarted = false;
+    this.pendingInviteRoomCode = null;
+    this.mp.disconnect(true);
+    document.getElementById('top-room-badge')?.classList.add('hidden');
+    document.getElementById('btn-top-copy-invite')?.classList.add('hidden');
+    document.getElementById('btn-top-sms-invite')?.classList.add('hidden');
+    document.getElementById('mp-main-waiting-banner')?.classList.add('hidden');
+    document.getElementById('modal-gameover')?.classList.add('hidden');
+    document.getElementById('modal-lobby')?.classList.add('hidden');
+    document.getElementById('modal-guest-invite')?.classList.add('hidden');
+    document.getElementById('modal-intro-landing')?.classList.add('hidden');
+    this._openSingleSetupModal();
   }
 
   _openSingleSetupModal() {
@@ -895,7 +960,16 @@ class VoiceOfTheMummyApp {
 
   _startSinglePlayerGame() {
     const rawName = document.getElementById('input-single-name')?.value?.trim() || '';
-    this.mp.disconnect();
+    this.mpGameStarted = false;
+    this.pendingInviteRoomCode = null;
+    this.mp.disconnect(true);
+    document.getElementById('top-room-badge')?.classList.add('hidden');
+    document.getElementById('btn-top-copy-invite')?.classList.add('hidden');
+    document.getElementById('btn-top-sms-invite')?.classList.add('hidden');
+    document.getElementById('mp-main-waiting-banner')?.classList.add('hidden');
+    document.getElementById('modal-gameover')?.classList.add('hidden');
+    document.getElementById('modal-lobby')?.classList.add('hidden');
+    document.getElementById('modal-guest-invite')?.classList.add('hidden');
 
     const activeBotNames = Array.from(this.selectedSingleBotIds).map(
       (id) => this.botAdventurerNames?.[id]
@@ -2273,7 +2347,22 @@ class VoiceOfTheMummyApp {
 
     let controlsHtml = '';
 
-    if (state.phase === 'MUMMY_SPEAKING') {
+    if (state.phase === 'GAME_OVER') {
+      controlsHtml = `
+        <div class="rolled-banner">🏆 Expedition Complete!</div>
+        <div class="action-buttons-stack">
+          <button class="btn-primary-action pulse-gold" id="btn-deck-home">
+            🏠 Main Front Page
+          </button>
+          <button class="btn-secondary-action" id="btn-deck-single">
+            🏺 New Single Player Game
+          </button>
+          <button class="btn-secondary-action" id="btn-deck-scores">
+            🏆 View Final Gem Tally
+          </button>
+        </div>
+      `;
+    } else if (state.phase === 'MUMMY_SPEAKING') {
       const canSkip = isMyTurn || (player.control === 'ai' && this.mp.mode !== 'guest');
       controlsHtml = `
         <div class="mummy-speaking-status">
@@ -2384,6 +2473,15 @@ class VoiceOfTheMummyApp {
       </div>
     `;
 
+    deckEl.querySelector('#btn-deck-home')?.addEventListener('click', () => {
+      this._returnToMainFrontPage();
+    });
+    deckEl.querySelector('#btn-deck-single')?.addEventListener('click', () => {
+      this._leaveMultiplayerAndOpenSinglePlayer();
+    });
+    deckEl.querySelector('#btn-deck-scores')?.addEventListener('click', () => {
+      document.getElementById('modal-gameover')?.classList.remove('hidden');
+    });
     deckEl.querySelector('#btn-action-roll')?.addEventListener('click', () => {
       this.triggerAction('roll');
     });
