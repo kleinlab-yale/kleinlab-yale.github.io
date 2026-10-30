@@ -203,6 +203,10 @@ body {
     min-height: calc(100vh - 72px);
     min-height: calc(100dvh - 72px);
   }
+
+  .hero-graphic {
+    align-self: start;
+  }
 }
 
 .hero-grid {
