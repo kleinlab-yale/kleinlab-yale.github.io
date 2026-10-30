@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=35';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=35';
-import { Mummy3DView } from './view_3d.js?v=35';
-import { Mummy2DView } from './view_2d.js?v=35';
-import { MultiplayerManager } from './multiplayer.js?v=35';
+} from './board_data.js?v=36';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=36';
+import { Mummy3DView } from './view_3d.js?v=36';
+import { Mummy2DView } from './view_2d.js?v=36';
+import { MultiplayerManager } from './multiplayer.js?v=36';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -341,6 +341,7 @@ class VoiceOfTheMummyApp {
   }
 
   _resetViewForNewGame() {
+    this.gameStartedAt = performance.now();
     this.setViewMode('3d');
     this.view3D.resetForNewGame(this.mp.myPeerId, this.mp.mode !== 'local');
     document.querySelectorAll('[data-cam-preset]').forEach((b) => {
@@ -2530,7 +2531,13 @@ class VoiceOfTheMummyApp {
     const curPlayer = state.players[state.turnIndex];
     if (!curPlayer || curPlayer.control !== 'ai') return;
 
-    const delay = state.phase === 'ROLL_DIE' ? 950 : 1050;
+    let delay = state.phase === 'ROLL_DIE' ? 950 : 1050;
+    if (state.turnNumber === 1 && state.turnIndex === 0 && state.phase === 'ROLL_DIE' && this.gameStartedAt) {
+      const elapsed = performance.now() - this.gameStartedAt;
+      if (elapsed < 4050) {
+        delay = Math.max(delay, 4050 - elapsed);
+      }
+    }
     this.botTimer = setTimeout(() => {
       const botDecision = this.engine.computeBotAction();
       if (!botDecision) return;

@@ -13,7 +13,7 @@ import {
   SPACES_BY_ID,
   PLAYERS_CONFIG,
   pxToThree,
-} from './board_data.js?v=13';
+} from './board_data.js?v=36';
 
 export class Mummy3DView {
   constructor(containerEl, callbacks = {}) {
@@ -60,6 +60,7 @@ export class Mummy3DView {
 
     this.activeAnimations = [];
     this.cameraTransition = null;
+    this.cinematicIntro = null;
     this.cameraPreset = 'follow'; // 'follow' (default) | 'topdown' | 'hero' | 'sarcophagus'
     this.initialTopDownHold = true; // Start game from Top-Down view, then follow your character once movement begins
     this.isUserInteracting = false;
@@ -165,6 +166,7 @@ export class Mummy3DView {
     this.controls.addEventListener('start', () => {
       this.isUserInteracting = true;
       this.cameraTransition = null;
+      this.cinematicIntro = null;
       if (this.cameraPreset === 'follow') {
         this.userPausedFollowUntilNextMove = true;
       }
@@ -1826,7 +1828,7 @@ export class Mummy3DView {
   /**
    * Resets camera & environment when starting a new game:
    * - Tomb Room enabled
-   * - Starts at the Top-Down view of the 3D Pyramid
+   * - Plays a sweeping 3D Tomb Chamber Entrance Cinematic that locks onto the Top-Down view of the board
    * - Sets 'follow' as the default camera mode so it follows your character once movement begins
    */
   resetForNewGame(localPeerId = 'local', isOnlineMode = false) {
@@ -1839,11 +1841,54 @@ export class Mummy3DView {
     this.userPausedFollowUntilNextMove = false;
     this.activeMovingExplorerId = null;
     if (this.THREE && this.camera && this.controls) {
-      this.cameraTransition = null;
-      this.camera.position.set(0.0, 10.2, 0.01);
-      this.controls.target.set(0.0, 1.0, 0.0);
-      this.controls.update();
+      this.playTombEntranceCinematic(3800);
     }
+  }
+
+  /**
+   * Plays a 3.8-second sweeping 3D camera crane shot entering the darkened Pharaoh's Burial Chamber
+   * past the flickering bronze torches, monumental lotus columns, and Anubis guardian shrines,
+   * then ascending and locking onto the Top-Down view of the pyramid board!
+   */
+  playTombEntranceCinematic(durationMs = 3800) {
+    if (this.fallbackMode || !this.THREE || !this.camera || !this.controls) return;
+    const THREE = this.THREE;
+
+    const posCurve = new THREE.CatmullRomCurve3(
+      [
+        new THREE.Vector3(-9.4, 0.95, 2.6),
+        new THREE.Vector3(-5.8, 2.15, 6.4),
+        new THREE.Vector3(-1.6, 5.65, 5.2),
+        new THREE.Vector3(0.0, 10.2, 0.01),
+      ],
+      false,
+      'centripetal',
+      0.5
+    );
+
+    const targetCurve = new THREE.CatmullRomCurve3(
+      [
+        new THREE.Vector3(2.8, 1.65, -0.8),
+        new THREE.Vector3(1.2, 1.4, -0.6),
+        new THREE.Vector3(0.0, 1.15, 0.0),
+        new THREE.Vector3(0.0, 1.0, 0.0),
+      ],
+      false,
+      'centripetal',
+      0.5
+    );
+
+    this.cameraTransition = null;
+    this.cinematicIntro = {
+      startTime: performance.now(),
+      duration: durationMs,
+      posCurve,
+      targetCurve,
+    };
+
+    this.camera.position.set(-9.4, 0.95, 2.6);
+    this.controls.target.set(2.8, 1.65, -0.8);
+    this.controls.update();
   }
 
   _cleanupVictoryCelebration() {
@@ -2075,6 +2120,7 @@ export class Mummy3DView {
 
   setCameraPreset(presetName) {
     this.cameraPreset = presetName;
+    this.cinematicIntro = null;
     this.userPausedFollowUntilNextMove = false;
     this.isUserInteracting = false;
     this.initialTopDownHold = false;
@@ -2109,6 +2155,7 @@ export class Mummy3DView {
 
   _transitionCamera(targetPos, targetLookAt, durationMs = 750) {
     if (!this.camera || !this.controls) return;
+    this.cinematicIntro = null;
     this.cameraTransition = {
       startPos: this.camera.position.clone(),
       endPos: targetPos.clone(),
@@ -2357,6 +2404,7 @@ export class Mummy3DView {
     if (!expObj || !pathSpaceIds || pathSpaceIds.length === 0) return;
 
     // Release initial Top-Down hold and resume Follow mode when movement starts
+    this.cinematicIntro = null;
     this.initialTopDownHold = false;
     this.userPausedFollowUntilNextMove = false;
     this.activeMovingExplorerId = playerId;
@@ -2505,7 +2553,18 @@ export class Mummy3DView {
       this.activeAnimations = this.activeAnimations.filter((anim) => !anim.update(now));
     }
 
-    if (this.cameraTransition) {
+    if (this.cinematicIntro) {
+      const ci = this.cinematicIntro;
+      const t = Math.min(1, Math.max(0, (now - ci.startTime) / ci.duration));
+      const ease = 1 - Math.pow(1 - t, 2.25);
+      ci.posCurve.getPoint(ease, this.camera.position);
+      ci.targetCurve.getPoint(ease, this.controls.target);
+      if (t >= 1) {
+        this.camera.position.set(0.0, 10.2, 0.01);
+        this.controls.target.set(0.0, 1.0, 0.0);
+        this.cinematicIntro = null;
+      }
+    } else if (this.cameraTransition) {
       const ct = this.cameraTransition;
       const t = Math.min(1, (now - ct.startTime) / ct.duration);
       const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
