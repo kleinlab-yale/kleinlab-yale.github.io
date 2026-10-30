@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=32';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=32';
-import { Mummy3DView } from './view_3d.js?v=32';
-import { Mummy2DView } from './view_2d.js?v=32';
-import { MultiplayerManager } from './multiplayer.js?v=32';
+} from './board_data.js?v=33';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=33';
+import { Mummy3DView } from './view_3d.js?v=33';
+import { Mummy2DView } from './view_2d.js?v=33';
+import { MultiplayerManager } from './multiplayer.js?v=33';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -1790,6 +1790,27 @@ class VoiceOfTheMummyApp {
     if (!popupEl || !title) return;
 
     const now = performance.now();
+    if (!this.recentBigPopupMap) {
+      this.recentBigPopupMap = new Map();
+    }
+
+    // Deduplicate: never show or stack the exact same popup title multiple times if received across multiple network transports
+    const prevShownAt = this.recentBigPopupMap.get(title) || -99999;
+    if (now - prevShownAt < 2500) {
+      return;
+    }
+    if (!popupEl.classList.contains('hidden')) {
+      const existingTitles = Array.from(popupEl.querySelectorAll('.big-event-title')).map((el) => el.textContent);
+      if (existingTitles.includes(title)) {
+        return;
+      }
+    }
+    this.recentBigPopupMap.set(title, now);
+    if (this.recentBigPopupMap.size > 60) {
+      const oldestKey = this.recentBigPopupMap.keys().next().value;
+      this.recentBigPopupMap.delete(oldestKey);
+    }
+
     const itemHtml = `
       <div class="big-event-card theme-${theme}">
         <div class="big-event-icon">${icon}</div>
@@ -1800,7 +1821,7 @@ class VoiceOfTheMummyApp {
       </div>
     `;
 
-    // If two major events happen simultaneously on the same landing (e.g. stealing a gem AND passing the Cobra curse), stack them!
+    // If two distinct major events happen simultaneously on the same landing (e.g. stealing a gem AND passing the Cobra curse), stack them!
     if (!popupEl.classList.contains('hidden') && now - this.lastBigPopupTime < 900) {
       popupEl.insertAdjacentHTML('beforeend', itemHtml);
     } else {

@@ -9,13 +9,13 @@
  *   3. BroadcastChannel for zero-latency multi-tab testing on the same device.
  */
 
-import { pickAdventurerNames } from './board_data.js?v=32';
+import { pickAdventurerNames } from './board_data.js?v=33';
 
 const PEER_PREFIX = 'votm1971-tomb-';
-const MQTT_TOPIC_PREFIX = 'votm1971/v32/room';
-const STORAGE_HOST_KEY = 'votm1971_active_host_session_v32';
-const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v32_';
-const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v32';
+const MQTT_TOPIC_PREFIX = 'votm1971/v33/room';
+const STORAGE_HOST_KEY = 'votm1971_active_host_session_v33';
+const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v33_';
+const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v33';
 
 const WSS_BROKERS = [
   'wss://broker.emqx.io:8084/mqtt',
@@ -63,6 +63,7 @@ export class MultiplayerManager {
     this.bc = null; // BroadcastChannel for same-device multi-tab sync
     this.mqttClients = []; // Active MQTT-over-WSS clients
     this.processedMsgIds = new Set(); // Deduplication across Hybrid Transports
+    this.dispatchedEventIds = new Set(); // Secondary deduplication for GAME_EVENT callbacks
     this.guestJoinPayload = null; // Saved Guest join info for auto-reannounce on reconnect
     this.knownGuestClaims = new Map(); // peerId -> { playerName, preferredSeatId, claimedAt }
     this.isConfirmedByHost = false; // True only when Host's authoritative LOBBY_STATE includes our peerId
@@ -571,6 +572,7 @@ export class MultiplayerManager {
           });
 
           conn.on('data', (msg) => {
+            if (this._isDuplicateMsg(msg)) return;
             this._handleGuestMessage(msg);
           });
 
@@ -941,6 +943,11 @@ export class MultiplayerManager {
     });
     conn.on('close', () => {
       this.connections.delete(conn.peer);
+      for (const [k, v] of this.connections.entries()) {
+        if (v === conn) {
+          this.connections.delete(k);
+        }
+      }
     });
   }
 
@@ -972,6 +979,9 @@ export class MultiplayerManager {
   _handleHostMessage(msg, conn) {
     if (msg.type === 'LOBBY_PREVIEW_REQUEST') {
       if (conn && msg.peerId) {
+        if (conn.peer && conn.peer !== msg.peerId) {
+          this.connections.delete(conn.peer);
+        }
         this.connections.set(msg.peerId, conn);
       }
       this._broadcastLobby();
@@ -989,6 +999,9 @@ export class MultiplayerManager {
         .map((s) => s.name);
       const guestName = isGenericGuest ? pickAdventurerNames(1, takenNames)[0] : rawGuest;
       if (conn) {
+        if (conn.peer && conn.peer !== guestPeerId) {
+          this.connections.delete(conn.peer);
+        }
         this.connections.set(guestPeerId, conn);
       }
 
@@ -1183,6 +1196,14 @@ export class MultiplayerManager {
         this.callbacks.onGameState(msg.state);
       }
     } else if (msg.type === 'GAME_EVENT' && msg.event) {
+      if (msg.msgId) {
+        if (this.dispatchedEventIds.has(msg.msgId)) return;
+        this.dispatchedEventIds.add(msg.msgId);
+        if (this.dispatchedEventIds.size > 300) {
+          const oldest = this.dispatchedEventIds.values().next().value;
+          this.dispatchedEventIds.delete(oldest);
+        }
+      }
       if (this.callbacks.onGameEvent) {
         this.callbacks.onGameEvent(msg.event);
       }
@@ -1334,7 +1355,8 @@ export class MultiplayerManager {
       senderId: this.myPeerId,
       msgId: packet.msgId || this._makeMsgId(),
     };
-    for (const conn of this.connections.values()) {
+    const uniqueConns = new Set(this.connections.values());
+    for (const conn of uniqueConns) {
       if (conn && conn.open) {
         conn.send(fullPacket);
       }
