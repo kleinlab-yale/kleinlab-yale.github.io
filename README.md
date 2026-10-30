@@ -94,3 +94,7 @@ The Games section links to Chessmate, Town Lyfe, and Mummy 1971. Edit titles, de
 ## Saving edited photos on iPhone
 
 The main Save photo button opens the native share/save sheet when the browser supports sharing JPEG files. Choose Save Image / Save to Photos, or Save to Files and select On My iPhone. Cancellation does not trigger a download. If file sharing is unavailable or fails, the page displays the edited image for touch-and-hold saving. A separate download option remains available; Safari's download location must be set to On My iPhone for local storage. The website cannot select the OS destination or change iCloud Photos synchronization.
+
+## Public developer credits
+
+Credit tools, games, and other developed resources to **KLAY** (Klein Lab at Yale). Avoid personal developer credits naming Daryl Klein.
