@@ -86,7 +86,7 @@ content:
                 pattern: '^https?://'
 
   - name: tools
-    label: Research tools
+    label: Research and teaching tools
     type: file
     path: content/tools.json
     format: json

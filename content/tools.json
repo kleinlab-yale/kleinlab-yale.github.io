@@ -16,7 +16,7 @@
     },
     {
       "title": "PHLEX",
-      "description": "Interactive PHARM program for Klein Lab research workflows.",
+      "description": "Interactive tool developed by Daryl Klein to teach pharmacodynamics to medical students.",
       "url": "https://kleinlab-yale.github.io/pharm",
       "linkLabel": "Open PHLEX"
     },
