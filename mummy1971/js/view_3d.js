@@ -13,7 +13,7 @@ import {
   SPACES_BY_ID,
   PLAYERS_CONFIG,
   pxToThree,
-} from './board_data.js?v=37';
+} from './board_data.js?v=38';
 
 export class Mummy3DView {
   constructor(containerEl, callbacks = {}) {

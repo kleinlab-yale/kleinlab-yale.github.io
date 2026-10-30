@@ -3004,7 +3004,7 @@ body {
   }
 
   /* Organized 2-Row Grid on Mobile Vertical Mode:
-     Row 1: 4 Equal Camera Buttons (Follow, Top-Down, 3/4 View, Sarcophagus)
+     Row 1: 5 Equal Camera Buttons (Follow, Top-Down, 3/4 View, Sarcophagus, Gem Box)
      Row 2: 2 Equal Background Buttons (Tomb Room, Black BG)
      Zero horizontal scrolling or clipped buttons! */
   .pane-floating-toolbar {
@@ -3012,7 +3012,7 @@ body {
     left: 6px;
     right: 6px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(10, minmax(0, 1fr));
     gap: 4px;
     overflow: visible;
     pointer-events: auto;
@@ -3024,9 +3024,10 @@ body {
   }
 
   .cam-pill-btn {
+    grid-column: span 2;
     width: 100%;
-    padding: 5px 3px;
-    font-size: 10px;
+    padding: 5px 2px;
+    font-size: 9.5px;
     text-align: center;
     justify-content: center;
     overflow: hidden;
@@ -3036,7 +3037,7 @@ body {
   }
 
   .cam-pill-btn.bg-mode-btn {
-    grid-column: span 2;
+    grid-column: span 5;
     font-size: 10.5px;
     padding: 5px 6px;
   }

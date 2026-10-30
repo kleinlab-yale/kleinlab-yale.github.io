@@ -9,13 +9,13 @@
  *   3. BroadcastChannel for zero-latency multi-tab testing on the same device.
  */
 
-import { pickAdventurerNames } from './board_data.js?v=37';
+import { pickAdventurerNames } from './board_data.js?v=38';
 
 const PEER_PREFIX = 'votm1971-tomb-';
-const MQTT_TOPIC_PREFIX = 'votm1971/v37/room';
-const STORAGE_HOST_KEY = 'votm1971_active_host_session_v37';
-const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v37_';
-const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v37';
+const MQTT_TOPIC_PREFIX = 'votm1971/v38/room';
+const STORAGE_HOST_KEY = 'votm1971_active_host_session_v38';
+const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v38_';
+const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v38';
 
 const WSS_BROKERS = [
   'wss://broker.emqx.io:8084/mqtt',

@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=37';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=37';
-import { Mummy3DView } from './view_3d.js?v=37';
-import { Mummy2DView } from './view_2d.js?v=37';
-import { MultiplayerManager } from './multiplayer.js?v=37';
+} from './board_data.js?v=38';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=38';
+import { Mummy3DView } from './view_3d.js?v=38';
+import { Mummy2DView } from './view_2d.js?v=38';
+import { MultiplayerManager } from './multiplayer.js?v=38';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -353,6 +353,40 @@ class VoiceOfTheMummyApp {
   }
 
   _bindUIControls() {
+    // Guarantee "💎 Gem Box" and "🏠 Main Menu" buttons exist even if the browser cached an older index.html
+    const vintagePill = document.querySelector('.intro-vintage-pill');
+    if (vintagePill) {
+      vintagePill.textContent = '1971 MILTON BRADLEY • 3D & 2D DIGITAL EDITION • v38';
+    }
+    const toolbar = document.querySelector('.pane-floating-toolbar');
+    if (toolbar && !toolbar.querySelector('[data-cam-preset="gembox"]')) {
+      const gemBtn = document.createElement('button');
+      gemBtn.className = 'cam-pill-btn';
+      gemBtn.dataset.camPreset = 'gembox';
+      gemBtn.title = 'Center Over Your Temple Gem Collection Box';
+      gemBtn.textContent = '💎 Gem Box';
+      const sarcBtn = toolbar.querySelector('[data-cam-preset="sarcophagus"]');
+      if (sarcBtn && sarcBtn.nextSibling) {
+        toolbar.insertBefore(gemBtn, sarcBtn.nextSibling);
+      } else {
+        toolbar.appendChild(gemBtn);
+      }
+    }
+    const navGroup = document.querySelector('.nav-actions-group');
+    if (navGroup && !document.getElementById('btn-open-home')) {
+      const homeBtn = document.createElement('button');
+      homeBtn.className = 'nav-btn';
+      homeBtn.id = 'btn-open-home';
+      homeBtn.title = 'Return to Main Front Page (Single Player or Multiplayer)';
+      homeBtn.innerHTML = '🏠 <span class="nav-btn-label">Main Menu</span>';
+      const lobbyBtn = document.getElementById('btn-open-lobby');
+      if (lobbyBtn) {
+        navGroup.insertBefore(homeBtn, lobbyBtn);
+      } else {
+        navGroup.appendChild(homeBtn);
+      }
+    }
+
     // View Mode Switcher ('3d', '2d', 'split')
     document.querySelectorAll('[data-view-mode]').forEach((btn) => {
       btn.addEventListener('click', () => {
