@@ -661,7 +661,8 @@ body {
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;
+  object-fit: contain;
+  background: #f4f6f8;
 }
 
 .lab-photo-caption { padding: 1.1rem; }
