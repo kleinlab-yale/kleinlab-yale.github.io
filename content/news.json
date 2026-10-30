@@ -1,6 +1,20 @@
 {
   "items": [
     {
+      "date": "September 2026",
+      "text": "KLAY’s MCAM study, “Structural Basis for MCAM Mediated Inhibition of Laminin Dependent Cell Migration,” is now available as a bioRxiv preprint.",
+      "links": [
+        {
+          "label": "Read bioRxiv preprint",
+          "url": "https://doi.org/10.64898/2026.09.11.751044"
+        },
+        {
+          "label": "View on PubMed",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/42779840/"
+        }
+      ]
+    },
+    {
       "date": "February 2026",
       "text": "Klein Lab receives a 2nd Blavatnik Award for developing ROS1 biologics to treat cancer, following a first-place prize in 2023.",
       "links": [
