@@ -9,13 +9,13 @@
  *   3. BroadcastChannel for zero-latency multi-tab testing on the same device.
  */
 
-import { pickAdventurerNames } from './board_data.js?v=30';
+import { pickAdventurerNames } from './board_data.js?v=32';
 
 const PEER_PREFIX = 'votm1971-tomb-';
-const MQTT_TOPIC_PREFIX = 'votm1971/v30/room';
-const STORAGE_HOST_KEY = 'votm1971_active_host_session_v30';
-const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v30_';
-const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v30';
+const MQTT_TOPIC_PREFIX = 'votm1971/v32/room';
+const STORAGE_HOST_KEY = 'votm1971_active_host_session_v32';
+const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v32_';
+const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v32';
 
 const WSS_BROKERS = [
   'wss://broker.emqx.io:8084/mqtt',
@@ -64,7 +64,9 @@ export class MultiplayerManager {
     this.mqttClients = []; // Active MQTT-over-WSS clients
     this.processedMsgIds = new Set(); // Deduplication across Hybrid Transports
     this.guestJoinPayload = null; // Saved Guest join info for auto-reannounce on reconnect
-    this.knownGuestClaims = new Map(); // peerId -> { playerName, preferredSeatId }
+    this.knownGuestClaims = new Map(); // peerId -> { playerName, preferredSeatId, claimedAt }
+    this.isConfirmedByHost = false; // True only when Host's authoritative LOBBY_STATE includes our peerId
+    this.highestHostRevision = 0; // Prevents slower MQTT brokers from overwriting newer LOBBY_STATE snapshots
     this.lastPublishedGameState = null;
     this.heartbeatTimer = null;
 
@@ -178,10 +180,16 @@ export class MultiplayerManager {
 
     // 3. Re-announce state or request sync
     if (this.mode === 'host') {
-      this._broadcastLobby();
-      if (this.lastPublishedGameState) {
-        this.broadcastGameState(this.lastPublishedGameState);
-      }
+      // Wait 450ms after re-subscribing so any retained /guest/+ seat claims sent while Host was in the Messages app
+      // are processed BEFORE Host publishes a new retained LOBBY_STATE!
+      setTimeout(() => {
+        if (this.mode === 'host') {
+          this._broadcastLobby();
+          if (this.lastPublishedGameState) {
+            this.broadcastGameState(this.lastPublishedGameState);
+          }
+        }
+      }, 450);
     } else if (this.mode === 'guest') {
       if (this.guestJoinPayload) {
         this.sendToHost({
@@ -591,6 +599,31 @@ export class MultiplayerManager {
   }
 
   /**
+   * Reserves a seat while a Guest is on the Character Picker screen (or switches their pick)
+   * so other Guests opening the link immediately see that color as Taken even while this Guest is typing their name!
+   */
+  reservePreviewSeat(seatId, playerName = '') {
+    if (this.mode !== 'guest' || !this.roomCode || !seatId) return;
+    const cleanName = (playerName || '').trim() || 'Explorer Joining...';
+    this.isConfirmedByHost = false;
+    this.guestJoinPayload = {
+      peerId: this.myPeerId,
+      playerName: cleanName,
+      preferredSeatId: seatId,
+      claimedAt: this.guestJoinPayload?.claimedAt || Date.now(),
+    };
+    this._applyOptimisticGuestClaim(this.myPeerId, cleanName, seatId);
+    this.sendToHost({
+      type: 'JOIN_REQUEST',
+      peerId: this.myPeerId,
+      playerName: cleanName,
+      preferredSeatId: seatId,
+      isPreviewHold: true,
+    });
+    this._publishRetainedGuestSeat(this.guestJoinPayload);
+  }
+
+  /**
    * Joins an existing Host room by Room Code with the Guest's chosen Explorer seat & name.
    */
   async joinRoom(rawCode, playerName = 'Guest Explorer', preferredSeatId = null) {
@@ -598,10 +631,12 @@ export class MultiplayerManager {
     if (!cleanCode) return;
     const formattedCode = cleanCode.startsWith('TOMB-') ? cleanCode : `TOMB-${cleanCode}`;
 
+    this.isConfirmedByHost = false;
     this.guestJoinPayload = {
       peerId: this.myPeerId,
       playerName,
       preferredSeatId,
+      claimedAt: this.guestJoinPayload?.claimedAt || Date.now(),
     };
     this.saveGuestSession(formattedCode, {
       playerName,
@@ -645,9 +680,14 @@ export class MultiplayerManager {
     if (!seat) {
       seat =
         this.lobbyState.seats.find((s) => s.peerId === guestPeerId) ||
-        this.lobbyState.seats.find((s) => s.control === 'human' && !s.peerId);
+        this.lobbyState.seats.find((s) => s.control === 'human' && !s.peerId) ||
+        this.lobbyState.seats.find((s) => !s.peerId);
     }
     if (seat) {
+      // If this guestPeerId is me and my preferredSeatId was already taken by someone else, update my preferredSeatId to the open seat
+      if (guestPeerId === this.myPeerId && this.guestJoinPayload && this.guestJoinPayload.preferredSeatId !== seat.id) {
+        this.guestJoinPayload.preferredSeatId = seat.id;
+      }
       const prevControl = seat.control;
       if (prevControl !== 'human') {
         const emptyHumanSlot = this.lobbyState.seats.find(
@@ -774,6 +814,7 @@ export class MultiplayerManager {
                 this.knownGuestClaims.set(msg.peerId, {
                   playerName: msg.playerName,
                   preferredSeatId: msg.preferredSeatId,
+                  claimedAt: msg.claimedAt || Date.now(),
                 });
                 this._applyOptimisticGuestClaim(msg.peerId, msg.playerName, msg.preferredSeatId);
               }
@@ -833,6 +874,7 @@ export class MultiplayerManager {
       peerId: this.myPeerId,
       playerName: guestInfo.playerName,
       preferredSeatId: guestInfo.preferredSeatId,
+      claimedAt: guestInfo.claimedAt || Date.now(),
       senderId: this.myPeerId,
       msgId: this._makeMsgId(),
     });
@@ -863,19 +905,30 @@ export class MultiplayerManager {
   _startHeartbeat() {
     clearInterval(this.heartbeatTimer);
     this.heartbeatTimer = setInterval(() => {
-      if (this.mode === 'guest' && this.guestJoinPayload) {
-        // Check if our peerId is confirmed in lobbyState; if not, re-send JOIN_REQUEST
-        const isConfirmed = this.lobbyState?.seats?.some((s) => s.peerId === this.myPeerId);
-        if (!isConfirmed) {
+      if (this.mode === 'guest') {
+        if (this.guestJoinPayload) {
+          // Always ensure all connected MQTT brokers hold our retained guest seat claim
+          this._publishRetainedGuestSeat(this.guestJoinPayload);
+          // Until the Host's authoritative LOBBY_STATE confirms our seat, actively re-send JOIN_REQUEST
+          if (!this.isConfirmedByHost) {
+            this.sendToHost({
+              type: 'JOIN_REQUEST',
+              peerId: this.myPeerId,
+              playerName: this.guestJoinPayload.playerName,
+              preferredSeatId: this.guestJoinPayload.preferredSeatId,
+              claimedAt: this.guestJoinPayload.claimedAt,
+            });
+          }
+        } else {
           this.sendToHost({
-            type: 'JOIN_REQUEST',
+            type: 'LOBBY_PREVIEW_REQUEST',
             peerId: this.myPeerId,
-            playerName: this.guestJoinPayload.playerName,
-            preferredSeatId: this.guestJoinPayload.preferredSeatId,
           });
         }
+      } else if (this.mode === 'host' && !this.lastPublishedGameState) {
+        this._publishMqttFromHost();
       }
-    }, 2500);
+    }, 1600);
   }
 
   _handleIncomingPeerConnection(conn) {
@@ -962,13 +1015,13 @@ export class MultiplayerManager {
         }
       }
 
-      // 2. Otherwise assign guest to an open human seat first, or any non-taken seat
+      // 2. Otherwise assign guest to an open human seat first, or any non-taken seat (NEVER overwrite another player's seat!)
       if (!assignedSeat) {
         assignedSeat =
           this.lobbyState.seats.find((s) => s.peerId === guestPeerId) ||
           this.lobbyState.seats.find((s) => s.control === 'human' && !s.peerId) ||
           this.lobbyState.seats.find((s) => !s.peerId && s.control !== 'human') ||
-          this.lobbyState.seats.find((s) => s.peerId !== this.myPeerId);
+          this.lobbyState.seats.find((s) => !s.peerId);
       }
 
       if (assignedSeat) {
@@ -996,17 +1049,24 @@ export class MultiplayerManager {
       this._emitStatus(`🎉 ${guestName} joined as ${assignedSeat ? assignedSeat.id.toUpperCase() : 'Explorer'}!`);
       this._broadcastLobby();
 
-      if (!existingIdenticalSeat && this.callbacks.onGuestJoined) {
+      if (!msg.isPreviewHold && !existingIdenticalSeat && this.callbacks.onGuestJoined) {
         this.callbacks.onGuestJoined(guestPeerId, guestName, assignedSeat?.id);
       }
     } else if (msg.type === 'CLAIM_SEAT') {
       const { seatId, peerId, name, control, ageEven, rightHanded, exclusiveClaim } = msg;
-      const seat = this.lobbyState.seats.find((s) => s.id === seatId);
+      let seat = this.lobbyState.seats.find((s) => s.id === seatId);
+      // Never allow a guest CLAIM_SEAT to overwrite a seat already owned by the Host or another Guest!
+      if (seat && control === 'human' && seat.peerId && seat.peerId !== peerId) {
+        seat =
+          this.lobbyState.seats.find((s) => s.peerId === peerId) ||
+          this.lobbyState.seats.find((s) => s.control === 'human' && !s.peerId) ||
+          this.lobbyState.seats.find((s) => !s.peerId);
+      }
       if (seat) {
         const targetPrevControl = seat.control;
         if (exclusiveClaim && peerId) {
           for (const prev of this.lobbyState.seats) {
-            if (prev.id !== seatId && prev.peerId === peerId) {
+            if (prev.id !== seat.id && prev.peerId === peerId) {
               prev.peerId = null;
               if (targetPrevControl !== 'human') {
                 const usedNames = this.lobbyState.seats.map((x) => x.name);
@@ -1049,14 +1109,64 @@ export class MultiplayerManager {
 
   _handleGuestMessage(msg) {
     if (msg.type === 'LOBBY_STATE' && msg.lobbyState) {
+      const incomingRev = Number(msg.lobbyState.revision) || 0;
+      const incomingConnectedCount = (msg.lobbyState.seats || []).filter(
+        (s) => s.control === 'human' && s.peerId && s.peerId !== 'local' && s.peerId !== 'host-seeded'
+      ).length;
+      const currentAuthoritativeCount = (this.lobbyState?.seats || []).filter(
+        (s) => s.control === 'human' && s.peerId && s.peerId !== 'local' && s.peerId !== 'host-seeded' && s.peerId !== this.myPeerId
+      ).length;
+
+      // Ignore stale cached LOBBY_STATE packets delivered late by a slower secondary MQTT broker
+      if (incomingRev > 0 && incomingRev < this.highestHostRevision && incomingConnectedCount <= currentAuthoritativeCount) {
+        return;
+      }
+      if (incomingRev > this.highestHostRevision) {
+        this.highestHostRevision = incomingRev;
+      }
+
+      // Check whether the Host's authoritative snapshot already has our seat BEFORE applying local optimistic claims!
+      const myHostSeat = (msg.lobbyState.seats || []).find((s) => s.peerId === this.myPeerId);
+      if (myHostSeat) {
+        this.isConfirmedByHost = true;
+        if (this.guestJoinPayload && this.guestJoinPayload.preferredSeatId !== myHostSeat.id) {
+          // Another player claimed our preferred seat first; adopt the Host's authoritative seat assignment!
+          this.guestJoinPayload.preferredSeatId = myHostSeat.id;
+          this.saveGuestSession(this.roomCode, {
+            playerName: myHostSeat.name || this.guestJoinPayload.playerName,
+            preferredSeatId: myHostSeat.id,
+            hasJoined: true,
+          });
+          this._publishRetainedGuestSeat(this.guestJoinPayload);
+        }
+      } else {
+        this.isConfirmedByHost = false;
+        // Host snapshot doesn't have us yet — immediately re-send JOIN_REQUEST and re-publish retained claim!
+        if (this.guestJoinPayload) {
+          this.sendToHost({
+            type: 'JOIN_REQUEST',
+            peerId: this.myPeerId,
+            playerName: this.guestJoinPayload.playerName,
+            preferredSeatId: this.guestJoinPayload.preferredSeatId,
+            claimedAt: this.guestJoinPayload.claimedAt,
+          });
+          this._publishRetainedGuestSeat(this.guestJoinPayload);
+        }
+      }
+
       this.lobbyState = msg.lobbyState;
-      // Preserve any known retained Guest claims if this LOBBY_STATE snapshot was published before Host processed them
-      for (const [peerId, claim] of this.knownGuestClaims.entries()) {
+
+      // Preserve any known retained Guest claims (sorted by claimedAt timestamp so earlier claims always win!)
+      const sortedGuestClaims = Array.from(this.knownGuestClaims.entries()).sort(
+        (a, b) => (a[1].claimedAt || 0) - (b[1].claimedAt || 0)
+      );
+      for (const [peerId, claim] of sortedGuestClaims) {
         if (!this.lobbyState.seats.some((s) => s.peerId === peerId)) {
           this._applyOptimisticGuestClaim(peerId, claim.playerName, claim.preferredSeatId);
         }
       }
-      // If Guest already clicked Join, preserve our own optimistic seat display while re-sending JOIN_REQUEST to Host
+
+      // Preserve our own optimistic seat display while waiting for Host confirmation
       if (this.guestJoinPayload && !this.lobbyState.seats.some((s) => s.peerId === this.myPeerId)) {
         this._applyOptimisticGuestClaim(
           this.myPeerId,
@@ -1064,6 +1174,7 @@ export class MultiplayerManager {
           this.guestJoinPayload.preferredSeatId
         );
       }
+
       if (this.callbacks.onLobbyUpdate) {
         this.callbacks.onLobbyUpdate(this.lobbyState);
       }
@@ -1166,6 +1277,10 @@ export class MultiplayerManager {
   }
 
   _broadcastLobby() {
+    if (this.mode === 'host') {
+      this.lobbyState.revision = (Number(this.lobbyState.revision) || 0) + 1;
+      this.lobbyState.updatedAt = Date.now();
+    }
     if (this.callbacks.onLobbyUpdate) {
       this.callbacks.onLobbyUpdate(this.lobbyState);
     }
@@ -1325,6 +1440,8 @@ export class MultiplayerManager {
     this.outboundQueue = [];
     this.guestJoinPayload = null;
     this.knownGuestClaims.clear();
+    this.isConfirmedByHost = false;
+    this.highestHostRevision = 0;
     this.lastPublishedGameState = null;
     if (clearStorage) {
       this.clearSavedHostSession();

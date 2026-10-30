@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=30';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=30';
-import { Mummy3DView } from './view_3d.js?v=30';
-import { Mummy2DView } from './view_2d.js?v=30';
-import { MultiplayerManager } from './multiplayer.js?v=30';
+} from './board_data.js?v=32';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=32';
+import { Mummy3DView } from './view_3d.js?v=32';
+import { Mummy2DView } from './view_2d.js?v=32';
+import { MultiplayerManager } from './multiplayer.js?v=32';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -117,28 +117,60 @@ class VoiceOfTheMummyApp {
   }
 
   /**
-   * Unlocks WebAudio (AudioContext) and persistent HTML5 Audio on the very first user tap/click
-   * so that Mummy voice tracks ALWAYS play on iPhone/iPad/Android even when AI Bots pull the lever inside setTimeout.
+   * Unlocks and auto-recovers WebAudio (AudioContext) and persistent HTML5 Audio on user taps/clicks
+   * AND whenever the player switches back from another app (e.g. Messages / lock screen on iPhone/iPad/Android)
+   * so Mummy voice tracks and sound effects NEVER go silent after leaving and returning to the browser!
    */
   _initAudioUnlocker() {
-    const unlock = () => {
-      const ctx = this._ensureAudioContext();
-      if (ctx) {
-        if (ctx.state === 'suspended') {
-          ctx.resume().catch(() => {});
-        }
+    this.pendingBlockedTrack = null;
+    this.lastPlayedTrackId = null;
+    this.lastPlayedTrackTime = 0;
+    this.lastPlayedTrackTurnKey = null;
+
+    const configureAudioSession = () => {
+      if (typeof navigator !== 'undefined' && navigator.audioSession) {
         try {
-          const buf = ctx.createBuffer(1, 1, 22050);
-          const src = ctx.createBufferSource();
-          src.buffer = buf;
-          src.connect(ctx.destination);
-          src.start(0);
+          navigator.audioSession.type = 'playback';
         } catch (e) {
           // Ignore
         }
       }
-      if (!this.mummyAudioUnlocked && this.mummyAudioEl) {
-        this.mummyAudioUnlocked = true;
+    };
+    configureAudioSession();
+
+    const unlock = (isUserGesture = true) => {
+      configureAudioSession();
+      const ctx = this._ensureAudioContext(isUserGesture);
+      if (ctx) {
+        if (ctx.state !== 'running') {
+          ctx.resume().catch(() => {});
+        }
+        if (isUserGesture) {
+          try {
+            const buf = ctx.createBuffer(1, 1, 22050);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(ctx.destination);
+            src.start(0);
+          } catch (e) {
+            // Ignore
+          }
+        }
+      }
+
+      // If a Mummy track was waiting for a tap after returning from background, play it immediately!
+      if (isUserGesture && this.pendingBlockedTrack) {
+        const pending = this.pendingBlockedTrack;
+        this.pendingBlockedTrack = null;
+        if (this.activeState?.phase === 'MUMMY_SPEAKING' && pending.track) {
+          this._playMummyTrackAudio(pending.track);
+          return;
+        }
+      }
+
+      // Only prime the persistent HTMLAudioElement if no real Mummy track is currently playing!
+      const isPlayingRealTrack = Boolean(this.currentBufferSource || this.currentAudio);
+      if (isUserGesture && !this.mummyAudioUnlocked && this.mummyAudioEl && !isPlayingRealTrack) {
         try {
           this.mummyAudioEl.src =
             'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
@@ -146,37 +178,101 @@ class VoiceOfTheMummyApp {
           const p = this.mummyAudioEl.play();
           if (p && typeof p.then === 'function') {
             p.then(() => {
-              this.mummyAudioEl.pause();
-              this.mummyAudioEl.volume = 1.0;
+              this.mummyAudioUnlocked = true;
+              if (!this.currentAudio) {
+                this.mummyAudioEl.pause();
+                this.mummyAudioEl.volume = 1.0;
+              }
             }).catch(() => {
+              this.mummyAudioUnlocked = false;
               this.mummyAudioEl.volume = 1.0;
             });
           }
         } catch (e) {
-          // Ignore
+          this.mummyAudioUnlocked = false;
         }
       }
     };
 
-    window.addEventListener('pointerdown', unlock, { passive: true });
-    window.addEventListener('touchend', unlock, { passive: true });
-    window.addEventListener('click', unlock, { passive: true });
-    window.addEventListener('keydown', unlock, { passive: true });
+    window.addEventListener('pointerdown', () => unlock(true), { passive: true });
+    window.addEventListener('touchend', () => unlock(true), { passive: true });
+    window.addEventListener('click', () => unlock(true), { passive: true });
+    window.addEventListener('keydown', () => unlock(true), { passive: true });
+
+    // When a player leaves the game (switches to Messages, locks phone, etc.) and comes back,
+    // iOS Safari puts AudioContext into 'interrupted' state and invalidates HTMLAudioElement locks.
+    // Mark mummyAudioUnlocked = false on hide/blur and immediately wake AudioContext on return!
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        this.mummyAudioUnlocked = false;
+      } else if (document.visibilityState === 'visible') {
+        unlock(false);
+      }
+    });
+    window.addEventListener('pagehide', () => {
+      this.mummyAudioUnlocked = false;
+    });
+    window.addEventListener('blur', () => {
+      this.mummyAudioUnlocked = false;
+    });
+    window.addEventListener('pageshow', () => unlock(false));
+    window.addEventListener('focus', () => unlock(false));
   }
 
-  _ensureAudioContext() {
+  _ensureAudioContext(fromUserGesture = false) {
     try {
+      if (typeof navigator !== 'undefined' && navigator.audioSession) {
+        try {
+          navigator.audioSession.type = 'playback';
+        } catch (e) {
+          // Ignore
+        }
+      }
+
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+
+      // If iOS closed the old context after background suspension, recreate it
+      if (this.audioCtx && this.audioCtx.state === 'closed') {
+        this.audioCtx = null;
+        this.mummyGainNode = null;
+      }
+
       if (!this.audioCtx) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return null;
-        this.audioCtx = new AudioContext();
+        this.audioCtx = new AudioContextClass();
         this.mummyGainNode = this.audioCtx.createGain();
         this.mummyGainNode.gain.value = this.audioMuted ? 0 : 1.0;
         this.mummyGainNode.connect(this.audioCtx.destination);
+        this.audioCtx.onstatechange = () => {
+          if (
+            this.audioCtx &&
+            this.audioCtx.state !== 'running' &&
+            this.audioCtx.state !== 'closed' &&
+            document.visibilityState === 'visible'
+          ) {
+            this.audioCtx.resume().catch(() => {});
+          }
+        };
       }
-      if (this.audioCtx.state === 'suspended') {
-        this.audioCtx.resume().catch(() => {});
+
+      // Catch BOTH 'suspended' AND iOS Safari's 'interrupted' state after leaving the app!
+      if (this.audioCtx.state !== 'running') {
+        this.audioCtx.resume().catch(() => {
+          if (fromUserGesture) {
+            try {
+              this.audioCtx.close().catch(() => {});
+            } catch (e) {
+              // Ignore
+            }
+            this.audioCtx = new AudioContextClass();
+            this.mummyGainNode = this.audioCtx.createGain();
+            this.mummyGainNode.gain.value = this.audioMuted ? 0 : 1.0;
+            this.mummyGainNode.connect(this.audioCtx.destination);
+            this.audioCtx.resume().catch(() => {});
+          }
+        });
       }
+
       if (this.mummyGainNode) {
         this.mummyGainNode.gain.value = this.audioMuted ? 0 : 1.0;
       }
@@ -188,6 +284,11 @@ class VoiceOfTheMummyApp {
 
   _stopCurrentMummyAudio() {
     this.mummyTrackPlaybackId++;
+    this.pendingBlockedTrack = null;
+    if (this.mummyFallbackTimer) {
+      clearTimeout(this.mummyFallbackTimer);
+      this.mummyFallbackTimer = null;
+    }
     if (this.currentBufferSource) {
       try {
         this.currentBufferSource.onended = null;
@@ -1077,6 +1178,16 @@ class VoiceOfTheMummyApp {
         // Immediately connect to the Host room in preview mode so we receive live LOBBY_STATE (which colors are taken vs open)
         this.mp.connectRoomPreview(cleanCode);
         this._renderGuestInviteCharPicker();
+        // After 550ms (once retained MQTT/PeerJS claims have arrived), reserve our selected open color in real time
+        // so subsequent Guests opening the link immediately see our color as Taken even while we are typing our name!
+        setTimeout(() => {
+          const setupStep = document.getElementById('guest-invite-step-setup');
+          if (setupStep && !setupStep.classList.contains('hidden') && this.mp.mode === 'guest') {
+            this._renderGuestInviteCharPicker();
+            const curName = document.getElementById('input-invite-guest-name')?.value?.trim() || '';
+            this.mp.reservePreviewSeat(this.selectedGuestSeatId, curName);
+          }
+        }, 550);
         setTimeout(() => {
           document.getElementById('input-invite-guest-name')?.focus();
         }, 80);
@@ -1137,6 +1248,8 @@ class VoiceOfTheMummyApp {
       btn.addEventListener('click', () => {
         if (btn.disabled) return;
         this.selectedGuestSeatId = btn.dataset.pickGuestSeat;
+        const curName = document.getElementById('input-invite-guest-name')?.value?.trim() || '';
+        this.mp.reservePreviewSeat(this.selectedGuestSeatId, curName);
         this._renderGuestInviteCharPicker();
       });
     });
@@ -1145,6 +1258,22 @@ class VoiceOfTheMummyApp {
   _acceptInviteAndJoinRoom() {
     const cleanCode = this.pendingInviteRoomCode;
     if (!cleanCode) return;
+
+    // Verify our selected seat wasn't just claimed by another player a split-second before we tapped Join
+    const seats = this.mp.lobbyState?.seats || [];
+    const isSeatTakenByOther = (seatId) => {
+      const s = seats.find((x) => x.id === seatId);
+      return Boolean(s && s.control === 'human' && s.peerId && s.peerId !== 'local' && s.peerId !== this.mp.myPeerId);
+    };
+    if (!this.selectedGuestSeatId || isSeatTakenByOther(this.selectedGuestSeatId)) {
+      const openSeat =
+        seats.find((s) => s.control === 'human' && !s.peerId) ||
+        seats.find((s) => !isSeatTakenByOther(s.id));
+      if (openSeat) {
+        this.selectedGuestSeatId = openSeat.id;
+      }
+    }
+
     const rawName = document.getElementById('input-invite-guest-name')?.value?.trim() || '';
     const takenNames = (this.mp.lobbyState?.seats || [])
       .filter((s) => s.peerId !== this.mp.myPeerId)
@@ -1836,6 +1965,18 @@ class VoiceOfTheMummyApp {
 
   async _playMummyTrackAudio(track) {
     if (!track) return;
+    // Prevent duplicate restart if the exact same track was triggered via both GAME_EVENT and GAME_STATE within 1.5s
+    const nowMs = performance.now();
+    if (
+      this.lastPlayedTrackId === track.id &&
+      nowMs - (this.lastPlayedTrackTime || 0) < 1500 &&
+      (this.currentBufferSource || this.currentAudio)
+    ) {
+      return;
+    }
+    this.lastPlayedTrackId = track.id;
+    this.lastPlayedTrackTime = nowMs;
+
     this._stopCurrentMummyAudio();
     const myPlaybackId = this.mummyTrackPlaybackId;
 
@@ -1853,6 +1994,11 @@ class VoiceOfTheMummyApp {
     const onEndedOrSkipped = () => {
       if (finished || this.mummyTrackPlaybackId !== myPlaybackId) return;
       finished = true;
+      this.pendingBlockedTrack = null;
+      if (this.mummyFallbackTimer) {
+        clearTimeout(this.mummyFallbackTimer);
+        this.mummyFallbackTimer = null;
+      }
       this.currentBufferSource = null;
       this.currentAudio = null;
       if (this.mp.mode !== 'guest' && this.engine.state?.phase === 'MUMMY_SPEAKING') {
@@ -1860,8 +2006,8 @@ class VoiceOfTheMummyApp {
       }
     };
 
-    // 1. Primary path: Play via unlocked WebAudio AudioContext (works 100% of the time on iPhone/iPad/Android even inside bot setTimeout!)
-    const ctx = this._ensureAudioContext();
+    // 1. Primary path: Play via unlocked WebAudio AudioContext
+    const ctx = this._ensureAudioContext(false);
     if (ctx && typeof window.fetch === 'function') {
       try {
         let audioBuffer = this.mummyBufferCache.get(track.url);
@@ -1873,24 +2019,32 @@ class VoiceOfTheMummyApp {
           this.mummyBufferCache.set(track.url, audioBuffer);
         }
         if (this.mummyTrackPlaybackId !== myPlaybackId) return;
-        if (ctx.state === 'suspended') {
+        if (ctx.state !== 'running') {
           await ctx.resume().catch(() => {});
         }
-        const source = ctx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(this.mummyGainNode || ctx.destination);
-        this.currentBufferSource = source;
-        source.onended = () => {
-          onEndedOrSkipped();
-        };
-        source.start(0);
-        return;
+        // IMPORTANT: Only start WebAudio source if ctx.state is actually 'running'!
+        // If iOS Safari left ctx.state in 'interrupted' or 'suspended' after app-switching,
+        // fall through to HTMLAudioElement below instead of playing into a silent suspended context!
+        if (ctx.state === 'running') {
+          const source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(this.mummyGainNode || ctx.destination);
+          this.currentBufferSource = source;
+          source.onended = () => {
+            onEndedOrSkipped();
+          };
+          source.start(0);
+          // Safety watchdog in case iOS interrupts AudioContext mid-playback when switching apps
+          const maxDurationMs = Math.ceil((audioBuffer.duration || 8) * 1000) + 1200;
+          this.mummyFallbackTimer = setTimeout(onEndedOrSkipped, maxDurationMs);
+          return;
+        }
       } catch (err) {
         // Fall through to persistent HTMLAudioElement fallback below
       }
     }
 
-    // 2. Fallback path: Reuse persistent user-unlocked HTMLAudioElement
+    // 2. Fallback path: Reuse persistent HTMLAudioElement
     if (this.mummyTrackPlaybackId !== myPlaybackId) return;
     const audio = this.mummyAudioEl || new Audio();
     audio.muted = this.audioMuted;
@@ -1906,7 +2060,13 @@ class VoiceOfTheMummyApp {
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       playPromise.catch(() => {
-        setTimeout(onEndedOrSkipped, 3600);
+        // Browser blocked playback because user just returned from another app without tapping the screen yet:
+        // Queue track so the very next tap anywhere on screen immediately plays the Mummy's voice!
+        this.pendingBlockedTrack = { track, playbackId: myPlaybackId };
+        if (voiceTitle) {
+          voiceTitle.textContent = `🔊 Tap Anywhere to Hear the Mummy — "${track.title}"`;
+        }
+        this.mummyFallbackTimer = setTimeout(onEndedOrSkipped, 4200);
       });
     }
   }
@@ -1915,6 +2075,17 @@ class VoiceOfTheMummyApp {
     this.activeState = state;
     this.view3D.syncWithState(state);
     this.view2D.syncWithState(state);
+
+    // Ensure Guest devices ALWAYS play the Mummy's voice track when entering MUMMY_SPEAKING phase,
+    // even if a volatile GAME_EVENT packet was dropped or arrived while switching apps!
+    if (state.phase === 'MUMMY_SPEAKING' && state.currentTrack) {
+      const trackTurnKey = `${state.turnNumber}-${state.turnIndex}-${state.currentTrack.id}`;
+      if (this.lastPlayedTrackTurnKey !== trackTurnKey) {
+        this.lastPlayedTrackTurnKey = trackTurnKey;
+        this.view3D.animateSarcophagusLeverPull();
+        this._playMummyTrackAudio(state.currentTrack);
+      }
+    }
 
     // 1. Update Top Header Status (Part I / Part II, Record Side, Remaining Level 3 Jewels)
     const partBadge = document.getElementById('badge-game-part');

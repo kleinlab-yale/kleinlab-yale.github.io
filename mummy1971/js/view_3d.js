@@ -116,8 +116,8 @@ export class Mummy3DView {
 
   _initScene(THREE, OrbitControls) {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x16100a);
-    this.scene.fog = new THREE.FogExp2(0x1a120a, 0.018);
+    this.scene.background = new THREE.Color(0x080503);
+    this.scene.fog = new THREE.FogExp2(0x0a0603, 0.021);
 
     const rect = this.container.getBoundingClientRect();
     const w = Math.max(280, rect.width || this.container.clientWidth || 720);
@@ -139,7 +139,7 @@ export class Mummy3DView {
     this.container.innerHTML = '';
     this.container.appendChild(this.renderer.domElement);
 
-    // Create warm golden tomb environment map so metallic bronze reflects warm light without washing out gems
+    // Create warm golden tomb environment map so metallic bronze on the board reflects warm light
     try {
       const pmrem = new THREE.PMREMGenerator(this.renderer);
       const envScene = new THREE.Scene();
@@ -174,34 +174,50 @@ export class Mummy3DView {
     });
     this.controls.update();
 
-    // Balanced, high-contrast lighting so board artwork, Emerald Scarabs, and Ruby Gems stay rich and saturated
-    const ambient = new THREE.HemisphereLight(0xffeacc, 0x453018, 1.15);
+    // 1. Low, moody subterranean global ambient so the outer Temple Room stays dark & mysterious
+    //    except where the flickering Fire Torches cast dancing orange light!
+    const ambient = new THREE.HemisphereLight(0x2e1b0c, 0x080503, 0.22);
     this.scene.add(ambient);
 
-    const keyLight = new THREE.DirectionalLight(0xffe8c8, 1.85);
-    keyLight.position.set(-5.6, 7.2, 4.4);
+    // 2. Dedicated Board SpotLights (decay=0 inside the board cone so the Game Board stays 100% as bright,
+    //    crisp, and readable as before, while falling off to 0 before reaching the outer Temple Walls & Columns!)
+    const boardTarget = new THREE.Object3D();
+    boardTarget.position.set(0.0, 0.35, 0.0);
+    this.scene.add(boardTarget);
+
+    // Board Ambient Fill Spot (replaces the bright global HemisphereLight specifically over the board)
+    const boardAmbientSpot = new THREE.SpotLight(0xffeacc, 1.05, 16.5, 0.56, 0.65, 0.0);
+    boardAmbientSpot.position.set(0.0, 10.5, 0.0);
+    boardAmbientSpot.target = boardTarget;
+    this.scene.add(boardAmbientSpot);
+
+    // Main Board Key Light with crisp 2048x2048 shadows on the pyramid steps & pawns
+    const keyLight = new THREE.SpotLight(0xffe8c8, 1.88, 18.5, 0.48, 0.58, 0.0);
+    keyLight.position.set(-5.6, 7.6, 4.4);
+    keyLight.target = boardTarget;
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(2048, 2048);
-    keyLight.shadow.camera.near = 1.0;
-    keyLight.shadow.camera.far = 24.0;
-    const d = 6.0;
-    keyLight.shadow.camera.left = -d;
-    keyLight.shadow.camera.right = d;
-    keyLight.shadow.camera.top = d;
-    keyLight.shadow.camera.bottom = -d;
+    keyLight.shadow.camera.near = 2.0;
+    keyLight.shadow.camera.far = 18.0;
     keyLight.shadow.bias = -0.0005;
     this.scene.add(keyLight);
 
-    const overheadLight = new THREE.DirectionalLight(0xfff0d6, 0.78);
+    // Board Overhead Light
+    const overheadLight = new THREE.SpotLight(0xfff0d6, 0.82, 16.5, 0.52, 0.6, 0.0);
     overheadLight.position.set(0.0, 8.8, 0.0);
+    overheadLight.target = boardTarget;
     this.scene.add(overheadLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffdca8, 0.72);
-    fillLight.position.set(-4.5, 4.8, -5.2);
+    // Board Fill Light
+    const fillLight = new THREE.SpotLight(0xffdca8, 0.75, 17.5, 0.5, 0.6, 0.0);
+    fillLight.position.set(-4.5, 5.4, -5.2);
+    fillLight.target = boardTarget;
     this.scene.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xffc266, 0.95);
-    rimLight.position.set(6.2, 4.8, -0.8);
+    // Board Rim Light
+    const rimLight = new THREE.SpotLight(0xffc266, 0.95, 17.5, 0.5, 0.6, 0.0);
+    rimLight.position.set(6.2, 5.4, -0.8);
+    rimLight.target = boardTarget;
     this.scene.add(rimLight);
 
     this.mummyLight = new THREE.PointLight(0x38ff7a, 0.0, 4.2);
@@ -237,11 +253,11 @@ export class Mummy3DView {
       this.blackBgTableMesh.visible = this.bgMode === 'black';
     }
     if (this.scene && this.THREE) {
-      const bgHex = this.bgMode === 'black' ? 0x090705 : 0x16100a;
+      const bgHex = this.bgMode === 'black' ? 0x050403 : 0x080503;
       this.scene.background.setHex(bgHex);
       if (this.scene.fog) {
         this.scene.fog.color.setHex(bgHex);
-        this.scene.fog.density = this.bgMode === 'black' ? 0.008 : 0.016;
+        this.scene.fog.density = this.bgMode === 'black' ? 0.008 : 0.021;
       }
     }
   }
@@ -254,7 +270,8 @@ export class Mummy3DView {
    * - 8 Monumental Bundled-Papyrus Lotus Columns supporting carved stone ceiling architraves
    * - Midnight Lapis-Blue Astronomical Star Ceiling (KV62 / Seti I tomb style)
    * - Grand Carved Tomb Portal flanked by 2 Black-and-Gold Anubis Guardian Jackal Statues
-   * - 8 Flickering Bronze Torch Braziers, Canopic Jar Shrine, Treasure Chest, and Howard Carter 1922 Excavation Crate
+   * - 10 Flickering Bronze Torch Braziers casting dancing firelight across the darkened temple walls & columns
+   * - Canopic Jar Shrine, Treasure Chest, and Howard Carter 1922 Excavation Crate
    * - Drifting Golden Tomb Dust Motes in the torchlight
    */
   _buildTombChamberEnvironment(THREE) {
@@ -268,59 +285,73 @@ export class Mummy3DView {
     const starCeilingTex = this._createStarCeilingTexture(THREE);
     const hieroglyphBandTex = this._createAltarFriezeTexture(THREE);
 
+    // Low envMapIntensity (0.06) + deeper subterranean stone base colors so the background temple stays
+    // mysteriously dark in the shadows and visibly lights up whenever the Fire Torches flicker!
     const sandstoneWallMat = new THREE.MeshStandardMaterial({
       map: wallMuralTex,
-      roughness: 0.78,
-      metalness: 0.04,
+      color: 0x8c6d46,
+      roughness: 0.76,
+      metalness: 0.05,
+      envMapIntensity: 0.06,
     });
 
     const floorMat = new THREE.MeshStandardMaterial({
       map: floorStoneTex,
-      roughness: 0.84,
-      metalness: 0.03,
+      color: 0x785a38,
+      roughness: 0.82,
+      metalness: 0.04,
+      envMapIntensity: 0.06,
     });
 
     const limestoneMat = new THREE.MeshStandardMaterial({
-      color: 0xd4b483,
-      roughness: 0.72,
-      metalness: 0.05,
+      color: 0x947850,
+      roughness: 0.7,
+      metalness: 0.06,
+      envMapIntensity: 0.07,
     });
 
     const darkBasaltMat = new THREE.MeshStandardMaterial({
-      color: 0x261e17,
-      roughness: 0.55,
-      metalness: 0.12,
+      color: 0x1c1510,
+      roughness: 0.52,
+      metalness: 0.14,
+      envMapIntensity: 0.08,
     });
 
     const goldLeafMat = new THREE.MeshStandardMaterial({
-      color: 0xffcc4d,
-      emissive: 0x291a02,
-      roughness: 0.26,
-      metalness: 0.78,
+      color: 0xffc845,
+      emissive: 0x1a0e01,
+      roughness: 0.28,
+      metalness: 0.82,
+      envMapIntensity: 0.22,
     });
 
     const lapisMat = new THREE.MeshStandardMaterial({
-      color: 0x183c73,
+      color: 0x122d57,
       roughness: 0.45,
       metalness: 0.15,
+      envMapIntensity: 0.07,
     });
 
     const turquoiseMat = new THREE.MeshStandardMaterial({
-      color: 0x24998c,
+      color: 0x1b786e,
       roughness: 0.42,
       metalness: 0.1,
+      envMapIntensity: 0.07,
     });
 
     const carnelianMat = new THREE.MeshStandardMaterial({
-      color: 0xa62c1e,
+      color: 0x872115,
       roughness: 0.48,
       metalness: 0.08,
+      envMapIntensity: 0.07,
     });
 
     const altarFriezeMat = new THREE.MeshStandardMaterial({
       map: hieroglyphBandTex,
+      color: 0x8f7148,
       roughness: 0.62,
       metalness: 0.12,
+      envMapIntensity: 0.07,
     });
 
     // =========================================================================
@@ -386,9 +417,10 @@ export class Mummy3DView {
 
     // Drifted desert sand mounds in the chamber corners
     const sandMat = new THREE.MeshStandardMaterial({
-      color: 0xc9a368,
+      color: 0x7d6139,
       roughness: 0.95,
       metalness: 0.0,
+      envMapIntensity: 0.05,
     });
     const sandCorners = [
       [-10.5, -10.5, 4.2],
@@ -448,8 +480,10 @@ export class Mummy3DView {
 
     const ceilingMat = new THREE.MeshStandardMaterial({
       map: starCeilingTex,
+      color: 0x7a7060,
       roughness: 0.7,
       metalness: 0.1,
+      envMapIntensity: 0.05,
     });
     const ceilingMesh = new THREE.Mesh(new THREE.PlaneGeometry(roomW, roomD), ceilingMat);
     ceilingMesh.rotation.x = Math.PI / 2;
@@ -560,21 +594,36 @@ export class Mummy3DView {
     }
 
     // =========================================================================
-    // 7. FLICKERING BRONZE TORCH BRAZIERS (Inner Altar Ring + Outer Pillar Ring)
+    // 7. FLICKERING BRONZE TORCH BRAZIERS (Inner Altar Ring + Outer Temple Wall Ring)
     // =========================================================================
     const brazierCoords = [
-      // 4 Inner Braziers around the Altar Table corners (visible in 3/4 Hero View!)
-      { x: 4.55, z: -4.95, hasLight: true, intensity: 2.4 },
-      { x: 4.55, z: 4.95, hasLight: true, intensity: 2.4 },
-      { x: -4.55, z: -4.95, hasLight: true, intensity: 1.9 },
-      { x: -4.55, z: 4.95, hasLight: true, intensity: 1.9 },
-      // 2 Portal Braziers flanking the East Tomb Entrance
-      { x: 9.8, z: -2.4, hasLight: true, intensity: 2.8 },
-      { x: 9.8, z: 2.4, hasLight: true, intensity: 2.8 },
+      // 4 Inner Braziers around the Altar Table corners (warm local glow on altar & inner flagstones)
+      { x: 4.65, z: -5.05, hasLight: true, intensity: 3.0, distance: 10.5, decay: 1.55 },
+      { x: 4.65, z: 5.05, hasLight: true, intensity: 3.0, distance: 10.5, decay: 1.55 },
+      { x: -4.65, z: -5.05, hasLight: true, intensity: 2.8, distance: 10.5, decay: 1.55 },
+      { x: -4.65, z: 5.05, hasLight: true, intensity: 2.8, distance: 10.5, decay: 1.55 },
+      // 2 Portal Braziers flanking the East Tomb Entrance & Anubis Statues
+      { x: 9.7, z: -2.45, hasLight: true, intensity: 6.4, distance: 16.5, decay: 1.2 },
+      { x: 9.7, z: 2.45, hasLight: true, intensity: 6.4, distance: 16.5, decay: 1.2 },
+      // 2 North & South Column/Mural Wall Braziers
+      { x: 0.0, z: -9.8, hasLight: true, intensity: 5.8, distance: 16.0, decay: 1.2 },
+      { x: 0.0, z: 9.8, hasLight: true, intensity: 5.8, distance: 16.0, decay: 1.2 },
+      // 2 West Temple Wall & Column Braziers
+      { x: -9.7, z: -3.1, hasLight: true, intensity: 5.6, distance: 16.0, decay: 1.2 },
+      { x: -9.7, z: 3.1, hasLight: true, intensity: 5.6, distance: 16.0, decay: 1.2 },
     ];
 
     brazierCoords.forEach((bCfg, idx) => {
-      const brazier = this._createTorchBrazier(THREE, darkBasaltMat, goldLeafMat, bCfg.hasLight, bCfg.intensity, idx);
+      const brazier = this._createTorchBrazier(
+        THREE,
+        darkBasaltMat,
+        goldLeafMat,
+        bCfg.hasLight,
+        bCfg.intensity,
+        idx,
+        bCfg.distance,
+        bCfg.decay
+      );
       brazier.position.set(bCfg.x, floorY, bCfg.z);
       tombGroup.add(brazier);
     });
@@ -721,7 +770,34 @@ export class Mummy3DView {
     return g;
   }
 
-  _createTorchBrazier(THREE, darkMetalMat, goldMat, hasLight, lightIntensity, seedIdx) {
+  _getTorchGlowTexture(THREE) {
+    if (this._torchGlowTex) return this._torchGlowTex;
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createRadialGradient(64, 64, 4, 64, 64, 62);
+    grad.addColorStop(0.0, 'rgba(255, 245, 180, 1.0)');
+    grad.addColorStop(0.28, 'rgba(255, 145, 30, 0.72)');
+    grad.addColorStop(0.62, 'rgba(255, 70, 5, 0.25)');
+    grad.addColorStop(1.0, 'rgba(255, 40, 0, 0.0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 128);
+    this._torchGlowTex = new THREE.CanvasTexture(canvas);
+    this._torchGlowTex.colorSpace = THREE.SRGBColorSpace;
+    return this._torchGlowTex;
+  }
+
+  _createTorchBrazier(
+    THREE,
+    darkMetalMat,
+    goldMat,
+    hasLight,
+    lightIntensity,
+    seedIdx,
+    lightDistance = 15.0,
+    lightDecay = 1.3
+  ) {
     const g = new THREE.Group();
 
     // Base ring
@@ -745,46 +821,77 @@ export class Mummy3DView {
     g.add(bowl);
 
     // Glowing coal bed
-    const coalMat = new THREE.MeshBasicMaterial({ color: 0xff5500 });
-    const coals = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 8), coalMat);
+    const coalMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+    const coals = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 8), coalMat);
     coals.scale.set(1.0, 0.35, 1.0);
     coals.position.y = 1.95;
     g.add(coals);
 
-    // Outer & Inner Flame Cones (animated in _animate)
+    // 3 Layered Dancing Flame Cones + Soft Additive Fire Halo Sprite (animated in _animate)
     const outerFlameMat = new THREE.MeshBasicMaterial({
-      color: 0xff7b1a,
+      color: 0xff4d06,
       transparent: true,
-      opacity: 0.88,
+      opacity: 0.86,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
-    const outerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.78, 10), outerFlameMat);
-    outerFlame.position.y = 2.32;
+    const outerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.33, 1.02, 12), outerFlameMat);
+    outerFlame.position.y = 2.42;
     g.add(outerFlame);
 
-    const innerFlameMat = new THREE.MeshBasicMaterial({
-      color: 0xfff08a,
+    const midFlameMat = new THREE.MeshBasicMaterial({
+      color: 0xff9e1b,
       transparent: true,
-      opacity: 0.95,
+      opacity: 0.92,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
-    const innerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.52, 8), innerFlameMat);
-    innerFlame.position.y = 2.24;
+    const midFlame = new THREE.Mesh(new THREE.ConeGeometry(0.23, 0.78, 10), midFlameMat);
+    midFlame.position.y = 2.34;
+    g.add(midFlame);
+
+    const innerFlameMat = new THREE.MeshBasicMaterial({
+      color: 0xfff6b0,
+      transparent: true,
+      opacity: 0.98,
+    });
+    const innerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.48, 8), innerFlameMat);
+    innerFlame.position.y = 2.22;
     g.add(innerFlame);
+
+    // Additive Fire Glow Halo around the torch flame
+    const glowSpriteMat = new THREE.SpriteMaterial({
+      map: this._getTorchGlowTexture(THREE),
+      color: 0xff8c24,
+      transparent: true,
+      opacity: 0.78,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const glowSprite = new THREE.Sprite(glowSpriteMat);
+    glowSprite.position.set(0, 2.38, 0);
+    glowSprite.scale.set(1.95, 2.15, 1.0);
+    g.add(glowSprite);
 
     this.torchFlames.push({
       outer: outerFlame,
+      mid: midFlame,
       inner: innerFlame,
-      baseY: 2.32,
-      seed: seedIdx * 1.7 + 0.5,
+      coals,
+      glow: glowSprite,
+      baseY: 2.42,
+      seed: seedIdx * 1.93 + 0.5,
     });
 
     if (hasLight) {
-      const pLight = new THREE.PointLight(0xff9436, lightIntensity, 13.5, 1.4);
-      pLight.position.set(0, 2.48, 0);
+      const pLight = new THREE.PointLight(0xff7e1c, lightIntensity, lightDistance, lightDecay);
+      pLight.position.set(0, 2.58, 0);
       g.add(pLight);
       this.torchLights.push({
         light: pLight,
         baseIntensity: lightIntensity,
-        seed: seedIdx * 2.1 + 0.3,
+        baseY: 2.58,
+        seed: seedIdx * 1.93 + 0.5,
       });
     }
 
@@ -2452,17 +2559,56 @@ export class Mummy3DView {
       }
     }
 
-    // Animate flickering Tomb Torch Braziers & floating golden dust motes
+    // Animate flickering Tomb Torch Braziers, dancing firelight on temple walls, & floating golden dust motes
     const sec = now * 0.001;
     for (const tf of this.torchFlames) {
-      const flicker = Math.sin(sec * 8.5 + tf.seed) * 0.12 + Math.cos(sec * 13.2 + tf.seed * 2) * 0.08;
-      tf.outer.scale.set(1.0 + flicker * 0.5, 1.0 + flicker, 1.0 - flicker * 0.4);
-      tf.outer.position.y = tf.baseY + flicker * 0.08;
-      tf.inner.scale.set(1.0 - flicker * 0.3, 1.0 + flicker * 0.8, 1.0 + flicker * 0.3);
+      const w1 = Math.sin(sec * 7.8 + tf.seed);
+      const w2 = Math.sin(sec * 16.4 + tf.seed * 2.1);
+      const w3 = Math.cos(sec * 25.0 + tf.seed * 3.4);
+      const gust = Math.pow(0.5 + 0.5 * Math.sin(sec * 2.6 + tf.seed * 0.8), 2);
+      const flicker = w1 * 0.24 + w2 * 0.16 + w3 * 0.1 + (gust - 0.35) * 0.22;
+      const swayX = Math.sin(sec * 6.2 + tf.seed * 1.4) * 0.14 + Math.cos(sec * 13.5 + tf.seed) * 0.07;
+      const swayZ = Math.cos(sec * 5.7 + tf.seed * 1.9) * 0.14 + Math.sin(sec * 12.1 + tf.seed) * 0.07;
+
+      const stretchY = Math.max(0.68, Math.min(1.48, 1.0 + flicker * 1.15));
+      tf.outer.scale.set(1.0 - flicker * 0.32, stretchY, 1.0 + flicker * 0.28);
+      tf.outer.position.set(swayX * 0.25, tf.baseY + (stretchY - 1.0) * 0.26, swayZ * 0.25);
+      tf.outer.rotation.set(swayZ, sec * 1.8 + tf.seed, -swayX);
+
+      if (tf.mid) {
+        const midStretch = Math.max(0.72, Math.min(1.42, 1.0 - w1 * 0.18 + w2 * 0.26 + gust * 0.24));
+        tf.mid.scale.set(1.0 + w2 * 0.22, midStretch, 1.0 - w1 * 0.22);
+        tf.mid.position.set(-swayX * 0.18, tf.baseY - 0.08 + (midStretch - 1.0) * 0.2, -swayZ * 0.18);
+        tf.mid.rotation.set(-swayZ * 0.7, -sec * 2.4 + tf.seed, swayX * 0.7);
+      }
+
+      tf.inner.scale.set(1.0 + w3 * 0.18, 1.0 + flicker * 0.75, 1.0 - w3 * 0.18);
+      tf.inner.position.set(swayX * 0.1, tf.baseY - 0.2 + flicker * 0.08, swayZ * 0.1);
+
+      if (tf.glow) {
+        const glowScale = 1.95 + flicker * 0.75;
+        tf.glow.scale.set(glowScale, glowScale * 1.1, 1.0);
+        tf.glow.material.opacity = Math.max(0.48, Math.min(0.96, 0.76 + flicker * 0.42));
+      }
     }
     for (const tl of this.torchLights) {
-      const wave = Math.sin(sec * 7.2 + tl.seed) * 0.18 + Math.sin(sec * 15.0 + tl.seed) * 0.1;
-      tl.light.intensity = tl.baseIntensity * (1.0 + wave);
+      const w1 = Math.sin(sec * 7.8 + tl.seed);
+      const w2 = Math.sin(sec * 16.4 + tl.seed * 2.1);
+      const w3 = Math.cos(sec * 25.0 + tl.seed * 3.4);
+      const gust = Math.pow(0.5 + 0.5 * Math.sin(sec * 2.6 + tl.seed * 0.8), 2);
+      const wave = w1 * 0.28 + w2 * 0.18 + w3 * 0.11 + (gust - 0.35) * 0.26;
+      const mult = Math.max(0.42, Math.min(1.68, 1.0 + wave));
+      tl.light.intensity = tl.baseIntensity * mult;
+      // Subtle position dance so torch shadows & highlights visibly shimmer across the temple walls & columns
+      tl.light.position.set(
+        Math.sin(sec * 9.2 + tl.seed) * 0.13,
+        (tl.baseY || 2.58) + wave * 0.15,
+        Math.cos(sec * 8.4 + tl.seed * 1.5) * 0.13
+      );
+      // Warm color shift between deep fiery orange on dips and bright golden-amber on flares
+      const gChan = Math.max(0.34, Math.min(0.64, 0.47 + wave * 0.22));
+      const bChan = Math.max(0.04, Math.min(0.22, 0.1 + wave * 0.12));
+      tl.light.color.setRGB(1.0, gChan, bChan);
     }
     if (this.dustParticles) {
       this.dustParticles.rotation.y = sec * 0.018;
