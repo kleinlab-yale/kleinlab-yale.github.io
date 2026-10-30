@@ -68,6 +68,7 @@ body {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(247, 250, 255, 0.84));
 }
 
+.section-head h1,
 .section-head h2,
 .hero h1,
 .cta h2 {
@@ -81,6 +82,7 @@ body {
   margin-bottom: 2rem;
 }
 
+.section-head h1,
 .section-head h2 {
   font-size: clamp(1.9rem, 2.8vw, 2.7rem);
   margin-bottom: 0.65rem;
@@ -444,26 +446,6 @@ body {
   padding-top: 1.2rem;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .pi-card {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -657,8 +639,6 @@ body {
 }
 
 /* Lab photos and community updates. */
-
-
 
 .lab-gallery {
   display: grid;
@@ -937,8 +917,6 @@ body {
     grid-template-columns: 1fr 1fr;
   }
 
-
-
   .footer-grid {
     grid-template-columns: 1fr;
   }
@@ -956,10 +934,6 @@ body {
     grid-template-columns: 1fr;
   }
 
-
-
-
-
   .pi-card {
     grid-template-columns: 1fr;
   }
@@ -973,3 +947,8 @@ body {
     align-items: flex-start;
   }
 }
+
+.lab-gallery-preview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gallery-intro { max-width: 65ch; }
+.gallery-home-link { margin-top: 1.5rem; }
+@media (max-width: 640px) { .lab-gallery-preview { grid-template-columns: 1fr; } }

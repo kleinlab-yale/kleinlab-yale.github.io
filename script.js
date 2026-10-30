@@ -43,7 +43,7 @@ const setupMobileMenu = () => {
 };
 
 const setupTopLinks = () => {
-  const topLinks = document.querySelectorAll(".brand, a[href='#top']");
+  const topLinks = document.querySelectorAll("a[href='#top']");
   topLinks.forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();

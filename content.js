@@ -91,7 +91,10 @@
     const items = requireItems(data, "photos", item => text(item.caption) && text(item.alt) && safeImage(item.image)
       && (!text(item.url) || safeLink(item.url)));
     const gallery = document.getElementById("lab-gallery");
-    const cards = items.map(item => {
+    const newestFirst = [...items].reverse();
+    const limit = Number(gallery.getAttribute("data-limit"));
+    const visibleItems = limit > 0 ? newestFirst.slice(0, limit) : newestFirst;
+    const cards = visibleItems.map(item => {
       const card = node("figure", "lab-photo");
       card.append(photo(item.image, item.alt, "lab-photo-image"));
       const caption = node("figcaption", "lab-photo-caption");
@@ -103,6 +106,11 @@
     });
     gallery.replaceChildren(...cards);
     gallery.hidden = cards.length === 0;
+    const galleryStatus = document.getElementById("gallery-status");
+    if (galleryStatus) {
+      galleryStatus.textContent = cards.length ? "" : "New photos from the lab will appear here.";
+      galleryStatus.hidden = cards.length > 0;
+    }
   };
   const load = async (file, render) => {
     const controller = new AbortController();
@@ -114,10 +122,14 @@
     } catch (error) {
       // Preserve the readable HTML fallback if a content request fails.
       console.warn(`Could not load ${file} content; keeping the page fallback.`, error);
+      const galleryStatus = document.getElementById("gallery-status");
+      if (file === "lab" && galleryStatus) galleryStatus.textContent = "Photos could not be loaded. Please refresh the page to try again.";
     } finally { clearTimeout(timer); }
   };
   void Promise.all([
-    load("tools", renderTools), load("news", renderNews),
-    load("people", renderPeople), load("lab", renderGallery)
+    document.querySelector(".tool-grid") && load("tools", renderTools),
+    document.querySelector(".news-list") && load("news", renderNews),
+    document.querySelector(".people-grid") && load("people", renderPeople),
+    document.getElementById("lab-gallery") && load("lab", renderGallery)
   ]);
 })();

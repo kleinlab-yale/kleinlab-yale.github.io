@@ -52,7 +52,7 @@ After setup, open Pages CMS in your phone browser (you can bookmark it).
 
 Use JPG/JPEG, PNG, WebP, GIF, or AVIF. Convert HEIC to JPEG before upload; HEIC is deliberately excluded because it is not consistently supported by browsers. Resize large phone photos to about 1600–2000 pixels across when practical. Images are displayed in 4:3 frames.
 
-Photos saved in Pages CMS appear in the From the Lab gallery at https://kleinlab-yale.github.io/#lab-life.
+Photos saved in Pages CMS appear in the full gallery at https://kleinlab-yale.github.io/lab-photos.html. Add new photos at the end of the editor list; the site displays them newest-first. The homepage shows only the latest two, with a link to the complete gallery.
 
 ## Local preview
 

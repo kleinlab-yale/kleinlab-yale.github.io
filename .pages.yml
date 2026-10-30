@@ -16,7 +16,8 @@ content:
       delete: false
     fields:
       - name: photos
-        label: Photos (first item appears first)
+        label: Photos (add new photos at the end)
+        description: The newest entries at the end appear first on the website. The homepage shows only the latest two; the Lab photos page shows them all.
         type: object
         list:
           collapsible:
