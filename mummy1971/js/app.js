@@ -11,11 +11,11 @@ import {
   SIDE_B_TRACKS,
   FAMOUS_ADVENTURER_NAMES,
   pickAdventurerNames,
-} from './board_data.js?v=38';
-import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=38';
-import { Mummy3DView } from './view_3d.js?v=38';
-import { Mummy2DView } from './view_2d.js?v=38';
-import { MultiplayerManager } from './multiplayer.js?v=38';
+} from './board_data.js?v=39';
+import { VoiceOfTheMummyEngine, TOP_LEVEL_JEWEL_IDS } from './game_engine.js?v=39';
+import { Mummy3DView } from './view_3d.js?v=39';
+import { Mummy2DView } from './view_2d.js?v=39';
+import { MultiplayerManager } from './multiplayer.js?v=39';
 
 class VoiceOfTheMummyApp {
   constructor() {
@@ -356,7 +356,7 @@ class VoiceOfTheMummyApp {
     // Guarantee "💎 Gem Box" and "🏠 Main Menu" buttons exist even if the browser cached an older index.html
     const vintagePill = document.querySelector('.intro-vintage-pill');
     if (vintagePill) {
-      vintagePill.textContent = '1971 MILTON BRADLEY • 3D & 2D DIGITAL EDITION • v38';
+      vintagePill.textContent = '1971 MILTON BRADLEY • 3D & 2D DIGITAL EDITION • v39';
     }
     const toolbar = document.querySelector('.pane-floating-toolbar');
     if (toolbar && !toolbar.querySelector('[data-cam-preset="gembox"]')) {
@@ -1734,6 +1734,15 @@ class VoiceOfTheMummyApp {
       }
     }
 
+    // If any connected Guest was still on Step A ("Explorer Joining...") when the Host clicked Start, give them a famous Adventurer name!
+    for (const s of seats) {
+      if (s.control === 'human' && s.peerId && (!s.name || s.name === 'Explorer Joining...')) {
+        const guestAdv = pickAdventurerNames(1, usedNames)[0];
+        usedNames.push(guestAdv);
+        s.name = guestAdv;
+      }
+    }
+
     this.mp._broadcastLobby();
     this._updateWaitingStatusUI();
     document.getElementById('modal-guest-invite')?.classList.add('hidden');
@@ -1764,12 +1773,21 @@ class VoiceOfTheMummyApp {
       alert('Please enable at least 2 Explorers (Human or AI Bot) to start a game.');
       return;
     }
+    const takenNames = this.mp.lobbyState.seats.map((s) => s.name);
+    for (const s of this.mp.lobbyState.seats) {
+      if (s.control === 'human' && s.peerId && (!s.name || s.name === 'Explorer Joining...')) {
+        const guestAdv = pickAdventurerNames(1, takenNames)[0];
+        takenNames.push(guestAdv);
+        s.name = guestAdv;
+      }
+    }
     document.getElementById('modal-guest-invite')?.classList.add('hidden');
     document.getElementById('modal-lobby')?.classList.add('hidden');
     document.getElementById('modal-gameover')?.classList.add('hidden');
     this.mpGameStarted = true;
     this._resetViewForNewGame();
     this.engine.initGame(this.mp.lobbyState.seats);
+    this.mp._broadcastLobby();
   }
 
   setViewMode(mode) {
@@ -1862,12 +1880,34 @@ class VoiceOfTheMummyApp {
   }
 
   _onClientReceiveState(state) {
-    const isInitialTurn = !this.activeState || (state.turnNumber === 1 && state.turnIndex === 0 && state.phase === 'ROLL_DIE');
+    const isEnteringOrRestartingGame =
+      !this.mpGameStarted ||
+      !this.activeState ||
+      (state.turnNumber === 1 &&
+        state.turnIndex === 0 &&
+        state.phase === 'ROLL_DIE' &&
+        (this.activeState.turnNumber > 1 ||
+          this.activeState.turnIndex > 0 ||
+          this.activeState.phase !== 'ROLL_DIE'));
+
+    // If this Guest was still on Step A of the Invite screen when the Host clicked Start Game,
+    // automatically lock in their chosen piece & typed name as they enter the Tomb!
+    if (!this.mpGameStarted && this.mp.mode === 'guest') {
+      const stepSetup = document.getElementById('guest-invite-step-setup');
+      const typedName = document.getElementById('input-invite-guest-name')?.value?.trim() || '';
+      if (stepSetup && !stepSetup.classList.contains('hidden') && typedName) {
+        const mySeat =
+          (state.players || []).find((p) => p.peerId === this.mp.myPeerId) ||
+          { id: this.selectedGuestSeatId || 'red' };
+        this.mp.claimExplorerSeat(mySeat.id, typedName);
+      }
+    }
+
     this.mpGameStarted = true;
     document.getElementById('modal-intro-landing')?.classList.add('hidden');
     document.getElementById('modal-guest-invite')?.classList.add('hidden');
     document.getElementById('modal-lobby')?.classList.add('hidden');
-    if (isInitialTurn) {
+    if (isEnteringOrRestartingGame) {
       this._resetViewForNewGame();
     }
     this._applyStateToUI(state);

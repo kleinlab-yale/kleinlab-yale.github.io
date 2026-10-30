@@ -9,13 +9,13 @@
  *   3. BroadcastChannel for zero-latency multi-tab testing on the same device.
  */
 
-import { pickAdventurerNames } from './board_data.js?v=38';
+import { pickAdventurerNames } from './board_data.js?v=39';
 
 const PEER_PREFIX = 'votm1971-tomb-';
-const MQTT_TOPIC_PREFIX = 'votm1971/v38/room';
-const STORAGE_HOST_KEY = 'votm1971_active_host_session_v38';
-const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v38_';
-const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v38';
+const MQTT_TOPIC_PREFIX = 'votm1971/v39/room';
+const STORAGE_HOST_KEY = 'votm1971_active_host_session_v39';
+const STORAGE_GUEST_PREFIX = 'votm1971_guest_session_v39_';
+const STORAGE_PEER_ID_KEY = 'votm1971_my_peer_id_v39';
 
 const WSS_BROKERS = [
   'wss://broker.emqx.io:8084/mqtt',
@@ -64,6 +64,7 @@ export class MultiplayerManager {
     this.mqttClients = []; // Active MQTT-over-WSS clients
     this.processedMsgIds = new Set(); // Deduplication across Hybrid Transports
     this.dispatchedEventIds = new Set(); // Secondary deduplication for GAME_EVENT callbacks
+    this.guestHasEnteredGame = false;
     this.guestJoinPayload = null; // Saved Guest join info for auto-reannounce on reconnect
     this.knownGuestClaims = new Map(); // peerId -> { playerName, preferredSeatId, claimedAt }
     this.isConfirmedByHost = false; // True only when Host's authoritative LOBBY_STATE includes our peerId
@@ -847,6 +848,10 @@ export class MultiplayerManager {
   _publishMqttFromHost(singleClient = null) {
     if (this.mode !== 'host' || !this.roomCode) return;
     const baseTopic = `${MQTT_TOPIC_PREFIX}/${this.roomCode}`;
+    if (this.lobbyState) {
+      this.lobbyState.gameStarted = Boolean(this.lastPublishedGameState);
+      this.lobbyState.gameState = this.lastPublishedGameState || null;
+    }
     const lobbyPacket = JSON.stringify({
       type: 'LOBBY_STATE',
       lobbyState: this.lobbyState,
@@ -920,14 +925,15 @@ export class MultiplayerManager {
         if (this.guestJoinPayload) {
           // Always ensure all connected MQTT brokers hold our retained guest seat claim
           this._publishRetainedGuestSeat(this.guestJoinPayload);
-          // Until the Host's authoritative LOBBY_STATE confirms our seat, actively re-send JOIN_REQUEST
-          if (!this.isConfirmedByHost) {
+          // Until the Host's authoritative LOBBY_STATE confirms our seat OR until the game starts, actively ping the Host
+          if (!this.isConfirmedByHost || !this.guestHasEnteredGame) {
             this.sendToHost({
               type: 'JOIN_REQUEST',
               peerId: this.myPeerId,
               playerName: this.guestJoinPayload.playerName,
               preferredSeatId: this.guestJoinPayload.preferredSeatId,
               claimedAt: this.guestJoinPayload.claimedAt,
+              isPreviewHold: true,
             });
           }
         } else {
@@ -936,8 +942,27 @@ export class MultiplayerManager {
             peerId: this.myPeerId,
           });
         }
-      } else if (this.mode === 'host' && !this.lastPublishedGameState) {
+        // While waiting to enter the Tomb, re-subscribe on connected MQTT brokers so any retained GAME_STATE is delivered immediately without needing a page refresh!
+        if (!this.guestHasEnteredGame && this.roomCode) {
+          const baseTopic = `${MQTT_TOPIC_PREFIX}/${this.roomCode}`;
+          for (const c of this.mqttClients) {
+            if (c && c.connected) {
+              try {
+                c.subscribe([`${baseTopic}/lobby`, `${baseTopic}/gamestate`], { qos: 1 });
+              } catch (e) {
+                // Ignore
+              }
+            }
+          }
+        }
+      } else if (this.mode === 'host') {
         this._publishMqttFromHost();
+        if (this.lastPublishedGameState) {
+          this.broadcastToAll({
+            type: 'GAME_STATE',
+            state: this.lastPublishedGameState,
+          });
+        }
       }
     }, 1600);
   }
@@ -994,6 +1019,9 @@ export class MultiplayerManager {
         this.connections.set(msg.peerId, conn);
       }
       this._broadcastLobby();
+      if (this.lastPublishedGameState) {
+        this.broadcastGameState(this.lastPublishedGameState);
+      }
       return;
     }
 
@@ -1070,6 +1098,9 @@ export class MultiplayerManager {
       this.saveHostSession();
       this._emitStatus(`🎉 ${guestName} joined as ${assignedSeat ? assignedSeat.id.toUpperCase() : 'Explorer'}!`);
       this._broadcastLobby();
+      if (this.lastPublishedGameState) {
+        this.broadcastGameState(this.lastPublishedGameState);
+      }
 
       if (!msg.isPreviewHold && !existingIdenticalSeat && this.callbacks.onGuestJoined) {
         this.callbacks.onGuestJoined(guestPeerId, guestName, assignedSeat?.id);
@@ -1140,7 +1171,14 @@ export class MultiplayerManager {
       ).length;
 
       // Ignore stale cached LOBBY_STATE packets delivered late by a slower secondary MQTT broker
-      if (incomingRev > 0 && incomingRev < this.highestHostRevision && incomingConnectedCount <= currentAuthoritativeCount) {
+      // (unless this LOBBY_STATE carries the started game state!)
+      const hasEmbeddedGameStart = Boolean(msg.lobbyState.gameStarted && msg.lobbyState.gameState);
+      if (
+        !hasEmbeddedGameStart &&
+        incomingRev > 0 &&
+        incomingRev < this.highestHostRevision &&
+        incomingConnectedCount <= currentAuthoritativeCount
+      ) {
         return;
       }
       if (incomingRev > this.highestHostRevision) {
@@ -1200,7 +1238,15 @@ export class MultiplayerManager {
       if (this.callbacks.onLobbyUpdate) {
         this.callbacks.onLobbyUpdate(this.lobbyState);
       }
+      // If the Host has already started the game, automatically bring this Guest straight into the Tomb!
+      if (msg.lobbyState.gameStarted && msg.lobbyState.gameState) {
+        this.guestHasEnteredGame = true;
+        if (this.callbacks.onGameState) {
+          this.callbacks.onGameState(msg.lobbyState.gameState);
+        }
+      }
     } else if (msg.type === 'GAME_STATE' && msg.state) {
+      this.guestHasEnteredGame = true;
       if (this.callbacks.onGameState) {
         this.callbacks.onGameState(msg.state);
       }
@@ -1310,6 +1356,8 @@ export class MultiplayerManager {
     if (this.mode === 'host') {
       this.lobbyState.revision = (Number(this.lobbyState.revision) || 0) + 1;
       this.lobbyState.updatedAt = Date.now();
+      this.lobbyState.gameStarted = Boolean(this.lastPublishedGameState);
+      this.lobbyState.gameState = this.lastPublishedGameState || null;
     }
     if (this.callbacks.onLobbyUpdate) {
       this.callbacks.onLobbyUpdate(this.lobbyState);
@@ -1325,13 +1373,40 @@ export class MultiplayerManager {
 
   broadcastGameState(state) {
     if (this.mode !== 'host') return;
+    const isInitialStart = !this.lastPublishedGameState;
     this.lastPublishedGameState = state;
+    if (this.lobbyState) {
+      this.lobbyState.gameStarted = true;
+      this.lobbyState.gameState = state;
+      this.lobbyState.revision = (Number(this.lobbyState.revision) || 0) + 1;
+      this.lobbyState.updatedAt = Date.now();
+    }
     this.saveHostSession({ mpGameStarted: true, gameState: state });
     this.broadcastToAll({
       type: 'GAME_STATE',
       state,
     });
+    this.broadcastToAll({
+      type: 'LOBBY_STATE',
+      lobbyState: this.lobbyState,
+    });
     this._publishMqttFromHost();
+
+    // When the Host clicks Start Game, fire a multi-wave burst (300ms, 850ms, 1600ms) across all channels
+    // so every Guest device is guaranteed to be brought into the Tomb automatically without needing to refresh!
+    if (isInitialStart) {
+      for (const delayMs of [300, 850, 1600]) {
+        setTimeout(() => {
+          if (this.mode === 'host' && this.lastPublishedGameState) {
+            this.broadcastToAll({
+              type: 'GAME_STATE',
+              state: this.lastPublishedGameState,
+            });
+            this._publishMqttFromHost();
+          }
+        }, delayMs);
+      }
+    }
   }
 
   broadcastGameEvent(event) {
@@ -1472,6 +1547,7 @@ export class MultiplayerManager {
     this.guestJoinPayload = null;
     this.knownGuestClaims.clear();
     this.isConfirmedByHost = false;
+    this.guestHasEnteredGame = false;
     this.highestHostRevision = 0;
     this.lastPublishedGameState = null;
     if (clearStorage) {
