@@ -312,8 +312,9 @@ body {
   border: 1px solid var(--line);
 }
 
-.hero-photo-link { display: block; }
-.hero-photo { display: block; width: 100%; height: auto; }
+.hero-grid > * { min-width: 0; }
+.hero-photo-link { display: block; min-width: 0; }
+.hero-photo { display: block; width: 100%; max-width: 100%; height: auto; }
 .hero-photo-caption { padding: 1rem 1.25rem; display: grid; gap: 0.35rem; }
 .hero-photo-caption strong { font-size: 1.15rem; }
 .hero-photo-caption span { color: var(--ink-soft); }
@@ -855,7 +856,7 @@ body {
   }
 
   .hero-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .hero-graphic {
