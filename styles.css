@@ -302,74 +302,22 @@ body {
 }
 
 .hero-graphic {
-  position: relative;
-  height: 390px;
+  margin: 0;
   max-width: 620px;
   width: 100%;
   justify-self: end;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  isolation: isolate;
-  background: #d8e7f5;
+  background: #fff;
+  border: 1px solid var(--line);
 }
 
-.hero-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  filter: saturate(0.95) contrast(1.05);
-  cursor: pointer;
-}
-
-.hero-graphic::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(145deg, rgba(8, 24, 46, 0.24), rgba(8, 24, 46, 0.1) 45%, rgba(8, 24, 46, 0.26));
-  z-index: 1;
-  pointer-events: none;
-}
-
-.hero-audio-toggle {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 3;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(16, 36, 62, 0.62);
-  color: #fff;
-  border-radius: 999px;
-  padding: 0.42rem 0.78rem;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.hero-audio-toggle:hover,
-.hero-audio-toggle:focus-visible {
-  background: rgba(16, 36, 62, 0.8);
-}
-
-.hero-video-caption {
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  bottom: 0.85rem;
-  margin: 0;
-  z-index: 3;
-  color: #fff;
-  text-align: center;
-  font-size: clamp(0.9rem, 1.15vw, 1rem);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-}
+.hero-photo-link { display: block; }
+.hero-photo { display: block; width: 100%; height: auto; }
+.hero-photo-caption { padding: 1rem 1.25rem; display: grid; gap: 0.35rem; }
+.hero-photo-caption strong { font-size: 1.15rem; }
+.hero-photo-caption span { color: var(--muted); }
+.hero-photo-caption a { font-size: 0.85rem; text-decoration: underline; }
 
 .stats {
   padding-top: 0;
@@ -911,7 +859,6 @@ body {
   }
 
   .hero-graphic {
-    height: 320px;
     max-width: 100%;
     justify-self: stretch;
   }
@@ -943,9 +890,6 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .hero-graphic {
-    height: 270px;
-  }
 
   .cta {
     flex-direction: column;

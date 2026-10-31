@@ -55,85 +55,6 @@ const setupTopLinks = () => {
   });
 };
 
-const setupHeroVideoAudio = () => {
-  const video = document.querySelector(".hero-video");
-  const toggle = document.querySelector(".hero-audio-toggle");
-  if (!video || !toggle) return;
-
-  let previewAtEnd = true;
-
-  const setPreviewFrameToEnd = () => {
-    if (!Number.isFinite(video.duration) || video.duration <= 0) return;
-    const previewTime = Math.max(video.duration - 0.15, 0);
-    if (Math.abs(video.currentTime - previewTime) > 0.05) {
-      video.currentTime = previewTime;
-    }
-    video.pause();
-    previewAtEnd = true;
-  };
-
-  const ensureStartsFromBeginning = () => {
-    if (!previewAtEnd) return;
-    video.currentTime = 0;
-    previewAtEnd = false;
-  };
-
-  const togglePlayback = async () => {
-    try {
-      if (video.paused) {
-        ensureStartsFromBeginning();
-        await video.play();
-      } else {
-        video.pause();
-      }
-    } catch (_) {
-      // Ignore play interruptions; user can click again.
-    }
-  };
-
-  const playWithAudio = async () => {
-    video.muted = false;
-    video.volume = 1;
-    ensureStartsFromBeginning();
-    await video.play();
-  };
-
-  const muteVideo = () => {
-    video.muted = true;
-  };
-
-  const syncState = () => {
-    const isMuted = video.muted;
-    toggle.textContent = isMuted ? "Enable Audio" : "Mute Audio";
-    toggle.setAttribute("aria-pressed", String(!isMuted));
-  };
-
-  toggle.addEventListener("click", async () => {
-    try {
-      if (video.muted) {
-        await playWithAudio();
-      } else {
-        muteVideo();
-      }
-    } catch (_) {
-      // Ignore autoplay errors if browser requires another user gesture.
-    }
-    syncState();
-  });
-
-  video.addEventListener("click", () => {
-    void togglePlayback();
-  });
-
-  if (video.readyState >= 1) {
-    setPreviewFrameToEnd();
-  } else {
-    video.addEventListener("loadedmetadata", setPreviewFrameToEnd, { once: true });
-  }
-
-  syncState();
-};
-
 const setCopyrightYear = () => {
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
@@ -142,5 +63,4 @@ const setCopyrightYear = () => {
 setupRevealAnimation();
 setupMobileMenu();
 setupTopLinks();
-setupHeroVideoAudio();
 setCopyrightYear();
