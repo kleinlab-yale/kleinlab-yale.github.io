@@ -303,7 +303,7 @@ def fit_solution_competition(
     *,
     stoichiometry=1.0,
     fit_stoichiometry=False,
-    allow_residual_plateau=True,
+    allow_residual_plateau=False,
     surface_kd_nM=None,
     surface_cooperativity=1.0,
     bidentate_two_site=False,
@@ -1115,36 +1115,148 @@ def _fmt_nM(mean_val, sd_val=None):
     return f"{float(mean_val):{fmt}}"
 
 
-def build_competition_figure_legend(comp_results, kd_mcam_str="4.6 ± 0.5 nM"):
-    """Build a publication-ready figure legend for the 2-panel Solution Inhibition figure."""
-    a_tot = comp_results["analyte_total_nM"]
+def _resolve_reference_receptor_kinetics(ref_kinetics=None):
+    """Resolve the reference surface receptor affinity (mean, SD, SEM, per-repeat values, and R2) from active or saved kinetic results."""
+    import pickle
+    from pathlib import Path
+
+    mech = ref_kinetics
+    if mech is None:
+        try:
+            mech = st.session_state.get("latest_mechanistic_results")
+        except Exception:
+            mech = None
+    if mech is None or not isinstance(mech, dict) or not mech.get("repeat_report"):
+        fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
+        if fit_pkl.is_file():
+            try:
+                mech = pickle.loads(fit_pkl.read_bytes())
+            except Exception:
+                mech = None
+
+    if isinstance(mech, dict) and mech.get("repeat_report"):
+        rep_report = mech["repeat_report"]
+        sum_df = rep_report.get("summary", pd.DataFrame())
+        est_df = rep_report.get("estimates", pd.DataFrame())
+        model_key = mech.get("model", "sequential")
+        param_candidates = ["KD_step_1_nM", "KD_population_1_nM", "KD_nM", "KD_overall_nM", "KD_higher_affinity_nM"]
+        chosen_key = next((k for k in param_candidates if not sum_df.empty and k in set(sum_df["parameter"])), None)
+        if chosen_key is not None:
+            s_row = sum_df[sum_df["parameter"] == chosen_key].iloc[0]
+            sub_e = est_df[(est_df["parameter"] == chosen_key) & (est_df["status"] == "Complete")].sort_values("repeat_id")
+            reps = [float(v) for v in sub_e["value"].to_numpy(dtype=float)]
+            mean_v = float(s_row["mean"]) if pd.notna(s_row.get("mean")) else (float(np.mean(reps)) if reps else np.nan)
+            sd_v = float(s_row["sd"]) if pd.notna(s_row.get("sd")) else (float(np.std(reps, ddof=1)) if len(reps) > 1 else np.nan)
+            sem_v = float(s_row["sem"]) if pd.notna(s_row.get("sem")) else (float(sd_v / np.sqrt(len(reps))) if len(reps) > 1 else np.nan)
+            ci_lo = float(s_row["ci95_low"]) if pd.notna(s_row.get("ci95_low")) else (min(reps) if reps else np.nan)
+            ci_hi = float(s_row["ci95_high"]) if pd.notna(s_row.get("ci95_high")) else (max(reps) if reps else np.nan)
+            r2_ref = np.nan
+            if mech.get("curves"):
+                all_o = np.concatenate([c["response"][c["fit_mask"]] for c in mech["curves"]])
+                all_f = np.concatenate([c["fitted"][c["fit_mask"]] for c in mech["curves"]])
+                ss_t = float(np.sum((all_o - np.mean(all_o)) ** 2))
+                r2_ref = float(1.0 - np.sum((all_o - all_f) ** 2) / max(ss_t, 1e-15))
+            label = (
+                "MCAM-Fc + LM411 Combined High-Affinity KD,1 (Both Sites Engaged, Step 1)"
+                if model_key == "sequential"
+                else "Apparent Population 1 KD,pop1 (Reference Surface Fit)"
+            )
+            symbol = "K_D,step1(MCAM)" if model_key == "sequential" else "K_D,pop1(Ref)"
+            return {
+                "available": True,
+                "label": label,
+                "symbol": symbol,
+                "mean": mean_v,
+                "sd": sd_v,
+                "sem": sem_v,
+                "ci95_low": ci_lo,
+                "ci95_high": ci_hi,
+                "n_repeats": len(reps) or int(s_row.get("n_independent", 1)),
+                "reps": reps,
+                "r2": r2_ref,
+            }
+    return {"available": False}
+
+
+def build_competition_figure_legend(comp_results, ref_kinetics=None):
+    """Build a publication-ready figure legend dynamically from the active Solution Inhibition fit results."""
+    a_tot = float(comp_results["analyte_total_nM"])
+    n_stoich = float(comp_results.get("stoichiometry_n", 1.0))
+    surf_kd = comp_results.get("surface_kd_nM")
+    m_surf = float(comp_results.get("surface_cooperativity", 1.0))
+    comp_arr = np.asarray(comp_results.get("competitor_nM", [0.0]), dtype=float)
+    c_min, c_max = float(np.min(comp_arr)), float(np.max(comp_arr))
     rep_sum = comp_results.get("repeat_summary", {})
     n_reps = len(set(comp_results.get("repeat_ids", ["rep1"])))
+
     if "kd_sol_nM" in rep_sum:
-        m_kd, s_kd = rep_sum["kd_sol_nM"]["mean"], rep_sum["kd_sol_nM"]["sd"]
+        m_kd, s_kd = float(rep_sum["kd_sol_nM"]["mean"]), float(rep_sum["kd_sol_nM"]["sd"])
         kd_str = f"{m_kd:.2f} \\pm {s_kd:.2f}\\text{{ nM}}" if m_kd < 2.0 else f"{m_kd:.1f} \\pm {s_kd:.1f}\\text{{ nM}}"
     else:
-        m_kd = comp_results["kd_sol_nM"]
+        m_kd = float(comp_results["kd_sol_nM"])
         kd_str = f"{m_kd:.2f}\\text{{ nM}}" if m_kd < 2.0 else f"{m_kd:.1f}\\text{{ nM}}"
+
     if "ic50_from_set_nM" in rep_sum:
         set50_str = f"{rep_sum['ic50_from_set_nM']['mean']:.2f} \\pm {rep_sum['ic50_from_set_nM']['sd']:.2f}\\text{{ nM}}"
     else:
-        set50_str = f"{comp_results.get('ic50_from_set_nM', 0.5 * a_tot + m_kd):.2f}\\text{{ nM}}"
+        set50_str = f"{comp_results.get('ic50_from_set_nM', 0.5 * a_tot / max(n_stoich, 1e-9) + m_kd / max(n_stoich, 1e-9)):.2f}\\text{{ nM}}"
+
     if "ic50_nM" in rep_sum:
         ic50_str = f"{rep_sum['ic50_nM']['mean']:.2f} \\pm {rep_sum['ic50_nM']['sd']:.2f}\\text{{ nM}}"
     else:
         ic50_str = f"{comp_results['ic50_nM']:.2f}\\text{{ nM}}"
-    r2_val = comp_results["r_squared_set"]
-    dep_floor = 0.5 * a_tot
+
+    r2_val = float(comp_results["r_squared_set"])
+    hill_h = float(comp_results.get("hill_slope", 1.0))
+
+    if surf_kd is not None and np.isfinite(surf_kd) and float(surf_kd) > 0:
+        kd_s = float(surf_kd)
+        theta_0 = (a_tot ** m_surf) / (kd_s ** m_surf + a_tot ** m_surf)
+        half_theta = 0.5 * theta_0
+        a_50_resp = float(kd_s * ((half_theta / max(1.0 - half_theta, 1e-12)) ** (1.0 / m_surf)))
+        depletion_50 = 0.5 * a_tot / max(n_stoich, 1e-9) + m_kd / max(n_stoich, 1e-9)
+        mapping_sentence = (
+            f"Under the selected saturable surface-capture detector model "
+            f"($R(a) = R_{{\\max}} a / (K_{{D,\\text{{capture}}}} + a)$ with $K_{{D,\\text{{capture}}}} = {kd_s:g}\\text{{ nM}}$ and stoichiometry $n = {n_stoich:g}$), "
+            f"a $50\\%$ reduction in baseline BLI response occurs at $a_{{50,\\text{{resp}}}} = {a_50_resp:.2f}\\text{{ nM}}$ free Laminin-411, "
+            f"corresponding to a model-derived $50\\%$ response midpoint of $[I]_{{50,\\text{{resp}}}} = {set50_str}$ "
+            f"(half-depletion point $[I]_{{50,\\text{{depletion}}}} = {depletion_50:.2f}\\text{{ nM}}$ at $0.5[A]_{{\\text{{tot}}}}$ free analyte) "
+            f"and a conditional solution dissociation constant $K_D(\\alpha_6\\beta_1)_{{\\text{{cal}}}} = {kd_str}$ ($R^2 = {r2_val:.3f}$; "
+            f"separate empirical 4PL/Hill fit midpoint $\\text{{IC}}_{{50,\\text{{Hill}}}} = {ic50_str}$, $h = {hill_h:.2f}$). "
+            f"Because plateau responses depend on detector saturation, this $K_D(\\alpha_6\\beta_1)_{{\\text{{cal}}}}$ estimate is conditional on the specified surface-capture detector model unless $K_{{D,\\text{{capture}}}}$ has an independent calibration."
+        )
+    else:
+        a_50_lin = 0.5 * a_tot
+        mapping_sentence = (
+            f"Under the selected linear response-to-free-analyte mapping ($R \\propto a = [\\text{{LM411}}]_{{\\text{{free}}}}$, stoichiometry $n = {n_stoich:g}$), "
+            f"the 1:1 quadratic mass-action solution competition fit ($R^2 = {r2_val:.3f}$) yields $K_D(\\alpha_6\\beta_1) = {kd_str}$ "
+            f"and a model-derived half-depletion midpoint $[I]_{{50,\\text{{quad}}}} = \\frac{{1}}{{2n}}[\\text{{LM411}}]_{{\\text{{tot}}}} + K_D/n = {set50_str}$ "
+            f"(at $a_{{50}} = {a_50_lin:g}\\text{{ nM}}$ free Laminin-411), whereas the separate empirical 4PL/Hill fit yields "
+            f"$\\text{{IC}}_{{50,\\text{{Hill}}}} = {ic50_str}$ ($h = {hill_h:.2f}$). "
+            f"If the biosensor readout follows a saturable surface-capture detector model rather than linear proportionality, the absolute $K_D$ is conditional on the specified response calibration."
+        )
+
+    ref_info = _resolve_reference_receptor_kinetics(ref_kinetics)
+    ref_sentence = ""
+    if ref_info.get("available") and np.isfinite(ref_info.get("mean", np.nan)) and m_kd > 0:
+        ref_mean = float(ref_info["mean"])
+        ref_sd = float(ref_info["sd"]) if np.isfinite(ref_info.get("sd", np.nan)) else None
+        ref_disp = f"{ref_mean:.2f} \\pm {ref_sd:.2f}\\text{{ nM}}" if ref_sd is not None else f"{ref_mean:.2f}\\text{{ nM}}"
+        fold_val = ref_mean / m_kd
+        ref_sentence = (
+            f" Compared with MCAM-Fc's combined high-affinity state when both sites on Laminin-411 are engaged "
+            f"($K_{{D,1}}(\\text{{MCAM}}) = K_{{D,\\text{{step 1}}}} = {ref_disp}$, $t_{{1/2}} = 278\\text{{ s}}$), "
+            f"soluble $\\alpha_6\\beta_1$ integrin binds Laminin-411 with a ${fold_val:.1f}\\times$ lower dissociation constant under the selected response model."
+        )
 
     return (
         f"**Figure Legend — Solution Inhibition of MCAM-Fc + Laminin-411 by $\\alpha_6\\beta_1$ Integrin:** "
         f"**(A) BLI Sensorgrams:** Bio-layer interferometry (BLI) association ($0\\text{{–}}120\\text{{ s}}$) and buffer dissociation ($120\\text{{–}}240\\text{{ s}}$, marked by the vertical dotted line at $120\\text{{ s}}$) "
-        f"of constant soluble Laminin-411 ($[\\text{{LM411}}] = {a_tot:g}\\text{{ nM}}$) binding to immobilized MCAM-Fc in the presence of increasing concentrations of soluble competitor $\\alpha_6\\beta_1$ integrin ($0\\text{{–}}40\\text{{ nM}}$; $N = {n_reps}$ independent experimental replicates). "
+        f"of constant soluble Laminin-411 ($[\\text{{LM411}}] = {a_tot:g}\\text{{ nM}}$) binding to immobilized MCAM-Fc in the presence of soluble competitor $\\alpha_6\\beta_1$ integrin (${c_min:g}\\text{{–}}{c_max:g}\\text{{ nM}}$; $N = {n_reps}$ independent experimental replicates). "
         f"**Solid colored lines** show the mean BLI response (nm) at each competitor concentration, and the **faded/shaded colored background bands** represent $\\pm 1\\text{{ SD}}$ experimental error across the $N = {n_reps}$ independent replicates. "
         f"**(B) Solution Inhibition Curve:** Normalized MCAM-Fc binding response (% of $0\\text{{ nM}}$ uninhibited control) plotted against soluble $\\alpha_6\\beta_1$ integrin concentration (nM). "
-        f"**Black circles and error bars** represent $\\text{{Mean}} \\pm \\text{{SD}}$ across $N = {n_reps}$ independent replicates; the **solid teal curve** shows the 1:1 quadratic mass-action solution competition fit ($R^2 = {r2_val:.3f}$), and the **dotted crosshairs** mark the quadratic model's half-depletion midpoint ($[I]_{{50,\\text{{quad}}}} = \\frac{{1}}{{2}}[\\text{{LM411}}]_{{\\text{{tot}}}} + K_D = {set50_str}$ under linear free-laminin response mapping, yielding $K_D(\\alpha_6\\beta_1) = {kd_str}$; separate empirical 4PL/Hill fit midpoint $\\text{{IC}}_{{50,\\text{{Hill}}}} = {ic50_str}$). "
-        f"When calibrated for saturable surface capture ($R = R_{{\\max}} a / (K_{{D,\\text{{capture}}}} + a)$ with $K_{{D,\\text{{capture}}}} = 34.4\\text{{ nM}}$, where $50\\%$ response reduction occurs at $a_{{50}} = 7.75\\text{{ nM}}$ free Laminin-411 and $\\text{{IC}}_{{50,\\text{{resp}}}} = 12.67 \\pm 0.12\\text{{ nM}}$), the calibrated solution affinity is $K_D(\\alpha_6\\beta_1)_{{\\text{{cal}}}} = 0.26 \\pm 0.08\\text{{ nM}}$ ($R^2 = 0.990$; initial binding rate $v_0$ check: $K_D = 0.55 \\pm 0.40\\text{{ nM}}$), confirming that $\\alpha_6\\beta_1$ integrin binds Laminin-411 $>6\\times$ ($6.4\\text{{–}}18\\times$) more tightly than the MCAM full complex ($K_{{D,\\text{{full}}}}(\\text{{MCAM}}) = {kd_mcam_str}$)."
+        f"**Black circles and error bars** represent $\\text{{Mean}} \\pm \\text{{SD}}$ across $N = {n_reps}$ independent replicates; the **solid teal curve** shows the quadratic mass-action solution competition fit, and the **dotted crosshairs** mark the $50\\%$ response midpoint. "
+        f"{mapping_sentence}{ref_sentence}"
     )
 
 
@@ -1336,9 +1448,15 @@ def build_simple_competition_publication_figure(comp_results, sensorgram_traces=
 
     if show_title:
         kd_fmt = f"{kd_mean:.2f} \\pm {kd_sd:.2f}" if kd_mean < 2.0 else f"{kd_mean:.1f} \\pm {kd_sd:.1f}"
+        ref_info = _resolve_reference_receptor_kinetics()
+        ref_txt = (
+            rf"  vs.  MCAM Both-Sites-Engaged $K_{{D,1}} = {ref_info['mean']:.2f} \pm {ref_info['sd']:.2f}\ \mathrm{{nM}}$"
+            if ref_info.get("available") and np.isfinite(ref_info.get("mean", np.nan))
+            else ""
+        )
         fig.suptitle(
             f"α6β1 Integrin vs. MCAM-Fc Competition for {a_tot:g} nM Laminin-411 (N = {n_reps} Replicates)\n"
-            rf"1:1 Mass-Action Affinity: $K_D(\alpha_6\beta_1\ \mathrm{{Integrin}}) = {kd_fmt}\ \mathrm{{nM}}$  vs.  $K_{{D,\mathrm{{full}}}}(\mathrm{{MCAM}}) = 4.6 \pm 0.5\ \mathrm{{nM}}$",
+            rf"Quadratic Solution Fit: $K_D(\alpha_6\beta_1\ \mathrm{{Integrin}}) = {kd_fmt}\ \mathrm{{nM}}${ref_txt}",
             fontsize=11.0,
             fontweight="bold",
             color="#0f172a",
@@ -1500,17 +1618,54 @@ def build_competition_prism_and_summary_tables(comp_results, sensorgram_traces=N
     set50_reps = _get_rep_vals("ic50_from_set_nM")
     ic50_reps = _get_rep_vals("ic50_nM")
     r50_reps = _get_rep_vals("ratio50")
-    inh_reps = _get_rep_vals("max_inhibition_pct")
-    mcam_kd_reps = [4.10, 5.19, 4.62]
-    rel_fold_reps = [k_m / max(k_i, 1e-12) for k_i, k_m in zip(kd_reps, mcam_kd_reps)] if len(kd_reps) == 3 else []
     a_tot_val = float(comp_results.get("analyte_total_nM", 20.0))
+    n_stoich_val = float(comp_results.get("stoichiometry_n", 1.0))
+    surf_kd_val = comp_results.get("surface_kd_nM")
+
+    # Compute Observed Inhibition at maximum competitor concentration dynamically from Panel B data
+    max_c_val = float(max(c_unique)) if c_unique else 40.0
+    max_ratio_val = max_c_val / max(a_tot_val, 1e-12)
+    if not prism_panelB_data_df.empty:
+        max_row = prism_panelB_data_df.loc[prism_panelB_data_df["Competitor_nM"].idxmax()]
+        inh_reps = [
+            float(100.0 - max_row[f"Pct_Control_Rep{i}"])
+            for i in range(1, len(rep_names) + 1)
+            if f"Pct_Control_Rep{i}" in max_row and pd.notna(max_row[f"Pct_Control_Rep{i}"])
+        ]
+    else:
+        inh_reps = _get_rep_vals("max_inhibition_pct")
+    inh_mean = float(np.mean(inh_reps)) if inh_reps else float(comp_results["classification"]["max_inhibition_pct"])
+    inh_sd = float(np.std(inh_reps, ddof=1)) if len(inh_reps) > 1 else np.nan
+    inh_sem = float(inh_sd / np.sqrt(len(inh_reps))) if len(inh_reps) > 1 else np.nan
+    inh_ci_lo = min(inh_reps) if inh_reps else np.nan
+    inh_ci_hi = max(inh_reps) if inh_reps else np.nan
+
+    # Reference surface kinetics from saved/selected kinetic fit (no hardcoded repeats)
+    ref_info = _resolve_reference_receptor_kinetics()
+    mcam_kd_reps = ref_info.get("reps", []) if ref_info.get("available") else []
+    rel_fold_reps = (
+        [k_m / max(k_i, 1e-12) for k_i, k_m in zip(kd_reps, mcam_kd_reps)]
+        if len(kd_reps) == len(mcam_kd_reps) and len(kd_reps) > 0
+        else []
+    )
+    kd_sol_mean = rep_sum["kd_sol_nM"]["mean"] if "kd_sol_nM" in rep_sum else comp_results["kd_sol_nM"]
+    mapping_desc = (
+        f"Conditional on Saturable Detector KD,capture = {float(surf_kd_val):g} nM"
+        if (surf_kd_val is not None and np.isfinite(surf_kd_val) and float(surf_kd_val) > 0)
+        else "Linear Free-Analyte Capture Mapping"
+    )
+    midpoint_desc = (
+        f"Quadratic Model 50% Response Midpoint ([I]_50,resp, {mapping_desc})"
+        if (surf_kd_val is not None and np.isfinite(surf_kd_val) and float(surf_kd_val) > 0)
+        else "Quadratic Model Half-Depletion Midpoint ([I]_50,quad = 0.5*[LM411]_tot/n + K_D/n)"
+    )
 
     param_summary_rows = [
         {
-            "Parameter": "KD_Full_Complex (α6β1 Integrin + LM411, 1:1 Mass Action, Linear Capture Mapping)",
+            "Parameter": f"Solution KD (α6β1 Integrin + LM411, 1:1 Mass Action, {mapping_desc})",
             "Symbol": "K_D(α6β1)",
             "Unit": "nM",
-            "Mean": rep_sum["kd_sol_nM"]["mean"] if "kd_sol_nM" in rep_sum else comp_results["kd_sol_nM"],
+            "Mean": kd_sol_mean,
             "SD": rep_sum["kd_sol_nM"]["sd"] if "kd_sol_nM" in rep_sum else np.nan,
             "SEM": rep_sum["kd_sol_nM"]["sem"] if "kd_sol_nM" in rep_sum else np.nan,
             "CI95_Low": comp_results["kd_sol_ci95_nM"][0],
@@ -1522,14 +1677,14 @@ def build_competition_prism_and_summary_tables(comp_results, sensorgram_traces=N
             "Global_R2": comp_results["r_squared_set"],
         },
         {
-            "Parameter": "Quadratic Model Half-Depletion Midpoint ([I]_50,quad = 0.5*[LM411]_tot + K_D)",
+            "Parameter": midpoint_desc,
             "Symbol": "[I]_50,quad",
             "Unit": "nM",
             "Mean": rep_sum["ic50_from_set_nM"]["mean"] if "ic50_from_set_nM" in rep_sum else comp_results["ic50_from_set_nM"],
             "SD": rep_sum["ic50_from_set_nM"]["sd"] if "ic50_from_set_nM" in rep_sum else np.nan,
             "SEM": rep_sum["ic50_from_set_nM"]["sem"] if "ic50_from_set_nM" in rep_sum else np.nan,
-            "CI95_Low": 0.5 * a_tot_val + comp_results["kd_sol_ci95_nM"][0],
-            "CI95_High": 0.5 * a_tot_val + comp_results["kd_sol_ci95_nM"][1],
+            "CI95_Low": min(set50_reps) if set50_reps else (0.5 * a_tot_val / max(n_stoich_val, 1e-9) + comp_results["kd_sol_ci95_nM"][0]),
+            "CI95_High": max(set50_reps) if set50_reps else (0.5 * a_tot_val / max(n_stoich_val, 1e-9) + comp_results["kd_sol_ci95_nM"][1]),
             "N_Replicates": n_reps_tot,
             "Rep1": set50_reps[0] if len(set50_reps) > 0 else np.nan,
             "Rep2": set50_reps[1] if len(set50_reps) > 1 else np.nan,
@@ -1552,18 +1707,18 @@ def build_competition_prism_and_summary_tables(comp_results, sensorgram_traces=N
             "Global_R2": comp_results["r_squared_hill"],
         },
         {
-            "Parameter": "Stoichiometric Depletion Floor (0.5 * [LM411]_tot)",
-            "Symbol": "0.5*[LM411]_tot",
+            "Parameter": "Stoichiometric Depletion Floor (0.5 * [LM411]_tot / n)",
+            "Symbol": "0.5*[LM411]_tot/n",
             "Unit": "nM",
-            "Mean": 0.5 * a_tot_val,
+            "Mean": 0.5 * a_tot_val / max(n_stoich_val, 1e-9),
             "SD": 0.0,
             "SEM": 0.0,
-            "CI95_Low": 0.5 * a_tot_val,
-            "CI95_High": 0.5 * a_tot_val,
+            "CI95_Low": 0.5 * a_tot_val / max(n_stoich_val, 1e-9),
+            "CI95_High": 0.5 * a_tot_val / max(n_stoich_val, 1e-9),
             "N_Replicates": n_reps_tot,
-            "Rep1": 0.5 * a_tot_val,
-            "Rep2": 0.5 * a_tot_val,
-            "Rep3": 0.5 * a_tot_val,
+            "Rep1": 0.5 * a_tot_val / max(n_stoich_val, 1e-9),
+            "Rep2": 0.5 * a_tot_val / max(n_stoich_val, 1e-9),
+            "Rep3": 0.5 * a_tot_val / max(n_stoich_val, 1e-9),
             "Global_R2": comp_results["r_squared_set"],
         },
         {
@@ -1581,43 +1736,49 @@ def build_competition_prism_and_summary_tables(comp_results, sensorgram_traces=N
             "Rep3": r50_reps[2] if len(r50_reps) > 2 else np.nan,
             "Global_R2": comp_results["r_squared_hill"],
         },
-        {
-            "Parameter": "KD_Full_Complex (MCAM-Fc + LM411 Reference)",
-            "Symbol": "K_D,full(MCAM)",
-            "Unit": "nM",
-            "Mean": 4.63,
-            "SD": 0.48,
-            "SEM": 0.28,
-            "CI95_Low": 4.10,
-            "CI95_High": 5.19,
-            "N_Replicates": 3,
-            "Rep1": 4.10,
-            "Rep2": 5.19,
-            "Rep3": 4.62,
-            "Global_R2": 0.989,
-        },
-        {
-            "Parameter": "Relative Affinity Fold (K_D,full(MCAM) / K_D(α6β1))",
-            "Symbol": "K_D,full(MCAM) / K_D(α6β1)",
-            "Unit": "fold",
-            "Mean": 4.63 / max(rep_sum["kd_sol_nM"]["mean"] if "kd_sol_nM" in rep_sum else comp_results["kd_sol_nM"], 1e-12),
-            "SD": float(np.std(rel_fold_reps, ddof=1)) if len(rel_fold_reps) > 1 else 2.45,
-            "SEM": float(np.std(rel_fold_reps, ddof=1) / np.sqrt(len(rel_fold_reps))) if len(rel_fold_reps) > 1 else 1.42,
-            "CI95_Low": min(rel_fold_reps) if rel_fold_reps else 4.17,
-            "CI95_High": max(rel_fold_reps) if rel_fold_reps else 9.60,
-            "N_Replicates": n_reps_tot,
-            "Rep1": rel_fold_reps[0] if len(rel_fold_reps) > 0 else np.nan,
-            "Rep2": rel_fold_reps[1] if len(rel_fold_reps) > 1 else np.nan,
-            "Rep3": rel_fold_reps[2] if len(rel_fold_reps) > 2 else np.nan,
-            "Global_R2": comp_results["r_squared_set"],
-        },
+    ]
+    if ref_info.get("available"):
+        ref_mean = float(ref_info["mean"])
+        param_summary_rows.extend([
+            {
+                "Parameter": ref_info["label"],
+                "Symbol": ref_info["symbol"],
+                "Unit": "nM",
+                "Mean": ref_mean,
+                "SD": ref_info["sd"],
+                "SEM": ref_info["sem"],
+                "CI95_Low": ref_info["ci95_low"],
+                "CI95_High": ref_info["ci95_high"],
+                "N_Replicates": ref_info["n_repeats"],
+                "Rep1": mcam_kd_reps[0] if len(mcam_kd_reps) > 0 else np.nan,
+                "Rep2": mcam_kd_reps[1] if len(mcam_kd_reps) > 1 else np.nan,
+                "Rep3": mcam_kd_reps[2] if len(mcam_kd_reps) > 2 else np.nan,
+                "Global_R2": ref_info["r2"],
+            },
+            {
+                "Parameter": f"Relative Apparent Affinity Ratio ({ref_info['symbol']} / K_D(α6β1))",
+                "Symbol": f"{ref_info['symbol']} / K_D(α6β1)",
+                "Unit": "fold",
+                "Mean": ref_mean / max(kd_sol_mean, 1e-12),
+                "SD": float(np.std(rel_fold_reps, ddof=1)) if len(rel_fold_reps) > 1 else np.nan,
+                "SEM": float(np.std(rel_fold_reps, ddof=1) / np.sqrt(len(rel_fold_reps))) if len(rel_fold_reps) > 1 else np.nan,
+                "CI95_Low": min(rel_fold_reps) if rel_fold_reps else np.nan,
+                "CI95_High": max(rel_fold_reps) if rel_fold_reps else np.nan,
+                "N_Replicates": n_reps_tot,
+                "Rep1": rel_fold_reps[0] if len(rel_fold_reps) > 0 else np.nan,
+                "Rep2": rel_fold_reps[1] if len(rel_fold_reps) > 1 else np.nan,
+                "Rep3": rel_fold_reps[2] if len(rel_fold_reps) > 2 else np.nan,
+                "Global_R2": comp_results["r_squared_set"],
+            },
+        ])
+    param_summary_rows.extend([
         {
             "Parameter": "Active Stoichiometry (n)",
             "Symbol": "n",
             "Unit": "sites",
             "Mean": comp_results["stoichiometry_n"],
-            "SD": 0.0,
-            "SEM": 0.0,
+            "SD": rep_sum["stoichiometry_n"]["sd"] if "stoichiometry_n" in rep_sum and comp_results.get("fit_stoichiometry") else 0.0,
+            "SEM": rep_sum["stoichiometry_n"]["sem"] if "stoichiometry_n" in rep_sum and comp_results.get("fit_stoichiometry") else 0.0,
             "CI95_Low": comp_results["stoichiometry_ci95"][0],
             "CI95_High": comp_results["stoichiometry_ci95"][1],
             "N_Replicates": n_reps_tot,
@@ -1627,21 +1788,21 @@ def build_competition_prism_and_summary_tables(comp_results, sensorgram_traces=N
             "Global_R2": comp_results["r_squared_set"],
         },
         {
-            "Parameter": "Observed Inhibition at 40 nM (2x Molar Ratio)",
-            "Symbol": "Inhibition_40nM",
+            "Parameter": f"Observed Inhibition at {max_c_val:g} nM ({max_ratio_val:g}x Molar Ratio)",
+            "Symbol": f"Inhibition_{max_c_val:g}nM",
             "Unit": "%",
-            "Mean": 98.5,
-            "SD": 1.4,
-            "SEM": 0.8,
-            "CI95_Low": 96.7,
-            "CI95_High": 100.0,
-            "N_Replicates": n_reps_tot,
-            "Rep1": 100.0,
-            "Rep2": 97.6,
-            "Rep3": 98.0,
+            "Mean": inh_mean,
+            "SD": inh_sd,
+            "SEM": inh_sem,
+            "CI95_Low": inh_ci_lo,
+            "CI95_High": inh_ci_hi,
+            "N_Replicates": len(inh_reps) or n_reps_tot,
+            "Rep1": inh_reps[0] if len(inh_reps) > 0 else np.nan,
+            "Rep2": inh_reps[1] if len(inh_reps) > 1 else np.nan,
+            "Rep3": inh_reps[2] if len(inh_reps) > 2 else np.nan,
             "Global_R2": comp_results["r_squared_set"],
         },
-    ]
+    ])
     competition_params_error_df = pd.DataFrame(param_summary_rows)
     return prism_panelA_df, prism_panelB_data_df, prism_panelB_smooth_fit_df, competition_params_error_df
 
@@ -2319,8 +2480,35 @@ def render_solution_competition_section():
     kd_disp = f"{_fmt_nM(kd_m_val, kd_s_val)} nM"
     set50_disp = f"{_fmt_nM(set50_m_val, set50_s_val)} nM"
     ic50_disp = f"{_fmt_nM(ic50_m_val, ic50_s_val)} nM"
-    rel_fold_val = 4.63 / max(kd_m_val, 1e-12)
-    rel_lbl = f"α6β1 ~{rel_fold_val:.1f}x tighter" if rel_fold_val >= 1.0 else f"MCAM ~{1.0 / rel_fold_val:.1f}x tighter"
+    ref_info = _resolve_reference_receptor_kinetics()
+    ref_kd_mean = float(ref_info["mean"]) if ref_info.get("available") else np.nan
+    ref_kd_sd = float(ref_info["sd"]) if ref_info.get("available") and np.isfinite(ref_info.get("sd", np.nan)) else None
+    ref_kd_disp = f"{_fmt_nM(ref_kd_mean, ref_kd_sd)} nM" if np.isfinite(ref_kd_mean) else "N/A"
+    rel_fold_val = ref_kd_mean / max(kd_m_val, 1e-12) if np.isfinite(ref_kd_mean) else np.nan
+    rel_lbl = (
+        (f"α6β1 ~{rel_fold_val:.1f}x tighter" if rel_fold_val >= 1.0 else f"MCAM ~{1.0 / rel_fold_val:.1f}x tighter")
+        if np.isfinite(rel_fold_val)
+        else "No reference kinetic fit"
+    )
+
+    # Compute Observed Inhibition at maximum competitor concentration dynamically
+    max_c_obs = float(np.max(comp_results["competitor_nM"])) if len(comp_results["competitor_nM"]) else 40.0
+    max_ratio_obs = max_c_obs / max(float(analyte_total_nM), 1e-12)
+    _, _pb_df_tmp, _, _ = build_competition_prism_and_summary_tables(comp_results, sensorgram_traces=sensorgram_traces)
+    if not _pb_df_tmp.empty:
+        _max_r = _pb_df_tmp.loc[_pb_df_tmp["Competitor_nM"].idxmax()]
+        _inh_vals = [
+            float(100.0 - _max_r[col_k])
+            for col_k in _pb_df_tmp.columns
+            if col_k.startswith("Pct_Control_Rep") and pd.notna(_max_r[col_k])
+        ]
+        inh_m_disp = float(np.mean(_inh_vals)) if _inh_vals else float(cls["max_inhibition_pct"])
+        inh_s_disp = float(np.std(_inh_vals, ddof=1)) if len(_inh_vals) > 1 else None
+    else:
+        inh_m_disp = float(cls["max_inhibition_pct"])
+        inh_s_disp = rep_sum.get("max_inhibition_pct", {}).get("sd")
+    inh_str_disp = f"{inh_m_disp:.1f} ± {inh_s_disp:.1f}%" if (inh_s_disp is not None and np.isfinite(inh_s_disp)) else f"{inh_m_disp:.1f}%"
+
     m1, m2, m3, m4 = st.columns(4)
     with m1:
         st.metric(
@@ -2330,35 +2518,40 @@ def render_solution_competition_section():
             delta_color="off",
         )
     with m2:
+        midpoint_card_lbl = (
+            "Model 50% Response [I]_50,resp"
+            if (surface_kd_nM is not None and np.isfinite(surface_kd_nM) and float(surface_kd_nM) > 0)
+            else "Model Half-Depletion [I]_50,quad"
+        )
         st.metric(
-            "Model Half-Depletion [I]_50,quad",
+            midpoint_card_lbl,
             set50_disp,
-            delta=f"= {0.5 * analyte_total_nM:g} nM (0.5·[LM411]) + {_fmt_nM(kd_m_val)} nM K_D  |  Hill IC_50 = {ic50_disp}",
+            delta=f"Hill IC_50 = {ic50_disp} (h = {comp_results['hill_slope']:.2f})",
             delta_color="off",
         )
     with m3:
         st.metric(
-            "Full Complex K_D,full(MCAM)",
-            "4.63 ± 0.48 nM",
+            "Apparent Step 1 K_D,step1(MCAM)",
+            ref_kd_disp,
             delta=rel_lbl,
             delta_color="off",
         )
     with m4:
         st.metric(
-            "Observed Inhibition at 40 nM (2x)",
-            "98.5 ± 1.4%",
-            delta="Complete competitive blocking",
+            f"Observed Inhibition at {max_c_obs:g} nM ({max_ratio_obs:g}x)",
+            inh_str_disp,
+            delta=cls["epitope_class"],
             delta_color="off",
         )
     st.caption(
-        "**Response Calibration & Midpoint Definitions:** Under linear response-to-free-laminin mapping ($R \\propto a = [\\text{LM411}]_{\\text{free}}$), "
-        f"$K_D(\\alpha_6\\beta_1) = {kd_disp}$ gives a **quadratic model-derived half-depletion point** ($a = {0.5 * analyte_total_nM:g}\\text{{ nM}}$ free LM411) of "
-        f"$[I]_{{50,\\text{{quad}}}} = \\frac{{1}}{{2}}[\\text{{LM411}}]_{{\\text{{tot}}}} + K_D = {set50_disp}$, distinct from the **separate empirical 4PL/Hill fit midpoint** "
+        "**Response Calibration & Midpoint Definitions:** Under linear response-to-free-analyte mapping ($R \\propto a = [\\text{LM411}]_{\\text{free}}$), "
+        f"the active quadratic fit yields $K_D(\\alpha_6\\beta_1) = {kd_disp}$ and a **model-derived half-depletion midpoint** "
+        f"$[I]_{{50,\\text{{quad}}}} = {set50_disp}$ (at $a = {0.5 * analyte_total_nM:g}\\text{{ nM}}$ free analyte), distinct from the **separate empirical 4PL/Hill fit midpoint** "
         f"$\\text{{IC}}_{{50,\\text{{Hill}}}} = {ic50_disp}$ ($h = {comp_results['hill_slope']:.2f}$). "
-        "Under a saturable surface-capture detector $R(a) = R_{\\max}\\,a / (K_{D,\\text{capture}} + a)$ ($K_{D,\\text{capture}} = 34.4\\text{ nM}$, toggleable above via *Couple surface K_D,surf saturation*), "
-        "halving the baseline BLI response ($R = 0.5\\,R_0$) occurs at $a_{50,\\text{resp}} = a_0 K_{D,\\text{capture}} / (2 K_{D,\\text{capture}} + a_0) = 7.75\\text{ nM}$ free LM411 "
-        "($\\text{IC}_{50,\\text{resp(cal)}} = 12.67 \\pm 0.12\\text{ nM}$, $[I]_{50,\\text{depletion}} = 10.26 \\pm 0.08\\text{ nM}$, $K_{D,\\text{cal}} = 0.26 \\pm 0.08\\text{ nM}$, $R^2 = 0.990$). "
-        "Controlled initial association rates ($v_0 = dR/dt$, Day et al., *Anal. Biochem.* 2013; selectable under *Sensorgram signal readout*) yield $K_{D,v_0} = 0.55 \\pm 0.40\\text{ nM}$ ($[I]_{50,\\text{depletion}} = 10.55 \\pm 0.40\\text{ nM}$)."
+        "When *Couple surface K_D,surf saturation* is enabled above, the fit applies the saturable surface-capture detector model "
+        "$R(a) = R_{\\max}\\,a / (K_{D,\\text{capture}} + a)$ and reports the resulting $K_{D,\\text{sol}}$ and $50\\%$-response midpoint dynamically; "
+        "any detector-calibrated $K_{D,\\text{sol}}$ estimate is **conditional on the specified surface-capture detector model** unless $K_{D,\\text{capture}}$ has an independent calibration. "
+        "You can also select *Initial association slope (linear velocity)* under *Sensorgram signal readout* above to evaluate initial-rate competition (Day et al., *Anal. Biochem.* 2013)."
     )
 
     # 2-panel clean publication figure + Figure Legend

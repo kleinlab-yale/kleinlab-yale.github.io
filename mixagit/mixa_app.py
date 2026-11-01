@@ -763,7 +763,7 @@ KINETIC_BINDING_MODELS = {
     "1:1 Langmuir": "langmuir",
     "1:1 + Delivery Lag": None,
     "2-State (Advanced)": "two_state",
-    **{MODEL_LABELS[key]: key for key in ["heterogeneous", "bivalent", "sequential"]},
+    **{MODEL_LABELS[key]: key for key in ["heterogeneous", "biphasic", "bivalent", "sequential"]},
 }
 
 KINETIC_STARTING_SETTINGS = {
@@ -5178,7 +5178,7 @@ def build_compare_report(kin_results, eq_results, kobs_results=None):
         qualification_failures.append("Equilibrium was not supported at the sampling time.")
     if "hill" in str(eq_results.get("model", "")).lower() or "half-saturation" in str(eq_results.get("affinity_interpretation", "")).lower():
         qualification_failures.append("Hill half-saturation and intrinsic kinetic KD are not interchangeable affinity quantities.")
-    if str(kin_results.get("model", "")).lower() in {"bivalent", "heterogeneous", "sequential"}:
+    if str(kin_results.get("model", "")).lower() in {"bivalent", "heterogeneous", "biphasic", "sequential"}:
         qualification_failures.append(
             "Multi-site or avidity kinetic constants and simple 1:1 equilibrium KD are not directly interchangeable thermodynamic quantities."
         )

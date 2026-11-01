@@ -128,6 +128,14 @@ EQUATIONS = {
         "Two discrete mass-action populations. Svitel provides related surface-heterogeneity theory; MIXA does not implement that paper's continuous regularized distribution inversion.",
         ["svitel2003"], ["mixa_mechanisms.py:_binding_rhs", "mixa_mechanisms.py:binding_prediction"],
         ["tests/test_mechanisms.py:test_mechanism_prediction_invariant_to_observation_selection"]),
+    "biphasic": _entry("Two independent populations (per-curve fraction, 2:1)", [
+        "dR1/dt = kon*C*(theta*Rmax-R1)-koff*R1; dR2/dt = kon2*C*((1-theta)*Rmax-R2)-koff2*R2; response = R1+R2",
+        "KD_pop1 = koff/kon; KD_pop2 = koff2/kon2; theta in [0,1] per curve"],
+        "kon,kon2: M^-1 s^-1; koff,koff2: s^-1; Rmax: response; theta: dimensionless fraction",
+        "Two independent 1:1 binding populations with shared rate constants and per-curve fractional capacities. Reports apparent component parameters KD,pop1 and KD,pop2; does not establish molecular stoichiometry or domain identity.",
+        "Two discrete mass-action populations with per-curve fractional capacity projection.",
+        ["svitel2003"], ["mixa_mechanisms.py:_binding_rhs", "mixa_mechanisms.py:binding_prediction"],
+        ["tests/test_mechanisms.py:test_mechanism_prediction_invariant_to_observation_selection"]),
     "bivalent": _entry("Bivalent soluble analyte / surface avidity", [
         "x = singly attached analyte; y = doubly attached analyte; free = Rmax-x-2*y",
         "v1 = 2*kon*C*free-koff*x; v2 = kon2*x*free-2*koff2*y",
@@ -386,7 +394,7 @@ def equation_ids(result, family="Kinetic"):
     aliases = {"1:1": "langmuir", "1:1 Langmuir": "langmuir", "2-state": "two_state",
                "2-State (Advanced)": "two_state", "1:1+MT": "delivery_lag", "1:1 + Delivery Lag": "delivery_lag"}
     model = aliases.get(model, model)
-    if model not in {"langmuir", "two_state", "heterogeneous", "bivalent", "sequential", "delivery_lag"}:
+    if model not in {"langmuir", "two_state", "heterogeneous", "biphasic", "bivalent", "sequential", "delivery_lag"}:
         raise ValueError(f"No equation mapping for saved model {model!r}.")
     ids += [model, "observation_terms"]
     if result.get("baseline_uncertainty", {}).get("applied"):

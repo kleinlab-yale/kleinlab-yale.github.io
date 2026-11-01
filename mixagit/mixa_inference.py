@@ -218,7 +218,7 @@ def coordinate_scales(problem, fit, table=None):
 def estimates(problem, values):
     """Derived KD is evaluated for every refit, never a ratio of summary means."""
     rows = {key: dict(estimate=key, value=value, kind="Parameter", estimated=not problem["controls"][key]["fixed"],
-                     label_exchangeable=problem["model"] == "heterogeneous" and key.split("::")[0] in
+                     label_exchangeable=problem["model"] in {"heterogeneous", "biphasic"} and key.split("::")[0] in
                      {"kon", "koff", "kon2", "koff2", "Rmax", "Rmax2"}) for key, value in values.items()}
     for c in problem["curves"]:
         keys = c["_review_keys"]
@@ -230,9 +230,9 @@ def estimates(problem, values):
             metrics = [("KD_first_step_nM", first, ["kon", "koff"]),
                        ("KD_overall_nM", first*p["k_reverse"]/(p["k_forward"]+p["k_reverse"]),
                         ["kon", "koff", "k_forward", "k_reverse"])]
-        elif problem["model"] in {"heterogeneous", "sequential"}:
+        elif problem["model"] in {"heterogeneous", "biphasic", "sequential"}:
             second = p["koff2"]/p["kon2"]*1e9
-            if problem["model"] == "heterogeneous":
+            if problem["model"] in {"heterogeneous", "biphasic"}:
                 dependencies = ["kon", "koff", "kon2", "koff2"]
                 metrics = [("KD_lower_population_nM", min(first, second), dependencies),
                            ("KD_higher_population_nM", max(first, second), dependencies)]

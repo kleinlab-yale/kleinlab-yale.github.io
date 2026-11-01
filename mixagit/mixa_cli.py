@@ -160,7 +160,7 @@ def main(argv=None):
     parser.add_argument(
         "--model",
         default="langmuir",
-        choices=["langmuir", "two_state", "heterogeneous", "bivalent", "sequential"],
+        choices=["langmuir", "two_state", "heterogeneous", "biphasic", "bivalent", "sequential"],
         help="Mechanistic binding model (default: langmuir).",
     )
     parser.add_argument(

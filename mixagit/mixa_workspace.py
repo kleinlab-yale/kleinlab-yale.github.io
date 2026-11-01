@@ -159,7 +159,8 @@ def _load_mcam_lm411_kinetics():
             st.session_state.latest_mechanistic_results = _res_lm
         st.session_state.import_notice = (
             "Loaded MCAM-Fc + Laminin-411 (tE411) Direct Binding Kinetics (3 BLI replicates, 7.81–125 nM) "
-            "with Two-Site Sequential BLI Fit pre-configured and pre-loaded (Full Complex K_D,full = 4.6 ± 0.5 nM, Intermediate Complex K_D,int = 34.4 ± 2.3 nM)."
+            "with Sequential Two-Analyte Surface-Capture Fit pre-configured and pre-loaded "
+            "(Apparent Step 1 K_D,step1 = 4.63 ± 0.48 nM, Apparent Step 2 K_D,step2 = 34.4 ± 2.3 nM)."
         )
     except ValueError as exc:
         st.session_state.import_error = str(exc)
@@ -204,7 +205,7 @@ def _load_mcam_lama4g123_kinetics():
         st.session_state.fit_trim_enabled = False
         st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
 
-        st.session_state.binding_model_select = MODEL_LABELS["sequential"]
+        st.session_state.binding_model_select = MODEL_LABELS["biphasic"]
         st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
         st.session_state.advanced_transport = "None"
         st.session_state.normalize_baseline = False
@@ -219,7 +220,7 @@ def _load_mcam_lama4g123_kinetics():
         st.session_state.advanced_invert = False
         st.session_state.advanced_nuisance = []
         config_key = repr((
-            "sequential",
+            "biphasic",
             "None",
             False,
             False,
@@ -244,7 +245,8 @@ def _load_mcam_lama4g123_kinetics():
             st.session_state.latest_mechanistic_results = _res_g123
         st.session_state.import_notice = (
             "Loaded MCAM-Fc + LamA4G123 (isolated α4 LG1–LG3 globular domain without βγ chains; 3 BLI replicates, 15.63–500 nM) "
-            "with Two-Site BLI Fit pre-configured and pre-loaded."
+            "with Two-Population (per-curve fraction, 2:1) BLI Fit pre-configured and pre-loaded "
+            "(Apparent Pop 1 K_D,pop1 = 13.7 ± 1.0 nM, Apparent Pop 2 K_D,pop2 = 459 ± 28 nM)."
         )
     except ValueError as exc:
         st.session_state.import_error = str(exc)
@@ -979,7 +981,7 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.phase_adjust_enabled = False
             st.session_state.fit_trim_enabled = False
             st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-            st.session_state.binding_model_select = MODEL_LABELS["sequential"]
+            st.session_state.binding_model_select = MODEL_LABELS["biphasic"]
             st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
             st.session_state.advanced_transport = "None"
             st.session_state.normalize_baseline = False
@@ -994,7 +996,7 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.advanced_invert = False
             st.session_state.advanced_nuisance = []
             config_key = repr((
-                "sequential",
+                "biphasic",
                 "None",
                 False,
                 False,

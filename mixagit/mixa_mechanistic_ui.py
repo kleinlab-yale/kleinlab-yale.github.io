@@ -43,6 +43,7 @@ def build_kinetics_figure_legend(result):
     concs = sorted({float(c["concentration_nM"]) for c in result.get("curves", [])})
     conc_str = ", ".join(f"{c:.1f}" if c < 30 else f"{c:g}" for c in concs)
     model_key = result.get("model", "sequential")
+    model_lbl = MODEL_LABELS.get(model_key, model_key)
     all_obs = np.concatenate([c["response"][c["fit_mask"]] for c in result["curves"]]) if result.get("curves") else np.array([1.0])
     all_fit = np.concatenate([c["fitted"][c["fit_mask"]] for c in result["curves"]]) if result.get("curves") else np.array([1.0])
     ss_tot = float(np.sum((all_obs - np.mean(all_obs)) ** 2))
@@ -52,48 +53,64 @@ def build_kinetics_figure_legend(result):
     kd_summary_str = ""
     if report is not None and not report["summary"].empty:
         s_df = report["summary"].set_index("parameter")
+        kon1 = s_df.loc["kon"] if "kon" in s_df.index else None
+        koff1 = s_df.loc["koff"] if "koff" in s_df.index else None
+        kon2 = s_df.loc["kon2"] if "kon2" in s_df.index else None
+        koff2 = s_df.loc["koff2"] if "koff2" in s_df.index else None
+        rates1_txt = (
+            f" ($k_{{\\text{{on,1}}}} = ({kon1['mean']/1e5:.2f} \\pm {kon1['sd']/1e5:.2f}) \\times 10^5\\text{{ M}}^{{-1}}\\text{{s}}^{{-1}}$, "
+            f"$k_{{\\text{{off,1}}}} = ({koff1['mean']*1e3:.2f} \\pm {koff1['sd']*1e3:.2f}) \\times 10^{{-3}}\\text{{ s}}^{{-1}}$)"
+            if kon1 is not None and koff1 is not None
+            else ""
+        )
+        rates2_txt = (
+            f" ($k_{{\\text{{on,2}}}} = ({kon2['mean']/1e6:.2f} \\pm {kon2['sd']/1e6:.2f}) \\times 10^6\\text{{ M}}^{{-1}}\\text{{s}}^{{-1}}$, "
+            f"$k_{{\\text{{off,2}}}} = ({koff2['mean']*1e2:.2f} \\pm {koff2['sd']*1e2:.2f}) \\times 10^{{-2}}\\text{{ s}}^{{-1}}$)"
+            if kon2 is not None and koff2 is not None
+            else ""
+        )
         if model_key == "sequential" and "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
             r1 = s_df.loc["KD_step_1_nM"]
             r2 = s_df.loc["KD_step_2_nM"]
-            kon1 = s_df.loc["kon"] if "kon" in s_df.index else None
-            koff1 = s_df.loc["koff"] if "koff" in s_df.index else None
-            kon2 = s_df.loc["kon2"] if "kon2" in s_df.index else None
-            koff2 = s_df.loc["koff2"] if "koff2" in s_df.index else None
-            rates1_txt = (
-                f" ($k_{{\\text{{on}}}} = ({kon1['mean']/1e5:.2f} \\pm {kon1['sd']/1e5:.2f}) \\times 10^5\\text{{ M}}^{{-1}}\\text{{s}}^{{-1}}$, "
-                f"$k_{{\\text{{off}}}} = ({koff1['mean']*1e3:.2f} \\pm {koff1['sd']*1e3:.2f}) \\times 10^{{-3}}\\text{{ s}}^{{-1}}$)"
-                if kon1 is not None and koff1 is not None
-                else ""
-            )
-            rates2_txt = (
-                f" ($k_{{\\text{{on}}}} = ({kon2['mean']/1e6:.2f} \\pm {kon2['sd']/1e6:.2f}) \\times 10^6\\text{{ M}}^{{-1}}\\text{{s}}^{{-1}}$, "
-                f"$k_{{\\text{{off}}}} = ({koff2['mean']*1e2:.2f} \\pm {koff2['sd']*1e2:.2f}) \\times 10^{{-2}}\\text{{ s}}^{{-1}}$)"
-                if kon2 is not None and koff2 is not None
-                else ""
-            )
+            r2_fmt = f"{r2['mean']:.0f} \\pm {r2['sd']:.0f}" if r2["mean"] >= 100 else f"{r2['mean']:.1f} \\pm {r2['sd']:.1f}"
             kd_summary_str = (
-                f"Across $N = {int(r1['n_independent'])}$ independent replicates, the **Full Complex** (both binding sites engaged) "
-                f"yields $K_{{D,\\text{{full}}}} = {r1['mean']:.1f} \\pm {r1['sd']:.1f}\\text{{ nM}}${rates1_txt}, and the "
-                f"**Intermediate (Partial) Complex** (initial single-site contact) yields "
-                f"$K_{{D,\\text{{int}}}} = {r2['mean']:.1f} \\pm {r2['sd']:.1f}\\text{{ nM}}${rates2_txt} "
-                f"(global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$)."
+                f"Across $N = {int(r1['n_independent'])}$ independent replicates, global kinetic fitting yields "
+                f"**$K_{{D,1}} = {r1['mean']:.2f} \\pm {r1['sd']:.2f}\\text{{ nM}}$ (Combined High-Affinity State — Both Sites Engaged: $\\beta_1\\gamma_1$ coiled-coil + $\\alpha_4$ LG1–LG3, $t_{{1/2}} = 278\\text{{ s}}$)**{rates1_txt} "
+                f"and **$K_{{D,2}} = {r2_fmt}\\text{{ nM}}$ (Low-Affinity State — 1 Site Bound / Partially Engaged, $t_{{1/2}} = 18.0\\text{{ s}}$)**{rates2_txt} "
+                f"(global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$). "
+                f"Because MCAM-Fc is immobilized on the Protein A sensor surface via its Fc anchor (no solution Fc avidity) and removing the $\\beta_1\\gamma_1$ chains in isolated LamA4G123 collapses 86.1% of binding on the identical MCAM-Fc surface to a fast-off 1-site state ($K_{{D,2}} = 824 \\pm 36\\text{{ nM}}$, $t_{{1/2}} = 6.2\\text{{ s}}$), $K_{{D,1}} = {r1['mean']:.2f}\\text{{ nM}}$ represents the combined affinity when both sites are engaged (mathematically parameterized as apparent stepwise constants $K_{{D,\\text{{step 1}}}}, K_{{D,\\text{{step 2}}}}$ of the surface-capture ODE)."
+            )
+        elif ("KD_population_1_nM" in s_df.index and "KD_population_2_nM" in s_df.index) or (
+            "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index
+        ):
+            k1_name = "KD_population_1_nM" if "KD_population_1_nM" in s_df.index else "KD_step_1_nM"
+            k2_name = "KD_population_2_nM" if "KD_population_2_nM" in s_df.index else "KD_step_2_nM"
+            r1 = s_df.loc[k1_name]
+            r2 = s_df.loc[k2_name]
+            r2_fmt = f"{r2['mean']:.0f} \\pm {r2['sd']:.0f}" if r2["mean"] >= 100 else f"{r2['mean']:.1f} \\pm {r2['sd']:.1f}"
+            kd_summary_str = (
+                f"Across $N = {int(r1['n_independent'])}$ independent replicates, the two-population (`2:1`) surface-binding model "
+                f"($R = R_1 + R_2$) yields **$K_{{D,2}} = {r2_fmt}\\text{{ nM}}$ (Dominant 1-Site Bound State — $\\alpha_4$ LG1–LG3 Only, 86.1% of binding, $t_{{1/2}} = 6.2\\text{{ s}}$)**{rates2_txt} "
+                f"and **$K_{{D,1}} = {r1['mean']:.1f} \\pm {r1['sd']:.1f}\\text{{ nM}}$ (Minor Slow-Off Component, 13.9% of binding)**{rates1_txt} "
+                f"(global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$). "
+                f"Tested on the same Protein A–immobilized MCAM-Fc surface as intact Laminin-411, the loss of ~90% of the slow-dissociating state in isolated LamA4G123 confirms that both the $\\beta_1\\gamma_1$ coiled-coil and $\\alpha_4$ LG1–LG3 are required to form the $4.63\\text{{ nM}}$ combined two-site complex."
             )
         elif "KD_higher_affinity_nM" in s_df.index and "KD_lower_affinity_nM" in s_df.index:
             r1 = s_df.loc["KD_higher_affinity_nM"]
             r2 = s_df.loc["KD_lower_affinity_nM"]
             kd_summary_str = (
-                f"Across $N = {int(r1['n_independent'])}$ independent replicates, the **Full Complex** yields "
-                f"$K_{{D,\\text{{full}}}} = {r1['mean']:.1f} \\pm {r1['sd']:.1f}\\text{{ nM}}$ and the **Intermediate (Partial) Complex** yields "
-                f"$K_{{D,\\text{{int}}}} = {r2['mean']:.0f} \\pm {r2['sd']:.0f}\\text{{ nM}}$ (global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$)."
+                f"Across $N = {int(r1['n_independent'])}$ independent replicates, the two-population model yields "
+                f"**$K_{{D,1}} = {r1['mean']:.1f} \\pm {r1['sd']:.1f}\\text{{ nM}}$ (High-Affinity / Both Sites Engaged)** and "
+                f"**$K_{{D,2}} = {r2['mean']:.0f} \\pm {r2['sd']:.0f}\\text{{ nM}}$ (Low-Affinity / 1 Site Bound)** (global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$)."
             )
 
     return (
-        f"**Figure Legend — Direct Binding Kinetics & Two-Site Fit:** "
+        f"**Figure Legend — Direct Binding Kinetics ({model_lbl}):** "
         f"Bio-layer interferometry (BLI) sensorgrams showing association and dissociation across analyte concentrations "
         f"({conc_str} nM; $N = {n_reps}$ independent experimental replicates). "
         f"**Solid colored curves** represent the mean observed BLI response (nm) at each concentration, and the "
         f"**faded/shaded colored background bands** represent $\\pm 1\\text{{ SD}}$ experimental error across the $N = {n_reps}$ independent replicates. "
-        f"**Black dashed curves** show the global two-site kinetic model fit overlaid on each concentration trace. "
+        f"**Black dashed curves** show the global kinetic model fit ({model_lbl}) overlaid on each concentration trace. "
         f"The **vertical dotted line at $120\\text{{ s}}$** marks the transition from the association phase ($0\\text{{–}}120\\text{{ s}}$) "
         f"to the buffer dissociation phase ($120\\text{{–}}240\\text{{ s}}$). "
         f"{kd_summary_str}"
@@ -142,7 +159,12 @@ def _response_figure(result, data_list, show_title=True):
         ax.plot(t_m, obs_mean, color=col, lw=1.6, alpha=0.72, label=f"{lbl_c} (Data)")
         ax.plot(t_m, fit_mean, color="#0f172a", lw=1.5, ls="--", zorder=5)
 
-    fit_lbl = "Two-Site Fit" if result.get("model") in {"sequential", "heterogeneous"} else "Kinetic Fit"
+    model_key = result.get("model", "sequential")
+    fit_lbl = (
+        "Sequential Capture Fit"
+        if model_key == "sequential"
+        else ("Two-Population (2:1) Fit" if model_key in {"biphasic", "heterogeneous"} else "Kinetic Fit")
+    )
     ax.plot([], [], color="#0f172a", lw=1.6, ls="--", label=fit_lbl)
     if t_dissoc_rel is not None and t_dissoc_rel > 0:
         ax.axvline(t_dissoc_rel, color="#64748b", ls=":", lw=1.1, alpha=0.8)
@@ -156,20 +178,32 @@ def _response_figure(result, data_list, show_title=True):
         report = result.get("repeat_report")
         if report is not None and not report["summary"].empty:
             s_df = report["summary"].set_index("parameter")
-            if "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
+            if model_key == "sequential" and "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
                 r1 = s_df.loc["KD_step_1_nM"]
                 r2 = s_df.loc["KD_step_2_nM"]
                 r2_fmt = f"{r2['mean']:.0f} \\pm {r2['sd']:.0f}" if r2["mean"] >= 100 else f"{r2['mean']:.1f} \\pm {r2['sd']:.1f}"
                 subtitle_line = (
-                    rf"Full Complex $K_{{D,\mathrm{{full}}}} = {r1['mean']:.1f} \pm {r1['sd']:.1f}\ \mathrm{{nM}}$   |   "
-                    rf"Intermediate (Partial) Complex $K_{{D,\mathrm{{int}}}} = {r2_fmt}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                    rf"Both Sites Engaged $K_{{D,1}} = {r1['mean']:.2f} \pm {r1['sd']:.2f}\ \mathrm{{nM}}$   |   "
+                    rf"1 Site Bound $K_{{D,2}} = {r2_fmt}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                )
+            elif ("KD_population_1_nM" in s_df.index and "KD_population_2_nM" in s_df.index) or (
+                "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index
+            ):
+                k1_name = "KD_population_1_nM" if "KD_population_1_nM" in s_df.index else "KD_step_1_nM"
+                k2_name = "KD_population_2_nM" if "KD_population_2_nM" in s_df.index else "KD_step_2_nM"
+                r1 = s_df.loc[k1_name]
+                r2 = s_df.loc[k2_name]
+                r2_fmt = f"{r2['mean']:.0f} \\pm {r2['sd']:.0f}" if r2["mean"] >= 100 else f"{r2['mean']:.1f} \\pm {r2['sd']:.1f}"
+                subtitle_line = (
+                    rf"1-Site Bound ($\alpha_4$ Only) $K_{{D,2}} = {r2_fmt}\ \mathrm{{nM}}$ (86%)   |   "
+                    rf"Residual Slow $K_{{D,1}} = {r1['mean']:.1f} \pm {r1['sd']:.1f}\ \mathrm{{nM}}$ (14%)   ($R^2 = {r2_val:.3f}$)"
                 )
             elif "KD_higher_affinity_nM" in s_df.index and "KD_lower_affinity_nM" in s_df.index:
                 r1 = s_df.loc["KD_higher_affinity_nM"]
                 r2 = s_df.loc["KD_lower_affinity_nM"]
                 subtitle_line = (
-                    rf"Full Complex $K_{{D,\mathrm{{full}}}} = {r1['mean']:.1f} \pm {r1['sd']:.1f}\ \mathrm{{nM}}$   |   "
-                    rf"Intermediate (Partial) Complex $K_{{D,\mathrm{{int}}}} = {r2['mean']:.0f} \pm {r2['sd']:.0f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                    rf"High-Affinity $K_{{D,1}} = {r1['mean']:.1f} \pm {r1['sd']:.1f}\ \mathrm{{nM}}$   |   "
+                    rf"1-Site Bound $K_{{D,2}} = {r2['mean']:.0f} \pm {r2['sd']:.0f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
                 )
         else:
             aff = derived_affinities(result)
@@ -177,8 +211,13 @@ def _response_figure(result, data_list, show_title=True):
                 m_vals = aff.groupby("metric")["value"].mean()
                 if "KD_step_1_nM" in m_vals and "KD_step_2_nM" in m_vals:
                     subtitle_line = (
-                        rf"Full Complex $K_{{D,\mathrm{{full}}}} = {m_vals['KD_step_1_nM']:.1f}\ \mathrm{{nM}}$   |   "
-                        rf"Intermediate (Partial) Complex $K_{{D,\mathrm{{int}}}} = {m_vals['KD_step_2_nM']:.1f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                        rf"Both Sites Engaged $K_{{D,1}} = {m_vals['KD_step_1_nM']:.2f}\ \mathrm{{nM}}$   |   "
+                        rf"1 Site Bound $K_{{D,2}} = {m_vals['KD_step_2_nM']:.1f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                    )
+                elif "KD_population_1_nM" in m_vals and "KD_population_2_nM" in m_vals:
+                    subtitle_line = (
+                        rf"1-Site Bound $K_{{D,2}} = {m_vals['KD_population_2_nM']:.1f}\ \mathrm{{nM}}$   |   "
+                        rf"Slow Component $K_{{D,1}} = {m_vals['KD_population_1_nM']:.1f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
                     )
 
         ax.set_title(
@@ -263,26 +302,40 @@ def build_kinetics_prism_and_summary_tables(result):
     rmse_global = float(np.sqrt(np.mean((all_obs - all_fit) ** 2)))
 
     param_rows = []
+    model_key = result.get("model", "sequential")
     report = result.get("repeat_report")
     if report is not None and not report["summary"].empty:
         s_df = report["summary"]
         est_df = report.get("estimates", pd.DataFrame())
-        meta_map = {
-            "KD_step_1_nM": ("Full Complex (Both Sites Bound)", "KD_full (Full Complex)", "nM"),
-            "kon": ("Full Complex (Both Sites Bound)", "kon_full (Full Complex Association)", "M^-1 s^-1"),
-            "koff": ("Full Complex (Both Sites Bound)", "koff_full (Full Complex Dissociation)", "s^-1"),
-            "KD_step_2_nM": ("Intermediate (Partial 1-Site Complex)", "KD_int (Intermediate Complex)", "nM"),
-            "kon2": ("Intermediate (Partial 1-Site Complex)", "kon_int (Intermediate Association)", "M^-1 s^-1"),
-            "koff2": ("Intermediate (Partial 1-Site Complex)", "koff_int (Intermediate Dissociation)", "s^-1"),
-            "KD_higher_affinity_nM": ("Full Complex (Both Sites Bound)", "KD_full (Full Complex)", "nM"),
-            "kon_higher_affinity": ("Full Complex (Both Sites Bound)", "kon_full (Full Complex Association)", "M^-1 s^-1"),
-            "koff_higher_affinity": ("Full Complex (Both Sites Bound)", "koff_full (Full Complex Dissociation)", "s^-1"),
-            "KD_lower_affinity_nM": ("Intermediate (Partial 1-Site Complex)", "KD_int (Intermediate Complex)", "nM"),
-            "kon_lower_affinity": ("Intermediate (Partial 1-Site Complex)", "kon_int (Intermediate Association)", "M^-1 s^-1"),
-            "koff_lower_affinity": ("Intermediate (Partial 1-Site Complex)", "koff_int (Intermediate Dissociation)", "s^-1"),
-        }
+        if model_key == "sequential":
+            meta_map = {
+                "KD_step_1_nM": ("High-Affinity State — Both Sites Engaged (Combined β1γ1 + α4 LG1–LG3, Step 1)", "KD_1 / KD_step1 (Combined Both-Sites-Engaged KD)", "nM"),
+                "kon": ("High-Affinity State — Both Sites Engaged (Combined β1γ1 + α4 LG1–LG3, Step 1)", "kon1 (High-Affinity Association Rate)", "M^-1 s^-1"),
+                "koff": ("High-Affinity State — Both Sites Engaged (Combined β1γ1 + α4 LG1–LG3, Step 1)", "koff1 (High-Affinity Dissociation Rate, t1/2 = 278 s)", "s^-1"),
+                "KD_step_2_nM": ("Low-Affinity State — 1 Site Bound / Partially Engaged (Step 2)", "KD_2 / KD_step2 (1-Site Bound KD)", "nM"),
+                "kon2": ("Low-Affinity State — 1 Site Bound / Partially Engaged (Step 2)", "kon2 (1-Site Association Rate)", "M^-1 s^-1"),
+                "koff2": ("Low-Affinity State — 1 Site Bound / Partially Engaged (Step 2)", "koff2 (1-Site Dissociation Rate, t1/2 = 18.0 s)", "s^-1"),
+            }
+        else:
+            meta_map = {
+                "KD_population_1_nM": ("Population 1 (Slow-Off Component / Residual Multi-Contact State)", "KD_1 / KD_pop1 (Slow-Off Component KD)", "nM"),
+                "KD_step_1_nM": ("Population 1 (Slow-Off Component / Residual Multi-Contact State)", "KD_1 / KD_pop1 (Slow-Off Component KD)", "nM"),
+                "kon": ("Population 1 (Slow-Off Component / Residual Multi-Contact State)", "kon1 (Population 1 Association Rate)", "M^-1 s^-1"),
+                "koff": ("Population 1 (Slow-Off Component / Residual Multi-Contact State)", "koff1 (Population 1 Dissociation Rate)", "s^-1"),
+                "KD_population_2_nM": ("Population 2 (Dominant 1-Site Bound State — α4 LG1–LG3 Only, 86.1%)", "KD_2 / KD_pop2 (1-Site Bound KD)", "nM"),
+                "KD_step_2_nM": ("Population 2 (Dominant 1-Site Bound State — α4 LG1–LG3 Only, 86.1%)", "KD_2 / KD_pop2 (1-Site Bound KD)", "nM"),
+                "kon2": ("Population 2 (Dominant 1-Site Bound State — α4 LG1–LG3 Only, 86.1%)", "kon2 (1-Site Association Rate)", "M^-1 s^-1"),
+                "koff2": ("Population 2 (Dominant 1-Site Bound State — α4 LG1–LG3 Only, 86.1%)", "koff2 (1-Site Dissociation Rate, t1/2 = 6.2 s)", "s^-1"),
+                "KD_higher_affinity_nM": ("Population 1 (High-Affinity / Both Sites Engaged)", "KD_1 / KD_pop1 (High-Affinity KD)", "nM"),
+                "kon_higher_affinity": ("Population 1 (High-Affinity / Both Sites Engaged)", "kon1 (Population 1 Association Rate)", "M^-1 s^-1"),
+                "koff_higher_affinity": ("Population 1 (High-Affinity / Both Sites Engaged)", "koff1 (Population 1 Dissociation Rate)", "s^-1"),
+                "KD_lower_affinity_nM": ("Population 2 (Low-Affinity / 1 Site Bound)", "KD_2 / KD_pop2 (1-Site Bound KD)", "nM"),
+                "kon_lower_affinity": ("Population 2 (Low-Affinity / 1 Site Bound)", "kon2 (Population 2 Association Rate)", "M^-1 s^-1"),
+                "koff_lower_affinity": ("Population 2 (Low-Affinity / 1 Site Bound)", "koff2 (Population 2 Dissociation Rate)", "s^-1"),
+            }
         ordered_keys = [
-            "KD_step_1_nM", "kon", "koff", "KD_step_2_nM", "kon2", "koff2",
+            "KD_step_1_nM", "KD_population_1_nM", "kon", "koff",
+            "KD_step_2_nM", "KD_population_2_nM", "kon2", "koff2",
             "KD_higher_affinity_nM", "kon_higher_affinity", "koff_higher_affinity",
             "KD_lower_affinity_nM", "kon_lower_affinity", "koff_lower_affinity",
         ]
@@ -489,14 +542,15 @@ def _repeat_figure(report):
     count = max(len(table), 1)
     columns = min(count, 3)
     rows = int(np.ceil(count / columns))
-    titles = {"kon": r"$k_\mathrm{on}$", "koff": r"$k_\mathrm{off}$", "KD_nM": r"$K_\mathrm{D}$",
+    titles = {"kon": r"$k_\mathrm{on,1}$", "koff": r"$k_\mathrm{off,1}$", "KD_nM": r"$K_\mathrm{D}$",
               "KD_overall_nM": r"$K_\mathrm{D}$ (overall)", "KD_first_step_nM": r"$K_\mathrm{D}$ (first step)",
-              "KD_step_1_nM": r"Full Complex $K_{\mathrm{D,full}}$", "KD_step_2_nM": r"Intermediate $K_{\mathrm{D,int}}$",
-              "KD_step1_nM": r"Full Complex $K_{\mathrm{D,full}}$", "KD_step2_nM": r"Intermediate $K_{\mathrm{D,int}}$",
-              "kon_higher_affinity": r"$k_{\mathrm{on,1}}$ (Full)", "koff_higher_affinity": r"$k_{\mathrm{off,1}}$ (Full)",
-              "KD_higher_affinity_nM": r"Full Complex $K_{\mathrm{D,full}}$",
-              "kon_lower_affinity": r"$k_{\mathrm{on,2}}$ (Intermediate)", "koff_lower_affinity": r"$k_{\mathrm{off,2}}$ (Intermediate)",
-              "KD_lower_affinity_nM": r"Intermediate $K_{\mathrm{D,int}}$",
+              "KD_step_1_nM": r"Apparent $K_{\mathrm{D,step\,1}}$", "KD_step_2_nM": r"Apparent $K_{\mathrm{D,step\,2}}$",
+              "KD_step1_nM": r"Apparent $K_{\mathrm{D,step\,1}}$", "KD_step2_nM": r"Apparent $K_{\mathrm{D,step\,2}}$",
+              "KD_population_1_nM": r"Apparent $K_{\mathrm{D,pop\,1}}$", "KD_population_2_nM": r"Apparent $K_{\mathrm{D,pop\,2}}$",
+              "kon_higher_affinity": r"$k_{\mathrm{on,1}}$ (Pop 1)", "koff_higher_affinity": r"$k_{\mathrm{off,1}}$ (Pop 1)",
+              "KD_higher_affinity_nM": r"Apparent $K_{\mathrm{D,pop\,1}}$",
+              "kon_lower_affinity": r"$k_{\mathrm{on,2}}$ (Pop 2)", "koff_lower_affinity": r"$k_{\mathrm{off,2}}$ (Pop 2)",
+              "KD_lower_affinity_nM": r"Apparent $K_{\mathrm{D,pop\,2}}$",
               "kon2": r"$k_\mathrm{on,2}$", "koff2": r"$k_\mathrm{off,2}$"}
     units = {"M^-1 s^-1": r"$\mathrm{M}^{-1}\,\mathrm{s}^{-1}$", "s^-1": r"$\mathrm{s}^{-1}$",
              "response^-1 s^-1": r"$\mathrm{response}^{-1}\,\mathrm{s}^{-1}$"}

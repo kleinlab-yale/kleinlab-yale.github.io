@@ -36,15 +36,17 @@ MODEL_LABELS = {
     "langmuir": "1:1 binding",
     "two_state": "Two-state conformational binding",
     "heterogeneous": "Two independent surface populations (2:1)",
+    "biphasic": "Two independent populations (per-curve fraction, 2:1)",
     "bivalent": "Bivalent analyte / surface avidity",
-    "sequential": "Two-Site Sequential (Full & Intermediate Complex)",
+    "sequential": "Sequential two-analyte surface capture (stepwise)",
 }
 MODEL_NOTES = {
     "langmuir": "A + L <-> AL. One intrinsic KD under this model.",
     "two_state": "A + L <-> AL <-> AL*. Overall KD differs from the first-step microscopic KD.",
     "heterogeneous": "Two independent populations, each with its own rates and capacity. This does not establish molecular stoichiometry or identify either population as nonspecific.",
+    "biphasic": "Two independent 1:1 binding populations with shared rate constants (kon, koff, kon2, koff2) and per-curve fractional capacities (theta*Rmax and (1-theta)*Rmax). Reports apparent component parameters KD,pop1 = koff/kon and KD,pop2 = koff2/kon2; does not establish molecular stoichiometry or domain identity.",
     "bivalent": "A has two equivalent arms. First capture has factor 2; opening a doubly bound complex has factor 2. Second capture is surface-density dependent. Signal counts bound analyte, not occupied ligand sites. No single intrinsic avidity KD is reported.",
-    "sequential": "Two-Site Sequential Binding: Full Complex (KD,full = koff,1 / kon,1, both sites bound) and Intermediate/Partial Complex (KD,int = koff,2 / kon,2, initial 1-site contact).",
+    "sequential": "Sequential capture of a first soluble analyte molecule followed by a second (L + A <-> LA1, LA1 + A <-> LA2; signal = state_1 + 2*state_2). Reports apparent stepwise parameters KD,step1 = koff/kon and KD,step2 = koff2/kon2 of the specified surface-binding model; does not establish unimolecular two-domain engagement within a single complex.",
 }
 TRANSPORT_LABELS = ["None", "Quasi-steady 1:1 transport", "Two-compartment transport"]
 SCOPES = ["Global", "Per repeat", "Per file", "Per curve", "Per surface"]
@@ -76,7 +78,7 @@ def parameter_defaults(model, response_scale=100., transport="None", nonspecific
         rules += [replace(on("kon2"), initial=1e4), rate("koff2", .05), capacity("Rmax2", .4 * scale)]
     if model == "bivalent":
         rules += [Parameter("kon2", .001 / scale * 100, 1e-12, 1e4 / scale, unit="response^-1 s^-1"), rate("koff2", .005)]
-    if model == "sequential":
+    if model in {"sequential", "biphasic"}:
         rules += [replace(on("kon2"), initial=1e4), rate("koff2", .03)]
     if transport not in TRANSPORT_LABELS:
         raise ValueError("Unknown transport model.")
@@ -131,6 +133,10 @@ def _binding_rhs(state, concentration, p, model):
     if model == "heterogeneous":
         return np.array([p["kon"] * concentration * (p["Rmax"] - first) - p["koff"] * first,
                          p["kon2"] * concentration * (p["Rmax2"] - second) - p["koff2"] * second])
+    if model == "biphasic":
+        theta = float(np.clip(p.get("site1_fraction", 0.5), 0.0, 1.0))
+        return np.array([p["kon"] * concentration * (theta * p["Rmax"] - first) - p["koff"] * first,
+                         p["kon2"] * concentration * ((1.0 - theta) * p["Rmax"] - second) - p["koff2"] * second])
     if model == "two_state":
         capture = p["kon"] * concentration * (p["Rmax"] - first - second) - p["koff"] * first
         conversion = p["k_forward"] * first - p["k_reverse"] * second
@@ -155,6 +161,10 @@ def _binding_derivatives(state, concentration, p, model):
     if model == "heterogeneous":
         return np.diag([-a-p["koff"], -p["kon2"]*concentration-p["koff2"]]), np.array([
             p["kon"]*(p["Rmax"]-x), p["kon2"]*(p["Rmax2"]-y)])
+    if model == "biphasic":
+        theta = float(np.clip(p.get("site1_fraction", 0.5), 0.0, 1.0))
+        return np.diag([-a-p["koff"], -p["kon2"]*concentration-p["koff2"]]), np.array([
+            p["kon"]*(theta*p["Rmax"]-x), p["kon2"]*((1.0-theta)*p["Rmax"]-y)])
     free = p["Rmax"]-x-(2*y if model == "bivalent" else y)
     if model == "bivalent":
         capture = np.array([-2*a-p["koff"], -4*a])
@@ -200,19 +210,18 @@ def binding_prediction(time_s, concentration_M, on, off, parameters, model="lang
     if integration_method not in {"LSODA", "Radau"}:
         raise ValueError("Choose LSODA or Radau for numerical state integration.")
     component = {}
-    analytic = transport == "None" and model in {"langmuir", "heterogeneous", "two_state", "sequential"}
+    analytic = transport == "None" and model in {"langmuir", "heterogeneous", "biphasic", "two_state", "sequential"}
     if analytic:
         if model == "sequential":
-            if "site1_fraction" in p:
-                theta = float(np.clip(p["site1_fraction"], 0.0, 1.0))
-                s1 = _one_to_one(t, p["kon"], p["koff"], theta * p["Rmax"], concentration_M, on, off)
-                s2 = _one_to_one(t, p["kon2"], p["koff2"], (1.0 - theta) * p["Rmax"], concentration_M, on, off)
-                component["state_1_response"], component["state_2_response"] = s1, s2
-                target = s1 + s2
-            else:
-                states = _sequential_states(t, concentration_M, on, off, p)
-                component["state_1_response"], component["state_2_response"] = states[0], 2*states[1]
-                target = states[0]+2*states[1]
+            states = _sequential_states(t, concentration_M, on, off, p)
+            component["state_1_response"], component["state_2_response"] = states[0], 2*states[1]
+            target = states[0]+2*states[1]
+        elif model == "biphasic":
+            theta = float(np.clip(p.get("site1_fraction", 0.5), 0.0, 1.0))
+            s1 = _one_to_one(t, p["kon"], p["koff"], theta * p["Rmax"], concentration_M, on, off)
+            s2 = _one_to_one(t, p["kon2"], p["koff2"], (1.0 - theta) * p["Rmax"], concentration_M, on, off)
+            component["population_1"], component["population_2"] = s1, s2
+            target = s1 + s2
         elif model == "two_state":
             target = two_state_signal(t, p["kon"], p["koff"], p["Rmax"], p["k_forward"], p["k_reverse"], concentration_M, on, off)
             component["specific"] = target.copy()
@@ -438,7 +447,7 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
 
     deadline = time.perf_counter() + runtime_s
     use_two_site_split = (
-        model == "sequential"
+        model == "biphasic"
         and transport == "None"
         and any(r.key == "Rmax" and not r.fixed for r in rules)
     )
@@ -669,9 +678,10 @@ def derived_affinities(result):
                 return {"KD_nM": first}
             if model == "two_state":
                 return {"KD_overall_nM": first * params["k_reverse"] / (params["k_forward"] + params["k_reverse"]), "KD_first_step_nM": first}
-            if model in {"heterogeneous", "sequential"}:
-                return {"KD_population_1_nM" if model == "heterogeneous" else "KD_step_1_nM": first,
-                        "KD_population_2_nM" if model == "heterogeneous" else "KD_step_2_nM": params["koff2"] / params["kon2"] * 1e9}
+            if model in {"heterogeneous", "biphasic", "sequential"}:
+                pop_mode = model in {"heterogeneous", "biphasic"}
+                return {"KD_population_1_nM" if pop_mode else "KD_step_1_nM": first,
+                        "KD_population_2_nM" if pop_mode else "KD_step_2_nM": params["koff2"] / params["kon2"] * 1e9}
             return {"KD_per_arm_first_step_nM": first, "KD_macroscopic_capture_nM": first / 2}
 
         for name, value in metrics(p).items():
@@ -895,7 +905,7 @@ def single_cycle_prediction(time_s, steps, parameters, model="langmuir", transpo
     normalized_steps, intervals = _step_schedule(steps, float(t.max()) if t.size else 0.0)
     first_on = normalized_steps[0]["on"]
     component = {}
-    analytic = transport == "None" and model in {"langmuir", "heterogeneous", "two_state", "sequential"}
+    analytic = transport == "None" and model in {"langmuir", "heterogeneous", "biphasic", "two_state", "sequential"}
 
     def _advance_1d(s0, dt, kon, koff, capacity, conc):
         rate = kon * conc + koff
@@ -906,7 +916,10 @@ def single_cycle_prediction(time_s, steps, parameters, model="langmuir", transpo
         return s0 * decay + eq * (-np.expm1(-rate * dt))
 
     if analytic:
-        if model in {"langmuir", "heterogeneous"}:
+        if model in {"langmuir", "heterogeneous", "biphasic"}:
+            theta = float(np.clip(p.get("site1_fraction", 0.5), 0.0, 1.0)) if model == "biphasic" else 1.0
+            cap1 = theta * p["Rmax"] if model == "biphasic" else p["Rmax"]
+            cap2 = (1.0 - theta) * p["Rmax"] if model == "biphasic" else p.get("Rmax2", 0.0)
             pop1 = np.zeros_like(t, dtype=float)
             s1 = 0.0
             pop2 = np.zeros_like(t, dtype=float)
@@ -915,15 +928,15 @@ def single_cycle_prediction(time_s, steps, parameters, model="langmuir", transpo
                 is_last = idx == len(intervals) - 1
                 mask = (t >= t_start) & (t <= t_end if is_last else t < t_end)
                 if mask.any():
-                    pop1[mask] = _advance_1d(s1, t[mask] - t_start, p["kon"], p["koff"], p["Rmax"], conc)
-                s1 = float(_advance_1d(s1, np.array([t_end - t_start]), p["kon"], p["koff"], p["Rmax"], conc)[0])
-                if model == "heterogeneous":
+                    pop1[mask] = _advance_1d(s1, t[mask] - t_start, p["kon"], p["koff"], cap1, conc)
+                s1 = float(_advance_1d(s1, np.array([t_end - t_start]), p["kon"], p["koff"], cap1, conc)[0])
+                if model in {"heterogeneous", "biphasic"}:
                     if mask.any():
-                        pop2[mask] = _advance_1d(s2, t[mask] - t_start, p["kon2"], p["koff2"], p["Rmax2"], conc)
-                    s2 = float(_advance_1d(s2, np.array([t_end - t_start]), p["kon2"], p["koff2"], p["Rmax2"], conc)[0])
+                        pop2[mask] = _advance_1d(s2, t[mask] - t_start, p["kon2"], p["koff2"], cap2, conc)
+                    s2 = float(_advance_1d(s2, np.array([t_end - t_start]), p["kon2"], p["koff2"], cap2, conc)[0])
             component["population_1"] = pop1.copy()
             target = pop1.copy()
-            if model == "heterogeneous":
+            if model in {"heterogeneous", "biphasic"}:
                 component["population_2"] = pop2.copy()
                 target = target + pop2
         else:
@@ -1337,6 +1350,7 @@ def mechanistic_to_kinetic_summary(result):
         "langmuir": "KD_nM",
         "two_state": "KD_overall_nM",
         "heterogeneous": "KD_population_1_nM",
+        "biphasic": "KD_population_1_nM",
         "sequential": "KD_step_1_nM",
         "bivalent": "KD_per_arm_first_step_nM",
     }.get(model, "KD_nM")
