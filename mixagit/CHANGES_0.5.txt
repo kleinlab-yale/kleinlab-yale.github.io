@@ -1,0 +1,87 @@
+MIXA 0.5 - Changes and Validation
+
+DATA LOADING AND PREPARATION
+
+1. Multiple CSV datasets can be added together or appended to the current project.
+   Imports support wide concentration columns and long-format CSVs.
+2. Every file has a role: Sample, Negative control, or Exclude.
+3. Experiment names separate different binding pairs or conditions.
+4. Repeat IDs identify independent experiments. Technical files share an ID;
+   importing more files does not automatically increase the independent n.
+5. Each sample can use no subtraction, matched-concentration negative controls,
+   a control's 0 nM trace, or its own 0 nM trace.
+6. Technical controls are averaged within each Repeat ID, then independent
+   control means receive equal weight. Interpolation is limited to the control's
+   measured time range. Negative corrected responses are retained.
+7. A preview shows raw sample, subtracted background, and corrected analysis data.
+8. Duplicate filenames, duplicate timestamps, invalid responses, and missing
+   control concentrations produce explicit errors instead of silent corrections.
+
+FITTING AND STATISTICS
+
+9. Association and dissociation use the selected start times. Changes to data,
+   assignments, included concentrations, or phases clear the previous results.
+10. Association kobs fitting includes a free constant offset. kobs and equilibrium
+    aggregation first average technical measurements within each Repeat ID.
+11. Shared kinetic fitting uses a scaled Jacobian for covariance calculation.
+    Shared, individual kinetic, and kobs K_D errors include covariance between
+    rate estimates. Shared optimization must report convergence before acceptance.
+12. Equilibrium sampling uses observations in the five seconds ending at the
+    selected time, restricted to association. Later points cannot enter the mean.
+13. Publication Report refits each declared independent repeat using saved
+    settings. It reports geometric means and 95% Student-t intervals on log
+    estimates. One repeat has no across-repeat confidence interval.
+14. Failed or incomplete repeat fits and kobs intercept boundary estimates remain
+    visible and are excluded from the complete-repeat summary.
+15. Residual reporting includes RMSE, residual mean, lag-1 correlation, and
+    Durbin-Watson. Existing quality scores remain heuristic diagnostics.
+16. kobs association fits and the direct-dissociation comparison are available
+    separately. The concentration-regression intercept estimates k_off.
+
+FIGURES AND ANALYSIS RECORDS
+
+17. Publication packages contain PNG, PDF, and SVG figures; repeat statistics;
+    residual diagnostics; exact plotted data; and methods/figure legends.
+18. Packages also retain original CSVs, file hashes, dataset assignments,
+    subtraction records, corrected inputs, selected curves, saved fit settings,
+    software versions, and analysis-code hashes.
+19. Figure width, resolution, response-axis label, and palette are configurable.
+
+WORKFLOW AND FOLLOW-UP USABILITY FIXES
+
+20. The existing PHLEX-inspired theme and much of the previous layout were kept.
+    Settings for the active analysis appear in the main screen. Figure export
+    settings remain in the sidebar. Typography and scroll behavior were adjusted.
+21. Method settings persist when navigating between analysis sections. A warning
+    identifies changed settings that have not yet been used for a new fit.
+22. The original Group 1 and Group 2a sample-data loader is restored, with a
+    separate tab from the synthetic demonstration. The original CSVs are retained.
+23. Dataset roles, experiments, and repeats now use ordinary visible controls.
+    Background subtraction has real per-sample dropdowns and a control-group
+    selector in the main screen. The selected control files are listed.
+24. Assignment or subtraction edits require Apply before further analysis, so
+    previously prepared traces cannot be used with unapplied changes.
+25. The existing Hugging Face Space URL, Streamlit SDK, and CPU Basic hardware
+    are retained. The app displays version 0.5. A backup of the old Space exists.
+
+WHAT WAS VERIFIED
+
+Automated checks cover known-rate recovery, the log-scale confidence-interval
+formula against a numerical reference, repeat counting, negative-control
+subtraction and weighting, raw-data preservation, experiment separation,
+sampling boundaries, state invalidation, and the complete publication ZIP flow.
+The hosted app was exercised with three synthetic sample repeats and three
+matched negative controls through kinetic, kobs, equilibrium, repeat reporting,
+and publication ZIP download. The original sample files are also checked.
+
+LIMITS OF THESE CHECKS
+
+These checks do not certify every dataset or every legacy advanced model.
+Fit-covariance standard errors assume the supplied model and residual structure.
+Across-repeat intervals require genuinely independent Repeat IDs and reasonably
+well-behaved log estimates; small n gives limited uncertainty information.
+Control-subtraction uncertainty is not propagated jointly through the fits.
+Shared controls can correlate repeats. Equilibrium affinity requires evidence
+that responses have reached steady state. Quality scores are not p-values or
+confidence levels. Mass-transport and two-state models need further dedicated
+benchmarking. Automatic project restore is not implemented.

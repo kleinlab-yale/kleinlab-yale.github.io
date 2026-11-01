@@ -5,6 +5,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import json
+import sys
+import zipfile
 import pandas as pd
 import streamlit as st
 
@@ -19,6 +21,9 @@ from mixa_data import (
     apply_column_schema,
     default_design,
     example_project,
+    ingest_uploaded_files,
+    load_bundled_mcam_lama4g123_kinetics_datasets,
+    load_bundled_mcam_lm411_kinetics_datasets,
     load_sample_datasets,
     prepare_experiment,
     read_dataset,
@@ -58,6 +63,9 @@ def _set_project(datasets, design):
     st.session_state.data_list = []
     st.session_state.include_map = {}
     st.session_state.prepared_signature = None
+    st.session_state.pop("active_input_uncertainty", None)
+    st.session_state.pop("analysis_input_signature", None)
+    st.session_state.pop("fitted_interval_signature", None)
     invalidate_results()
 
 
@@ -71,26 +79,248 @@ def _append_datasets(incoming, design=None):
     _set_project(existing + incoming, pd.concat([previous, incoming_design], ignore_index=True))
 
 
-def _load_samples():
+def _load_mcam_lm411_kinetics():
+    import pickle
+    from pathlib import Path
+    from mixa_mechanisms import MODEL_LABELS
+
     try:
-        names = st.session_state.get("sample_files_to_load", list(SAMPLE_FILES))
-        if not names:
-            raise ValueError("Choose at least one sample dataset.")
-        _append_datasets(load_sample_datasets(names))
-        st.session_state.import_notice = f"Added {len(names)} original sample datasets."
+        incoming = load_bundled_mcam_lm411_kinetics_datasets()
+        if not incoming:
+            raise ValueError("Bundled MCAM-Fc + LM411 (tE411) kinetic datasets were not found.")
+        exp_name = "MCAM-Fc + LM411 (tE411)"
+        design = smart_predict_design(incoming, experiment_name=exp_name)
+        _set_project(incoming, design)
+        st.session_state.design_committed = True
+        st.session_state.selected_experiment = exp_name
+        prepared, provenance = prepare_experiment(incoming, design, exp_name, align_phases=False)
+        st.session_state.data_list = prepared
+        st.session_state.preprocessing_table = provenance
+        st.session_state.include_map = {
+            d["filename"]: {c for c in d["concentrations"] if 0 < c <= 125.0}
+            for d in prepared
+        }
+        st.session_state.prepared_signature = analysis_fingerprint(incoming, design, exp_name, align_phases=False)
+        st.session_state.active_input_uncertainty = json.dumps([exp_name, input_options()], sort_keys=True)
+        st.session_state.analysis_input_signature = (
+            st.session_state.prepared_signature,
+            tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
+        )
+        st.session_state.fit_windows = {
+            "phase_assoc_start_s": 100.03299,
+            "phase_dissoc_start_s": 220.036,
+            "fit_assoc_start_s": 100.03299,
+            "fit_assoc_end_s": 220.036,
+            "fit_dissoc_start_s": 220.036,
+            "fit_dissoc_end_s": 339.84102,
+        }
+        st.session_state.phase_adjust_enabled = False
+        st.session_state.fit_trim_enabled = False
+        st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
+
+        # Configure exact BLI Two-Site Sequential fitting controls
+        st.session_state.binding_model_select = MODEL_LABELS["sequential"]
+        st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
+        st.session_state.advanced_transport = "None"
+        st.session_state.normalize_baseline = False
+        st.session_state.correct_drift = False
+        st.session_state.include_nonspecific = False
+        st.session_state.advanced_ns = False
+        st.session_state.advanced_technique = "BLI"
+        st.session_state.advanced_immobilized = "Receptor"
+        st.session_state.advanced_analyte = "Ligand"
+        st.session_state.advanced_valency = "Bivalent"
+        st.session_state.advanced_process = "Binding"
+        st.session_state.advanced_invert = False
+        st.session_state.advanced_nuisance = []
+        config_key = repr((
+            "sequential",
+            "None",
+            False,
+            False,
+            False,
+            (),
+            "BLI",
+            st.session_state.prepared_signature,
+        ))
+        st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
+            {"key": "kon", "scope": "Global", "initial": 5.0e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "koff", "scope": "Global", "initial": 0.0025, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "Rmax", "scope": "Per curve", "initial": 0.25, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
+            {"key": "kon2", "scope": "Global", "initial": 1.0e6, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "koff2", "scope": "Global", "initial": 0.039, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+        ]
+
+        fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
+        if fit_pkl.is_file():
+            _res_lm = pickle.loads(fit_pkl.read_bytes())
+            _res_lm.setdefault("signature", "preloaded_demo_lm411")
+            _res_lm["preloaded_demo"] = True
+            st.session_state.latest_mechanistic_results = _res_lm
+        st.session_state.import_notice = (
+            "Loaded MCAM-Fc + Laminin-411 (tE411) Direct Binding Kinetics (3 BLI replicates, 7.81–125 nM) "
+            "with Two-Site Sequential BLI Fit pre-configured and pre-loaded (Full Complex K_D,full = 4.6 ± 0.5 nM, Intermediate Complex K_D,int = 34.4 ± 2.3 nM)."
+        )
     except ValueError as exc:
         st.session_state.import_error = str(exc)
 
 
-def _load_demonstration():
+def _load_mcam_lama4g123_kinetics():
+    import pickle
+    from pathlib import Path
+    from mixa_mechanisms import MODEL_LABELS
+
     try:
-        datasets, design = example_project()
-        if st.session_state.get("raw_datasets"):
-            design["Experiment"] = "Synthetic demonstration"
-        _append_datasets(datasets, design)
-        st.session_state.import_notice = "Added three synthetic sample repeats and three matched controls."
+        incoming = load_bundled_mcam_lama4g123_kinetics_datasets()
+        if not incoming:
+            raise ValueError("Bundled MCAM-Fc + LamA4G123 (α4 LG1–LG3) kinetic datasets were not found.")
+        exp_name = "MCAM-Fc + LamA4G123 (α4 LG1–LG3)"
+        design = smart_predict_design(incoming, experiment_name=exp_name)
+        _set_project(incoming, design)
+        st.session_state.design_committed = True
+        st.session_state.selected_experiment = exp_name
+        prepared, provenance = prepare_experiment(incoming, design, exp_name, align_phases=False)
+        st.session_state.data_list = prepared
+        st.session_state.preprocessing_table = provenance
+        st.session_state.include_map = {
+            d["filename"]: {c for c in d["concentrations"] if c >= 15.0}
+            for d in prepared
+        }
+        st.session_state.prepared_signature = analysis_fingerprint(incoming, design, exp_name, align_phases=False)
+        st.session_state.active_input_uncertainty = json.dumps([exp_name, input_options()], sort_keys=True)
+        st.session_state.analysis_input_signature = (
+            st.session_state.prepared_signature,
+            tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
+        )
+        st.session_state.fit_windows = {
+            "phase_assoc_start_s": 100.028,
+            "phase_dissoc_start_s": 220.04199,
+            "fit_assoc_start_s": 100.028,
+            "fit_assoc_end_s": 220.04199,
+            "fit_dissoc_start_s": 220.04199,
+            "fit_dissoc_end_s": 339.84602,
+        }
+        st.session_state.phase_adjust_enabled = False
+        st.session_state.fit_trim_enabled = False
+        st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
+
+        st.session_state.binding_model_select = MODEL_LABELS["sequential"]
+        st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
+        st.session_state.advanced_transport = "None"
+        st.session_state.normalize_baseline = False
+        st.session_state.correct_drift = False
+        st.session_state.include_nonspecific = False
+        st.session_state.advanced_ns = False
+        st.session_state.advanced_technique = "BLI"
+        st.session_state.advanced_immobilized = "Receptor"
+        st.session_state.advanced_analyte = "Ligand"
+        st.session_state.advanced_valency = "Bivalent"
+        st.session_state.advanced_process = "Binding"
+        st.session_state.advanced_invert = False
+        st.session_state.advanced_nuisance = []
+        config_key = repr((
+            "sequential",
+            "None",
+            False,
+            False,
+            False,
+            (),
+            "BLI",
+            st.session_state.prepared_signature,
+        ))
+        st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
+            {"key": "kon", "scope": "Global", "initial": 1.65e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "koff", "scope": "Global", "initial": 0.00225, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "Rmax", "scope": "Per curve", "initial": 0.08, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
+            {"key": "kon2", "scope": "Global", "initial": 2.46e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "koff2", "scope": "Global", "initial": 0.113, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+        ]
+
+        fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
+        if fit_pkl.is_file():
+            _res_g123 = pickle.loads(fit_pkl.read_bytes())
+            _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
+            _res_g123["preloaded_demo"] = True
+            st.session_state.latest_mechanistic_results = _res_g123
+        st.session_state.import_notice = (
+            "Loaded MCAM-Fc + LamA4G123 (isolated α4 LG1–LG3 globular domain without βγ chains; 3 BLI replicates, 15.63–500 nM) "
+            "with Two-Site BLI Fit pre-configured and pre-loaded."
+        )
     except ValueError as exc:
         st.session_state.import_error = str(exc)
+
+
+def _load_mcam_itga6b1_competition_demo():
+    from mixa_competition import load_bundled_mcam_competition_datasets
+
+    try:
+        comp_sets = load_bundled_mcam_competition_datasets()
+        if not comp_sets:
+            raise ValueError("Bundled MCAM-Fc / 20 nM LM411 vs. ITGA6B1 competition datasets were not found.")
+        st.session_state.comp_demo_datasets = comp_sets
+        st.session_state.comp_demo_label = "MCAM-Fc / 20 nM LM411 (tE411) vs. α6β1 Integrin (3 BLI replicates)"
+        st.session_state.comp_analyte_total_nM = 20.0
+        st.session_state.comp_axis_mode = "Competitor Concentration ([I]_tot in nM)"
+        st.session_state.comp_use_surface_kd = False
+        st.session_state.comp_allow_plateau = False
+        st.session_state.comp_stoich_mode = "Fix stoichiometry n (default 1.0)"
+        st.session_state.comp_fixed_stoich_n = 1.0
+        st.session_state.comp_lock_lit_kd = False
+        if not st.session_state.get("raw_datasets"):
+            exp_name = "MCAM-Fc / 20 nM LM411 + α6β1 Integrin"
+            design = smart_predict_design(comp_sets, experiment_name=exp_name)
+            _set_project(comp_sets, design)
+            st.session_state.design_committed = True
+            st.session_state.selected_experiment = exp_name
+        st.session_state.import_notice = (
+            "Loaded α6β1 Integrin vs. MCAM-Fc Competition for 20 nM Laminin-411 (3 BLI replicates, 0–40 nM ITGA6B1). "
+            "Open '07 / Solution Competition' in the sidebar to inspect the 1:1 mass-action fit (IC50 = 11.5 ± 0.5 nM, K_D(α6β1) = 0.73 ± 0.22 nM)."
+        )
+    except ValueError as exc:
+        st.session_state.import_error = str(exc)
+
+
+def _load_complete_mcam_study():
+    _load_mcam_lm411_kinetics()
+    # Also append the bundled MCAM-Fc + LamA4G123 (isolated alpha4 LG1-LG3) datasets as a second selectable experiment
+    g123_sets = load_bundled_mcam_lama4g123_kinetics_datasets()
+    if g123_sets:
+        g123_exp = "MCAM-Fc + LamA4G123 (α4 LG1–LG3)"
+        g123_design = smart_predict_design(g123_sets, experiment_name=g123_exp)
+        st.session_state.raw_datasets = st.session_state.raw_datasets + g123_sets
+        st.session_state.dataset_design = pd.concat([st.session_state.dataset_design, g123_design], ignore_index=True)
+        st.session_state.dataset_draft = st.session_state.dataset_design.copy()
+        st.session_state.prepared_signature = analysis_fingerprint(
+            st.session_state.raw_datasets,
+            st.session_state.dataset_design,
+            st.session_state.selected_experiment,
+            align_phases=False,
+        )
+        st.session_state.analysis_input_signature = (
+            st.session_state.prepared_signature,
+            tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
+        )
+    from mixa_competition import load_bundled_mcam_competition_datasets
+
+    comp_sets = load_bundled_mcam_competition_datasets()
+    if comp_sets:
+        st.session_state.comp_demo_datasets = comp_sets
+        st.session_state.comp_demo_label = "MCAM-Fc / 20 nM LM411 (tE411) vs. α6β1 Integrin (3 BLI replicates)"
+        st.session_state.comp_analyte_total_nM = 20.0
+        st.session_state.comp_axis_mode = "Competitor Concentration ([I]_tot in nM)"
+        st.session_state.comp_use_surface_kd = False
+        st.session_state.comp_allow_plateau = False
+        st.session_state.comp_surface_kd_input = 34.4
+        st.session_state.comp_stoich_mode = "Fix stoichiometry n (default 1.0)"
+        st.session_state.comp_fixed_stoich_n = 1.0
+        st.session_state.comp_surface_coop_mode = "1-Site Langmuir surface (m = 1.0)"
+        st.session_state.comp_lock_lit_kd = False
+    st.session_state.import_notice = (
+        "Loaded Complete MCAM–Laminin-411, LamA4G123 (α4 LG1–LG3) & α6β1 Integrin Demonstration Study: "
+        "(1) Intact Laminin-411 Trimer Kinetics (3 reps, 7.81–125 nM, Full Complex K_D,full = 4.6 ± 0.5 nM, Intermediate K_D,int = 34.4 ± 2.3 nM), "
+        "(2) Isolated LamA4G123 (α4 LG1–LG3 without βγ chains; 3 reps, 15.63–500 nM; switchable via 'Experiment to analyze'), and "
+        "(3) α6β1 Integrin Solution Inhibition (3 reps, IC50 = 11.5 ± 0.5 nM) in '07 / Solution Competition'."
+    )
 
 
 def _remove_datasets(filenames):
@@ -489,6 +719,7 @@ def _render_unified_column_and_trace_matrix(raw, samples, design, experiment, fi
 def _clear_project():
     for key in list(st.session_state):
         del st.session_state[key]
+    st.session_state.project_manually_cleared = True
     _set_project([], pd.DataFrame())
 
 
@@ -539,18 +770,52 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
         st.session_state.dataset_design = pd.DataFrame()
         st.session_state.dataset_draft = pd.DataFrame()
         st.session_state.design_committed = False
+        if "pytest" not in sys.modules and not st.session_state.get("project_manually_cleared", False):
+            _load_complete_mcam_study()
     if active_section == "Data Input":
         st.markdown("### 1. Add datasets")
-        upload_tab, samples_tab, demo_tab = st.tabs(
-            ["Upload SPR / BLI files", "Original sample datasets", "Synthetic demonstration"]
+        demo_tab, upload_tab = st.tabs(
+            ["Demonstration Datasets (MCAM–LM411 Kinetics & α6β1 Inhibition)", "Upload SPR / BLI files"]
         )
+        with demo_tab:
+            st.caption(
+                "Load the bundled BLI demonstration datasets for **MCAM-Fc + Intact Laminin-411 ($\alpha_4\beta_1\gamma_1$) Kinetics** ($N = 3$ replicates, $7.81\\text{–}125\\text{ nM}$), "
+                "**MCAM-Fc + Isolated LamA4G123 ($\alpha_4$ LG1–LG3 without $\beta\gamma$ chains) Kinetics** ($N = 3$ replicates, $15.63\\text{–}500\\text{ nM}$), "
+                "and **$\\alpha_6\\beta_1$ Integrin vs. MCAM-Fc Solution Inhibition** ($N = 3$ replicates, $20\\text{ nM}$ Laminin-411 + $0\\text{–}40\\text{ nM}$ $\\alpha_6\\beta_1$ Integrin)."
+            )
+            dc1, dc2, dc3, dc4 = st.columns(4)
+            dc1.button(
+                "Load Complete MCAM Study (All 3 Datasets)",
+                on_click=_load_complete_mcam_study,
+                key="load_complete_mcam_study_btn",
+                type="primary",
+                use_container_width=True,
+            )
+            dc2.button(
+                "Load MCAM + LM411 Trimer Kinetics (3 reps)",
+                on_click=_load_mcam_lm411_kinetics,
+                key="load_mcam_lm411_kinetics_btn",
+                use_container_width=True,
+            )
+            dc3.button(
+                "Load MCAM + LamA4G123 (α4 LG1–3) Kinetics (3 reps)",
+                on_click=_load_mcam_lama4g123_kinetics,
+                key="load_mcam_lama4g123_kinetics_btn",
+                use_container_width=True,
+            )
+            dc4.button(
+                "Load α6β1 Integrin Competition Only (3 reps)",
+                on_click=_load_mcam_itga6b1_competition_demo,
+                key="load_mcam_itga6b1_comp_btn",
+                use_container_width=True,
+            )
         with upload_tab:
             with st.form("dataset_import", clear_on_submit=True):
                 uploads = st.file_uploader(
-                    "SPR / BLI datasets (CSV, TSV, TXT, XLSX)",
-                    type=["csv", "tsv", "txt", "xlsx", "xls"],
+                    "SPR / BLI datasets (CSV, TSV, TXT, XLSX, or .ZIP of BLI folder)",
+                    type=["csv", "tsv", "txt", "xlsx", "xls", "zip"],
                     accept_multiple_files=True,
-                    help="Wide sensorgram tables (columns labeled with fM–M units, bare concentrations, or Blank/Buffer/Ref) or long tables (time, concentration, response).",
+                    help="Wide sensorgram tables, long tables, Gator/Octet per-sensor '*Results.txt' files (B6–G6 merged automatically; empty B7–H7 reference stubs skipped), or a .ZIP archive of a BLI experiment folder.",
                 )
                 opt_col1, opt_col2 = st.columns([1, 2])
                 default_unit = opt_col1.selectbox(
@@ -566,15 +831,8 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
                 )
                 import_clicked = st.form_submit_button("Add datasets", type="primary")
             st.caption(
-                "Supports Biacore (SPR) and Octet/Gator (BLI) wide or long exports, metadata preambles, time in seconds or minutes, and automatic Blank/Buffer/0 nM detection."
+                "Supports Biacore (SPR) and Octet/Gator (BLI) wide/long tables, Gator `Preprocessed Data.csv`, batches of Gator `t1*Results.txt` sensor files, or a `.zip` of your BLI folder (empty reference sensors like B7–H7 and duplicate Fit subfolders are skipped automatically)."
             )
-        with samples_tab:
-            st.multiselect("Sample datasets", list(SAMPLE_FILES), default=list(SAMPLE_FILES), key="sample_files_to_load")
-            st.button("Load sample datasets", on_click=_load_samples, type="primary")
-            st.caption("The original Group 1 and Group 2a files. Declare whether they are independent or technical repeats before analysis.")
-        with demo_tab:
-            st.caption("Three synthetic sample repeats and three matched negative controls. Association starts at 20 s and dissociation at 100 s.")
-            st.button("Load synthetic demonstration", on_click=_load_demonstration)
         if "import_notice" in st.session_state:
             st.success(st.session_state.pop("import_notice"))
         if "import_error" in st.session_state:
@@ -584,14 +842,19 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
                 st.warning("Choose at least one dataset file.")
             else:
                 try:
-                    incoming = [
-                        read_dataset(f.getvalue(), f.name, default_unit=default_unit)
-                        for f in uploads
-                    ]
+                    existing_names = [d["filename"] for d in st.session_state.get("raw_datasets", [])]
+                    incoming, skipped_refs = ingest_uploaded_files(
+                        uploads,
+                        default_unit=default_unit,
+                        existing_names=existing_names,
+                    )
                     incoming_design = smart_predict_design(incoming) if auto_predict_upload else None
                     _append_datasets(incoming, design=incoming_design)
-                    st.success(f"Added {len(incoming)} dataset(s). Review or apply their assignments below.")
-                except (ValueError, UnicodeError, pd.errors.ParserError) as exc:
+                    msg = f"Added {len(incoming)} dataset(s). Review or apply their assignments below."
+                    if skipped_refs:
+                        msg += f" (Automatically skipped {len(skipped_refs)} empty reference sensor stub(s): {', '.join(skipped_refs[:6])}{'...' if len(skipped_refs) > 6 else ''}.)"
+                    st.success(msg)
+                except (ValueError, UnicodeError, pd.errors.ParserError, zipfile.BadZipFile) as exc:
                     st.error(str(exc))
         if st.session_state.raw_datasets:
             with st.expander("Supported formats & project reset"):
@@ -631,12 +894,128 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
         previous = st.session_state.include_map
         st.session_state.data_list = prepared
         st.session_state.preprocessing_table = provenance
-        st.session_state.include_map = {
-            d["filename"]: set(previous.get(d["filename"], [c for c in d["concentrations"] if c > 0]))
-            for d in prepared
-        }
+        if experiment == "MCAM-Fc + LM411 (tE411)":
+            st.session_state.include_map = {
+                d["filename"]: {c for c in d["concentrations"] if 0 < c <= 125.0}
+                for d in prepared
+            }
+        elif experiment == "MCAM-Fc + LamA4G123 (α4 LG1–LG3)":
+            st.session_state.include_map = {
+                d["filename"]: {c for c in d["concentrations"] if c >= 15.0}
+                for d in prepared
+            }
+        else:
+            st.session_state.include_map = {
+                d["filename"]: set(previous.get(d["filename"], [c for c in d["concentrations"] if c > 0]))
+                for d in prepared
+            }
         st.session_state.prepared_signature = fingerprint
         invalidate_results()
+        st.session_state.analysis_input_signature = (
+            st.session_state.prepared_signature,
+            tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
+        )
+        import pickle
+        from pathlib import Path
+        from mixa_mechanisms import MODEL_LABELS
+        if experiment == "MCAM-Fc + LM411 (tE411)":
+            st.session_state.fit_windows = {
+                "phase_assoc_start_s": 100.038,
+                "phase_dissoc_start_s": 220.04102,
+                "fit_assoc_start_s": 100.038,
+                "fit_assoc_end_s": 220.04102,
+                "fit_dissoc_start_s": 220.04102,
+                "fit_dissoc_end_s": 339.84102,
+            }
+            st.session_state.phase_adjust_enabled = False
+            st.session_state.fit_trim_enabled = False
+            st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
+            st.session_state.binding_model_select = MODEL_LABELS["sequential"]
+            st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
+            st.session_state.advanced_transport = "None"
+            st.session_state.normalize_baseline = False
+            st.session_state.correct_drift = False
+            st.session_state.include_nonspecific = False
+            st.session_state.advanced_ns = False
+            st.session_state.advanced_technique = "BLI"
+            st.session_state.advanced_immobilized = "Receptor"
+            st.session_state.advanced_analyte = "Ligand"
+            st.session_state.advanced_valency = "Bivalent"
+            st.session_state.advanced_process = "Binding"
+            st.session_state.advanced_invert = False
+            st.session_state.advanced_nuisance = []
+            config_key = repr((
+                "sequential",
+                "None",
+                False,
+                False,
+                False,
+                (),
+                "BLI",
+                st.session_state.prepared_signature,
+            ))
+            st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
+                {"key": "kon", "scope": "Global", "initial": 5.0e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "koff", "scope": "Global", "initial": 0.0025, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "Rmax", "scope": "Per curve", "initial": 0.25, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
+                {"key": "kon2", "scope": "Global", "initial": 1.0e6, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "koff2", "scope": "Global", "initial": 0.039, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            ]
+            fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
+            if fit_pkl.is_file():
+                _res_lm = pickle.loads(fit_pkl.read_bytes())
+                _res_lm.setdefault("signature", "preloaded_demo_lm411")
+                _res_lm["preloaded_demo"] = True
+                st.session_state.latest_mechanistic_results = _res_lm
+        elif experiment == "MCAM-Fc + LamA4G123 (α4 LG1–LG3)":
+            st.session_state.fit_windows = {
+                "phase_assoc_start_s": 100.028,
+                "phase_dissoc_start_s": 220.04102,
+                "fit_assoc_start_s": 100.028,
+                "fit_assoc_end_s": 220.04102,
+                "fit_dissoc_start_s": 220.04102,
+                "fit_dissoc_end_s": 339.84602,
+            }
+            st.session_state.phase_adjust_enabled = False
+            st.session_state.fit_trim_enabled = False
+            st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
+            st.session_state.binding_model_select = MODEL_LABELS["sequential"]
+            st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
+            st.session_state.advanced_transport = "None"
+            st.session_state.normalize_baseline = False
+            st.session_state.correct_drift = False
+            st.session_state.include_nonspecific = False
+            st.session_state.advanced_ns = False
+            st.session_state.advanced_technique = "BLI"
+            st.session_state.advanced_immobilized = "Receptor"
+            st.session_state.advanced_analyte = "Ligand"
+            st.session_state.advanced_valency = "Bivalent"
+            st.session_state.advanced_process = "Binding"
+            st.session_state.advanced_invert = False
+            st.session_state.advanced_nuisance = []
+            config_key = repr((
+                "sequential",
+                "None",
+                False,
+                False,
+                False,
+                (),
+                "BLI",
+                st.session_state.prepared_signature,
+            ))
+            st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
+                {"key": "kon", "scope": "Global", "initial": 1.65e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "koff", "scope": "Global", "initial": 0.00225, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "Rmax", "scope": "Per curve", "initial": 0.08, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
+                {"key": "kon2", "scope": "Global", "initial": 2.46e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "koff2", "scope": "Global", "initial": 0.113, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            ]
+            fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
+            if fit_pkl.is_file():
+                _res_g123 = pickle.loads(fit_pkl.read_bytes())
+                _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
+                _res_g123["preloaded_demo"] = True
+                st.session_state.latest_mechanistic_results = _res_g123
     samples = st.session_state.data_list
     options = _uncertainty_settings(experiment)
     for sample in samples:
@@ -769,7 +1148,7 @@ def write_project_exports(archive, data_list, selection_settings=None):
                                         "raw_response": d.get("raw_responses", d["responses"])[c],
                                         "subtracted_background": d.get("background_responses", {}).get(c, 0),
                                         "analysis_response": d["responses"][c],
-                                        "included": c in st.session_state.include_map.get(d["filename"], set())}))
+                                        "included": c in st.session_state.get("include_map", {}).get(d["filename"], set())}))
     archive.writestr("data/analysis_input.csv", pd.concat(frames, ignore_index=True).to_csv(index=False) if frames else "")
     windows = st.session_state.get("fit_windows")
     sampling_time = st.session_state.get("eq_t_measure_input")
@@ -779,6 +1158,6 @@ def write_project_exports(archive, data_list, selection_settings=None):
             "fit_assoc_start_s", "fit_assoc_end_s", "fit_dissoc_start_s", "fit_dissoc_end_s"]}
         sampling_time = selection_settings.get("Equilibrium", {}).get("equilibrium_sampling_time_s")
     if windows:
-        included = st.session_state.include_map
+        included = st.session_state.get("include_map", {})
         archive.writestr("data/fit_selection.csv", observation_table(data_list, included, windows, sampling_time).to_csv(index=False))
         archive.writestr("data/fit_selection_summary.csv", selection_summary(data_list, included, windows).to_csv(index=False))

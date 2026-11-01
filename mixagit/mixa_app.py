@@ -49,6 +49,7 @@ from mixa_mechanistic_ui import render_mechanistic_workspace
 from mixa_mechanisms import (MODEL_LABELS, TRANSPORT_LABELS, fit_mechanism,
                              mechanistic_to_kinetic_summary, parameter_defaults, prepare_curves)
 from mixa_assistant_ui import render_fitting_assistant
+from mixa_competition import render_solution_competition_section
 
 # -----------------------------------------------------------------------------
 # Page configuration
@@ -709,6 +710,10 @@ SECTION_INTROS = {
         "Publication Report",
         "Review independent repeats, confidence intervals, figures, and analysis records.",
     ),
+    "Solution Competition": (
+        "Solution Competition & Epitope Inhibition",
+        "Quantify true in-solution affinity (K_D,sol), active stoichiometry (n), IC50 molar ratios, and epitope blocking from constant-analyte competition titrations.",
+    ),
 }
 
 WORKFLOW_STEPS = [
@@ -741,6 +746,11 @@ WORKFLOW_STEPS = [
         "id": "Publication Report",
         "label": "06 / Publication Report",
         "caption": "Repeat statistics and figures",
+    },
+    {
+        "id": "Solution Competition",
+        "label": "07 / Solution Competition",
+        "caption": "Molar-ratio inhibition & K_D,sol",
     },
     {
         "id": "Kinetic Model Selector",
@@ -1099,7 +1109,10 @@ def estimate_kinetic_start_points(time, response, conc_M, t_start, t_end):
     if np.any(dissoc_mask):
         td = time[dissoc_mask] - float(t_end)
         yd = response[dissoc_mask]
-        mask = yd > max(1e-12, np.percentile(yd, 25))
+        yd0 = float(np.median(yd[:min(5, len(yd))])) if len(yd) else 0.0
+        mask = yd > max(1e-12, 0.35 * yd0 if yd0 > 0 else np.percentile(yd, 25))
+        if np.sum(mask) < 4:
+            mask = yd > max(1e-12, np.percentile(yd, 25))
         if np.sum(mask) >= 4:
             try:
                 slope, _ = np.polyfit(td[mask], np.log(np.maximum(yd[mask], 1e-12)), 1)
@@ -2030,15 +2043,15 @@ def _shared_kinetics_fit(
             t = c["time"]
             y = c["response"]
             pre = t < t_start
+            selected_y = y[c["fit_mask"]]
+            data_span = float(np.max(selected_y) - np.min(selected_y) + 1e-9)
             if np.any(pre):
                 og = float(np.median(y[pre]))
                 spread = float(np.std(y[pre]) + 1e-9)
+                bound = max(5.0 * spread, data_span, 1e-3)
             else:
-                og = float(np.median(y))
-                spread = float(np.std(y) + 1e-9)
-            selected_y = y[c["fit_mask"]]
-            data_span = float(np.max(selected_y) - np.min(selected_y) + 1e-9)
-            bound = max(5.0 * spread, data_span, 1e-3)
+                og = 0.0
+                bound = max(0.14 * data_span, 1e-4)
             offset_guess.append(og)
             offset_ub.append(bound)
 
@@ -2164,7 +2177,7 @@ def _shared_kinetics_fit(
         max_nfev_local = int(max(2500, max_nfev))
     else:
         kon_scales = [0.5, 1.0, 2.0]
-        koff_scales = [0.5, 1.0, 2.0]
+        koff_scales = [0.25, 1.0, 4.0]
         kmt_scales = [1.0] if model == "1:1" else [0.5, 1.0, 2.0]
         ns_scales = [0.5, 1.0, 2.0] if include_nonspecific else [1.0]
         max_nfev_local = int(max(3000, max_nfev))
@@ -5988,6 +6001,11 @@ def legacy_main():
             data["day"] = f"Day{match.group(1)}" if match else "Day1"
 
     if not st.session_state.data_list:
+        if active_section == "Solution Competition":
+            render_solution_competition_section()
+            st.markdown("---")
+            render_app_footer()
+            return
         if st.session_state.get("raw_datasets"):
             st.info("Apply the dataset assignments in Data Input to continue.")
         elif active_section == "Data Input":
@@ -6127,6 +6145,24 @@ def legacy_main():
     if st.session_state.get("fitted_interval_signature") != interval_signature:
         invalidate_results()
         st.session_state.fitted_interval_signature = interval_signature
+    if st.session_state.get("latest_mechanistic_results") is None:
+        import pickle
+        from pathlib import Path
+        _exp_cur = st.session_state.get("selected_experiment")
+        if _exp_cur == "MCAM-Fc + LM411 (tE411)":
+            _pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
+            if _pkl.is_file():
+                _res_lm = pickle.loads(_pkl.read_bytes())
+                _res_lm.setdefault("signature", "preloaded_demo_lm411")
+                _res_lm["preloaded_demo"] = True
+                st.session_state.latest_mechanistic_results = _res_lm
+        elif _exp_cur == "MCAM-Fc + LamA4G123 (α4 LG1–LG3)":
+            _pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
+            if _pkl.is_file():
+                _res_g123 = pickle.loads(_pkl.read_bytes())
+                _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
+                _res_g123["preloaded_demo"] = True
+                st.session_state.latest_mechanistic_results = _res_g123
     observation_counts = selection_summary(st.session_state.data_list, st.session_state.include_map, st.session_state.fit_windows)
     if active_section in {"Data Input", "Kinetic Analysis", "kobs Linearization"}:
         with st.expander("Included traces and observation counts"):
@@ -6204,6 +6240,24 @@ def legacy_main():
 
     if active_section == "Kinetic Analysis":
         st.markdown("### Kinetic Fitting Analysis")
+        from mixa_workspace import _load_mcam_lm411_kinetics, _load_mcam_lama4g123_kinetics
+        _cur_exp = st.session_state.get("selected_experiment", "")
+        st.caption("**Quick-Switch Demonstration Kinetic Datasets (Pre-Fitted Two-Site BLI Models):**")
+        _qcol1, _qcol2 = st.columns(2)
+        _qcol1.button(
+            "Intact Laminin-411 Trimer (tE411, α4β1γ1) — 7.81–125 nM (3 reps)",
+            on_click=_load_mcam_lm411_kinetics,
+            key="kin_quick_switch_lm411",
+            type="primary" if _cur_exp == "MCAM-Fc + LM411 (tE411)" else "secondary",
+            use_container_width=True,
+        )
+        _qcol2.button(
+            "Isolated LamA4G123 (α4 LG1–LG3 Only, no βγ) — 15.63–500 nM (3 reps)",
+            on_click=_load_mcam_lama4g123_kinetics,
+            key="kin_quick_switch_g123",
+            type="primary" if _cur_exp == "MCAM-Fc + LamA4G123 (α4 LG1–LG3)" else "secondary",
+            use_container_width=True,
+        )
         if st.button("How fitting works", key="kinetic_fitting_education"):
             render_fitting_education()
         st.caption(
@@ -7616,6 +7670,9 @@ def legacy_main():
             "kobs": fit_kobs_linearization,
             "equilibrium": fit_equilibrium_advanced,
         })
+
+    if active_section == "Solution Competition":
+        render_solution_competition_section()
 
     st.markdown("---")
     with st.expander("❓ FAQ & Help"):

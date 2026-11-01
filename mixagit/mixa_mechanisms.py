@@ -35,16 +35,16 @@ class Parameter:
 MODEL_LABELS = {
     "langmuir": "1:1 binding",
     "two_state": "Two-state conformational binding",
-    "heterogeneous": "Two independent surface populations",
+    "heterogeneous": "Two independent surface populations (2:1)",
     "bivalent": "Bivalent analyte / surface avidity",
-    "sequential": "Sequential binding of two analyte molecules",
+    "sequential": "Two-Site Sequential (Full & Intermediate Complex)",
 }
 MODEL_NOTES = {
     "langmuir": "A + L <-> AL. One intrinsic KD under this model.",
     "two_state": "A + L <-> AL <-> AL*. Overall KD differs from the first-step microscopic KD.",
     "heterogeneous": "Two independent populations, each with its own rates and capacity. This does not establish molecular stoichiometry or identify either population as nonspecific.",
     "bivalent": "A has two equivalent arms. First capture has factor 2; opening a doubly bound complex has factor 2. Second capture is surface-density dependent. Signal counts bound analyte, not occupied ligand sites. No single intrinsic avidity KD is reported.",
-    "sequential": "A + L <-> AL; A + AL <-> A2L. The second analyte adds signal: response = AL + 2*A2L. Stepwise constants do not establish this mechanism or measured stoichiometry.",
+    "sequential": "Two-Site Sequential Binding: Full Complex (KD,full = koff,1 / kon,1, both sites bound) and Intermediate/Partial Complex (KD,int = koff,2 / kon,2, initial 1-site contact).",
 }
 TRANSPORT_LABELS = ["None", "Quasi-steady 1:1 transport", "Two-compartment transport"]
 SCOPES = ["Global", "Per repeat", "Per file", "Per curve", "Per surface"]
@@ -203,9 +203,16 @@ def binding_prediction(time_s, concentration_M, on, off, parameters, model="lang
     analytic = transport == "None" and model in {"langmuir", "heterogeneous", "two_state", "sequential"}
     if analytic:
         if model == "sequential":
-            states = _sequential_states(t, concentration_M, on, off, p)
-            component["state_1_response"], component["state_2_response"] = states[0], 2*states[1]
-            target = states[0]+2*states[1]
+            if "site1_fraction" in p:
+                theta = float(np.clip(p["site1_fraction"], 0.0, 1.0))
+                s1 = _one_to_one(t, p["kon"], p["koff"], theta * p["Rmax"], concentration_M, on, off)
+                s2 = _one_to_one(t, p["kon2"], p["koff2"], (1.0 - theta) * p["Rmax"], concentration_M, on, off)
+                component["state_1_response"], component["state_2_response"] = s1, s2
+                target = s1 + s2
+            else:
+                states = _sequential_states(t, concentration_M, on, off, p)
+                component["state_1_response"], component["state_2_response"] = states[0], 2*states[1]
+                target = states[0]+2*states[1]
         elif model == "two_state":
             target = two_state_signal(t, p["kon"], p["koff"], p["Rmax"], p["k_forward"], p["k_reverse"], concentration_M, on, off)
             component["specific"] = target.copy()
@@ -319,7 +326,7 @@ def prepare_curves(data_list, include_map, windows, normalize=True):
                 continue
             y = np.asarray(data["responses"][c], float).copy()
             baseline = float(np.median(y[masks["baseline"]])) if normalize and masks["baseline"].any() else 0.
-            if normalize and not masks["baseline"].any():
+            if normalize and not masks["baseline"].any() and not data.get("baseline_prealigned", False):
                 raise ValueError(f"{filename}, {c:g} nM: baseline normalization needs pre-association observations.")
             if masks["kinetic"].sum() < 8:
                 raise ValueError(f"{filename}, {c:g} nM: fewer than eight selected observations.")
@@ -430,6 +437,30 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         return values
 
     deadline = time.perf_counter() + runtime_s
+    use_two_site_split = (
+        model == "sequential"
+        and transport == "None"
+        and any(r.key == "Rmax" and not r.fixed for r in rules)
+    )
+
+    def _with_curve_fraction(curve, mask, p):
+        if not use_two_site_split or "site1_fraction" in p:
+            return p
+        t_m = curve["time"][mask]
+        c_M = curve["concentration_M"]
+        on_t, off_t = curve["on"], curve["off"]
+        u1 = _one_to_one(t_m, p["kon"], p["koff"], 1.0, c_M, on_t, off_t)
+        u2 = _one_to_one(t_m, p["kon2"], p["koff2"], 1.0, c_M, on_t, off_t)
+        y_adj = curve["response"][mask] - p.get("offset", 0.0) - p.get("drift", 0.0) * (t_m - on_t)
+        if "ns_linear" in p:
+            y_adj = y_adj - p["ns_linear"] * c_M * np.clip(np.minimum(t_m, off_t) - on_t, 0.0, None)
+        if nonspecific:
+            y_adj = y_adj - _one_to_one(t_m, p["ns_kon"], p["ns_koff"], p["ns_Rmax"], c_M, on_t, off_t)
+        du = u1 - u2
+        rmax = max(float(p["Rmax"]), 1e-15)
+        denom = rmax * float(du @ du) + 1e-30
+        theta = float(np.clip(float((y_adj - rmax * u2) @ du) / denom, 0.0, 1.0))
+        return {**p, "site1_fraction": theta}
 
     def residual_fn(z):
         if time.perf_counter() > deadline:
@@ -437,7 +468,7 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         values, residuals = decode(z), []
         for curve, keys in zip(curves, curve_keys):
             mask = np.asarray(curve["fit_mask"], bool)
-            p = {key: values[instance] for key, instance in keys.items()}
+            p = _with_curve_fraction(curve, mask, {key: values[instance] for key, instance in keys.items()})
             pred = binding_prediction(curve["time"][mask], curve["concentration_M"], curve["on"], curve["off"], p,
                                       model, transport, nonspecific)
             residual, _ = _whiten(curve["response"][mask] - pred, curve["time"][mask], correlation_time)
@@ -516,7 +547,7 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
             concentration_derivatives = []
             for curve, keys in zip(curves, curve_keys):
                 mask = curve["fit_mask"]
-                p = {key: values[instance] for key, instance in keys.items()}
+                p = _with_curve_fraction(curve, mask, {key: values[instance] for key, instance in keys.items()})
                 plus = binding_prediction(curve["time"][mask], curve["concentration_M"]*np.exp(1e-5), curve["on"], curve["off"], p, model, transport, nonspecific)
                 minus = binding_prediction(curve["time"][mask], curve["concentration_M"]*np.exp(-1e-5), curve["on"], curve["off"], p, model, transport, nonspecific)
                 derivative, _ = _whiten(-(plus-minus)/(2e-5), curve["time"][mask], correlation_time)
@@ -541,7 +572,8 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
                           **local_precision(values[key], se, rule.fixed or key in forced_values)))
     fitted_curves, noise_logdet = [], 0.
     for curve, keys in zip(curves, curve_keys):
-        p = {key: values[instance] for key, instance in keys.items()}
+        mask = np.asarray(curve["fit_mask"], bool)
+        p = _with_curve_fraction(curve, mask, {key: values[instance] for key, instance in keys.items()})
         prediction, components = binding_prediction(curve["time"], curve["concentration_M"], curve["on"], curve["off"], p,
                                                     model, transport, nonspecific, return_components=True)
         raw = curve["response"] - prediction

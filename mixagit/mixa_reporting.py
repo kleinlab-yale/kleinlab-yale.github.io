@@ -586,8 +586,166 @@ def render_publication_report(engines):
             render_assisted_publication(assisted, st.session_state.data_list)
     if mechanistic:
         from mixa_mechanistic_ui import render_mechanistic_publication
-        with st.expander("Manual mechanistic kinetic figures and parameter results", expanded=not bool(available) and not bool(assisted)):
+        with st.expander("Direct Binding Kinetics — Title-Free Illustrator Panels, Prism CSVs & Figure Legend", expanded=True):
             render_mechanistic_publication(mechanistic, st.session_state.data_list)
+
+    # Also render Solution Competition Publication Panels & Prism CSVs in Publication Report
+    from mixa_competition import (
+        load_bundled_mcam_competition_datasets,
+        extract_competition_points_from_datasets,
+        fit_solution_competition,
+        build_simple_competition_publication_figure,
+        build_competition_panel_a_sensorgrams,
+        build_competition_panel_b_inhibition_curve,
+        build_competition_figure_legend,
+        build_competition_prism_and_summary_tables,
+        build_competition_export_bundle,
+    )
+    comp_sets = st.session_state.get("comp_demo_datasets") or load_bundled_mcam_competition_datasets()
+    if comp_sets:
+        with st.expander("Solution Inhibition / Competition — Title-Free Illustrator Panels (Panel A & Panel B), Prism CSVs & Figure Legend", expanded=True):
+            pts_c, traces_c, _, _ = extract_competition_points_from_datasets(
+                comp_sets,
+                analyte_total_nM=float(st.session_state.get("comp_analyte_total_nM", 20.0)),
+                axis_mode="Competitor Concentration ([I]_tot in nM)",
+            )
+            comp_res_pub = st.session_state.get("latest_competition_results")
+            if comp_res_pub is None:
+                comp_res_pub = fit_solution_competition(
+                    pts_c["Competitor [I] (nM)"].to_numpy(dtype=float),
+                    pts_c["Observed Response"].to_numpy(dtype=float),
+                    20.0,
+                    stoichiometry=1.0,
+                    fit_stoichiometry=False,
+                    allow_residual_plateau=False,
+                    surface_kd_nM=None,
+                    surface_cooperativity=1.0,
+                    bidentate_two_site=False,
+                    repeat_ids=pts_c["Repeat ID"].astype(str).to_numpy(),
+                )
+                st.session_state.latest_competition_results = comp_res_pub
+            fig_comp_prev = build_simple_competition_publication_figure(comp_res_pub, sensorgram_traces=traces_c, show_title=False)
+            show_figure(fig_comp_prev)
+            plt.close(fig_comp_prev)
+            st.info(build_competition_figure_legend(comp_res_pub))
+
+            fig_pa_pub = build_competition_panel_a_sensorgrams(comp_res_pub, sensorgram_traces=traces_c, show_title=False)
+            fig_pb_pub = build_competition_panel_b_inhibition_curve(comp_res_pub, show_title=False)
+            pa_c, pb_c = st.columns(2)
+            with pa_c:
+                st.markdown("**Panel A Only — BLI Sensorgrams (No Title)**")
+                for col_f, fmt in zip(st.columns(3), ("pdf", "svg", "png")):
+                    buf_pa = io.BytesIO()
+                    fig_pa_pub.savefig(buf_pa, format=fmt, dpi=600 if fmt == "png" else 300, bbox_inches="tight")
+                    col_f.download_button(
+                        f"Panel A ({fmt.upper()})",
+                        buf_pa.getvalue(),
+                        f"competition_panel_A_sensorgrams_notitle.{fmt}",
+                        {"pdf": "application/pdf", "svg": "image/svg+xml", "png": "image/png"}[fmt],
+                        key=f"pub_rep_comp_pa_{fmt}",
+                        use_container_width=True,
+                        on_click="ignore",
+                    )
+            with pb_c:
+                st.markdown("**Panel B Only — Solution Inhibition Curve (No Title)**")
+                for col_f, fmt in zip(st.columns(3), ("pdf", "svg", "png")):
+                    buf_pb = io.BytesIO()
+                    fig_pb_pub.savefig(buf_pb, format=fmt, dpi=600 if fmt == "png" else 300, bbox_inches="tight")
+                    col_f.download_button(
+                        f"Panel B ({fmt.upper()})",
+                        buf_pb.getvalue(),
+                        f"competition_panel_B_inhibition_curve_notitle.{fmt}",
+                        {"pdf": "application/pdf", "svg": "image/svg+xml", "png": "image/png"}[fmt],
+                        key=f"pub_rep_comp_pb_{fmt}",
+                        use_container_width=True,
+                        on_click="ignore",
+                    )
+            plt.close(fig_pa_pub)
+            plt.close(fig_pb_pub)
+
+            p_pa_df, p_pb_data_df, p_pb_fit_df, p_par_df = build_competition_prism_and_summary_tables(
+                comp_res_pub, sensorgram_traces=traces_c
+            )
+            st.markdown("**GraphPad Prism XY Data & Parameter/Error CSV Tables**")
+            pc1, pc2, pc3, pc4 = st.columns(4)
+            pc1.download_button(
+                "Panel B Data + Replicates + Fit (.csv)",
+                p_pb_data_df.to_csv(index=False).encode("utf-8"),
+                "prism_competition_panelB_inhibition_data.csv",
+                "text/csv",
+                key="pub_rep_prism_pb_data",
+                use_container_width=True,
+                on_click="ignore",
+            )
+            pc2.download_button(
+                "Panel B Smooth Fit Curve (.csv)",
+                p_pb_fit_df.to_csv(index=False).encode("utf-8"),
+                "prism_competition_panelB_smooth_fit_curve.csv",
+                "text/csv",
+                key="pub_rep_prism_pb_fit",
+                use_container_width=True,
+                on_click="ignore",
+            )
+            pc3.download_button(
+                "Panel A Sensorgrams XY (.csv)",
+                p_pa_df.to_csv(index=False).encode("utf-8"),
+                "prism_competition_panelA_sensorgrams.csv",
+                "text/csv",
+                key="pub_rep_prism_pa",
+                use_container_width=True,
+                on_click="ignore",
+            )
+            pc4.download_button(
+                "Fit Parameters, KDs & Errors (.csv)",
+                p_par_df.to_csv(index=False).encode("utf-8"),
+                "competition_parameters_and_errors.csv",
+                "text/csv",
+                key="pub_rep_prism_par",
+                use_container_width=True,
+                on_click="ignore",
+            )
+            st.dataframe(p_par_df, use_container_width=True, hide_index=True)
+            comp_zip = build_competition_export_bundle(comp_res_pub, sensorgram_traces=traces_c)
+            st.download_button(
+                "Download Complete Solution Competition Export Bundle (.zip)",
+                comp_zip,
+                "mixa_solution_competition_bundle.zip",
+                "application/zip",
+                key="pub_rep_comp_zip",
+                use_container_width=True,
+                on_click="ignore",
+            )
+
+    pub_out_dir = Path(__file__).resolve().parent / "publication_outputs"
+    if (pub_out_dir / "conclusion_mechanistic_model_full.png").is_file():
+        with st.expander("Conclusion Schematic — Integrative Mechanistic Model (2D Cell–Matrix Migration vs. 3D Soluble sMCAM Blockade)", expanded=True):
+            st.image(str(pub_out_dir / "conclusion_mechanistic_model_full.png"), use_container_width=True)
+            st.info(
+                "**Figure Legend — Model of MCAM vs. $\\alpha_6\\beta_1$ Integrin Competition on Laminin-411:** "
+                "**(A) Membrane MCAM Cannot Block $\\alpha_6\\beta_1$ Integrin–Driven Migration:** Both MCAM (via domains $\\text{V2–C1}$) and $\\alpha_6\\beta_1$ integrin recognize overlapping binding sites on the $\\text{LG1–LG2}$ domains of Laminin-411 ($\\text{LG3}$ is uninvolved). When co-expressed on the cell surface, both receptors and matrix Laminin-411 are spatially restricted in 2D, and $\\alpha_6\\beta_1$ integrin binds Laminin-411 with $>6\\text{-fold}$ higher affinity than MCAM. Consequently, membrane-tethered MCAM cannot outcompete or globally deplete Laminin-411, allowing $\\alpha_6\\beta_1$ integrin engagement and cell migration to proceed. "
+                "**(B) High Soluble MCAM (`sMCAM`) Inhibits Cell Migration:** When supplied at high concentration in 3D solution, freely diffusing soluble MCAM ($\\text{sMCAM}$) overcomes both 2D spatial restriction and its lower affinity by globally saturating $\\text{LG1–LG2}$ across the Laminin-411 matrix, sterically blocking $\\alpha_6\\beta_1$ integrin binding and inhibiting cell migration."
+            )
+            st.markdown("**Download Combined or Separate Title-Free Illustrator Panels (`PDF`, `SVG`, `600 DPI PNG`)**")
+            sc1, sc2, sc3 = st.columns(3)
+            for col_s, lbl_s, stem_s in [
+                (sc1, "Combined 2-Panel (No Title)", "conclusion_mechanistic_model_notitle"),
+                (sc2, "Panel A Only: 2D Migration (No Title)", "conclusion_panel_A_2D_cell_migration_notitle"),
+                (sc3, "Panel B Only: 3D sMCAM Block (No Title)", "conclusion_panel_B_3D_soluble_mcam_block_notitle"),
+            ]:
+                with col_s:
+                    st.caption(f"**{lbl_s}**")
+                    for fmt in ("pdf", "svg", "png"):
+                        f_p = pub_out_dir / f"{stem_s}.{fmt}"
+                        if f_p.is_file():
+                            st.download_button(
+                                f"{fmt.upper()}",
+                                f_p.read_bytes(),
+                                f"{stem_s}.{fmt}",
+                                {"pdf": "application/pdf", "svg": "image/svg+xml", "png": "image/png"}[fmt],
+                                key=f"pub_schem_{stem_s}_{fmt}",
+                                use_container_width=True,
+                                on_click="ignore",
+                            )
     if available and "Kinetic" not in available:
         if mechanistic:
             bridged = mechanistic_to_kinetic_summary(mechanistic)

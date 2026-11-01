@@ -312,13 +312,28 @@ exploratory RSS profiles are not a claim to reproduce either paper's complete
 inference procedure. AICc foundation: [Hurvich and Tsai,
 1989](https://doi.org/10.1093/biomet/76.2.297).
 
-## 8. Publication Figures and Reporting
+## 8. Publication Figures, Title-Free Illustrator Panels, GraphPad Prism Tables, and Solution Competition
 
-Choose a combined figure or standalone kinetic, kobs or isotherm output.
+Choose a combined figure or standalone kinetic, kobs, isotherm, or solution-competition output.
 Parameter figures retain kon/koff/KD as appropriate, independent-repeat dots,
 the explicitly chosen error definition and n. Numerical parameter results are
 exported as TXT/CSV. PNG is available for raster use; PDF/SVG retain vector lines
-and text. Figure-source CSVs and legends specify averaging/interpolation.
+and editable TrueType text (`pdf.fonttype = 42`). Figure-source CSVs and legends specify averaging/interpolation.
+
+### Title-Free Individual Panels for Adobe Illustrator & GraphPad Prism XY Tables
+For manuscript assembly in Adobe Illustrator and re-plotting by reviewers in GraphPad Prism:
+- **Title-Free Individual Panels (`PDF`, `SVG`, `600 DPI PNG`)**: Every kinetic and solution-competition figure includes dedicated download buttons that strip all figure/panel titles and export each panel as an individual vector (`PDF`, `SVG`) or high-resolution (`600 DPI PNG`) file.
+- **GraphPad Prism-Ready XY CSV Tables**: Export wide XY tables containing `Time_s` (or `Competitor_nM` / `Molar_Ratio_I_over_A`), individual replicate columns (`Rep1`, `Rep2`, `Rep3`), `Mean`, `SD`, `SEM`, `N`, and the global model fit (`TwoSite_Fit` or `Fitted_Pct_Control`), alongside a complete parameter and error summary CSV table (`Mean`, `SD`, `SEM`, `95% CI`, and per-replicate estimates).
+- **Associated Figure Legends**: Automatically generated legends explain the solid mean curves, the $\pm 1\text{ SD}$ faded/shaded background error bands across $N$ independent replicates, the dashed/solid model fit overlays, and the vertical dotted association/dissociation phase boundary.
+
+### Solution Equilibrium Titration (SET) & Epitope Competition (`07 / Solution Competition`)
+When a constant concentration of soluble analyte $[A]_{\text{tot}}$ (e.g., $20\text{ nM}$ Laminin-411) is pre-incubated or co-injected with increasing concentrations of a soluble competitor $[I]_{\text{tot}}$ (e.g., $0\text{–}40\text{ nM}$ $\alpha_6\beta_1$ integrin) over an immobilized receptor (e.g., MCAM-Fc), MIXA fits the **exact 1:1 quadratic mass-action (Morrison) equation** in solution ([Friguet et al., 1985](https://doi.org/10.1016/0022-1759(85)90093-6); [Nieba et al., 1996](https://doi.org/10.1006/abio.1996.0067); [Karlsson et al., 2000](https://doi.org/10.1006/abio.1999.4406)):
+
+$$[A]_{\text{free}} = \frac{([A]_{\text{tot}} - n[I]_{\text{tot}} - K_{D,\text{sol}}) + \sqrt{([A]_{\text{tot}} - n[I]_{\text{tot}} - K_{D,\text{sol}})^2 + 4[A]_{\text{tot}} K_{D,\text{sol}}}}{2}$$
+
+Unlike the classical Cheng–Prusoff equation (which assumes both ligands compete for the immobilized surface receptor with negligible ligand depletion), the exact quadratic SET model accounts for the **stoichiometric depletion floor** $\frac{1}{2}[A]_{\text{tot}}$ required to sequester $50\%$ of the soluble analyte into complex:
+
+$$\text{IC}_{50} = \frac{1}{2}[A]_{\text{tot}} + K_{D,\text{sol}} \quad (n = 1)$$
 
 Report assay orientation/valency, concentrations and units, reference controls,
 independent versus technical repeats, model/linkage, fixed parameters, selected

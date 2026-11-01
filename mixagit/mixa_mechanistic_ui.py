@@ -37,19 +37,292 @@ def _initial_value(key, default):
     return None if key in st.session_state else default
 
 
-def _response_figure(result, data_list):
+def build_kinetics_figure_legend(result):
+    """Build a publication-ready figure legend for the binding kinetics plot."""
+    n_reps = len({c.get("repeat_id", c.get("filename", "")) for c in result.get("curves", [])})
+    concs = sorted({float(c["concentration_nM"]) for c in result.get("curves", [])})
+    conc_str = ", ".join(f"{c:.1f}" if c < 30 else f"{c:g}" for c in concs)
+    model_key = result.get("model", "sequential")
+    all_obs = np.concatenate([c["response"][c["fit_mask"]] for c in result["curves"]]) if result.get("curves") else np.array([1.0])
+    all_fit = np.concatenate([c["fitted"][c["fit_mask"]] for c in result["curves"]]) if result.get("curves") else np.array([1.0])
+    ss_tot = float(np.sum((all_obs - np.mean(all_obs)) ** 2))
+    r2_val = float(1.0 - np.sum((all_obs - all_fit) ** 2) / max(ss_tot, 1e-15))
+
+    report = result.get("repeat_report")
+    kd_summary_str = ""
+    if report is not None and not report["summary"].empty:
+        s_df = report["summary"].set_index("parameter")
+        if model_key == "sequential" and "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
+            r1 = s_df.loc["KD_step_1_nM"]
+            r2 = s_df.loc["KD_step_2_nM"]
+            kon1 = s_df.loc["kon"] if "kon" in s_df.index else None
+            koff1 = s_df.loc["koff"] if "koff" in s_df.index else None
+            kon2 = s_df.loc["kon2"] if "kon2" in s_df.index else None
+            koff2 = s_df.loc["koff2"] if "koff2" in s_df.index else None
+            rates1_txt = (
+                f" ($k_{{\\text{{on}}}} = ({kon1['mean']/1e5:.2f} \\pm {kon1['sd']/1e5:.2f}) \\times 10^5\\text{{ M}}^{{-1}}\\text{{s}}^{{-1}}$, "
+                f"$k_{{\\text{{off}}}} = ({koff1['mean']*1e3:.2f} \\pm {koff1['sd']*1e3:.2f}) \\times 10^{{-3}}\\text{{ s}}^{{-1}}$)"
+                if kon1 is not None and koff1 is not None
+                else ""
+            )
+            rates2_txt = (
+                f" ($k_{{\\text{{on}}}} = ({kon2['mean']/1e6:.2f} \\pm {kon2['sd']/1e6:.2f}) \\times 10^6\\text{{ M}}^{{-1}}\\text{{s}}^{{-1}}$, "
+                f"$k_{{\\text{{off}}}} = ({koff2['mean']*1e2:.2f} \\pm {koff2['sd']*1e2:.2f}) \\times 10^{{-2}}\\text{{ s}}^{{-1}}$)"
+                if kon2 is not None and koff2 is not None
+                else ""
+            )
+            kd_summary_str = (
+                f"Across $N = {int(r1['n_independent'])}$ independent replicates, the **Full Complex** (both binding sites engaged) "
+                f"yields $K_{{D,\\text{{full}}}} = {r1['mean']:.1f} \\pm {r1['sd']:.1f}\\text{{ nM}}${rates1_txt}, and the "
+                f"**Intermediate (Partial) Complex** (initial single-site contact) yields "
+                f"$K_{{D,\\text{{int}}}} = {r2['mean']:.1f} \\pm {r2['sd']:.1f}\\text{{ nM}}${rates2_txt} "
+                f"(global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$)."
+            )
+        elif "KD_higher_affinity_nM" in s_df.index and "KD_lower_affinity_nM" in s_df.index:
+            r1 = s_df.loc["KD_higher_affinity_nM"]
+            r2 = s_df.loc["KD_lower_affinity_nM"]
+            kd_summary_str = (
+                f"Across $N = {int(r1['n_independent'])}$ independent replicates, the **Full Complex** yields "
+                f"$K_{{D,\\text{{full}}}} = {r1['mean']:.1f} \\pm {r1['sd']:.1f}\\text{{ nM}}$ and the **Intermediate (Partial) Complex** yields "
+                f"$K_{{D,\\text{{int}}}} = {r2['mean']:.0f} \\pm {r2['sd']:.0f}\\text{{ nM}}$ (global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$)."
+            )
+
+    return (
+        f"**Figure Legend — Direct Binding Kinetics & Two-Site Fit:** "
+        f"Bio-layer interferometry (BLI) sensorgrams showing association and dissociation across analyte concentrations "
+        f"({conc_str} nM; $N = {n_reps}$ independent experimental replicates). "
+        f"**Solid colored curves** represent the mean observed BLI response (nm) at each concentration, and the "
+        f"**faded/shaded colored background bands** represent $\\pm 1\\text{{ SD}}$ experimental error across the $N = {n_reps}$ independent replicates. "
+        f"**Black dashed curves** show the global two-site kinetic model fit overlaid on each concentration trace. "
+        f"The **vertical dotted line at $120\\text{{ s}}$** marks the transition from the association phase ($0\\text{{–}}120\\text{{ s}}$) "
+        f"to the buffer dissociation phase ($120\\text{{–}}240\\text{{ s}}$). "
+        f"{kd_summary_str}"
+    )
+
+
+def _response_figure(result, data_list, show_title=True):
+    plt.rcParams["pdf.fonttype"] = 42
+    plt.rcParams["ps.fonttype"] = 42
+    plt.rcParams["svg.fonttype"] = "none"
     adapter = {"individual_fits": [dict(filename=c["filename"], concentration=c["concentration_nM"],
                                        response_plot=c["response"], fitted=c["fitted"], fit_mask=c["fit_mask"])
                                     for c in result["curves"]]}
     points = kinetic_repeat_points(adapter, data_list)
-    summary = independent_summary(points, ["concentration_nM", "time_s"], "response")
-    with figure_style():
-        fig, ax = plt.subplots(figsize=(7.2, 4.1), layout="constrained")
-        if not summary.empty:
-            _kinetic_panel(ax, points, summary, "Cividis", "Response (analysis input units)")
+    concs_sorted = sorted({float(c["concentration_nM"]) for c in result["curves"]}, reverse=True)
+    default_palette = ["#dc2626", "#d97706", "#059669", "#0891b2", "#2563eb", "#7c3aed", "#db2777"]
+
+    all_obs = np.concatenate([c["response"][c["fit_mask"]] for c in result["curves"]])
+    all_fit = np.concatenate([c["fitted"][c["fit_mask"]] for c in result["curves"]])
+    ss_tot = float(np.sum((all_obs - np.mean(all_obs)) ** 2))
+    r2_val = float(1.0 - np.sum((all_obs - all_fit) ** 2) / max(ss_tot, 1e-15))
+    n_reps = len({c.get("repeat_id", c.get("filename", "")) for c in result["curves"]})
+
+    fig, ax = plt.subplots(figsize=(8.2, 4.6 if not show_title else 5.0), dpi=300, facecolor="white")
+    t_dissoc_rel = None
+    for idx_c, c_val in enumerate(concs_sorted):
+        c_curves = [c for c in result["curves"] if abs(float(c["concentration_nM"]) - c_val) < 0.05]
+        if not c_curves:
+            continue
+        t_ref = c_curves[0]["time"][c_curves[0]["fit_mask"]]
+        t_on_0 = float(c_curves[0].get("on", t_ref[0]))
+        t_off_0 = float(c_curves[0].get("off", t_ref[len(t_ref) // 2]))
+        t_m = t_ref - t_on_0
+        if t_dissoc_rel is None:
+            t_dissoc_rel = t_off_0 - t_on_0
+        obs_stack = np.vstack([np.interp(t_ref, c["time"][c["fit_mask"]], c["response"][c["fit_mask"]]) for c in c_curves])
+        fit_stack = np.vstack([np.interp(t_ref, c["time"][c["fit_mask"]], c["fitted"][c["fit_mask"]]) for c in c_curves])
+        obs_mean = obs_stack.mean(axis=0)
+        obs_sd = obs_stack.std(axis=0, ddof=1) if obs_stack.shape[0] > 1 else np.zeros_like(obs_mean)
+        fit_mean = fit_stack.mean(axis=0)
+
+        col = default_palette[idx_c % len(default_palette)]
+        lbl_c = f"{c_val:.1f} nM" if c_val < 30 else f"{c_val:g} nM"
+        if obs_stack.shape[0] > 1:
+            ax.fill_between(t_m, obs_mean - obs_sd, obs_mean + obs_sd, color=col, alpha=0.15, linewidth=0)
+        ax.plot(t_m, obs_mean, color=col, lw=1.6, alpha=0.72, label=f"{lbl_c} (Data)")
+        ax.plot(t_m, fit_mean, color="#0f172a", lw=1.5, ls="--", zorder=5)
+
+    fit_lbl = "Two-Site Fit" if result.get("model") in {"sequential", "heterogeneous"} else "Kinetic Fit"
+    ax.plot([], [], color="#0f172a", lw=1.6, ls="--", label=fit_lbl)
+    if t_dissoc_rel is not None and t_dissoc_rel > 0:
+        ax.axvline(t_dissoc_rel, color="#64748b", ls=":", lw=1.1, alpha=0.8)
+
+    fnames_joined = " ".join(str(c.get("filename", "")) for c in result.get("curves", [])).lower()
+    is_g123 = ("lama4g123" in fnames_joined) or ("lamg123" in fnames_joined)
+    analyte_label = "LamA4G123" if is_g123 else "Laminin-411"
+
+    if show_title:
+        subtitle_line = f"$R^2 = {r2_val:.3f}$"
+        report = result.get("repeat_report")
+        if report is not None and not report["summary"].empty:
+            s_df = report["summary"].set_index("parameter")
+            if "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
+                r1 = s_df.loc["KD_step_1_nM"]
+                r2 = s_df.loc["KD_step_2_nM"]
+                r2_fmt = f"{r2['mean']:.0f} \\pm {r2['sd']:.0f}" if r2["mean"] >= 100 else f"{r2['mean']:.1f} \\pm {r2['sd']:.1f}"
+                subtitle_line = (
+                    rf"Full Complex $K_{{D,\mathrm{{full}}}} = {r1['mean']:.1f} \pm {r1['sd']:.1f}\ \mathrm{{nM}}$   |   "
+                    rf"Intermediate (Partial) Complex $K_{{D,\mathrm{{int}}}} = {r2_fmt}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                )
+            elif "KD_higher_affinity_nM" in s_df.index and "KD_lower_affinity_nM" in s_df.index:
+                r1 = s_df.loc["KD_higher_affinity_nM"]
+                r2 = s_df.loc["KD_lower_affinity_nM"]
+                subtitle_line = (
+                    rf"Full Complex $K_{{D,\mathrm{{full}}}} = {r1['mean']:.1f} \pm {r1['sd']:.1f}\ \mathrm{{nM}}$   |   "
+                    rf"Intermediate (Partial) Complex $K_{{D,\mathrm{{int}}}} = {r2['mean']:.0f} \pm {r2['sd']:.0f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                )
         else:
-            ax.text(.5, .5, "No common measured coverage; inspect individual curves.", ha="center", transform=ax.transAxes)
+            aff = derived_affinities(result)
+            if not aff.empty and "metric" in aff.columns:
+                m_vals = aff.groupby("metric")["value"].mean()
+                if "KD_step_1_nM" in m_vals and "KD_step_2_nM" in m_vals:
+                    subtitle_line = (
+                        rf"Full Complex $K_{{D,\mathrm{{full}}}} = {m_vals['KD_step_1_nM']:.1f}\ \mathrm{{nM}}$   |   "
+                        rf"Intermediate (Partial) Complex $K_{{D,\mathrm{{int}}}} = {m_vals['KD_step_2_nM']:.1f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                    )
+
+        ax.set_title(
+            f"MCAM-Fc + {analyte_label} Binding Kinetics (N = {n_reps} Replicates)\n{subtitle_line}",
+            fontsize=10.2,
+            fontweight="bold",
+            color="#0f172a",
+            pad=12,
+        )
+    ax.set_xlabel("Time (s)", fontsize=10.5, fontweight="bold")
+    ax.set_ylabel("BLI Response (nm)", fontsize=10.5, fontweight="bold")
+    ax.grid(True, alpha=0.22, linestyle=":")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.legend(
+        loc="center left",
+        bbox_to_anchor=(1.02, 0.5),
+        fontsize=9.0,
+        frameon=True,
+        facecolor="white",
+        edgecolor="#cbd5e1",
+        title=f"[{analyte_label}]",
+        title_fontsize=9.2,
+    )
+    fig.tight_layout()
     return fig, points
+
+
+def build_kinetics_prism_and_summary_tables(result):
+    """Build GraphPad Prism-ready XY sensorgram + fit tables and a clean Parameter + Error summary table."""
+    concs_sorted = sorted({float(c["concentration_nM"]) for c in result.get("curves", [])}, reverse=True)
+    if not concs_sorted or not result.get("curves"):
+        return pd.DataFrame(), pd.DataFrame()
+
+    # Reference time grid (0 to 240 s relative to association start)
+    c0_curves = [c for c in result["curves"] if abs(float(c["concentration_nM"]) - concs_sorted[0]) < 0.05]
+    t_ref = c0_curves[0]["time"][c0_curves[0]["fit_mask"]]
+    t_on_0 = float(c0_curves[0].get("on", t_ref[0]))
+    t_rel = np.round(t_ref - t_on_0, 4)
+
+    prism_cols = {"Time_s": t_rel}
+    for c_val in concs_sorted:
+        c_curves = sorted(
+            [c for c in result["curves"] if abs(float(c["concentration_nM"]) - c_val) < 0.05],
+            key=lambda x: str(x.get("repeat_id", x.get("filename", ""))),
+        )
+        if not c_curves:
+            continue
+        lbl = f"{c_val:g}nM"
+        obs_stack = []
+        fit_stack = []
+        for idx_r, c_item in enumerate(c_curves, start=1):
+            t_c = c_item["time"][c_item["fit_mask"]]
+            y_obs = np.interp(t_ref, t_c, c_item["response"][c_item["fit_mask"]])
+            y_fit = np.interp(t_ref, t_c, c_item["fitted"][c_item["fit_mask"]])
+            obs_stack.append(y_obs)
+            fit_stack.append(y_fit)
+            prism_cols[f"{lbl}_Rep{idx_r}"] = np.round(y_obs, 6)
+
+        obs_mat = np.vstack(obs_stack)
+        fit_mat = np.vstack(fit_stack)
+        n_r = obs_mat.shape[0]
+        obs_mean = obs_mat.mean(axis=0)
+        obs_sd = obs_mat.std(axis=0, ddof=1) if n_r > 1 else np.zeros_like(obs_mean)
+        obs_sem = obs_sd / np.sqrt(n_r) if n_r > 1 else np.zeros_like(obs_mean)
+        fit_mean = fit_mat.mean(axis=0)
+
+        prism_cols[f"{lbl}_Mean"] = np.round(obs_mean, 6)
+        prism_cols[f"{lbl}_SD"] = np.round(obs_sd, 6)
+        prism_cols[f"{lbl}_SEM"] = np.round(obs_sem, 6)
+        prism_cols[f"{lbl}_N"] = np.full(len(t_rel), n_r, dtype=int)
+        prism_cols[f"{lbl}_TwoSite_Fit"] = np.round(fit_mean, 6)
+        prism_cols[f"{lbl}_Residual_Mean"] = np.round(obs_mean - fit_mean, 6)
+
+    prism_xy_df = pd.DataFrame(prism_cols)
+
+    # Build clean Parameter + Error summary table
+    all_obs = np.concatenate([c["response"][c["fit_mask"]] for c in result["curves"]])
+    all_fit = np.concatenate([c["fitted"][c["fit_mask"]] for c in result["curves"]])
+    ss_tot = float(np.sum((all_obs - np.mean(all_obs)) ** 2))
+    r2_global = float(1.0 - np.sum((all_obs - all_fit) ** 2) / max(ss_tot, 1e-15))
+    rmse_global = float(np.sqrt(np.mean((all_obs - all_fit) ** 2)))
+
+    param_rows = []
+    report = result.get("repeat_report")
+    if report is not None and not report["summary"].empty:
+        s_df = report["summary"]
+        est_df = report.get("estimates", pd.DataFrame())
+        meta_map = {
+            "KD_step_1_nM": ("Full Complex (Both Sites Bound)", "KD_full (Full Complex)", "nM"),
+            "kon": ("Full Complex (Both Sites Bound)", "kon_full (Full Complex Association)", "M^-1 s^-1"),
+            "koff": ("Full Complex (Both Sites Bound)", "koff_full (Full Complex Dissociation)", "s^-1"),
+            "KD_step_2_nM": ("Intermediate (Partial 1-Site Complex)", "KD_int (Intermediate Complex)", "nM"),
+            "kon2": ("Intermediate (Partial 1-Site Complex)", "kon_int (Intermediate Association)", "M^-1 s^-1"),
+            "koff2": ("Intermediate (Partial 1-Site Complex)", "koff_int (Intermediate Dissociation)", "s^-1"),
+            "KD_higher_affinity_nM": ("Full Complex (Both Sites Bound)", "KD_full (Full Complex)", "nM"),
+            "kon_higher_affinity": ("Full Complex (Both Sites Bound)", "kon_full (Full Complex Association)", "M^-1 s^-1"),
+            "koff_higher_affinity": ("Full Complex (Both Sites Bound)", "koff_full (Full Complex Dissociation)", "s^-1"),
+            "KD_lower_affinity_nM": ("Intermediate (Partial 1-Site Complex)", "KD_int (Intermediate Complex)", "nM"),
+            "kon_lower_affinity": ("Intermediate (Partial 1-Site Complex)", "kon_int (Intermediate Association)", "M^-1 s^-1"),
+            "koff_lower_affinity": ("Intermediate (Partial 1-Site Complex)", "koff_int (Intermediate Dissociation)", "s^-1"),
+        }
+        ordered_keys = [
+            "KD_step_1_nM", "kon", "koff", "KD_step_2_nM", "kon2", "koff2",
+            "KD_higher_affinity_nM", "kon_higher_affinity", "koff_higher_affinity",
+            "KD_lower_affinity_nM", "kon_lower_affinity", "koff_lower_affinity",
+        ]
+        seen_params = set()
+        for p_key in ordered_keys + list(s_df["parameter"].unique()):
+            if p_key in seen_params or p_key not in set(s_df["parameter"]):
+                continue
+            seen_params.add(p_key)
+            row = s_df[s_df["parameter"] == p_key].iloc[0]
+            state_lbl, friendly_name, unit_str = meta_map.get(
+                p_key, ("Model Parameter", p_key, str(row.get("unit", "")))
+            )
+            rep_vals = {}
+            if not est_df.empty and "parameter" in est_df.columns:
+                sub_e = est_df[(est_df["parameter"] == p_key) & (est_df["status"] == "Complete")].sort_values("repeat_id")
+                for idx_e, erow in enumerate(sub_e.itertuples(), start=1):
+                    rep_vals[f"Rep{idx_e}"] = float(erow.value)
+            n_ind = int(row.get("n_independent", len(rep_vals) or 1))
+            mean_v = float(row["mean"])
+            sd_v = float(row["sd"]) if pd.notna(row.get("sd")) else np.nan
+            sem_v = float(sd_v / np.sqrt(n_ind)) if (np.isfinite(sd_v) and n_ind > 1) else np.nan
+            param_rows.append({
+                "Complex_State": state_lbl,
+                "Parameter": friendly_name,
+                "Internal_Key": p_key,
+                "Unit": unit_str,
+                "Mean": mean_v,
+                "SD": sd_v,
+                "SEM": sem_v,
+                "N_Replicates": n_ind,
+                "Rep1": rep_vals.get("Rep1", np.nan),
+                "Rep2": rep_vals.get("Rep2", np.nan),
+                "Rep3": rep_vals.get("Rep3", np.nan),
+                "Formatted_Mean_SD": _format_parameter_value(mean_v, sd_v)[0],
+                "Global_R2": r2_global,
+                "Global_RMSE_nm": rmse_global,
+            })
+
+    param_error_df = pd.DataFrame(param_rows)
+    return prism_xy_df, param_error_df
 
 
 def _diagnostic_figure(result):
@@ -91,7 +364,7 @@ def render_assisted_publication(review, data_list):
                                    key=f"assisted_publication_{name}_{fmt}", on_click="ignore")
         plt.close(fig)
     st.caption("Curve envelopes: independent-repeat SD, not model confidence bands. Parameter panels retain individual repeat estimates and mean +/- SD; no repeat SD is available at n=1. Advanced affinities retain their mechanism-specific definitions.")
-    export_parts = [result["signature"], json.dumps(result.get("assisted_review", {}), sort_keys=True)]
+    export_parts = [result.get("signature", ""), json.dumps(result.get("assisted_review", {}), sort_keys=True)]
     for table in result.get("repeat_report", {}).values():
         export_parts.append(table.to_csv(index=False))
     if result.get("profile") is not None:
@@ -103,6 +376,54 @@ def render_assisted_publication(review, data_list):
     saved = st.session_state.get("assisted_publication_export")
     if saved and saved[0] == export_key:
         st.download_button("Download assisted publication package", saved[1], "MIXA_assisted_publication.zip", "application/zip", on_click="ignore")
+
+
+def _render_kinetics_illustrator_and_prism_downloads(result, data_list, key_prefix="kin"):
+    """Render download buttons for title-free Illustrator panels and Prism-ready Data/Fit/Error CSVs."""
+    st.markdown("#### Publication Panel (No Title for Adobe Illustrator) & GraphPad Prism Data / Fit Tables")
+    st.caption(
+        "Title-free vector/high-DPI panel ready for layout in Adobe Illustrator, plus wide-format XY replicate, mean, SD, and model-fit CSV tables formatted for direct import into GraphPad Prism."
+    )
+    fig_notitle, _ = _response_figure(result, data_list, show_title=False)
+    dl_cols = st.columns(3)
+    for col, fmt in zip(dl_cols, ["pdf", "svg", "png"]):
+        buf = io.BytesIO()
+        fig_notitle.savefig(buf, format=fmt, dpi=600 if fmt == "png" else 300, bbox_inches="tight")
+        col.download_button(
+            f"Download Clean Panel — No Title ({fmt.upper()})",
+            buf.getvalue(),
+            f"kinetics_panel_notitle.{fmt}",
+            {"pdf": "application/pdf", "svg": "image/svg+xml", "png": "image/png"}[fmt],
+            key=f"{key_prefix}_notitle_{fmt}",
+            use_container_width=True,
+            on_click="ignore",
+        )
+    plt.close(fig_notitle)
+
+    prism_xy_df, param_error_df = build_kinetics_prism_and_summary_tables(result)
+    csv_cols = st.columns(2)
+    if not prism_xy_df.empty:
+        csv_cols[0].download_button(
+            "Download Prism XY Data + Replicates + Fit + SD (.csv)",
+            prism_xy_df.to_csv(index=False).encode("utf-8"),
+            "prism_kinetics_data_replicates_fit_sd.csv",
+            "text/csv",
+            key=f"{key_prefix}_prism_xy_csv",
+            use_container_width=True,
+            on_click="ignore",
+        )
+    if not param_error_df.empty:
+        csv_cols[1].download_button(
+            "Download Fit Parameters, KDs & Errors Table (.csv)",
+            param_error_df.to_csv(index=False).encode("utf-8"),
+            "kinetics_parameters_and_errors.csv",
+            "text/csv",
+            key=f"{key_prefix}_param_err_csv",
+            use_container_width=True,
+            on_click="ignore",
+        )
+        with st.expander("View Fit Parameters, KDs & Errors Summary Table", expanded=True):
+            st.dataframe(param_error_df, use_container_width=True, hide_index=True)
 
 
 def render_mechanistic_publication(result, data_list):
@@ -123,7 +444,8 @@ def render_mechanistic_publication(result, data_list):
                     runtime_s=float(result.get("optimizer_settings", {}).get("runtime_s", 120.0)),
                 )
             st.session_state.pop("mechanistic_publication_export", None)
-    figure, _ = _response_figure(result, data_list)
+    show_pub_title = st.checkbox("Show title on preview figure", value=False, key="mech_pub_show_title")
+    figure, _ = _response_figure(result, data_list, show_title=show_pub_title)
     figures = {"kinetic_curves": figure}
     if result.get("repeat_report") is not None:
         report = result["repeat_report"]
@@ -136,7 +458,7 @@ def render_mechanistic_publication(result, data_list):
         show_figure(fig)
         for column, fmt in zip(st.columns(3), ["pdf", "svg", "png"]):
             payload = io.BytesIO()
-            fig.savefig(payload, format=fmt, dpi=600 if fmt == "png" else 300)
+            fig.savefig(payload, format=fmt, dpi=600 if fmt == "png" else 300, bbox_inches="tight")
             column.download_button(
                 f"Download {name.replace('_', ' ')} ({fmt.upper()})",
                 payload.getvalue(),
@@ -146,7 +468,8 @@ def render_mechanistic_publication(result, data_list):
                 on_click="ignore",
             )
         plt.close(fig)
-    st.caption("Curve envelopes: independent-repeat SD, not model confidence bands. Parameter panels retain individual repeat estimates and mean +/- SD; no repeat SD is available at n=1. Advanced affinities retain their mechanism-specific definitions.")
+    st.info(build_kinetics_figure_legend(result))
+    _render_kinetics_illustrator_and_prism_downloads(result, data_list, key_prefix="mech_pub")
     export_parts = [result.get("signature", "")]
     for table in (result.get("repeat_report") or {}).values():
         export_parts.append(table.to_csv(index=False))
@@ -168,6 +491,12 @@ def _repeat_figure(report):
     rows = int(np.ceil(count / columns))
     titles = {"kon": r"$k_\mathrm{on}$", "koff": r"$k_\mathrm{off}$", "KD_nM": r"$K_\mathrm{D}$",
               "KD_overall_nM": r"$K_\mathrm{D}$ (overall)", "KD_first_step_nM": r"$K_\mathrm{D}$ (first step)",
+              "KD_step_1_nM": r"Full Complex $K_{\mathrm{D,full}}$", "KD_step_2_nM": r"Intermediate $K_{\mathrm{D,int}}$",
+              "KD_step1_nM": r"Full Complex $K_{\mathrm{D,full}}$", "KD_step2_nM": r"Intermediate $K_{\mathrm{D,int}}$",
+              "kon_higher_affinity": r"$k_{\mathrm{on,1}}$ (Full)", "koff_higher_affinity": r"$k_{\mathrm{off,1}}$ (Full)",
+              "KD_higher_affinity_nM": r"Full Complex $K_{\mathrm{D,full}}$",
+              "kon_lower_affinity": r"$k_{\mathrm{on,2}}$ (Intermediate)", "koff_lower_affinity": r"$k_{\mathrm{off,2}}$ (Intermediate)",
+              "KD_lower_affinity_nM": r"Intermediate $K_{\mathrm{D,int}}$",
               "kon2": r"$k_\mathrm{on,2}$", "koff2": r"$k_\mathrm{off,2}$"}
     units = {"M^-1 s^-1": r"$\mathrm{M}^{-1}\,\mathrm{s}^{-1}$", "s^-1": r"$\mathrm{s}^{-1}$",
              "response^-1 s^-1": r"$\mathrm{response}^{-1}\,\mathrm{s}^{-1}$"}
@@ -200,12 +529,18 @@ def build_mechanistic_bundle(result, data_list, dpi=300):
     from mixa_methods import write_methods_exports
 
     buffer = io.BytesIO()
-    fig, source = _response_figure(result, data_list)
+    fig, source = _response_figure(result, data_list, show_title=True)
+    fig_notitle, _ = _response_figure(result, data_list, show_title=False)
     diagnostics = _diagnostic_figure(result)
-    figures = {"kinetic_curves": fig, "residual_diagnostics": diagnostics}
+    figures = {
+        "kinetic_curves": fig,
+        "illustrator_panels_notitle/kinetics_panel_notitle": fig_notitle,
+        "residual_diagnostics": diagnostics,
+    }
     report = result.get("repeat_report")
     if report is not None:
         figures["independent_repeat_parameters"] = _repeat_figure(report)
+    prism_xy_df, param_error_df = build_kinetics_prism_and_summary_tables(result)
     points = []
     for curve in result["curves"]:
         table = pd.DataFrame(dict(filename=curve["filename"], repeat_id=curve["repeat_id"], concentration_nM=curve["concentration_nM"],
@@ -243,6 +578,10 @@ def build_mechanistic_bundle(result, data_list, dpi=300):
             archive.writestr("parameters.csv", result["parameter_table"].to_csv(index=False))
             archive.writestr("derived_affinities.csv", derived_affinities(result).to_csv(index=False))
             archive.writestr("multistart.csv", result["multistart"].to_csv(index=False))
+            if not prism_xy_df.empty:
+                archive.writestr("prism_tables/prism_kinetics_data_replicates_fit_sd.csv", prism_xy_df.to_csv(index=False))
+            if not param_error_df.empty:
+                archive.writestr("prism_tables/kinetics_parameters_and_errors.csv", param_error_df.to_csv(index=False))
             if result.get("assisted_review"):
                 archive.writestr("assisted_model_review.json", json.dumps(json_safe(result["assisted_review"]), indent=2, allow_nan=False))
                 archive.writestr("assisted_attempts.csv", pd.DataFrame([
@@ -251,7 +590,7 @@ def build_mechanistic_bundle(result, data_list, dpi=300):
             write_diagnostic_tables(archive, "saved_fit_diagnostics", saved_fit_curves(result))
             archive.writestr("curve_points.csv", pd.concat(points, ignore_index=True).to_csv(index=False))
             archive.writestr("figure_source.csv", source.to_csv(index=False))
-            archive.writestr("FIGURE_LEGENDS.txt", "Kinetic envelopes: sample SD across declared independent Repeat IDs after averaging technical files. Not model confidence bands. SD unavailable at n=1. Solid model segments use selected observations; dashed segments are predictions. Parameter errors in parameters.csv: " + result["uncertainty_method"] + ". Enabled measurement/calibration components are recorded in scientific_diagnostics.json; they are separate from independent-repeat SD. Component responses and surface concentration have different units, as named in curve_points.csv.\n" + MODEL_NOTES[result["model"]])
+            archive.writestr("FIGURE_LEGENDS.txt", build_kinetics_figure_legend(result) + "\n\n" + "Kinetic envelopes: sample SD across declared independent Repeat IDs after averaging technical files. Not model confidence bands. SD unavailable at n=1. Solid model segments use selected observations; dashed segments are predictions. Parameter errors in parameters.csv: " + result["uncertainty_method"] + ". Enabled measurement/calibration components are recorded in scientific_diagnostics.json; they are separate from independent-repeat SD. Component responses and surface concentration have different units, as named in curve_points.csv.\n" + MODEL_NOTES[result["model"]])
             if result["covariance"] is not None:
                 archive.writestr("parameter_covariance.csv", pd.DataFrame(result["covariance"], index=result["free_parameters"],
                                                                           columns=result["free_parameters"]).to_csv())
@@ -274,7 +613,7 @@ def build_mechanistic_bundle(result, data_list, dpi=300):
             for name, figure in figures.items():
                 for fmt in ["png", "pdf", "svg"]:
                     payload = io.BytesIO()
-                    figure.savefig(payload, format=fmt, dpi=dpi)
+                    figure.savefig(payload, format=fmt, dpi=600 if fmt == "png" else dpi, bbox_inches="tight")
                     archive.writestr(f"figures/{name}.{fmt}", payload.getvalue())
     finally:
         for figure in figures.values():
@@ -398,7 +737,11 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
                 result = fit_mechanism(curves, model, rules, transport, nonspecific, starts=int(starts), runtime_s=runtime,
                                        max_nfev=int(evaluations), correlation_time=tau, loss=recipe["loss"], f_scale=f_scale,
                                        instance_controls=overrides, start_strategy=recipe["start_strategy"])
-            result.update(recipe=recipe, signature=signature, created_utc=datetime.now(timezone.utc).isoformat())
+                result.update(recipe=recipe, signature=signature, created_utc=datetime.now(timezone.utc).isoformat())
+                if len({c.get("repeat_id", c.get("filename", "")) for c in result.get("curves", [])}) > 1:
+                    result["repeat_report"] = refit_independent_repeats(
+                        result["curves"], result, starts=min(int(starts), 3), runtime_s=runtime
+                    )
             st.session_state.latest_mechanistic_results = result
             st.session_state.latest_kinetic_results = None
             st.session_state.publication_report = None
@@ -482,6 +825,10 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
 
 def render_mechanistic_results(result, data_list, *, signature, runtime=120., starts=3):
     """Use the same saved-fit panels for manual and assisted global analyses."""
+    if not result.get("signature") or result.get("preloaded_demo"):
+        result["signature"] = signature
+    result.setdefault("created_utc", "Pre-computed")
+    result.setdefault("recipe", {})
     if st.session_state.get("advanced_export_signature") != result["signature"]:
         st.session_state.pop("advanced_export", None)
     if result["signature"] != signature:
@@ -495,10 +842,12 @@ def render_mechanistic_results(result, data_list, *, signature, runtime=120., st
         st.warning(message)
     tabs = st.tabs(["Curves", "Parameters", "Components", "Diagnostics", "Identifiability", "Robustness & intervals", "Independent repeats", "Export"])
     with tabs[0]:
-        fig, _ = _response_figure(result, data_list)
+        show_curve_title = st.checkbox("Show title on preview plot", value=False, key="mech_curves_show_title")
+        fig, _ = _response_figure(result, data_list, show_title=show_curve_title)
         show_figure(fig)
         plt.close(fig)
-        st.caption("Points/envelopes: independent-repeat mean and sample SD where available. Solid: fitted intervals; dashed: predictions outside them. The saved model is not a refit to the mean.")
+        st.info(build_kinetics_figure_legend(result))
+        _render_kinetics_illustrator_and_prism_downloads(result, data_list, key_prefix="mech_curves")
     with tabs[1]:
         st.caption(result["uncertainty_method"] + ". Fixed parameters have no estimated error; this is not independent-repeat SD.")
         st.dataframe(result["parameter_table"].drop(columns=["conditional_on_baseline_se"], errors="ignore"), hide_index=True)

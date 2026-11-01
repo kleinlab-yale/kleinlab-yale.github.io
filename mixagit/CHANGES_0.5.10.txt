@@ -1,0 +1,55 @@
+MIXA 0.5.10-preview: Local inference and performance update
+
+Calibrated uncertainty
+- Added experiment-specific parametric calibration of nuisance-refitted fit statistics.
+- Supports physical parameters and exact model-specific KD equality constraints.
+- Critical values come from the current fitted experiment, not benchmark tuning.
+- Finite median baselines, shared controls and enabled concentration budgets are simulated.
+- Reports critical-value Monte Carlo precision, all refits, failures and search limits.
+- Open/incomplete limits and better-optimum cases remain unresolved.
+- A fresh 300-experiment KD study returned 300 intervals: 93%, 94%, 94% coverage
+  for nominal 95% intervals, with Monte Carlo uncertainty explicitly retained.
+
+Complex-model performance
+- Exact sequential two-analyte propagation when no transport requires an ODE.
+- LSODA for nonlinear avidity/transport, with analytic state Jacobians.
+- Same reaction equations, tolerances, physical phase history and observation selections.
+- Retained Radau comparison path and independent reaction-network reference checks.
+- All 30 three-start blind searches completed within the same 30-second budget;
+  the previous study completed 15/30. Prediction is not parameter identifiability.
+
+Joint repeat/reference/calibration inference
+- Added a separate Bayesian nonlinear 1:1 analysis for at least three independent repeats.
+- Jointly estimates correlated repeat log-rates, linked capacities and population variation.
+- Shared raw reference covariance and concentration factors are common across their actual uses.
+- A common uncertain stock does not average away with more repeats.
+- Undoes median subtraction and explicitly models measured baselines in the response likelihood.
+- Analytically integrates Gaussian baseline/correction terms and population log-rate means.
+- Explicit editable proper priors; no hidden score-based prior selection.
+- Analytic-gradient Metropolis-adjusted Langevin sampling, exact conditional stock updates,
+  slice hyperparameter sampling and prior-preserving centered/noncentered interweaving.
+- Four independent complete chains, rank/folded split Rhat and bulk/tail ESS gates.
+- Analytic augmented-Jacobian SVD and exact shared concentration-shift updates
+  address the identified very-low-noise calibration ridge.
+- Separates population credible intervals, repeat estimates, model-based between-repeat
+  spread, mean-curve uncertainty and new-repeat parameter/measurement prediction.
+- Retains initial slow-mixing studies, all incomplete chains and exploratory outputs.
+- Supports saved prior-sensitivity runs without overwriting the original fit.
+- All joint nuisance gates passed in 10 fixed-population and 12 prior-generated
+  datasets across 88 complete independent chains; raw coverage/ranks remain reported.
+
+Preservation and traceability
+- Existing manual/assisted analysis, equilibrium, diagnostic panels and repeat mean +/- SD
+  publication outputs remain. No frontend redesign or automatic data exclusion.
+- New figures, curve source data, draws, diagnostics, priors, equations and primary sources
+  are downloadable with the analysis, standalone review and documentation packages.
+- No new dependencies, hardware/billing changes, or live Hugging Face upload.
+- Removed duplicate widget-default warnings from persistent input-budget controls.
+
+Supported scope
+- Joint inference is initially 1:1, not a hierarchy for all advanced mechanisms.
+- Raw-source SD ratios and OU times are still declared/plug-in inputs.
+- Arbitrary dilution covariance and phase/model-selection uncertainty are not integrated.
+- Finite synthetic validation is reported as such, not universal calibration certification.
+
+Detailed methods: REFIT_REVIEW.md, JOINT_INFERENCE.md and USER_GUIDE.md.

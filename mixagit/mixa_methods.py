@@ -67,10 +67,19 @@ REFERENCES = {
     "karlsson2006": dict(author="Karlsson, Robert and Katsamba, Phinikoula S. and Nordin, Helena and Pol, Ewa and Myszka, David G.",
         title="Analyzing a kinetic titration series using affinity biosensors",
         year=2006, journal="Analytical Biochemistry", doi="10.1016/j.ab.2005.09.069"),
+    "friguet1985": dict(author="Friguet, Bertrand and Chaffotte, Alain F. and Djavadi-Ohaniance, Lisa and Goldberg, Michel E.",
+        title="Measurements of the true affinity constant in solution of antigen-antibody complexes by enzyme-linked immunosorbent assay",
+        year=1985, journal="Journal of Immunological Methods", doi="10.1016/0022-1759(85)90093-6"),
+    "nieba1996": dict(author="Nieba, Lars and Krebber, Anke and Pluckthun, Andreas",
+        title="Competition BIAcore for measuring true affinities: large differences from values determined from binding kinetics",
+        year=1996, journal="Analytical Biochemistry", doi="10.1006/abio.1996.0067"),
+    "karlsson2000": dict(author="Karlsson, Robert and Kullman-Magnusson, Mari and Hamalainen, Markku D. and Remaeus, Anders and Andersson, Karl and Borg, Peter and Gyzander, Eva and Deinum, Johanna",
+        title="Biosensor analysis of drug-target interactions: direct and competitive binding assays for investigation of interactions between thrombin and thrombin inhibitors",
+        year=2000, journal="Analytical Biochemistry", doi="10.1006/abio.1999.4406"),
 }
 
 PRODUCTION_SOURCE_FILES = (
-    "app.py", "mixa_app.py", "mixa_cli.py", "mixa_data.py", "mixa_workspace.py", "mixa_reporting.py",
+    "app.py", "mixa_app.py", "mixa_cli.py", "mixa_competition.py", "mixa_data.py", "mixa_workspace.py", "mixa_reporting.py",
     "mixa_figures.py", "mixa_selection.py", "mixa_science.py", "mixa_diagnostics.py",
     "mixa_mechanisms.py", "mixa_mechanistic_ui.py", "mixa_automation.py", "mixa_assistant_ui.py",
     "mixa_uncertainty.py", "mixa_input_uncertainty.py", "mixa_methods.py", "mixa_documentation.py",
@@ -330,6 +339,17 @@ EQUATIONS = {
         ["karlsson2006", "oshannessy1993"],
         ["mixa_mechanisms.py:single_cycle_prediction", "mixa_mechanisms.py:fit_single_cycle_kinetics"],
         ["tests/test_mechanisms.py:test_single_cycle_kinetics_carries_state_across_injections_and_recovers_rates"]),
+    "solution_competition": _entry("Solution equilibrium titration (SET) & in-solution epitope competition", [
+        "b = [A]_tot + n*[I]_tot + K_D,sol; [AI] = 0.5*(b - sqrt(b^2 - 4*[A]_tot*n*[I]_tot))",
+        "[A]_free = [A]_tot - [AI]; R([I]_tot) = R_inf + (R_0 - R_inf)*([A]_free/[A]_tot)",
+        "dR_j/dt = kon*[A]_free([I]_tot,j)*(Rmax - R_j) - koff*R_j",
+        "IC_50 = (K_D,sol + 0.5*[A]_tot)/n"],
+        "[A]_tot, [I]_tot, [A]_free, K_D,sol, IC_50: nM; n: dimensionless stoichiometry; R_0, R_inf, Rmax: response",
+        "Soluble competitor I binds soluble analyte A in solution without binding the immobilized surface ligand directly; pre-equilibrated solution mixture.",
+        "Exact quadratic law of mass action in solution (Friguet et al., 1985; Nieba et al., 1996) coupled to biosensor readout and global competition kinetics (Karlsson et al., 2000).",
+        ["friguet1985", "nieba1996", "karlsson2000"],
+        ["mixa_competition.py:free_analyte_quadratic", "mixa_competition.py:fit_solution_competition", "mixa_competition.py:fit_competition_sensorgrams"],
+        ["tests/test_competition.py:test_exact_quadratic_set_recovers_kd_sol_and_stoichiometry"]),
 }
 
 
@@ -358,6 +378,8 @@ def equation_ids(result, family="Kinetic"):
         ids.append("input_propagation")
     if family == "Equilibrium":
         return ids + ["equilibrium"]
+    if family == "Competition":
+        return ids + ["solution_competition"]
     if family == "kobs":
         return ids + ["langmuir", "kobs"]
     model = result.get("model", result.get("shared_model", result.get("fit_settings", {}).get("model", "1:1")))

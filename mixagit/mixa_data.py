@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import re
+import zipfile
 from copy import deepcopy
 from pathlib import Path
 
@@ -19,7 +20,11 @@ BACKGROUND_MODES = ["None", "Matched concentrations", "Control 0 nM", "Same-file
 DESIGN_COLUMNS = ["File", "Role", "Experiment", "Repeat ID", "Background set", "Subtraction"]
 COLUMN_ROLES = ["Sample", "Reference (0 nM)", "Exclude"]
 UNIT_OPTIONS = ["fM", "pM", "nM", "uM", "mM", "M"]
-SAMPLE_FILES = ("PreprocessedData-Group1.csv", "PreprocessedData-Group2a.csv")
+SAMPLE_FILES = (
+    "MCAM_LM411_kinetics_rep1.csv",
+    "MCAM_LM411_kinetics_rep2.csv",
+    "MCAM_LM411_kinetics_rep3.csv",
+)
 
 UNIT_TO_NM = {
     "fm": 1e-6,
@@ -47,6 +52,17 @@ _CONC_HEADER_RE = re.compile(
     r"(?<![\w.])([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(fM|pM|nM|uM|µM|μM|mM|M)\b",
     re.IGNORECASE,
 )
+_MOLAR_RATIO_SUFFIX_RE = re.compile(
+    r"^\s*(?:(?:molar[\s_-]*)?ratio[\s_:=+-]*)?([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(?:x|×|eq(?:uiv(?:alent)?s?)?|ratio|fold)\b",
+    re.IGNORECASE,
+)
+_MOLAR_RATIO_PREFIX_RE = re.compile(
+    r"^\s*(?:molar[\s_-]*)?ratio[\s_:=+-]*([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\b",
+    re.IGNORECASE,
+)
+_COLON_RATIO_RE = re.compile(
+    r"^\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))\s*:\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+))(?:\s*\(.*\))?\s*$"
+)
 _REFERENCE_HEADER_RE = re.compile(
     r"(?:^\s*(?:0(?:\.0+)?|blank|buffer|ref(?:erence)?|control|ctrl|nsb|zero|baseline)(?:[\s\(\[_#\-].*)?\s*$)"
     r"|(?:[\(\[\s_\-](?:blank|buffer|ref(?:erence)?|nsb|zero)\b)",
@@ -61,6 +77,28 @@ _PAIRED_TIME_COL_RE = re.compile(
     r"^\s*(?:time|t|x)[\s_#-]*\d+|.*[\(\[\s_](?:time|sec|seconds)\b",
     re.IGNORECASE,
 )
+
+
+def parse_molar_ratio(label):
+    """Extract a molar ratio ([I]/[A]) from headers like '0.5x', '2 eq', '1:2', '2:1', or 'Ratio 1.5'."""
+    text = str(label).strip()
+    if _CONC_HEADER_RE.search(text):
+        return None
+    m_suf = _MOLAR_RATIO_SUFFIX_RE.search(text)
+    if m_suf:
+        val = float(m_suf.group(1))
+        return float(f"{val:.12g}") if val >= 0 else None
+    m_pre = _MOLAR_RATIO_PREFIX_RE.search(text)
+    if m_pre:
+        val = float(m_pre.group(1))
+        return float(f"{val:.12g}") if val >= 0 else None
+    m_col = _COLON_RATIO_RE.match(text)
+    if m_col:
+        num = float(m_col.group(1))
+        den = float(m_col.group(2))
+        if num >= 0 and den > 0:
+            return float(f"{num / den:.12g}")
+    return None
 
 
 def parse_concentration_nM(label):
@@ -94,16 +132,32 @@ def classify_column_header(label, default_unit="nM", allow_bare_numeric=True):
             "value": 0.0 if conc_nM == 0.0 else value,
             "unit": unit,
             "concentration_nM": conc_nM,
+            "molar_ratio": None,
+            "named_reference": False,
+        }
+    ratio_val = parse_molar_ratio(text)
+    if ratio_val is not None:
+        scale = UNIT_TO_NM.get(norm_default.lower(), 1.0)
+        conc_nM = 0.0 if ratio_val == 0.0 else float(f"{ratio_val * scale:.12g}")
+        role = "Reference (0 nM)" if ratio_val == 0.0 else "Sample"
+        return {
+            "column": text,
+            "role": role,
+            "value": 0.0 if ratio_val == 0.0 else ratio_val,
+            "unit": norm_default,
+            "concentration_nM": conc_nM,
+            "molar_ratio": ratio_val,
             "named_reference": False,
         }
     if _REFERENCE_HEADER_RE.search(text):
         is_bare_zero = bool(_BARE_NUMERIC_RE.match(text))
         return {
             "column": text,
-            "role": "Reference (0 nM)",
+            "role": role if (role := "Reference (0 nM)") else "Reference (0 nM)",
             "value": 0.0,
             "unit": norm_default,
             "concentration_nM": 0.0,
+            "molar_ratio": 0.0 if is_bare_zero else None,
             "named_reference": not is_bare_zero,
         }
     if allow_bare_numeric:
@@ -119,6 +173,7 @@ def classify_column_header(label, default_unit="nM", allow_bare_numeric=True):
                 "value": 0.0 if conc_nM == 0.0 else value,
                 "unit": norm_default,
                 "concentration_nM": conc_nM,
+                "molar_ratio": None,
                 "named_reference": False,
             }
     return {
@@ -127,6 +182,7 @@ def classify_column_header(label, default_unit="nM", allow_bare_numeric=True):
         "value": np.nan,
         "unit": norm_default,
         "concentration_nM": np.nan,
+        "molar_ratio": None,
         "named_reference": False,
     }
 
@@ -147,11 +203,43 @@ def _read_tabular_bytes(payload, filename=""):
     lines = text.splitlines()
     if not lines:
         return pd.DataFrame()
+    # Check for Gator / Octet BLI paired "Sample Conc: ... / X Values, Y Values" export format
+    for idx, raw_line in enumerate(lines[:150]):
+        tokens = [t.strip() for t in raw_line.split(",") if t.strip()]
+        if len(tokens) >= 4 and tokens[0].lower() == "x values" and tokens[1].lower() == "y values":
+            n_pairs = len(tokens) // 2
+            conc_headers = [f"Trace_{k + 1}" for k in range(n_pairs)]
+            for back_idx in range(max(0, idx - 5), idx):
+                if "sample conc" in lines[back_idx].lower():
+                    ctoks = [t.strip() for t in lines[back_idx].split(",")]
+                    parsed_headers = []
+                    for k in range(n_pairs):
+                        c_part = ctoks[2 * k] if 2 * k < len(ctoks) else ""
+                        u_part = ctoks[2 * k + 1] if 2 * k + 1 < len(ctoks) else ""
+                        c_match = re.search(r"([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)", c_part, re.I)
+                        u_match = re.search(r"unit\s*:\s*([a-zA-Zµμ]+)", u_part, re.I)
+                        if c_match:
+                            u_str = u_match.group(1).strip() if u_match else "nM"
+                            parsed_headers.append(f"{c_match.group(1)} {u_str}")
+                        else:
+                            parsed_headers.append(f"Trace_{k + 1}")
+                    conc_headers = parsed_headers
+                    break
+            data_text = "\n".join(lines[idx + 1 :])
+            raw_df = pd.read_csv(io.StringIO(data_text), header=None)
+            out_cols = {"Time_s": pd.to_numeric(raw_df.iloc[:, 0], errors="coerce")}
+            for k in range(n_pairs):
+                y_col_idx = 2 * k + 1
+                if y_col_idx < raw_df.shape[1]:
+                    out_cols[conc_headers[k]] = pd.to_numeric(raw_df.iloc[:, y_col_idx], errors="coerce")
+            out_df = pd.DataFrame(out_cols).dropna(subset=["Time_s"])
+            return out_df
     start_idx = 0
     sep = ","
     long_known = {
         "time_s", "time", "time (s)", "time_min", "time (min)", "seconds",
         "response", "signal", "ru", "nm", "shift", "conc", "concentration", "concentration_nm",
+        "molar_ratio", "ratio", "competitor", "competitor_nm", "inhibitor", "inhibitor_nm",
     }
     for idx, raw_line in enumerate(lines[:100]):
         stripped = raw_line.strip()
@@ -163,6 +251,7 @@ def _read_tabular_bytes(payload, filename=""):
             first_low = tokens[0].lower()
             has_conc_token = any(
                 parse_concentration_nM(tok) is not None
+                or parse_molar_ratio(tok) is not None
                 or bool(_REFERENCE_HEADER_RE.search(tok))
                 or bool(_BARE_NUMERIC_RE.match(tok))
                 for tok in tokens[1:]
@@ -178,17 +267,318 @@ def _read_tabular_bytes(payload, filename=""):
 
 
 def load_sample_datasets(filenames=None):
-    """Load the original bundled examples using paths relative to the application."""
+    """Load the bundled MCAM-Fc + Laminin-411 kinetic replicate datasets."""
     root = Path(__file__).resolve().parent
     datasets = []
     for filename in SAMPLE_FILES if filenames is None else filenames:
         if filename not in SAMPLE_FILES:
             raise ValueError("Choose a bundled sample dataset.")
-        path = next((p for p in (root / "data" / filename, root / filename) if p.is_file()), None)
+        path = next(
+            (
+                p
+                for p in (
+                    root / "data" / "kinetics_MCAM_LM411" / filename,
+                    root / "data" / filename,
+                    root / filename,
+                )
+                if p.is_file()
+            ),
+            None,
+        )
         if path is None:
             raise ValueError(f"Sample file is missing: {filename}.")
         datasets.append(read_dataset(path.read_bytes(), filename))
     return datasets
+
+
+def load_bundled_mcam_lm411_kinetics_datasets():
+    """Load the 3 bundled MCAM-Fc + Laminin-411 (tE411) BLI kinetic replicate datasets."""
+    root = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411"
+    datasets = []
+    for rep_idx in (1, 2, 3):
+        p = root / f"MCAM_LM411_kinetics_rep{rep_idx}.csv"
+        if p.is_file():
+            ds = read_dataset(p.read_bytes(), p.name)
+            ds["repeat_id"] = f"Repeat {rep_idx}"
+            t_arr = np.asarray(ds["time"], dtype=float)
+            if len(t_arr) > 600:
+                ds["phase_assoc_start_s"] = float(t_arr[0])
+                ds["phase_dissoc_start_s"] = float(t_arr[600])
+                ds["baseline_prealigned"] = True
+            datasets.append(ds)
+    return datasets
+
+
+def load_bundled_mcam_lama4g123_kinetics_datasets():
+    """Load the 3 bundled MCAM-Fc + LamA4G123 (isolated alpha4 LG1-LG3) BLI kinetic replicate datasets."""
+    root = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123"
+    datasets = []
+    for rep_idx in (1, 2, 3):
+        p = root / f"MCAM_LamA4G123_kinetics_rep{rep_idx}.csv"
+        if p.is_file():
+            ds = read_dataset(p.read_bytes(), p.name)
+            ds["repeat_id"] = f"Repeat {rep_idx}"
+            t_arr = np.asarray(ds["time"], dtype=float)
+            if len(t_arr) > 600:
+                ds["phase_assoc_start_s"] = float(t_arr[0])
+                ds["phase_dissoc_start_s"] = float(t_arr[600])
+                ds["baseline_prealigned"] = True
+            datasets.append(ds)
+    return datasets
+
+
+def parse_gator_results_txt(payload, filename=""):
+    """Parse a Gator / Octet BLI per-sensor '*Results.txt' file ('SensorName: ... / Conc. ... / Time1 Data1 Fit1')."""
+    if isinstance(payload, bytes):
+        try:
+            text = payload.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            text = payload.decode("latin-1", errors="replace")
+    else:
+        text = str(payload)
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    if not lines or not lines[0].lower().startswith("sensorname:"):
+        return {"is_gator_sensor": False}
+    sensor_name = lines[0].split(":", 1)[1].strip() or Path(str(filename)).stem
+    conc_val = None
+    start_s = None
+    stop_s = None
+    data_start_idx = None
+    for idx, ln in enumerate(lines[1:], start=1):
+        low = ln.lower()
+        if low.startswith("conc."):
+            parts = ln.split()
+            if len(parts) >= 2:
+                try:
+                    conc_val = float(parts[1])
+                except ValueError:
+                    conc_val = parse_concentration_nM(parts[1])
+        elif low.startswith("start"):
+            parts = ln.split()
+            if len(parts) >= 2:
+                try:
+                    start_s = float(parts[1])
+                except ValueError:
+                    pass
+        elif low.startswith("stop"):
+            parts = ln.split()
+            if len(parts) >= 2:
+                try:
+                    stop_s = float(parts[1])
+                except ValueError:
+                    pass
+        elif low.startswith("time1"):
+            data_start_idx = idx + 1
+            break
+    if data_start_idx is None or conc_val is None or not np.isfinite(conc_val):
+        return {
+            "is_gator_sensor": True,
+            "empty": True,
+            "sensor": sensor_name,
+            "filename": str(filename),
+        }
+    t_vals = []
+    y_vals = []
+    for ln in lines[data_start_idx:]:
+        parts = ln.split()
+        if len(parts) >= 2:
+            try:
+                t_vals.append(float(parts[0]))
+                y_vals.append(float(parts[1]))
+            except ValueError:
+                continue
+    if len(t_vals) < 8:
+        return {
+            "is_gator_sensor": True,
+            "empty": True,
+            "sensor": sensor_name,
+            "filename": str(filename),
+        }
+    return {
+        "is_gator_sensor": True,
+        "empty": False,
+        "sensor": sensor_name,
+        "conc_nM": float(conc_val),
+        "start_s": start_s,
+        "stop_s": stop_s,
+        "time": np.asarray(t_vals, dtype=float),
+        "data": np.asarray(y_vals, dtype=float),
+        "filename": str(filename),
+    }
+
+
+def merge_gator_sensor_files(sensor_items, group_name="Gator_BLI_Series.csv", default_unit="nM"):
+    """Combine active single-sensor Gator/Octet Results.txt items into a single multi-concentration MIXA dataset."""
+    active = [item for item in sensor_items if item.get("is_gator_sensor") and not item.get("empty")]
+    if not active:
+        raise ValueError("All selected BLI Results.txt sensor files were empty reference sensors (no sample concentration traces found).")
+    active.sort(key=lambda x: x["conc_nM"], reverse=True)
+    base_t = active[0]["time"]
+    out_cols = {"Time_s": np.round(base_t, 6)}
+    unit_label = str(default_unit).strip() or "nM"
+    seen_headers = set()
+    for item in active:
+        t_cur = item["time"]
+        y_cur = item["data"]
+        if len(t_cur) != len(base_t) or not np.allclose(t_cur, base_t, atol=5e-2, rtol=1e-4):
+            y_cur = np.interp(base_t, t_cur, y_cur)
+        hdr = f"{item['conc_nM']:g} {unit_label}"
+        if hdr in seen_headers:
+            hdr = f"{item['conc_nM']:g} {unit_label} ({item['sensor']})"
+        seen_headers.add(hdr)
+        out_cols[hdr] = y_cur
+    df = pd.DataFrame(out_cols)
+    csv_bytes = df.to_csv(index=False).encode("utf-8")
+    ds = read_dataset(csv_bytes, group_name, default_unit=default_unit)
+    t_arr = ds["time"]
+    t_on = float(t_arr[0])
+    # Determine dissociation start from Gator Start/Stop metadata or step gap
+    start_meta = active[0].get("start_s")
+    stop_meta = active[0].get("stop_s")
+    t_off = None
+    if start_meta is not None and stop_meta is not None and stop_meta > start_meta:
+        target_off = t_on + float(stop_meta - start_meta)
+        idx_off = int(np.searchsorted(t_arr, target_off, side="right"))
+        if 0 < idx_off < len(t_arr) - 1:
+            t_off = float(t_arr[idx_off])
+    if t_off is None:
+        dt = np.diff(t_arr)
+        med_dt = float(np.median(dt))
+        gaps = np.flatnonzero(dt > med_dt * 1.008)
+        if len(gaps):
+            t_off = float(t_arr[int(gaps[0]) + 1])
+    if t_off is not None and t_on < t_off < float(t_arr[-1]):
+        ds["phase_assoc_start_s"] = t_on
+        ds["phase_dissoc_start_s"] = t_off
+        ds["baseline_prealigned"] = True
+    return ds
+
+
+def ingest_uploaded_files(uploads, default_unit="nM", allow_bare_numeric=True, existing_names=None):
+    """Ingest uploaded files (standard CSV/TSV/TXT/XLSX, multi-sensor Gator Results.txt batches, or .zip BLI folders)."""
+    used_names = set(existing_names or [])
+    datasets = []
+    skipped_empty_sensors = []
+    pending_gator_groups = {}
+
+    def _unique_name(base_name):
+        cand = str(base_name)
+        if cand not in used_names:
+            used_names.add(cand)
+            return cand
+        stem = Path(cand).stem
+        suffix = Path(cand).suffix or ".csv"
+        idx = 2
+        while f"{stem}_rep{idx}{suffix}" in used_names:
+            idx += 1
+        final = f"{stem}_rep{idx}{suffix}"
+        used_names.add(final)
+        return final
+
+    for up in uploads:
+        raw_bytes = up.getvalue() if hasattr(up, "getvalue") else up[0]
+        fname = up.name if hasattr(up, "name") else up[1]
+        fname_str = str(fname)
+        fname_low = fname_str.lower()
+
+        # Case 1: ZIP archive of BLI / SPR folders
+        if fname_low.endswith(".zip") or (raw_bytes[:4] == b"PK\x03\x04" and not fname_low.endswith((".xlsx", ".xls"))):
+            with zipfile.ZipFile(io.BytesIO(raw_bytes), "r") as zf:
+                zip_gator_by_dir = {}
+                zip_other_files = []
+                for info in zf.infolist():
+                    if info.is_dir():
+                        continue
+                    zpath = Path(info.filename)
+                    if any(part.startswith(".") or part == "__MACOSX" for part in zpath.parts):
+                        continue
+                    base_low = zpath.name.lower()
+                    if "kinetictableexport" in base_low or base_low == "sha256.json":
+                        continue
+                    if not base_low.endswith((".csv", ".tsv", ".txt", ".xlsx", ".xls")):
+                        continue
+                    entry_bytes = zf.read(info.filename)
+                    gator_check = parse_gator_results_txt(entry_bytes, zpath.name)
+                    if gator_check.get("is_gator_sensor"):
+                        parent_key = str(zpath.parent)
+                        zip_gator_by_dir.setdefault(parent_key, []).append(gator_check)
+                    else:
+                        zip_other_files.append((zpath, entry_bytes))
+
+                if zip_gator_by_dir:
+                    # Exclude Fit / Fit2-1 / Results subdirectories whose ancestor folder already has Gator sensor files
+                    all_dirs = set(zip_gator_by_dir.keys())
+                    top_dirs = []
+                    for d_key in sorted(all_dirs):
+                        d_path = Path(d_key)
+                        if any(str(anc) in all_dirs for anc in d_path.parents if str(anc) != "."):
+                            continue
+                        top_dirs.append(d_key)
+                    seen_hashes = set()
+                    for d_key in top_dirs:
+                        items = zip_gator_by_dir[d_key]
+                        for it in items:
+                            if it.get("empty"):
+                                skipped_empty_sensors.append(it.get("sensor", it.get("filename", "")))
+                        active_items = [it for it in items if not it.get("empty")]
+                        if not active_items:
+                            continue
+                        folder_label = Path(d_key).name if d_key not in ("", ".") else Path(fname_str).stem
+                        out_name = _unique_name(f"{folder_label}.csv")
+                        ds = merge_gator_sensor_files(active_items, group_name=out_name, default_unit=default_unit)
+                        if ds["base_sha256"] not in seen_hashes:
+                            seen_hashes.add(ds["base_sha256"])
+                            datasets.append(ds)
+                for zpath, entry_bytes in zip_other_files:
+                    parent_label = zpath.parent.name
+                    nice_name = f"{parent_label}_{zpath.name}" if parent_label and parent_label != "." else zpath.name
+                    out_name = _unique_name(nice_name)
+                    datasets.append(
+                        read_dataset(
+                            entry_bytes,
+                            out_name,
+                            default_unit=default_unit,
+                            allow_bare_numeric=allow_bare_numeric,
+                        )
+                    )
+            continue
+
+        # Case 2: Individual Gator *Results.txt file (or batch of them)
+        gator_info = parse_gator_results_txt(raw_bytes, fname_str)
+        if gator_info.get("is_gator_sensor"):
+            parent_dir = str(Path(fname_str).parent)
+            pending_gator_groups.setdefault(parent_dir, []).append(gator_info)
+            continue
+
+        # Case 3: Standard multi-concentration CSV / TSV / TXT / XLSX file
+        out_name = _unique_name(Path(fname_str).name)
+        datasets.append(
+            read_dataset(
+                raw_bytes,
+                out_name,
+                default_unit=default_unit,
+                allow_bare_numeric=allow_bare_numeric,
+            )
+        )
+
+    # Merge any direct Gator *Results.txt file batches
+    for parent_dir, items in pending_gator_groups.items():
+        for it in items:
+            if it.get("empty"):
+                skipped_empty_sensors.append(it.get("sensor", it.get("filename", "")))
+        active_items = [it for it in items if not it.get("empty")]
+        if not active_items:
+            continue
+        base_label = Path(parent_dir).name if parent_dir not in ("", ".") else "BLI_Sensor_Series"
+        out_name = _unique_name(f"{base_label}.csv")
+        datasets.append(merge_gator_sensor_files(active_items, group_name=out_name, default_unit=default_unit))
+
+    if not datasets and skipped_empty_sensors:
+        raise ValueError(
+            f"All uploaded BLI sensor files ({', '.join(skipped_empty_sensors[:8])}) were empty reference sensors (e.g., B7–H7 or 0 nM H6). "
+            "Include the sample sensor files (e.g., B6–G6) or upload a .zip of the experiment folder."
+        )
+    return datasets, skipped_empty_sensors
 
 
 def _rebuild_dataset_from_schema(dataset):
@@ -213,6 +603,7 @@ def _rebuild_dataset_from_schema(dataset):
         except (TypeError, ValueError):
             val_f = np.nan
         y = raw_cols[col]
+        molar_ratio_entry = entry.get("molar_ratio", parse_molar_ratio(col))
         if role == "Exclude" or (role == "Sample" and not np.isfinite(val_f)):
             ignored.append(col)
             normalized_schema.append({
@@ -221,6 +612,7 @@ def _rebuild_dataset_from_schema(dataset):
                 "value": np.nan,
                 "unit": unit,
                 "concentration_nM": np.nan,
+                "molar_ratio": None,
                 "named_reference": bool(entry.get("named_reference", False)),
             })
             continue
@@ -237,6 +629,7 @@ def _rebuild_dataset_from_schema(dataset):
                 "value": 0.0,
                 "unit": unit,
                 "concentration_nM": 0.0,
+                "molar_ratio": 0.0 if molar_ratio_entry is not None else None,
                 "named_reference": bool(entry.get("named_reference", False)),
             })
             continue
@@ -254,6 +647,7 @@ def _rebuild_dataset_from_schema(dataset):
             "value": val_f,
             "unit": unit,
             "concentration_nM": conc,
+            "molar_ratio": float(val_f) if molar_ratio_entry is not None else None,
             "named_reference": False,
         })
     if not responses:
@@ -275,6 +669,25 @@ def _rebuild_dataset_from_schema(dataset):
     dataset["column_schema"] = normalized_schema
     dataset["base_sha256"] = base_sha
     dataset["sha256"] = effective_sha
+    if "phase_assoc_start_s" not in dataset:
+        t_arr = np.asarray(dataset["time"], dtype=float)
+        nonzero_c = [c for c in dataset["concentrations"] if c > 0]
+        if len(t_arr) >= 16 and float(t_arr[0]) >= 5.0 and nonzero_c:
+            y_med = np.median(np.vstack([responses[c] for c in nonzero_c]), axis=0)
+            span = float(np.ptp(y_med))
+            if span > 0 and abs(float(y_med[0])) <= 0.25 * span:
+                step_early = abs(float(y_med[min(10, len(t_arr) - 1)] - y_med[0]))
+                if step_early >= 0.02 * span:
+                    peak_idx = int(np.argmax(np.abs(y_med - y_med[0])))
+                    if 4 < peak_idx < len(t_arr) - 4:
+                        dt = np.diff(t_arr)
+                        med_dt = float(np.median(dt))
+                        gaps = np.flatnonzero(dt > med_dt * 1.008)
+                        t_off = float(t_arr[int(gaps[0]) + 1]) if len(gaps) else float(t_arr[peak_idx])
+                        if float(t_arr[0]) < t_off < float(t_arr[-1]):
+                            dataset["phase_assoc_start_s"] = float(t_arr[0])
+                            dataset["phase_dissoc_start_s"] = t_off
+                            dataset["baseline_prealigned"] = True
     return dataset
 
 
@@ -300,7 +713,10 @@ def read_dataset(payload, filename, *, default_unit="nM", allow_bare_numeric=Tru
     # Normalize flexible long-table column aliases
     time_aliases = ("time_s", "time", "time (s)", "seconds", "t", "time_min", "time (min)", "time (minutes)")
     resp_aliases = ("response", "signal", "ru", "response (ru)", "nm", "shift", "shift (nm)", "binding", "value", "y")
-    conc_aliases = ("concentration", "conc", "conc_nm", "conc (nm)", "analyte", "analyte_nm")
+    conc_aliases = (
+        "concentration", "conc", "conc_nm", "conc (nm)", "analyte", "analyte_nm",
+        "molar_ratio", "ratio", "competitor", "competitor_nm", "inhibitor", "inhibitor_nm",
+    )
     found_time_col = next((col_map_lower[a] for a in time_aliases if a in col_map_lower), None)
     found_resp_col = next((col_map_lower[a] for a in resp_aliases if a in col_map_lower), None)
     found_conc_col = next((col_map_lower[a] for a in conc_aliases if a in col_map_lower), None)

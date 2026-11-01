@@ -1,0 +1,64 @@
+MIXA 0.5.9-preview: Local scientific and usability update
+
+Preserved
+- Existing kinetic and equilibrium plots and saved-fit diagnostic panels.
+- Independent-repeat kon, koff and KD estimates, mean +/- SD and export layouts.
+- Original sample datasets, supported CSV formats and existing fit selection.
+- Existing Hugging Face URL, hosting resources and dependency configuration.
+
+Data and navigation
+- One compact editable table for files, roles, repeats and background methods.
+- Selective dataset removal without refreshing or resetting the whole session.
+- Removal invalidates affected results; missing controls are not silently ignored.
+- Workflow navigation returns to the top of the main analysis page.
+- Active plot previews use vector SVG instead of enlarged raster images.
+- New sessions show simple manual 1:1 controls first.
+- Guided/automatic and manual modes no longer show competing control sets.
+- Assistance mode/settings persist when navigating between analysis sections.
+- Manual two-state selection uses the global mechanistic engine.
+
+Assisted fitting
+- Added the signed linear nonspecific response used in manual analysis.
+- Drift and linear background may be tested separately and together.
+- Added compare-all execution of the visible permitted candidate sequence.
+- Recommendation favors the fewest-parameter qualified candidate.
+- Baseline normalization is selectable and identical across compared candidates.
+- All attempted, skipped and budget-limited candidates remain in the review log.
+- Mechanistic alternatives still require explicit assay-supported permissions.
+- Joint simulated serial screening replaces repeated unadjusted lag-1 gates.
+- The original per-curve descriptive correlation flags remain visible.
+
+Saved-fit robustness and uncertainty
+- Exact saved objective reconstruction before enabling review.
+- Adaptive nuisance-refitted likelihood crossings, not coarse grid endpoints.
+- Open/incomplete profile limits remain unresolved instead of becoming finite CIs.
+- Better optima discovered during profiling require a new main fit.
+- Concentration, independent-repeat and curve deletion refits.
+- Parameter/KD shifts and held-out prediction plots and source tables.
+- Held-out local capacities/offsets are never borrowed from the full-data fit.
+- Nonlinear simulation refits recalculate rates and mechanism-specific KD per draw.
+- Studentized intervals for estimated residual-noise scales.
+- Explicit percentile propagation for supplied raw-source/calibration budgets.
+- Finite median baselines and reused raw controls are simulated consistently.
+- Fixed parameters, bounds, rank loss and insufficient refits withhold routine CIs.
+- New parameter-interval figures do not replace independent-repeat SD figures.
+- All requested failures/unrun cases remain in simulation/deletion tables.
+
+Traceability and validation
+- Downloadable review tables, figures, methods, seeds, budgets and fingerprints.
+- Standard shared-fit recipes now retain exact values, bounds and parameter links.
+- Methods/reference records include current numerical-source hashes.
+- Added known-truth nonlinear interval and blind-start recovery studies.
+- Added four-design automatic correction-selection study.
+- Initial undercoverage and false-rejection studies are retained, not overwritten.
+- Test discovery excludes immutable release backups.
+
+Remaining scope
+- No comprehensive state-of-the-art or universal coverage claim.
+- Joint nonlinear hierarchical repeat/control/calibration inference is not built.
+- Complex ODE models still need broader recovery/interval and performance work.
+- Profile/serial checks remain conditional on their explicitly saved assumptions.
+- This local update has not replaced the live 0.5.8 Space.
+
+Detailed methods: REFIT_REVIEW.md and USER_GUIDE.md.
+Current evidence: validation/refit_review and validation/assisted_comparison.
