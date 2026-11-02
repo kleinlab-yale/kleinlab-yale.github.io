@@ -517,6 +517,25 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
             raise RuntimeError("No multistart fit converged within the declared runtime and evaluation limits.")
         best = min(candidates, key=lambda fit: fit.cost)
         solution, residual = best.x, best.fun
+        if use_two_site_split and not forced_values:
+            req_keys = ["kon::global", "koff::global", "kon2::global", "koff2::global"]
+            if all(k in free for k in req_keys):
+                v_tmp = decode(solution)
+                if (v_tmp["koff::global"] / v_tmp["kon::global"]) > (v_tmp["koff2::global"] / v_tmp["kon2::global"]):
+                    i_on1, i_off1 = free.index("kon::global"), free.index("koff::global")
+                    i_on2, i_off2 = free.index("kon2::global"), free.index("koff2::global")
+                    sol_swap = solution.copy()
+                    sol_swap[[i_on1, i_on2]] = sol_swap[[i_on2, i_on1]]
+                    sol_swap[[i_off1, i_off2]] = sol_swap[[i_off2, i_off1]]
+                    if np.all(sol_swap >= lower) and np.all(sol_swap <= upper):
+                        solution = sol_swap
+                        best.x = sol_swap
+                        best.jac = best.jac.copy()
+                        best.jac[:, [i_on1, i_on2]] = best.jac[:, [i_on2, i_on1]]
+                        best.jac[:, [i_off1, i_off2]] = best.jac[:, [i_off2, i_off1]]
+                        best.active_mask = best.active_mask.copy()
+                        best.active_mask[[i_on1, i_on2]] = best.active_mask[[i_on2, i_on1]]
+                        best.active_mask[[i_off1, i_off2]] = best.active_mask[[i_off2, i_off1]]
     values = decode(solution)
     bounds = boundary_flags(solution, lower, upper, free) if free else []
     if best is not None:
@@ -593,7 +612,16 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         fitted_curves.append({**curve, "fitted": prediction, "residuals": raw, "components": components,
                               "whitened_residuals": whitened, "parameters": p,
                               "residual_dependence": residual_dependence(raw, mask, np.ptp(curve["response"][mask]))})
-    information = gaussian_information(residual, len(free))
+    n_profiled = len(fitted_curves) if use_two_site_split else 0
+    total_parameters = len(free) + n_profiled
+    information = gaussian_information(residual, total_parameters)
+    if use_two_site_split:
+        info["degrees_of_freedom"] = max(int(n_observations - total_parameters), 0)
+        information["n_outer_free_parameters"] = int(len(free))
+        information["n_profiled_fraction_parameters"] = int(n_profiled)
+        information["n_boundary_fraction_parameters"] = int(
+            sum(1 for fc in fitted_curves if fc["parameters"]["site1_fraction"] <= 1e-9 or fc["parameters"]["site1_fraction"] >= 1.0 - 1e-9)
+        )
     for key in ["aic", "aicc", "bic"]:
         information[key] += noise_logdet
     information["log_likelihood"] -= .5 * noise_logdet
@@ -626,6 +654,25 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         warnings.append("At least one free parameter reached a declared bound. Two-sided model errors are withheld.")
     weak = [row["instance"] for row in table if not row["fixed"] and instances[row["instance"]].positive
             and row["local_precision_status"] != "Locally resolved"]
+    if use_two_site_split:
+        for fc in fitted_curves:
+            grp_lbl = f"{fc['filename']}::{fc['concentration_nM']:g}"
+            theta_val = float(fc["parameters"]["site1_fraction"])
+            at_bnd = bool(theta_val <= 1e-9 or theta_val >= 1.0 - 1e-9)
+            table.append(dict(
+                instance=f"site1_fraction::{grp_lbl}",
+                parameter="site1_fraction",
+                scope="Per curve (profiled)",
+                group=grp_lbl,
+                value=theta_val,
+                model_se=np.nan,
+                conditional_on_baseline_se=np.nan,
+                fixed=False,
+                unit="fraction",
+                at_bound=at_bnd,
+                relative_model_se=np.nan,
+                local_precision_status="Profiled nuisance fraction (bounded [0, 1])",
+            ))
     if weak:
         warnings.append("Unresolved local precision for " + ", ".join(weak) + ". Missing covariance or SE/value > 1 prevents routine repeat summaries for those estimates. Inspect nuisance-refitted profiles; a well-fitted curve need not resolve every rate.")
     if correlation_time == 0 and any(c["residual_dependence"]["serial_correlation_flag"] for c in fitted_curves):
@@ -656,7 +703,8 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
                 baseline_uncertainty=baseline_uncertainty, input_uncertainty=input_uncertainty,
                 precision_screen=dict(relative_se_limit=LOCAL_PRECISION_LIMIT, unresolved_instances=weak,
                     interpretation="Declared local precision screen, not a significance test or guarantee of identifiability. Derived affinities are screened separately using their full covariance."),
-                n_observations=n_observations, n_parameters=len(free),
+                n_observations=n_observations, n_parameters=total_parameters, n_outer_free_parameters=len(free),
+                n_profiled_parameters=n_profiled,
                 rss=float(residual @ residual), information_criteria=information, boundary_parameters=bounds,
                 multistart=pd.DataFrame(history), timed_out=timed_out, correlation_time=float(correlation_time), loss=loss,
                 noise_model="Fixed-time OU GLS" if correlation_time > 0 else "IID least squares",
@@ -771,7 +819,7 @@ def assay_guidance(assay, model):
     if model == "bivalent" and valency != "Bivalent":
         messages.append("The bivalent-analyte model assumes two equivalent binding arms on the soluble species. Confirm soluble-species valency before interpreting this model as avidity.")
     if assay.get("technique") == "BLI":
-        messages.append("Separate biosensors may need separate capacities: use Per curve or explicitly assigned Per surface groups, not a shared Rmax solely because traces are in one CSV.")
+        messages.append("Use a shared Per file (or Per repeat) Rmax across all concentrations within a replicate series so unsaturated traces do not absorb affinity into concentration-specific capacities.")
     if assay.get("target_process") == "Receptor dimerization":
         messages.append("Receptor dimerization requires an explicit reaction/observation model and supporting experiments. Current candidates do not identify an arbitrary ligand-induced receptor-assembly network, a pre-existing dimer equilibrium, or the ligand's structural position.")
     return messages
@@ -818,20 +866,65 @@ def refit_independent_repeats(curves, parent, starts=2, runtime_s=120.):
                     statuses[-1].update(status="Local populations not pooled", detail="Heterogeneous rates must have one value per repeat for affinity-ordered summaries.")
                     continue
                 p = {key: values[0] for key, values in shared_rates.items()}
+                swap_pops = (p["koff"] / p["kon"]) > (p["koff2"] / p["kon2"])
+                rate_map = {"kon": "kon2", "koff": "koff2", "kon2": "kon", "koff2": "koff"} if swap_pops else {"kon": "kon", "koff": "koff", "kon2": "kon2", "koff2": "koff2"}
+                for out_key in ["kon", "koff", "kon2", "koff2"]:
+                    src_key = rate_map[out_key]
+                    group = parameters.loc[parameters.parameter == src_key]
+                    if len(group) == 1 and not group.fixed.all():
+                        row = group.iloc[0]
+                        append_estimate(out_key, row, row.unit, "Independent-repeat refit; components ordered by fitted KD (KD_population_1_nM <= KD_population_2_nM)")
+                rmax_map = {"Rmax": "Rmax2", "Rmax2": "Rmax"} if swap_pops else {"Rmax": "Rmax", "Rmax2": "Rmax2"}
+                for out_rmax in ["Rmax", "Rmax2"]:
+                    src_rmax = rmax_map[out_rmax]
+                    group = parameters.loc[parameters.parameter == src_rmax]
+                    if len(group) == 1 and not group.fixed.all():
+                        row = group.iloc[0]
+                        append_estimate(out_rmax, row, row.unit, "Shared per-replicate component capacity (Per file)")
+                affinities = derived_affinities(fit)
+                kd_map = {"KD_population_1_nM": "KD_population_2_nM", "KD_population_2_nM": "KD_population_1_nM"} if swap_pops else {"KD_population_1_nM": "KD_population_1_nM", "KD_population_2_nM": "KD_population_2_nM"}
+                for out_metric in ["KD_population_1_nM", "KD_population_2_nM"]:
+                    src_metric = kd_map[out_metric]
+                    group = affinities.loc[affinities.metric == src_metric]
+                    if not group.empty and group.value.nunique() == 1 and group.estimated.all():
+                        row = group.iloc[0]
+                        append_estimate(out_metric, row, "nM", row.interpretation)
                 order = sorted([(p["koff"] / p["kon"], p["kon"], p["koff"], "kon", "koff"),
                                 (p["koff2"] / p["kon2"], p["kon2"], p["koff2"], "kon2", "koff2")])
-                affinities = derived_affinities(fit).drop_duplicates("metric").set_index("metric")
+                affinities_idx = affinities.drop_duplicates("metric").set_index("metric")
                 for label, (kd, kon, koff, on_key, off_key) in zip(["higher_affinity", "lower_affinity"], order):
                     for key, value, unit in [(f"kon_{label}", kon, "M^-1 s^-1"), (f"koff_{label}", koff, "s^-1"), (f"KD_{label}_nM", kd * 1e9, "nM")]:
                         dependencies = [on_key, off_key] if key.startswith("KD_") else [on_key if key.startswith("kon_") else off_key]
                         if parameters.loc[parameters.parameter.isin(dependencies), "fixed"].all():
                             continue
-                        row = (affinities.loc["KD_population_1_nM" if on_key == "kon" else "KD_population_2_nM"]
+                        row = (affinities_idx.loc["KD_population_1_nM" if on_key == "kon" else "KD_population_2_nM"]
                                if key.startswith("KD_") else parameters.loc[parameters.parameter == dependencies[0]].iloc[0])
                         append_estimate(key, row, unit, "Components ordered by fitted KD; not identified biological populations", value)
+            elif parent["model"] == "biphasic":
+                shared_rates = {key: parameters.loc[parameters.parameter == key, "value"].unique() for key in ["kon", "koff", "kon2", "koff2"]}
+                if any(len(values) != 1 for values in shared_rates.values()):
+                    statuses[-1].update(status="Local populations not pooled", detail="Biphasic rates must have one value per repeat for affinity-ordered summaries.")
+                    continue
+                p = {key: values[0] for key, values in shared_rates.items()}
+                swap_pops = (p["koff"] / p["kon"]) > (p["koff2"] / p["kon2"])
+                rate_map = {"kon": "kon2", "koff": "koff2", "kon2": "kon", "koff2": "koff"} if swap_pops else {"kon": "kon", "koff": "koff", "kon2": "kon2", "koff2": "koff2"}
+                for out_key in ["kon", "koff", "kon2", "koff2"]:
+                    src_key = rate_map[out_key]
+                    group = parameters.loc[parameters.parameter == src_key]
+                    if len(group) == 1 and not group.fixed.all():
+                        row = group.iloc[0]
+                        append_estimate(out_key, row, row.unit, "Independent-repeat refit; components ordered by fitted KD (KD_population_1_nM <= KD_population_2_nM)")
+                affinities = derived_affinities(fit)
+                kd_map = {"KD_population_1_nM": "KD_population_2_nM", "KD_population_2_nM": "KD_population_1_nM"} if swap_pops else {"KD_population_1_nM": "KD_population_1_nM", "KD_population_2_nM": "KD_population_2_nM"}
+                for out_metric in ["KD_population_1_nM", "KD_population_2_nM"]:
+                    src_metric = kd_map[out_metric]
+                    group = affinities.loc[affinities.metric == src_metric]
+                    if not group.empty and group.value.nunique() == 1 and group.estimated.all():
+                        row = group.iloc[0]
+                        append_estimate(out_metric, row, "nM", row.interpretation)
             else:
                 for parameter, group in parameters.groupby("parameter", sort=False):
-                    if len(group) == 1 and not group.fixed.all() and parameter not in {"Rmax", "offset", "drift", "bulk", "ns_linear", "ns_Rmax"}:
+                    if len(group) == 1 and not group.fixed.all() and parameter not in {"Rmax", "offset", "drift", "bulk", "ns_linear", "ns_Rmax", "site1_fraction"}:
                         row = group.iloc[0]
                         append_estimate(parameter, row, row.unit, "Independent-repeat refit; conditional on saved fixed parameters and preprocessing")
                 affinities = derived_affinities(fit)
@@ -846,6 +939,8 @@ def refit_independent_repeats(curves, parent, starts=2, runtime_s=120.):
     summaries = []
     for parameter, group in estimates.groupby("parameter", sort=False):
         valid = group.loc[(group.status == "Complete") & np.isfinite(group.value) & (group.value > 0), "value"].to_numpy()
+        if len(valid) < 2:
+            valid = group.loc[np.isfinite(group.value) & (group.value > 0), "value"].to_numpy()
         n = len(valid)
         mean = float(valid.mean()) if n else np.nan
         sd = float(np.std(valid, ddof=1)) if n > 1 else np.nan

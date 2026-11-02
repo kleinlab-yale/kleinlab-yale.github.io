@@ -1062,8 +1062,12 @@ def extract_competition_points_from_datasets(
 
             # Compute scalar response readout
             if readout_mode.startswith("Initial association slope"):
-                slope_end = min(t_on + max(0.15 * (t_off - t_on), 5.0), t_off)
-                smask = (t >= t_on) & (t <= slope_end)
+                slope_start = min(t_on + 2.0, t_off)
+                slope_end = min(t_on + 20.0, t_off)
+                smask = (t >= slope_start) & (t <= slope_end)
+                if np.sum(smask) < 3:
+                    slope_end = min(t_on + max(0.15 * (t_off - t_on), 5.0), t_off)
+                    smask = (t >= t_on) & (t <= slope_end)
                 if np.sum(smask) >= 3:
                     slope, _ = np.polyfit(t[smask] - t_on, y[smask], 1)
                     resp_val = float(slope)
@@ -1156,8 +1160,13 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
                 all_f = np.concatenate([c["fitted"][c["fit_mask"]] for c in mech["curves"]])
                 ss_t = float(np.sum((all_o - np.mean(all_o)) ** 2))
                 r2_ref = float(1.0 - np.sum((all_o - all_f) ** 2) / max(ss_t, 1e-15))
+            t12_s = np.nan
+            if not sum_df.empty and "koff" in set(sum_df["parameter"]):
+                koff_m = float(sum_df[sum_df["parameter"] == "koff"].iloc[0]["mean"])
+                if np.isfinite(koff_m) and koff_m > 0:
+                    t12_s = float(np.log(2.0) / koff_m)
             label = (
-                "MCAM-Fc + LM411 Combined High-Affinity KD,1 (Both Sites Engaged, Step 1)"
+                "MCAM-Fc + LM411 Apparent Step 1 KD,step1 (Sequential Surface-Capture Model)"
                 if model_key == "sequential"
                 else "Apparent Population 1 KD,pop1 (Reference Surface Fit)"
             )
@@ -1174,6 +1183,7 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
                 "n_repeats": len(reps) or int(s_row.get("n_independent", 1)),
                 "reps": reps,
                 "r2": r2_ref,
+                "t12_s": t12_s,
             }
     return {"available": False}
 
@@ -1242,10 +1252,15 @@ def build_competition_figure_legend(comp_results, ref_kinetics=None):
         ref_mean = float(ref_info["mean"])
         ref_sd = float(ref_info["sd"]) if np.isfinite(ref_info.get("sd", np.nan)) else None
         ref_disp = f"{ref_mean:.2f} \\pm {ref_sd:.2f}\\text{{ nM}}" if ref_sd is not None else f"{ref_mean:.2f}\\text{{ nM}}"
+        t12_disp = (
+            f", $t_{{1/2}} = {float(ref_info['t12_s']):.1f}\\text{{ s}}$"
+            if np.isfinite(ref_info.get("t12_s", np.nan))
+            else ""
+        )
         fold_val = ref_mean / m_kd
         ref_sentence = (
-            f" Compared with MCAM-Fc's combined high-affinity state when both sites on Laminin-411 are engaged "
-            f"($K_{{D,1}}(\\text{{MCAM}}) = K_{{D,\\text{{step 1}}}} = {ref_disp}$, $t_{{1/2}} = 278\\text{{ s}}$), "
+            f" Compared with the reference surface-binding parameter "
+            f"(${ref_info['symbol']} = {ref_disp}${t12_disp}), "
             f"soluble $\\alpha_6\\beta_1$ integrin binds Laminin-411 with a ${fold_val:.1f}\\times$ lower dissociation constant under the selected response model."
         )
 
@@ -2162,7 +2177,7 @@ def render_solution_competition_section():
                 st.session_state.comp_axis_mode = "Competitor Concentration ([I]_tot in nM)"
                 st.session_state.comp_use_surface_kd = False
                 st.session_state.comp_allow_plateau = False
-                st.session_state.comp_surface_kd_input = 34.4
+                st.session_state.comp_surface_kd_input = 45.7
                 st.session_state.comp_stoich_mode = "Fix stoichiometry n (default 1.0)"
                 st.session_state.comp_surface_coop_mode = "1-Site Langmuir surface (m = 1.0)"
                 st.session_state.comp_lock_lit_kd = False
@@ -2189,7 +2204,7 @@ def render_solution_competition_section():
                 st.session_state.comp_axis_mode = "Competitor Concentration ([I]_tot in nM)"
                 st.session_state.comp_use_surface_kd = False
                 st.session_state.comp_allow_plateau = False
-                st.session_state.comp_surface_kd_input = 34.4
+                st.session_state.comp_surface_kd_input = 45.7
                 st.session_state.comp_stoich_mode = "Fix stoichiometry n (default 1.0)"
                 st.session_state.comp_surface_coop_mode = "1-Site Langmuir surface (m = 1.0)"
                 st.session_state.comp_lock_lit_kd = False
@@ -2253,14 +2268,14 @@ def render_solution_competition_section():
         if kon_m and koff_m and kon_m > 0:
             default_kd_surf = float((koff_m / kon_m) * 1e9)
     if not np.isfinite(default_kd_surf) or default_kd_surf <= 0:
-        default_kd_surf = 34.4
+        default_kd_surf = 45.7
 
     with adv1:
         readout_mode = st.selectbox(
             "Sensorgram signal readout",
             [
                 "Report point near association end",
-                "Initial association slope (linear velocity)",
+                "Initial association slope (linear velocity, 2–20 s)",
                 "Peak association response",
             ],
             key="comp_readout_mode",

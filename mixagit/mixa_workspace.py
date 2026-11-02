@@ -118,9 +118,9 @@ def _load_mcam_lm411_kinetics():
         st.session_state.fit_trim_enabled = False
         st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
 
-        # Configure exact BLI Two-Site Sequential fitting controls
-        st.session_state.binding_model_select = MODEL_LABELS["sequential"]
-        st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
+        # Configure 2:1 Two-Population Fit with Shared Per-File Rmax
+        st.session_state.binding_model_select = MODEL_LABELS["heterogeneous"]
+        st.session_state.rmax_group_mode = "Per file (repeat-specific)"
         st.session_state.advanced_transport = "None"
         st.session_state.normalize_baseline = False
         st.session_state.correct_drift = False
@@ -134,7 +134,7 @@ def _load_mcam_lm411_kinetics():
         st.session_state.advanced_invert = False
         st.session_state.advanced_nuisance = []
         config_key = repr((
-            "sequential",
+            "heterogeneous",
             "None",
             False,
             False,
@@ -144,23 +144,27 @@ def _load_mcam_lm411_kinetics():
             st.session_state.prepared_signature,
         ))
         st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-            {"key": "kon", "scope": "Global", "initial": 5.0e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-            {"key": "koff", "scope": "Global", "initial": 0.0025, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "Rmax", "scope": "Per curve", "initial": 0.25, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
-            {"key": "kon2", "scope": "Global", "initial": 1.0e6, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-            {"key": "koff2", "scope": "Global", "initial": 0.039, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "kon", "scope": "Global", "initial": 3.6e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "koff", "scope": "Global", "initial": 0.0030, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "Rmax", "scope": "Per file", "initial": 0.65, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
+            {"key": "kon2", "scope": "Global", "initial": 1.9e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "koff2", "scope": "Global", "initial": 0.041, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "Rmax2", "scope": "Per file", "initial": 1.03, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
         ]
 
+        import base64
         fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
-        if fit_pkl.is_file():
-            _res_lm = pickle.loads(fit_pkl.read_bytes())
+        fit_b64 = fit_pkl.with_suffix(".b64.txt")
+        if fit_b64.is_file() or fit_pkl.is_file():
+            raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
+            _res_lm = pickle.loads(raw_pkl)
             _res_lm.setdefault("signature", "preloaded_demo_lm411")
             _res_lm["preloaded_demo"] = True
             st.session_state.latest_mechanistic_results = _res_lm
         st.session_state.import_notice = (
             "Loaded MCAM-Fc + Laminin-411 (tE411) Direct Binding Kinetics (3 BLI replicates, 7.81–125 nM) "
-            "with Sequential Two-Analyte Surface-Capture Fit pre-configured and pre-loaded "
-            "(Apparent Step 1 K_D,step1 = 4.63 ± 0.48 nM, Apparent Step 2 K_D,step2 = 34.4 ± 2.3 nM)."
+            "with 2:1 Fit (Shared Per-Replicate Rmax) pre-configured and pre-loaded "
+            "(Steady-State K_D,eq = 45.7 ± 3.7 nM; 1:1 Fit K_D = 22.9 ± 2.2 nM; 2:1 Fit K_D,1 = 8.4 ± 1.4 nM [39%], K_D,2 = 218 ± 28 nM [61%])."
         )
     except ValueError as exc:
         st.session_state.import_error = str(exc)
@@ -205,8 +209,8 @@ def _load_mcam_lama4g123_kinetics():
         st.session_state.fit_trim_enabled = False
         st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
 
-        st.session_state.binding_model_select = MODEL_LABELS["biphasic"]
-        st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
+        st.session_state.binding_model_select = MODEL_LABELS["heterogeneous"]
+        st.session_state.rmax_group_mode = "Per file (repeat-specific)"
         st.session_state.advanced_transport = "None"
         st.session_state.normalize_baseline = False
         st.session_state.correct_drift = False
@@ -220,7 +224,7 @@ def _load_mcam_lama4g123_kinetics():
         st.session_state.advanced_invert = False
         st.session_state.advanced_nuisance = []
         config_key = repr((
-            "biphasic",
+            "heterogeneous",
             "None",
             False,
             False,
@@ -230,23 +234,27 @@ def _load_mcam_lama4g123_kinetics():
             st.session_state.prepared_signature,
         ))
         st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-            {"key": "kon", "scope": "Global", "initial": 1.65e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-            {"key": "koff", "scope": "Global", "initial": 0.00225, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "Rmax", "scope": "Per curve", "initial": 0.08, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
-            {"key": "kon2", "scope": "Global", "initial": 2.46e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-            {"key": "koff2", "scope": "Global", "initial": 0.113, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "kon", "scope": "Global", "initial": 1.5e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "koff", "scope": "Global", "initial": 0.0014, "lower": 1.0e-5, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "Rmax", "scope": "Per file", "initial": 0.20, "lower": 0.01, "upper": 0.35, "fixed": False, "positive": True, "unit": "response"},
+            {"key": "kon2", "scope": "Global", "initial": 7.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "koff2", "scope": "Global", "initial": 0.125, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "Rmax2", "scope": "Per file", "initial": 1.00, "lower": 0.50, "upper": 1.25, "fixed": False, "positive": True, "unit": "response"},
         ]
 
+        import base64
         fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
-        if fit_pkl.is_file():
-            _res_g123 = pickle.loads(fit_pkl.read_bytes())
+        fit_b64 = fit_pkl.with_suffix(".b64.txt")
+        if fit_b64.is_file() or fit_pkl.is_file():
+            raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
+            _res_g123 = pickle.loads(raw_pkl)
             _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
             _res_g123["preloaded_demo"] = True
             st.session_state.latest_mechanistic_results = _res_g123
         st.session_state.import_notice = (
             "Loaded MCAM-Fc + LamA4G123 (isolated α4 LG1–LG3 globular domain without βγ chains; 3 BLI replicates, 15.63–500 nM) "
-            "with Two-Population (per-curve fraction, 2:1) BLI Fit pre-configured and pre-loaded "
-            "(Apparent Pop 1 K_D,pop1 = 13.7 ± 1.0 nM, Apparent Pop 2 K_D,pop2 = 459 ± 28 nM)."
+            "with 2:1 Fit (Shared Per-Replicate Rmax) pre-configured and pre-loaded "
+            "(Steady-State K_D,eq = 1.58 ± 0.74 µM; 1:1 Fit K_D = 1.40 ± 0.80 µM; 2:1 Fit Dominant Fast Component K_D,2 = 1.73 ± 0.57 µM [84%], Minor Slow Component K_D,1 = 83 ± 56 nM [16%])."
         )
     except ValueError as exc:
         st.session_state.import_error = str(exc)
@@ -312,16 +320,16 @@ def _load_complete_mcam_study():
         st.session_state.comp_axis_mode = "Competitor Concentration ([I]_tot in nM)"
         st.session_state.comp_use_surface_kd = False
         st.session_state.comp_allow_plateau = False
-        st.session_state.comp_surface_kd_input = 34.4
+        st.session_state.comp_surface_kd_input = 45.7
         st.session_state.comp_stoich_mode = "Fix stoichiometry n (default 1.0)"
         st.session_state.comp_fixed_stoich_n = 1.0
         st.session_state.comp_surface_coop_mode = "1-Site Langmuir surface (m = 1.0)"
         st.session_state.comp_lock_lit_kd = False
     st.session_state.import_notice = (
-        "Loaded Complete MCAM–Laminin-411, LamA4G123 (α4 LG1–LG3) & α6β1 Integrin Demonstration Study: "
-        "(1) Intact Laminin-411 Trimer Kinetics (3 reps, 7.81–125 nM, Full Complex K_D,full = 4.6 ± 0.5 nM, Intermediate K_D,int = 34.4 ± 2.3 nM), "
-        "(2) Isolated LamA4G123 (α4 LG1–LG3 without βγ chains; 3 reps, 15.63–500 nM; switchable via 'Experiment to analyze'), and "
-        "(3) α6β1 Integrin Solution Inhibition (3 reps, IC50 = 11.5 ± 0.5 nM) in '07 / Solution Competition'."
+        "Loaded Complete MCAM–Laminin-411, LamA4G123 (α4 LG1–LG3) & α6β1 Integrin Demonstration Study (Shared Per-Replicate Rmax): "
+        "(1) Intact Laminin-411 Trimer Kinetics (3 reps, 7.81–125 nM; Steady-State K_D,eq = 45.7 ± 3.7 nM, 1:1 K_D = 22.9 ± 2.2 nM, 2:1 K_D,1 = 8.4 ± 1.4 nM [39%] & K_D,2 = 218 ± 28 nM [61%]), "
+        "(2) Isolated LamA4G123 (α4 LG1–LG3 without βγ chains; 3 reps, 15.63–500 nM; Steady-State K_D,eq = 1.58 ± 0.74 µM, 1:1 K_D = 1.40 ± 0.80 µM, 2:1 Dominant Fast Component K_D,2 = 1.73 ± 0.57 µM [84%] & Minor Component K_D,1 = 83 ± 56 nM [16%]; switchable via 'Experiment to analyze'), and "
+        "(3) α6β1 Integrin Solution Inhibition (3 reps, IC50 = 11.5 ± 0.5 nM, K_D(α6β1) = 0.73 ± 0.22 nM) in '07 / Solution Competition'."
     )
 
 
@@ -932,8 +940,8 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.phase_adjust_enabled = False
             st.session_state.fit_trim_enabled = False
             st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-            st.session_state.binding_model_select = MODEL_LABELS["sequential"]
-            st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
+            st.session_state.binding_model_select = MODEL_LABELS["heterogeneous"]
+            st.session_state.rmax_group_mode = "Per file (repeat-specific)"
             st.session_state.advanced_transport = "None"
             st.session_state.normalize_baseline = False
             st.session_state.correct_drift = False
@@ -947,7 +955,7 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.advanced_invert = False
             st.session_state.advanced_nuisance = []
             config_key = repr((
-                "sequential",
+                "heterogeneous",
                 "None",
                 False,
                 False,
@@ -957,15 +965,19 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
                 st.session_state.prepared_signature,
             ))
             st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-                {"key": "kon", "scope": "Global", "initial": 5.0e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-                {"key": "koff", "scope": "Global", "initial": 0.0025, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "Rmax", "scope": "Per curve", "initial": 0.25, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
-                {"key": "kon2", "scope": "Global", "initial": 1.0e6, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-                {"key": "koff2", "scope": "Global", "initial": 0.039, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "kon", "scope": "Global", "initial": 3.6e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "koff", "scope": "Global", "initial": 0.0030, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "Rmax", "scope": "Per file", "initial": 0.65, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
+                {"key": "kon2", "scope": "Global", "initial": 1.9e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "koff2", "scope": "Global", "initial": 0.041, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "Rmax2", "scope": "Per file", "initial": 1.03, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
             ]
+            import base64
             fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
-            if fit_pkl.is_file():
-                _res_lm = pickle.loads(fit_pkl.read_bytes())
+            fit_b64 = fit_pkl.with_suffix(".b64.txt")
+            if fit_b64.is_file() or fit_pkl.is_file():
+                raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
+                _res_lm = pickle.loads(raw_pkl)
                 _res_lm.setdefault("signature", "preloaded_demo_lm411")
                 _res_lm["preloaded_demo"] = True
                 st.session_state.latest_mechanistic_results = _res_lm
@@ -981,8 +993,8 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.phase_adjust_enabled = False
             st.session_state.fit_trim_enabled = False
             st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-            st.session_state.binding_model_select = MODEL_LABELS["biphasic"]
-            st.session_state.rmax_group_mode = "Per curve (concentration-specific)"
+            st.session_state.binding_model_select = MODEL_LABELS["heterogeneous"]
+            st.session_state.rmax_group_mode = "Per file (repeat-specific)"
             st.session_state.advanced_transport = "None"
             st.session_state.normalize_baseline = False
             st.session_state.correct_drift = False
@@ -996,7 +1008,7 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.advanced_invert = False
             st.session_state.advanced_nuisance = []
             config_key = repr((
-                "biphasic",
+                "heterogeneous",
                 "None",
                 False,
                 False,
@@ -1006,15 +1018,19 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
                 st.session_state.prepared_signature,
             ))
             st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-                {"key": "kon", "scope": "Global", "initial": 1.65e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-                {"key": "koff", "scope": "Global", "initial": 0.00225, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "Rmax", "scope": "Per curve", "initial": 0.08, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
-                {"key": "kon2", "scope": "Global", "initial": 2.46e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-                {"key": "koff2", "scope": "Global", "initial": 0.113, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "kon", "scope": "Global", "initial": 1.5e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "koff", "scope": "Global", "initial": 0.0014, "lower": 1.0e-5, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "Rmax", "scope": "Per file", "initial": 0.20, "lower": 0.01, "upper": 0.35, "fixed": False, "positive": True, "unit": "response"},
+                {"key": "kon2", "scope": "Global", "initial": 7.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "koff2", "scope": "Global", "initial": 0.125, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "Rmax2", "scope": "Per file", "initial": 1.00, "lower": 0.50, "upper": 1.25, "fixed": False, "positive": True, "unit": "response"},
             ]
+            import base64
             fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
-            if fit_pkl.is_file():
-                _res_g123 = pickle.loads(fit_pkl.read_bytes())
+            fit_b64 = fit_pkl.with_suffix(".b64.txt")
+            if fit_b64.is_file() or fit_pkl.is_file():
+                raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
+                _res_g123 = pickle.loads(raw_pkl)
                 _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
                 _res_g123["preloaded_demo"] = True
                 st.session_state.latest_mechanistic_results = _res_g123
