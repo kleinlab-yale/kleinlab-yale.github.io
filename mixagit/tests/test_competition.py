@@ -2,6 +2,7 @@
 
 import io
 import zipfile
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -27,6 +28,28 @@ from mixa_data import (
     parse_molar_ratio,
     read_dataset,
 )
+
+
+@pytest.mark.parametrize("exponent, expected", [(1., .5), (2., .25)])
+def test_squared_capture_has_only_the_declared_response_assumptions(exponent, expected):
+    # At A_tot=I_tot=20 nM and KD=10 nM, exact 1:1 equilibrium gives
+    # A_free=10 nM. Squared capture then has A_eff=5 nM; saturation
+    # at a 10 nM surface constant gives these analytically known ratios.
+    response = set_equilibrium_response(np.array([20.]), 1., 0., 10., 20.,
+        surface_kd_nM=10., surface_cooperativity=exponent, bidentate_two_site=True)
+    assert response[0] == pytest.approx(expected, rel=1e-10)
+
+
+def test_lg13_active_fit_cannot_be_labeled_as_the_lm411_reference(monkeypatch):
+    import mixa_competition
+    fake_lg13 = dict(curves=[dict(filename="MCAM_LamA4G123_kinetics_rep1.csv")],
+                    repeat_report={"summary": pd.DataFrame([dict(parameter="KD_overall_nM", mean=999., sd=1.)])})
+    monkeypatch.setattr(mixa_competition.st, "session_state", {"latest_mechanistic_results": fake_lg13})
+    result = mixa_competition._resolve_reference_receptor_kinetics()
+    assert result["available"]
+    assert result["reference_source"] == "bundled LM411 kinetic fit"
+    assert 11. < result["mean"] < 13.
+    assert np.isnan(result["t12_s"])  # kopen is not a macroscopic complex off-rate.
 
 
 def test_parse_molar_ratio_and_column_headers():
@@ -152,18 +175,17 @@ def test_global_competition_sensorgrams_and_export_bundle():
 
 
 def test_solution_competition_workflow_ui():
-    app = AppTest.from_file("mixa_app.py", default_timeout=30)
+    app = AppTest.from_file(Path(__file__).resolve().parents[1]/"mixa_app.py", default_timeout=30)
     app.run()
     assert any("Solution Competition" in opt for opt in app.radio(key="workflow_nav").options)
     app.radio(key="workflow_nav").set_value("Solution Competition").run()
     assert not app.exception
 
-    # Click synthetic competition demo button
-    app.button(key="comp_load_demo_btn").click().run()
+    app.button(key="comp_load_mcam_btn").click().run()
     assert not app.exception
     comp_res = app.session_state["latest_competition_results"]
     assert comp_res is not None
-    assert 3.0 <= comp_res["kd_sol_nM"] <= 8.0
+    assert 0.4 <= comp_res["kd_sol_nM"] <= 1.1
 
 
 def test_bundled_mcam_lm411_itga6b1_competition_dataset():
@@ -190,8 +212,8 @@ def test_bundled_mcam_lm411_itga6b1_competition_dataset():
     assert comp_res["classification"]["max_inhibition_pct"] > 95.0
     assert comp_res["classification"]["epitope_class"].startswith("Complete Competitive Blocking")
 
-    # Verify Dual 2-Domain Bidentate (2 domains on Integrin & MCAM for 2 sites on LM411)
-    # converges naturally to the literature KD_sol ~ 10 nM at ~1:1 molecular stoichiometry!
+    # This is a conditional empirical capture sensitivity, not a test of a
+    # literature affinity or independently occupied structural contacts.
     comp_res_dual2d = fit_solution_competition(
         points_df["Competitor [I] (nM)"].to_numpy(),
         points_df["Observed Response"].to_numpy(),
@@ -204,9 +226,10 @@ def test_bundled_mcam_lm411_itga6b1_competition_dataset():
         bidentate_two_site=True,
         repeat_ids=points_df["Repeat ID"].to_numpy(),
     )
-    assert 6.5 <= comp_res_dual2d["kd_sol_nM"] <= 13.5
-    assert 0.85 <= comp_res_dual2d["stoichiometry_n"] <= 1.35
-    assert comp_res_dual2d["r_squared_set"] > 0.991
+    assert np.isfinite(comp_res_dual2d["kd_sol_nM"]) and comp_res_dual2d["kd_sol_nM"] > 0
+    assert comp_res_dual2d["bidentate_two_site"]
+    assert comp_res_dual2d["surface_cooperativity"] == 2.5
+    assert comp_res_dual2d["r_squared_set"] > 0.98
 
 
 def test_gator_results_txt_and_zip_folder_ingest():

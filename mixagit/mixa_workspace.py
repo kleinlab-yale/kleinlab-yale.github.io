@@ -66,6 +66,7 @@ def _set_project(datasets, design):
     st.session_state.pop("active_input_uncertainty", None)
     st.session_state.pop("analysis_input_signature", None)
     st.session_state.pop("fitted_interval_signature", None)
+    st.session_state.pop("pending_phase_preset", None)
     invalidate_results()
 
 
@@ -79,219 +80,144 @@ def _append_datasets(incoming, design=None):
     _set_project(existing + incoming, pd.concat([previous, incoming_design], ignore_index=True))
 
 
-def _load_mcam_lm411_kinetics():
-    import pickle
-    from pathlib import Path
-    from mixa_mechanisms import MODEL_LABELS
+def _load_synthetic_demo():
+    incoming, design = example_project()
+    if st.session_state.get("raw_datasets"):
+        design["Experiment"] = "Synthetic demonstration"
+        _append_datasets(incoming, design)
+    else:
+        _set_project(incoming, design)
 
+
+KINETIC_DEMOS = {
+    "MCAM-Fc + LM411 (tE411)": dict(
+        dataset="LM411", folder="kinetics_MCAM_LM411", stem="mcam_lm411_two_site_fit",
+        on=100.038, off=220.04102, end=339.84102,
+    ),
+    "MCAM-Fc + LamA4G123 (α4 LG1–LG3)": dict(
+        dataset="LamA4G123", folder="kinetics_MCAM_LamA4G123", stem="mcam_lama4g123_two_site_fit",
+        on=100.028, off=220.04199, end=339.84602,
+    ),
+}
+
+
+def _configure_kinetic_demo(experiment):
+    """One preset definition for explicit loads and switching bundled experiments."""
+    import base64
+    import pickle
+    from dataclasses import asdict
+    from pathlib import Path
+    from mixa_input_uncertainty import requested
+    from mixa_mechanisms import MODEL_LABELS, contact_closure_transport_limit_rules, prepare_curves
+
+    demo = KINETIC_DEMOS[experiment]
+    windows = dict(phase_assoc_start_s=demo["on"], phase_dissoc_start_s=demo["off"],
+                   fit_assoc_start_s=demo["on"], fit_assoc_end_s=demo["off"],
+                   fit_dissoc_start_s=demo["off"], fit_dissoc_end_s=demo["end"])
+    st.session_state.fit_windows = windows
+    st.session_state.phase_adjust_enabled = False
+    st.session_state.fit_trim_enabled = False
+    st.session_state.fitted_interval_signature = (tuple(windows.values()), False, False)
+    st.session_state.pending_phase_preset = dict(
+        prepared_signature=st.session_state.prepared_signature, windows=windows,
+    )
+    settings = dict(
+        binding_model_select=MODEL_LABELS["contact_closure_transport_limit"],
+        rmax_group_mode="Per file (repeat-specific)", advanced_transport="None",
+        normalize_baseline=False, correct_drift=False, include_nonspecific=False,
+        advanced_ns=False, advanced_technique="BLI", advanced_immobilized="Receptor",
+        advanced_analyte="Ligand", advanced_valency="Monovalent", advanced_process="Binding",
+        advanced_invert=False, advanced_nuisance=[], advanced_starts=5,
+        advanced_nfev=500, advanced_seed=20261102, advanced_start_search="Local refinement",
+    )
+    st.session_state.update(settings)
+    config_key = repr(("contact_closure_transport_limit", "None", False, False, False, (),
+                       "BLI", st.session_state.prepared_signature))
+    st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
+        asdict(rule) for rule in contact_closure_transport_limit_rules(demo["dataset"])
+    ]
+    st.session_state.latest_mechanistic_results = None
+    options = st.session_state.get("input_uncertainty_by_experiment", {}).get(experiment, input_options())
+    st.session_state.active_input_uncertainty = json.dumps([experiment, options], sort_keys=True)
+    if requested(options):
+        st.session_state.demo_cache_status = "Run the preset with the enabled input-uncertainty budget."
+        return
+    path = Path(__file__).resolve().parent/"data"/demo["folder"]/(demo["stem"]+".pkl")
+    encoded = path.with_suffix(".b64.txt")
+    if not encoded.is_file() and not path.is_file():
+        st.session_state.demo_cache_status = "Preset configured; run the fit to calculate results."
+        return
+    # Bundled application resources only; no uploaded pickle is accepted here.
     try:
-        incoming = load_bundled_mcam_lm411_kinetics_datasets()
+        payload = base64.b64decode("".join(encoded.read_text(encoding="utf-8").split()), validate=True) if encoded.is_file() else path.read_bytes()
+        result = pickle.loads(payload)
+        if not isinstance(result, dict):
+            raise ValueError("Invalid bundled fit record.")
+    except (ValueError, OSError, EOFError, pickle.UnpicklingError, ImportError, AttributeError):
+        st.session_state.demo_cache_status = "Preset configured; the bundled fit could not be read, so run a fresh fit."
+        return
+    current = prepare_curves(st.session_state.data_list, st.session_state.include_map, windows, normalize=False)
+    saved = {(c["filename"], float(c["concentration_nM"])): c for c in result.get("curves", [])}
+    compatible = result.get("model") == "contact_closure_transport_limit" and len(saved)==len(current)
+    for curve in current:
+        old = saved.get((curve["filename"], float(curve["concentration_nM"])))
+        if old is None:
+            compatible = False
+            break
+        if (curve["on"] != old["on"] or curve["off"] != old["off"]
+                or not np.array_equal(curve["time"], old["time"])
+                or not np.array_equal(curve["fit_mask"], old["fit_mask"])
+                or not np.allclose(curve["response"], old["response"], rtol=0., atol=1e-10)):
+            compatible = False
+            break
+    if compatible:
+        result["preloaded_demo"] = True
+        result["preloaded_signature_bound"] = False
+        st.session_state.latest_mechanistic_results = result
+        st.session_state.demo_cache_status = "Bundled fit checked against the current data and observation masks."
+    else:
+        st.session_state.demo_cache_status = "Preset configured; cached observations differ, so run a fresh fit."
+
+
+def _load_mcam_kinetic_demo(experiment):
+    demo = KINETIC_DEMOS[experiment]
+    loader = load_bundled_mcam_lm411_kinetics_datasets if demo["dataset"]=="LM411" else load_bundled_mcam_lama4g123_kinetics_datasets
+    try:
+        incoming = loader()
         if not incoming:
-            raise ValueError("Bundled MCAM-Fc + LM411 (tE411) kinetic datasets were not found.")
-        exp_name = "MCAM-Fc + LM411 (tE411)"
-        design = smart_predict_design(incoming, experiment_name=exp_name)
+            raise ValueError("The bundled kinetic datasets were not found.")
+        design = smart_predict_design(incoming, experiment_name=experiment)
         _set_project(incoming, design)
         st.session_state.design_committed = True
-        st.session_state.selected_experiment = exp_name
-        prepared, provenance = prepare_experiment(incoming, design, exp_name, align_phases=False)
+        st.session_state.selected_experiment = experiment
+        prepared, provenance = prepare_experiment(incoming, design, experiment, align_phases=False)
         st.session_state.data_list = prepared
         st.session_state.preprocessing_table = provenance
         st.session_state.include_map = {
-            d["filename"]: {c for c in d["concentrations"] if 0 < c <= 125.0}
+            d["filename"]: {c for c in d["concentrations"] if (0<c<=125. if demo["dataset"]=="LM411" else c>=15.)}
             for d in prepared
         }
-        st.session_state.prepared_signature = analysis_fingerprint(incoming, design, exp_name, align_phases=False)
-        st.session_state.active_input_uncertainty = json.dumps([exp_name, input_options()], sort_keys=True)
+        st.session_state.prepared_signature = analysis_fingerprint(incoming, design, experiment, align_phases=False)
+        st.session_state.active_input_uncertainty = json.dumps([experiment, input_options()], sort_keys=True)
         st.session_state.analysis_input_signature = (
             st.session_state.prepared_signature,
             tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
         )
-        st.session_state.fit_windows = {
-            "phase_assoc_start_s": 100.038,
-            "phase_dissoc_start_s": 220.04102,
-            "fit_assoc_start_s": 100.038,
-            "fit_assoc_end_s": 220.04102,
-            "fit_dissoc_start_s": 220.04102,
-            "fit_dissoc_end_s": 339.84102,
-        }
-        st.session_state.phase_adjust_enabled = False
-        st.session_state.fit_trim_enabled = False
-        st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-
-        # Configure Two-contact binding with transport — rapid-capture limit with Shared Per-File Rmax
-        st.session_state.binding_model_select = MODEL_LABELS["contact_closure_transport_limit"]
-        st.session_state.rmax_group_mode = "Per file (repeat-specific)"
-        st.session_state.advanced_transport = "None"
-        st.session_state.normalize_baseline = False
-        st.session_state.correct_drift = False
-        st.session_state.include_nonspecific = False
-        st.session_state.advanced_ns = False
-        st.session_state.advanced_technique = "BLI"
-        st.session_state.advanced_immobilized = "Receptor"
-        st.session_state.advanced_analyte = "Ligand"
-        st.session_state.advanced_valency = "Monovalent"
-        st.session_state.advanced_process = "Binding"
-        st.session_state.advanced_invert = False
-        st.session_state.advanced_nuisance = []
-        config_key = repr((
-            "heterogeneous",
-            "None",
-            False,
-            False,
-            False,
-            (),
-            "BLI",
-            st.session_state.prepared_signature,
-        ))
-        st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-            {"key": "kon", "scope": "Global", "initial": 3.6e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-            {"key": "koff", "scope": "Global", "initial": 0.0030, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "Rmax", "scope": "Per file", "initial": 0.65, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
-            {"key": "kon2", "scope": "Global", "initial": 1.9e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-            {"key": "koff2", "scope": "Global", "initial": 0.041, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "Rmax2", "scope": "Per file", "initial": 1.03, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
-        ]
-        cctl_key_lm = repr((
-            "contact_closure_transport_limit",
-            "None",
-            False,
-            False,
-            False,
-            (),
-            "BLI",
-            st.session_state.prepared_signature,
-        ))
-        st.session_state.setdefault("advanced_control_recipes", {})[cctl_key_lm] = [
-            {"key": "KD_first_contact_M", "scope": "Per file", "initial": 3.0e-8, "lower": 1.0e-12, "upper": 1.0e-3, "fixed": False, "positive": True, "unit": "M"},
-            {"key": "kclose", "scope": "Per file", "initial": 0.004, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "kopen", "scope": "Per file", "initial": 0.003, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "transport_resistance_M_s", "scope": "Per file", "initial": 4.0e-6, "lower": 1.0e-14, "upper": 10.0, "fixed": False, "positive": True, "unit": "M s"},
-            {"key": "Rmax", "scope": "Per file", "initial": 1.12, "lower": 1.0e-5, "upper": 2.0, "fixed": False, "positive": True, "unit": "response"},
-        ]
-
-        import base64
-        fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
-        fit_b64 = fit_pkl.with_suffix(".b64.txt")
-        if fit_b64.is_file() or fit_pkl.is_file():
-            raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
-            _res_lm = pickle.loads(raw_pkl)
-            _res_lm.setdefault("signature", "preloaded_demo_lm411")
-            _res_lm["preloaded_demo"] = True
-            st.session_state.latest_mechanistic_results = _res_lm
+        _configure_kinetic_demo(experiment)
         st.session_state.import_notice = (
-            "Loaded MCAM-Fc + Laminin-411 (tE411) Direct Binding Kinetics (3 BLI replicates, 7.81–125 nM) "
-            "with Two-contact binding with transport — rapid-capture limit (Shared Per-Replicate Rmax) pre-configured and pre-loaded "
-            "(Two-Contact Transport Limit K_D,overall = 12.17 ± 0.48 nM, K_1 = 28.95 ± 3.26 nM, Rmax = 1.119 ± 0.011 nm; Steady-State K_D,eq = 45.7 ± 3.7 nM; 1:1 K_D = 22.9 ± 2.2 nM)."
+            f"Loaded {experiment}: three existing BLI repeats, with a shared capacity across each concentration series. "
+            +st.session_state.demo_cache_status
         )
-    except ValueError as exc:
+    except (ValueError, OSError) as exc:
         st.session_state.import_error = str(exc)
+
+
+def _load_mcam_lm411_kinetics():
+    _load_mcam_kinetic_demo("MCAM-Fc + LM411 (tE411)")
 
 
 def _load_mcam_lama4g123_kinetics():
-    import pickle
-    from pathlib import Path
-    from mixa_mechanisms import MODEL_LABELS
-
-    try:
-        incoming = load_bundled_mcam_lama4g123_kinetics_datasets()
-        if not incoming:
-            raise ValueError("Bundled MCAM-Fc + LamA4G123 (α4 LG1–LG3) kinetic datasets were not found.")
-        exp_name = "MCAM-Fc + LamA4G123 (α4 LG1–LG3)"
-        design = smart_predict_design(incoming, experiment_name=exp_name)
-        _set_project(incoming, design)
-        st.session_state.design_committed = True
-        st.session_state.selected_experiment = exp_name
-        prepared, provenance = prepare_experiment(incoming, design, exp_name, align_phases=False)
-        st.session_state.data_list = prepared
-        st.session_state.preprocessing_table = provenance
-        st.session_state.include_map = {
-            d["filename"]: {c for c in d["concentrations"] if c >= 15.0}
-            for d in prepared
-        }
-        st.session_state.prepared_signature = analysis_fingerprint(incoming, design, exp_name, align_phases=False)
-        st.session_state.active_input_uncertainty = json.dumps([exp_name, input_options()], sort_keys=True)
-        st.session_state.analysis_input_signature = (
-            st.session_state.prepared_signature,
-            tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
-        )
-        st.session_state.fit_windows = {
-            "phase_assoc_start_s": 100.028,
-            "phase_dissoc_start_s": 220.04199,
-            "fit_assoc_start_s": 100.028,
-            "fit_assoc_end_s": 220.04199,
-            "fit_dissoc_start_s": 220.04199,
-            "fit_dissoc_end_s": 339.84602,
-        }
-        st.session_state.phase_adjust_enabled = False
-        st.session_state.fit_trim_enabled = False
-        st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-
-        st.session_state.binding_model_select = MODEL_LABELS["contact_closure_transport_limit"]
-        st.session_state.rmax_group_mode = "Per file (repeat-specific)"
-        st.session_state.advanced_transport = "None"
-        st.session_state.normalize_baseline = False
-        st.session_state.correct_drift = False
-        st.session_state.include_nonspecific = False
-        st.session_state.advanced_ns = False
-        st.session_state.advanced_technique = "BLI"
-        st.session_state.advanced_immobilized = "Receptor"
-        st.session_state.advanced_analyte = "Ligand"
-        st.session_state.advanced_valency = "Monovalent"
-        st.session_state.advanced_process = "Binding"
-        st.session_state.advanced_invert = False
-        st.session_state.advanced_nuisance = []
-        config_key = repr((
-            "heterogeneous",
-            "None",
-            False,
-            False,
-            False,
-            (),
-            "BLI",
-            st.session_state.prepared_signature,
-        ))
-        st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-            {"key": "kon", "scope": "Global", "initial": 1.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-            {"key": "koff", "scope": "Global", "initial": 0.0014, "lower": 1.0e-5, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "Rmax", "scope": "Per file", "initial": 0.18, "lower": 0.01, "upper": 0.25, "fixed": False, "positive": True, "unit": "response"},
-            {"key": "kon2", "scope": "Global", "initial": 7.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-            {"key": "koff2", "scope": "Global", "initial": 0.125, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "Rmax2", "scope": "Per file", "initial": 1.00, "lower": 0.10, "upper": 1.10, "fixed": False, "positive": True, "unit": "response"},
-        ]
-        cctl_key_g123 = repr((
-            "contact_closure_transport_limit",
-            "None",
-            False,
-            False,
-            False,
-            (),
-            "BLI",
-            st.session_state.prepared_signature,
-        ))
-        st.session_state.setdefault("advanced_control_recipes", {})[cctl_key_g123] = [
-            {"key": "KD_first_contact_M", "scope": "Per file", "initial": 1.0e-6, "lower": 1.0e-12, "upper": 1.0e-3, "fixed": False, "positive": True, "unit": "M"},
-            {"key": "kclose", "scope": "Per file", "initial": 0.003, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "kopen", "scope": "Per file", "initial": 0.001, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "transport_resistance_M_s", "scope": "Per file", "initial": 1.0e-5, "lower": 1.0e-14, "upper": 10.0, "fixed": False, "positive": True, "unit": "M s"},
-            {"key": "Rmax", "scope": "Per file", "initial": 0.80, "lower": 1.0e-5, "upper": 1.35, "fixed": False, "positive": True, "unit": "response"},
-        ]
-
-        import base64
-        fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
-        fit_b64 = fit_pkl.with_suffix(".b64.txt")
-        if fit_b64.is_file() or fit_pkl.is_file():
-            raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
-            _res_g123 = pickle.loads(raw_pkl)
-            _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
-            _res_g123["preloaded_demo"] = True
-            st.session_state.latest_mechanistic_results = _res_g123
-        st.session_state.import_notice = (
-            "Loaded MCAM-Fc + LamA4G123 (isolated α4 LG1–LG3 globular domain without βγ chains; 3 BLI replicates, 15.63–500 nM) "
-            "with Two-contact binding with transport — rapid-capture limit (Shared Per-Replicate Rmax, conditional 1.35 nm ceiling) pre-configured and pre-loaded "
-            "(Two-Contact Transport Limit K_D,overall = 599.6 ± 170.7 nM [0.60 ± 0.17 µM], K_1 = 1.92 ± 0.90 µM; Steady-State K_D,eq = 1.58 ± 0.74 µM; 1:1 K_D = 1.40 ± 0.80 µM)."
-        )
-    except ValueError as exc:
-        st.session_state.import_error = str(exc)
+    _load_mcam_kinetic_demo("MCAM-Fc + LamA4G123 (α4 LG1–LG3)")
 
 
 def _load_mcam_itga6b1_competition_demo():
@@ -344,6 +270,7 @@ def _load_complete_mcam_study():
             st.session_state.prepared_signature,
             tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
         )
+        _configure_kinetic_demo(st.session_state.selected_experiment)
     from mixa_competition import load_bundled_mcam_competition_datasets
 
     comp_sets = load_bundled_mcam_competition_datasets()
@@ -360,10 +287,9 @@ def _load_complete_mcam_study():
         st.session_state.comp_surface_coop_mode = "1-Site Langmuir surface (m = 1.0)"
         st.session_state.comp_lock_lit_kd = False
     st.session_state.import_notice = (
-        "Loaded Complete MCAM–Laminin-411, LamA4G123 (α4 LG1–LG3) & α6β1 Integrin Demonstration Study (Two-Contact Binding with Transport — Rapid-Capture Limit, Shared Per-Replicate Rmax): "
-        "(1) Intact Laminin-411 Trimer Kinetics (3 reps, 7.81–125 nM; Two-Contact Transport Limit K_D,overall = 12.17 ± 0.48 nM, K_1 = 28.95 ± 3.26 nM, Rmax = 1.119 ± 0.011 nm; Steady-State K_D,eq = 45.7 ± 3.7 nM; 1:1 K_D = 22.9 ± 2.2 nM), "
-        "(2) Isolated LamA4G123 (α4 LG1–LG3 without βγ chains; 3 reps, 15.63–500 nM; Two-Contact Transport Limit K_D,overall = 599.6 ± 170.7 nM [0.60 ± 0.17 µM], K_1 = 1.92 ± 0.90 µM at conditional 1.35 nm ceiling; Steady-State K_D,eq = 1.58 ± 0.74 µM; 1:1 K_D = 1.40 ± 0.80 µM; switchable via 'Experiment to analyze'), and "
-        "(3) α6β1 Integrin Solution Inhibition (3 reps, IC50 = 11.5 ± 0.5 nM, K_D(α6β1) = 0.73 ± 0.22 nM) in '07 / Solution Competition'."
+        "Loaded the complete MCAM study: LM411 kinetics, isolated α4 LG1–3 kinetics and α6β1 competition, "
+        "with three existing repeats per dataset. Choose the kinetic experiment using the selector or quick-switch buttons. "
+        "Model assumptions and fitted values are displayed with each saved analysis."
     )
 
 
@@ -823,9 +749,9 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
         )
         with demo_tab:
             st.caption(
-                "Load the bundled BLI demonstration datasets for **MCAM-Fc + Intact Laminin-411 ($\alpha_4\beta_1\gamma_1$) Kinetics** ($N = 3$ replicates, $7.81\\text{–}125\\text{ nM}$), "
-                "**MCAM-Fc + Isolated LamA4G123 ($\alpha_4$ LG1–LG3 without $\beta\gamma$ chains) Kinetics** ($N = 3$ replicates, $15.63\\text{–}500\\text{ nM}$), "
-                "and **$\\alpha_6\\beta_1$ Integrin vs. MCAM-Fc Solution Inhibition** ($N = 3$ replicates, $20\\text{ nM}$ Laminin-411 + $0\\text{–}40\\text{ nM}$ $\\alpha_6\\beta_1$ Integrin)."
+                "Bundled BLI data: MCAM-Fc binding to intact laminin-411 (α4β1γ1; three repeats, 7.81–125 nM), "
+                "binding to isolated α4 LG1–3 (three repeats, 15.63–500 nM), and α6β1 competition "
+                "for 20 nM laminin-411 (three repeats, 0–40 nM integrin)."
             )
             dc1, dc2, dc3, dc4 = st.columns(4)
             dc1.button(
@@ -853,6 +779,20 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
                 key="load_mcam_itga6b1_comp_btn",
                 use_container_width=True,
             )
+            with st.expander("Additional examples for learning the fitting workflow"):
+                examples_left, examples_right = st.columns(2)
+                examples_left.button(
+                    "Load synthetic demonstration",
+                    on_click=_load_synthetic_demo,
+                    key="load_synthetic_demonstration",
+                    use_container_width=True,
+                )
+                examples_right.button(
+                    "Load sample datasets",
+                    on_click=lambda: _append_datasets(load_sample_datasets()),
+                    key="load_additional_samples",
+                    use_container_width=True,
+                )
         with upload_tab:
             with st.form("dataset_import", clear_on_submit=True):
                 uploads = st.file_uploader(
@@ -959,149 +899,8 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.prepared_signature,
             tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
         )
-        import pickle
-        from pathlib import Path
-        from mixa_mechanisms import MODEL_LABELS
-        if experiment == "MCAM-Fc + LM411 (tE411)":
-            st.session_state.fit_windows = {
-                "phase_assoc_start_s": 100.038,
-                "phase_dissoc_start_s": 220.04102,
-                "fit_assoc_start_s": 100.038,
-                "fit_assoc_end_s": 220.04102,
-                "fit_dissoc_start_s": 220.04102,
-                "fit_dissoc_end_s": 339.84102,
-            }
-            st.session_state.phase_adjust_enabled = False
-            st.session_state.fit_trim_enabled = False
-            st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-            st.session_state.binding_model_select = MODEL_LABELS["contact_closure_transport_limit"]
-            st.session_state.rmax_group_mode = "Per file (repeat-specific)"
-            st.session_state.advanced_transport = "None"
-            st.session_state.normalize_baseline = False
-            st.session_state.correct_drift = False
-            st.session_state.include_nonspecific = False
-            st.session_state.advanced_ns = False
-            st.session_state.advanced_technique = "BLI"
-            st.session_state.advanced_immobilized = "Receptor"
-            st.session_state.advanced_analyte = "Ligand"
-            st.session_state.advanced_valency = "Monovalent"
-            st.session_state.advanced_process = "Binding"
-            st.session_state.advanced_invert = False
-            st.session_state.advanced_nuisance = []
-            config_key = repr((
-                "heterogeneous",
-                "None",
-                False,
-                False,
-                False,
-                (),
-                "BLI",
-                st.session_state.prepared_signature,
-            ))
-            st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-                {"key": "kon", "scope": "Global", "initial": 3.6e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-                {"key": "koff", "scope": "Global", "initial": 0.0030, "lower": 1.0e-6, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "Rmax", "scope": "Per file", "initial": 0.65, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
-                {"key": "kon2", "scope": "Global", "initial": 1.9e5, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-                {"key": "koff2", "scope": "Global", "initial": 0.041, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "Rmax2", "scope": "Per file", "initial": 1.03, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
-            ]
-            cctl_key_lm = repr((
-                "contact_closure_transport_limit",
-                "None",
-                False,
-                False,
-                False,
-                (),
-                "BLI",
-                st.session_state.prepared_signature,
-            ))
-            st.session_state.setdefault("advanced_control_recipes", {})[cctl_key_lm] = [
-                {"key": "KD_first_contact_M", "scope": "Per file", "initial": 3.0e-8, "lower": 1.0e-12, "upper": 1.0e-3, "fixed": False, "positive": True, "unit": "M"},
-                {"key": "kclose", "scope": "Per file", "initial": 0.004, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "kopen", "scope": "Per file", "initial": 0.003, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "transport_resistance_M_s", "scope": "Per file", "initial": 4.0e-6, "lower": 1.0e-14, "upper": 10.0, "fixed": False, "positive": True, "unit": "M s"},
-                {"key": "Rmax", "scope": "Per file", "initial": 1.12, "lower": 1.0e-5, "upper": 2.0, "fixed": False, "positive": True, "unit": "response"},
-            ]
-            import base64
-            fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
-            fit_b64 = fit_pkl.with_suffix(".b64.txt")
-            if fit_b64.is_file() or fit_pkl.is_file():
-                raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
-                _res_lm = pickle.loads(raw_pkl)
-                _res_lm.setdefault("signature", "preloaded_demo_lm411")
-                _res_lm["preloaded_demo"] = True
-                st.session_state.latest_mechanistic_results = _res_lm
-        elif experiment == "MCAM-Fc + LamA4G123 (α4 LG1–LG3)":
-            st.session_state.fit_windows = {
-                "phase_assoc_start_s": 100.028,
-                "phase_dissoc_start_s": 220.04199,
-                "fit_assoc_start_s": 100.028,
-                "fit_assoc_end_s": 220.04199,
-                "fit_dissoc_start_s": 220.04199,
-                "fit_dissoc_end_s": 339.84602,
-            }
-            st.session_state.phase_adjust_enabled = False
-            st.session_state.fit_trim_enabled = False
-            st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-            st.session_state.binding_model_select = MODEL_LABELS["contact_closure_transport_limit"]
-            st.session_state.rmax_group_mode = "Per file (repeat-specific)"
-            st.session_state.advanced_transport = "None"
-            st.session_state.normalize_baseline = False
-            st.session_state.correct_drift = False
-            st.session_state.include_nonspecific = False
-            st.session_state.advanced_ns = False
-            st.session_state.advanced_technique = "BLI"
-            st.session_state.advanced_immobilized = "Receptor"
-            st.session_state.advanced_analyte = "Ligand"
-            st.session_state.advanced_valency = "Monovalent"
-            st.session_state.advanced_process = "Binding"
-            st.session_state.advanced_invert = False
-            st.session_state.advanced_nuisance = []
-            config_key = repr((
-                "heterogeneous",
-                "None",
-                False,
-                False,
-                False,
-                (),
-                "BLI",
-                st.session_state.prepared_signature,
-            ))
-            st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-                {"key": "kon", "scope": "Global", "initial": 1.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-                {"key": "koff", "scope": "Global", "initial": 0.0014, "lower": 1.0e-5, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "Rmax", "scope": "Per file", "initial": 0.18, "lower": 0.01, "upper": 0.25, "fixed": False, "positive": True, "unit": "response"},
-                {"key": "kon2", "scope": "Global", "initial": 7.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
-                {"key": "koff2", "scope": "Global", "initial": 0.125, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "Rmax2", "scope": "Per file", "initial": 1.00, "lower": 0.10, "upper": 1.10, "fixed": False, "positive": True, "unit": "response"},
-            ]
-            cctl_key_g123 = repr((
-                "contact_closure_transport_limit",
-                "None",
-                False,
-                False,
-                False,
-                (),
-                "BLI",
-                st.session_state.prepared_signature,
-            ))
-            st.session_state.setdefault("advanced_control_recipes", {})[cctl_key_g123] = [
-                {"key": "KD_first_contact_M", "scope": "Per file", "initial": 1.0e-6, "lower": 1.0e-12, "upper": 1.0e-3, "fixed": False, "positive": True, "unit": "M"},
-                {"key": "kclose", "scope": "Per file", "initial": 0.003, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "kopen", "scope": "Per file", "initial": 0.001, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "transport_resistance_M_s", "scope": "Per file", "initial": 1.0e-5, "lower": 1.0e-14, "upper": 10.0, "fixed": False, "positive": True, "unit": "M s"},
-                {"key": "Rmax", "scope": "Per file", "initial": 0.80, "lower": 1.0e-5, "upper": 1.35, "fixed": False, "positive": True, "unit": "response"},
-            ]
-            import base64
-            fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
-            fit_b64 = fit_pkl.with_suffix(".b64.txt")
-            if fit_b64.is_file() or fit_pkl.is_file():
-                raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
-                _res_g123 = pickle.loads(raw_pkl)
-                _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
-                _res_g123["preloaded_demo"] = True
-                st.session_state.latest_mechanistic_results = _res_g123
+        if experiment in KINETIC_DEMOS:
+            _configure_kinetic_demo(experiment)
     samples = st.session_state.data_list
     options = _uncertainty_settings(experiment)
     for sample in samples:

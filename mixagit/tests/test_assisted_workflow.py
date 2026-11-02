@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import io
 import json
 import zipfile
@@ -6,7 +8,7 @@ from streamlit.testing.v1 import AppTest
 
 
 def start_app():
-    app = AppTest.from_file("app.py", default_timeout=180).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=180).run()
     for label in ["Load synthetic demonstration", "Apply dataset assignments"]:
         next(button for button in app.button if button.label == label).click().run()
     app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()

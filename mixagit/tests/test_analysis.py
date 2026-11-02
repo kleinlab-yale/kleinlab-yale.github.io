@@ -60,10 +60,11 @@ class DatasetTests(unittest.TestCase):
 
     def test_original_sample_files_are_loadable(self):
         samples = load_sample_datasets()
-        self.assertEqual([d["filename"] for d in samples], ["PreprocessedData-Group1.csv", "PreprocessedData-Group2a.csv"])
-        self.assertEqual([d["n_points"] for d in samples], [700, 700])
-        self.assertEqual([len(d["concentrations"]) for d in samples], [7, 7])
-        self.assertAlmostEqual(samples[1]["responses"][500][0], -0.3073651)
+        self.assertEqual([d["filename"] for d in samples], [f"MCAM_LM411_kinetics_rep{i}.csv" for i in [1, 2, 3]])
+        for data in samples:
+            self.assertGreaterEqual(data["n_points"], 1199)
+            self.assertEqual(set(data["concentrations"]), {7.813, 15.63, 31.25, 62.5, 125., 250.})
+            self.assertTrue(np.isfinite(data["responses"][250.]).all())
 
     def test_control_averaging_weights_independent_repeats_equally(self):
         raw = deepcopy(self.raw[:4])

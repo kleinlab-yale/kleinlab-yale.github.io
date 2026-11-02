@@ -1,6 +1,6 @@
 # MIXA User Guide
 
-Version: 0.5.10-preview
+Version: 0.5.11-preview
 
 MIXA analyzes SPR/BLI binding responses with explicit reaction models, selected
 observation intervals, reproducible preprocessing and separately defined
@@ -8,6 +8,12 @@ measurement and independent-repeat statistics. This guide describes the
 workflow and reporting conventions. The accompanying equation registry gives
 the exact equations, units, assumptions, implementation functions, tests and
 primary references for each implemented method.
+
+The MCAM contact/transport model and its reproducible benchmark are described
+in [CONTACT_TRANSPORT.md](CONTACT_TRANSPORT.md). That guide distinguishes its
+five fitted parameters from two independent populations and from two-analyte
+sequential capture. Solver controls apply exactly as displayed; the model's
+transport contribution is intrinsic to its equations.
 
 ## 1. Data, Repeats and Controls
 

@@ -1,0 +1,42 @@
+# Template: install at repository-root .github/workflows/mixa-tests.yml with
+# credentials that permit workflow updates. It is not active from this path.
+name: MIXA fitting and workflow checks
+
+on:
+  pull_request:
+    paths: ["mixagit/**", ".github/workflows/mixa-tests.yml"]
+  push:
+    branches: [main, "codex/**"]
+    paths: ["mixagit/**", ".github/workflows/mixa-tests.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mixagit
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MPLCONFIGDIR: /tmp/mixa-matplotlib
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: mixagit/requirements.txt
+      - run: python -m pip install -r requirements.txt pytest
+      - name: Numerical, workflow and release checks
+        run: >-
+          python -m pytest -q
+          tests/test_contact_transport.py tests/test_contact_transport_workflow.py
+          tests/test_mechanisms.py tests/test_solver_performance.py
+          tests/test_competition.py tests/test_deployment.py
+          tests/test_release_packaging.py tests/test_documentation.py
+      - name: Reproduce the bundled MCAM benchmark from CSVs
+        run: python audits/validate_contact_transport.py --output /tmp/mcam-validation.json

@@ -1,8 +1,10 @@
+from pathlib import Path
+
 from streamlit.testing.v1 import AppTest
 
 
 def test_education_is_available_without_data_and_all_topics_render_without_changing_fit_controls():
-    app = AppTest.from_file("app.py", default_timeout=120).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
     assert not app.exception
     before = {key: app.session_state[key] for key in ["binding_model_select", "normalize_baseline", "correct_drift", "include_nonspecific"]}
     app.button(key="open_fitting_education").click().run()

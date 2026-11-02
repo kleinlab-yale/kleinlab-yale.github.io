@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import io
 import json
 import zipfile
@@ -7,7 +9,7 @@ from streamlit.testing.v1 import AppTest
 
 
 def loaded():
-    app = AppTest.from_file("app.py", default_timeout=180).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=180).run()
     for label in ["Load synthetic demonstration", "Apply dataset assignments"]:
         next(b for b in app.button if b.label == label).click().run()
     assert not app.exception
@@ -90,24 +92,24 @@ def test_assisted_raw_source_budget_keeps_repeat_counts_and_exports_its_assumpti
 
 
 def test_smart_toolbar_and_unified_column_trace_editor():
-    app = AppTest.from_file("app.py", default_timeout=180).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=180).run()
     next(b for b in app.button if b.label == "Load sample datasets").click().run()
     assert not app.exception
-    # Default design starts with Repeat 1 for both sample files
-    assert app.session_state["dataset_draft"]["Repeat ID"].tolist() == ["Repeat 1", "Repeat 1"]
+    assert app.session_state["dataset_draft"]["Repeat ID"].tolist() == ["Repeat 1"]*3
     # Click 1-click Auto-predict roles & repeats button
     app.button(key="smart_predict_assignments").click().run()
     assert not app.exception
-    assert app.session_state["dataset_draft"]["Repeat ID"].tolist() == ["Repeat 1", "Repeat 2"]
-    assert app.session_state["dataset_draft"]["Subtraction"].tolist() == ["None", "None"]
+    assert app.session_state["dataset_draft"]["Repeat ID"].tolist() == ["Repeat 1", "Repeat 2", "Repeat 3"]
+    assert app.session_state["dataset_draft"]["Subtraction"].tolist() == ["None"]*3
     next(b for b in app.button if b.label == "Apply dataset assignments").click().run()
     assert not app.exception
-    assert len(app.session_state["data_list"]) == 2
+    assert len(app.session_state["data_list"]) == 3
     # Verify unified column & trace editor live-syncs Include checkbox and supports batch actions
     fp = app.session_state["prepared_signature"][:8]
     rev = app.session_state["trace_editor_revision"]
     editor_key = f"unified_column_trace_editor_{fp}_{rev}"
-    # Row 0 corresponds to the first column (500.0 nM) in PreprocessedData-Group1.csv
+    first_name = app.session_state["data_list"][0]["filename"]
+    first_concentration = max(app.session_state["data_list"][0]["concentrations"])
     app.session_state[editor_key] = {
         "edited_rows": {0: {"Include": False}},
         "added_rows": [],
@@ -115,8 +117,8 @@ def test_smart_toolbar_and_unified_column_trace_editor():
     }
     app.run()
     assert not app.exception
-    assert 500.0 not in app.session_state["include_map"]["PreprocessedData-Group1.csv"]
+    assert first_concentration not in app.session_state["include_map"][first_name]
     # Click 'Include all > 0 nM' button to restore all positive traces
     app.button(key="trace_include_all_positive").click().run()
     assert not app.exception
-    assert 500.0 in app.session_state["include_map"]["PreprocessedData-Group1.csv"]
+    assert first_concentration in app.session_state["include_map"][first_name]

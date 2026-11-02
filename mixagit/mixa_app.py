@@ -766,6 +766,14 @@ KINETIC_BINDING_MODELS = {
     **{MODEL_LABELS[key]: key for key in ["heterogeneous", "biphasic", "bivalent", "sequential", "contact_closure_transport_limit"]},
 }
 
+KINETIC_MODEL_ALIASES = {
+    "Two-site / two-component binding (2:1)": MODEL_LABELS["heterogeneous"],
+    "Two-site / two-component binding (per-curve fraction, 2:1)": MODEL_LABELS["biphasic"],
+    "Two independent surface populations (2:1)": MODEL_LABELS["heterogeneous"],
+    "Two independent populations (per-curve fraction, 2:1)": MODEL_LABELS["biphasic"],
+    "Sequential two-analyte surface capture (stepwise)": MODEL_LABELS["sequential"],
+}
+
 KINETIC_STARTING_SETTINGS = {
     "binding_model_select": "1:1 Langmuir",
     "advanced_transport": "None",
@@ -5746,6 +5754,9 @@ def legacy_main():
     for key, default in KINETIC_STARTING_SETTINGS.items():
         if key not in st.session_state:
             st.session_state[key] = default
+    previous_model_label = st.session_state.get("binding_model_select")
+    if previous_model_label in KINETIC_MODEL_ALIASES:
+        st.session_state.binding_model_select = KINETIC_MODEL_ALIASES[previous_model_label]
     if not st.session_state.get("kinetic_background_controls_v1"):
         previous_terms = st.session_state.get("advanced_nuisance", [])
         if "Linear drift" in previous_terms:
@@ -5985,6 +5996,10 @@ def legacy_main():
     })();
     </script>""" if page_changed else "<span hidden></span>", unsafe_allow_javascript=True)
     render_dataset_workspace(active_section)
+    # A dataset action can install a declared preset during this render.
+    normalize = bool(st.session_state.get("normalize_baseline", True))
+    correct_drift = bool(st.session_state.get("correct_drift", False))
+    include_nonspecific = bool(st.session_state.get("include_nonspecific", False))
 
     if st.session_state.data_list:
         current_input = (
@@ -6059,6 +6074,13 @@ def legacy_main():
         st.session_state.phase_detected_assoc = auto_assoc
         st.session_state.phase_detected_dissoc = auto_dissoc
         st.session_state.phase_auto_note = auto_note
+    phase_preset = st.session_state.get("pending_phase_preset")
+    if phase_preset and phase_preset["prepared_signature"] == st.session_state.get("prepared_signature"):
+        declared = phase_preset["windows"]
+        st.session_state.phase_detected_assoc = float(declared["phase_assoc_start_s"])
+        st.session_state.phase_detected_dissoc = float(declared["phase_dissoc_start_s"])
+        st.session_state.phase_auto_note = "Declared phase times from the bundled experiment protocol."
+        st.session_state.pop("pending_phase_preset", None)
     if new_phase_data:
         st.session_state.phase_signature = phase_sig
         st.session_state.phase_adjust_enabled = False
@@ -6145,29 +6167,8 @@ def legacy_main():
     if st.session_state.get("fitted_interval_signature") != interval_signature:
         invalidate_results()
         st.session_state.fitted_interval_signature = interval_signature
-    if st.session_state.get("latest_mechanistic_results") is None:
-        import base64
-        import pickle
-        from pathlib import Path
-        _exp_cur = st.session_state.get("selected_experiment")
-        if _exp_cur == "MCAM-Fc + LM411 (tE411)":
-            _pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
-            _b64 = _pkl.with_suffix(".b64.txt")
-            if _b64.is_file() or _pkl.is_file():
-                _raw_bytes = base64.b64decode(_b64.read_text(encoding="utf-8")) if _b64.is_file() else _pkl.read_bytes()
-                _res_lm = pickle.loads(_raw_bytes)
-                _res_lm.setdefault("signature", "preloaded_demo_lm411")
-                _res_lm["preloaded_demo"] = True
-                st.session_state.latest_mechanistic_results = _res_lm
-        elif _exp_cur == "MCAM-Fc + LamA4G123 (α4 LG1–LG3)":
-            _pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
-            _b64 = _pkl.with_suffix(".b64.txt")
-            if _b64.is_file() or _pkl.is_file():
-                _raw_bytes = base64.b64decode(_b64.read_text(encoding="utf-8")) if _b64.is_file() else _pkl.read_bytes()
-                _res_g123 = pickle.loads(_raw_bytes)
-                _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
-                _res_g123["preloaded_demo"] = True
-                st.session_state.latest_mechanistic_results = _res_g123
+    # Explicit demonstration-loading actions install bundled fits. A fit that
+    # has been invalidated by a data/window/budget change must stay invalidated.
     observation_counts = selection_summary(st.session_state.data_list, st.session_state.include_map, st.session_state.fit_windows)
     if active_section in {"Data Input", "Kinetic Analysis", "kobs Linearization"}:
         with st.expander("Included traces and observation counts"):
@@ -6247,7 +6248,7 @@ def legacy_main():
         st.markdown("### Kinetic Fitting Analysis")
         from mixa_workspace import _load_mcam_lm411_kinetics, _load_mcam_lama4g123_kinetics
         _cur_exp = st.session_state.get("selected_experiment", "")
-        st.caption("**Quick-Switch Demonstration Kinetic Datasets (Pre-Fitted Two-Site BLI Models):**")
+        st.caption("**Bundled MCAM kinetic examples: two-contact binding with transport**")
         _qcol1, _qcol2 = st.columns(2)
         _qcol1.button(
             "Intact Laminin-411 Trimer (tE411, α4β1γ1) — 7.81–125 nM (3 reps)",

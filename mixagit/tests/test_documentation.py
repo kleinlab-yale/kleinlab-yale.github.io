@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import hashlib
 import io
 import json
@@ -36,7 +38,7 @@ def test_general_guide_is_in_each_run_but_references_remain_specific_to_that_run
 
 
 def test_methods_can_be_opened_before_upload_without_changing_fit_settings():
-    app = AppTest.from_file("app.py", default_timeout=120).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
     before = {key: app.session_state[key] for key in ["binding_model_select", "normalize_baseline", "correct_drift"]}
     app.button(key="open_methods_documentation").click().run()
     assert not app.exception

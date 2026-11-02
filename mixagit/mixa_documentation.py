@@ -14,7 +14,7 @@ from mixa_science import json_safe
 
 
 ROOT = Path(__file__).resolve().parent
-REPORTS = ["PUBLICATION_FIGURES_AND_LEGENDS.md", "PAPER.md", "METHODS_VALIDATION.md", "INPUT_UNCERTAINTY.md", "BASELINE_UNCERTAINTY.md", "REFIT_REVIEW.md", "JOINT_INFERENCE.md", "FRONTIER_VALIDATION.md",
+REPORTS = ["CONTACT_TRANSPORT.md", "PUBLICATION_FIGURES_AND_LEGENDS.md", "PAPER.md", "METHODS_VALIDATION.md", "INPUT_UNCERTAINTY.md", "BASELINE_UNCERTAINTY.md", "REFIT_REVIEW.md", "JOINT_INFERENCE.md", "FRONTIER_VALIDATION.md",
            "validation/refit_review/RESULTS.md", "validation/assisted_comparison/RESULTS.md",
            "validation/refit_review_percentile_initial/RESULTS.md", "validation/assisted_comparison_initial/RESULTS.md",
            "validation/RESULTS.md", "validation/input_uncertainty/RESULTS.md",
@@ -66,24 +66,28 @@ def render_methods_contents():
                           key="methods_download_references", on_click="ignore")
     st.download_button("Download complete methods documentation", build_documentation_bundle(),
                        "MIXA_METHODS_DOCUMENTATION.zip", "application/zip", key="methods_download_complete", on_click="ignore")
+    from scripts.build_release import build_source_bundle
+    st.download_button("Download current source, tests and benchmarks", build_source_bundle(),
+                       f"MIXA_{APP_VERSION}_source.zip", "application/zip", key="methods_download_source", on_click="ignore")
     guide_tab, pub_study_tab, equations_tab, validation_tab = st.tabs(
         ["User guide", "MCAM + LM411 & α6β1 Publication Study", "Equations & Sources", "Validation & Scope"]
     )
     with guide_tab:
         st.markdown(guide)
     with pub_study_tab:
+        contact_guide = ROOT / "CONTACT_TRANSPORT.md"
+        if contact_guide.is_file():
+            st.markdown(contact_guide.read_text(encoding="utf-8"))
         pub_doc_path = ROOT / "PUBLICATION_FIGURES_AND_LEGENDS.md"
         if pub_doc_path.is_file():
             pub_md = pub_doc_path.read_text(encoding="utf-8")
-            st.download_button(
-                "Download Publication Figures, Tables & Legends (Markdown)",
-                pub_md,
-                "PUBLICATION_FIGURES_AND_LEGENDS.md",
-                "text/markdown",
-                key="methods_download_pub_study_md",
-                on_click="ignore",
-            )
-            st.markdown(pub_md)
+            with st.expander("Archived publication exports from earlier models"):
+                st.download_button(
+                    "Download archived figure and table descriptions", pub_md,
+                    "PUBLICATION_FIGURES_AND_LEGENDS.md", "text/markdown",
+                    key="methods_download_pub_study_md", on_click="ignore",
+                )
+                st.markdown(pub_md)
     with equations_tab:
         choice = st.selectbox("Equation or method", list(record["equations"]),
                               format_func=lambda key: record["equations"][key]["title"], key="methods_equation")

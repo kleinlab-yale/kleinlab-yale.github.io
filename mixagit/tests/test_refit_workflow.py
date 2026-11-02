@@ -1,11 +1,14 @@
+from pathlib import Path
+
 import io
 import zipfile
 
 from streamlit.testing.v1 import AppTest
+from mixa_data import SAMPLE_FILES
 
 
 def load_app():
-    app = AppTest.from_file("app.py", default_timeout=180).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=180).run()
     for label in ["Load synthetic demonstration", "Apply dataset assignments"]:
         next(b for b in app.button if b.label == label).click().run()
     assert not app.exception
@@ -15,26 +18,26 @@ def load_app():
 def test_compact_dataset_table_removes_files_without_resetting_the_session():
     app = load_app()
     next(b for b in app.button if b.label == "Load sample datasets").click().run()
-    assert len(app.session_state["raw_datasets"]) == 8
+    assert len(app.session_state["raw_datasets"]) == 6+len(SAMPLE_FILES)
     revision = app.session_state["design_revision"]
     app.session_state[f"dataset_assignments_{revision}"] = dict(edited_rows={i: {"Remove": True} for i in range(6)}, added_rows=[], deleted_rows=[])
     app.run()
     assert not app.button(key="remove_selected_datasets").disabled
     app.button(key="remove_selected_datasets").click().run()
     assert not app.exception
-    assert len(app.session_state["raw_datasets"]) == 2
-    assert all("PreprocessedData" in d["filename"] for d in app.session_state["raw_datasets"])
+    assert len(app.session_state["raw_datasets"]) == len(SAMPLE_FILES)
+    assert {d["filename"] for d in app.session_state["raw_datasets"]} == set(SAMPLE_FILES)
     assert not app.session_state["data_list"]
     assert not app.session_state["design_committed"]
     next(b for b in app.button if b.label == "Apply dataset assignments").click().run()
     assert not app.exception
-    assert len(app.session_state["data_list"]) == 2
-    assert len(app.session_state["dataset_design"]) == 2
+    assert len(app.session_state["data_list"]) == len(SAMPLE_FILES)
+    assert len(app.session_state["dataset_design"]) == len(SAMPLE_FILES)
 
 
 def test_continue_navigation_has_top_reset_and_vector_previews():
     app = load_app()
-    images = app.get("imgs")
+    images = app.get("image") or app.get("imgs")
     assert images and all(image.proto.imgs[0].url.startswith("data:image/svg+xml") for image in images)
     next(b for b in app.button if b.label == "Continue to kinetic analysis").click().run()
     assert not app.exception

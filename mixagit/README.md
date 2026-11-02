@@ -1,5 +1,5 @@
 ---
-title: MIXA 0.5.10
+title: MIXA 0.5.11
 emoji: 🎛️
 colorFrom: blue
 colorTo: yellow
@@ -10,23 +10,64 @@ app_file: app.py
 pinned: false
 ---
 
-# MIXA 0.5.10
+# MIXA 0.5.11
 
-## Bundled Demonstration Study: Two-Site Binding (`MCAM-Fc + Laminin-411`) & Solution Competition (`α6β1 Integrin`)
+## MCAM contact/transport analysis
 
-MIXA ships with the complete three-replicate Bio-Layer Interferometry (BLI) study of **MCAM-Fc** and **$\alpha_6\beta_1$ Integrin** competing for **Laminin-411 (tE411)** pre-loaded on startup (and accessible via one-click buttons in **01 / Data Input**, **02 / Kinetic Analysis**, **06 / Publication Report**, and **07 / Solution Competition**):
+The MCAM examples now use **one-analyte, two-contact binding with surface
+transport**, with one Rmax shared across all concentrations within each repeat.
+The rapid-capture limit estimates first-contact KD, contact-closing/opening
+rates, transport resistance and shared capacity. It does not estimate separate
+initial kon/koff or assign independent affinities to structural domains.
 
-1. **Direct Two-Site Binding Kinetics (`data/kinetics_MCAM_LM411/mcam_lm411_rep1..3.csv`, $N = 3$ independent BLI replicates, $7.81\text{–}125\text{ nM}$ Laminin-411)**:
-   - Models two-domain engagement using explicit terminology (**Full Complex** = both binding sites engaged; **Intermediate (Partial) Complex** = initial single-site contact):
-     - **Full Complex (Both Sites Bound)**: $K_{D,\text{full}}(\text{MCAM}) = 4.63 \pm 0.48\text{ nM}$ ($k_{\text{on},\text{full}} = (5.44 \pm 0.25) \times 10^5\text{ M}^{-1}\text{s}^{-1}$, $k_{\text{off},\text{full}} = (2.53 \pm 0.36) \times 10^{-3}\text{ s}^{-1}$; global $R^2 = 0.989$).
-     - **Intermediate (Partial 1-Site) Complex**: $K_{D,\text{int}}(\text{MCAM}) = 34.39 \pm 2.34\text{ nM}$ ($k_{\text{on},\text{int}} = (1.13 \pm 0.05) \times 10^6\text{ M}^{-1}\text{s}^{-1}$, $k_{\text{off},\text{int}} = (3.88 \pm 0.41) \times 10^{-2}\text{ s}^{-1}$).
-2. **Solution Equilibrium Titration (SET) & Epitope Competition (`data/competition_MCAM_ITGA6B1/mcam_lm411_itga6b1_rep1..3.csv`, $N = 3$ independent BLI replicates, $20\text{ nM}$ Laminin-411 + $0\text{–}40\text{ nM}$ $\alpha_6\beta_1$ Integrin)**:
-   - Fits the exact 1:1 quadratic mass-action (Morrison) equation accounting for the $\frac{1}{2}[\text{LM411}]_{\text{tot}} = 10.0\text{ nM}$ stoichiometric depletion floor ($\text{IC}_{50} = \frac{1}{2}[\text{LM411}]_{\text{tot}} + K_D(\alpha_6\beta_1)$):
-     - **Observed $\text{IC}_{50}$ (at $20\text{ nM}$ Laminin-411)**: $11.53 \pm 0.54\text{ nM}$ (midpoint molar ratio $0.58 \pm 0.03\text{ mol/mol}$).
-     - **True 1:1 Solution $K_D(\alpha_6\beta_1\text{ Integrin})$**: $0.73 \pm 0.22\text{ nM}$ ($R^2 = 0.982$; or $0.26 \pm 0.08\text{ nM}$ when coupled to 1-site Langmuir surface saturation $K_{\text{surf}} = 34.4\text{ nM}$, $R^2 = 0.990$).
-     - **Relative Receptor Affinity**: $\alpha_6\beta_1$ integrin binds Laminin-411 **$>6\text{-fold}$ ($\sim 6.4\text{–}17.8\times$) more tightly** than MCAM, sequestering $83.0 \pm 1.7\%$ of Laminin-411 at a $1:1$ equimolar ratio ($20\text{ nM}$) and blocking $98.5 \pm 1.4\%$ of MCAM binding at a $2:1$ ratio ($40\text{ nM}$).
-3. **Adobe Illustrator Title-Free Panels, GraphPad Prism CSVs & Publication Legends (`publication_outputs/`)**:
-   - Every kinetics and competition plot can be downloaded **without titles** and **as separate individual panels** in editable vector (`PDF`, `SVG` with `pdf.fonttype = 42`) and `600 DPI PNG` formats for direct arrangement in Adobe Illustrator, paired with **GraphPad Prism-ready XY CSV tables** (individual replicates, $\text{Mean}$, $\text{SD}$, $\text{SEM}$, and fitted curves), parameter/error summary tables, and publication figure legends explaining the mean curves and $\pm 1\text{ SD}$ shaded replicate error bands. See [`PUBLICATION_FIGURES_AND_LEGENDS.md`](PUBLICATION_FIGURES_AND_LEGENDS.md).
+**Start:** load an MCAM dataset in **Data Input**, open **Kinetic Analysis**,
+inspect the five parameter controls, and run the advanced global fit. The
+known phase times are retained. A cached demonstration is checked against the
+current data/masks; changing windows does not silently reinstate it. Solver
+settings, seed and parameter sharing are displayed and recorded in exports.
+
+| Existing BLI example | Overall KD, mean ± repeat SD | Fitted RMSE | Internal omitted-concentration RMSE |
+|---|---:|---:|---:|
+| MCAM-Fc + LM411, 7.813–125 nM | 12.17 ± 0.48 nM | 0.01545 nm | 0.02466 nm |
+| MCAM-Fc + isolated α4 LG1–3, 15.63–500 nM | 599.6 ± 170.7 nM | 0.008022 nm | 0.01482 nm |
+
+These are model-conditional estimates from the **existing three repeats per
+construct**. The LG1–3 capacity ceiling is 1.35 nm and is active in two repeats.
+The LM411 source files also contain 250 nM traces for a separately labeled
+concentration-range sensitivity analysis. Both constructs retain the two
+structural contact regions.
+
+Run `python audits/validate_contact_transport.py` to verify the six original
+CSV hashes, fitted residuals, shared capacities, parameter counts, solver
+agreement and 33 omitted-concentration predictions. See
+[the model guide](CONTACT_TRANSPORT.md) and
+[the reference records](validation/contact_transport/reference.json).
+
+The bundled α6β1 solution-competition data remain available in **Solution
+Competition**. The proportional-readout 1:1 quadratic model gives approximately
+0.73 nM, while the separately fitted empirical inhibition midpoint is about
+11.53 nM. These are different fitted quantities. Surface-saturation or squared
+capture assumptions are explicit sensitivity options; a Hill exponent is not
+inferred from the number of structural contacts. No hidden partial-binding
+amplitude or affinity is added to the squared-capture response.
+
+Current plots, parameters and reproducibility records can be exported from the
+active saved analysis. Older files in `publication_outputs/` are static exports;
+use the active run for figures and numerical reporting with this model.
+
+## Release 0.5.11
+
+Repairs the MCAM contact/transport workflow while retaining its validated
+numerical fits. Known phase times survive preset loading; invalidated fits stay
+invalidated; solver controls and seeds are honored; shared groups, robust
+objectives, capacity bounds and concentration-omission predictions are checked.
+The new model participates in the enabled input-uncertainty calculation.
+
+The current source and tests are available from **Methods & References** in the
+app. `python scripts/build_release.py` creates the same allowlisted archive
+without copying credentials or deleting a separate working folder. Deployment
+can be reviewed with `python scripts/deploy_to_hf.py --dry-run`; the commit is
+conditional on the reviewed remote parent. Static ZIP uploads are optional.
 
 ## Release 0.5.10
 
@@ -81,8 +122,9 @@ the guide plus the applicable equations, citations, saved settings and source
 hashes for that particular run. The documentation is bundled with the source;
 it does not rely on an external documentation service.
 
-Download the [complete methods documentation](https://huggingface.co/spaces/Ewaldssphere/MIXA_beta0.3/resolve/main/MIXA_0.5.10_methods_documentation.zip?download=true)
-or the [source, tests and benchmark evidence](https://huggingface.co/spaces/Ewaldssphere/MIXA_beta0.3/resolve/main/MIXA_0.5.10_source.zip?download=true).
+Use **Methods & References** in the running app to download the current methods,
+source, tests and benchmark records. These downloads are generated from the
+installed version rather than an older separately uploaded archive.
 
 ## Release 0.5.8
 

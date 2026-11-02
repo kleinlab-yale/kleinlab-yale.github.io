@@ -171,36 +171,73 @@ MIXAGIT_FILES = [
 ]
 
 
+# The canonical Git checkout is the editable source. Packaging writes only the
+# requested archive; it never deletes or rewrites a second working directory.
+FILES += [
+    "ci/mixa-tests.yml",
+    "CONTACT_TRANSPORT.md", "scripts/deploy_to_hf.py",
+    "tests/test_contact_transport.py", "tests/test_contact_transport_workflow.py",
+    "tests/test_release_packaging.py", "tests/test_deployment.py", "audits/validate_contact_transport.py",
+    "audits/rebuild_mcam_demo_fits.py", "validation/contact_transport/reference.json",
+    "validation/contact_transport/results.json",
+]
+REQUIRED_FILES = {name for name in FILES if "/" not in name and name.endswith(".py")}
+REQUIRED_FILES |= {"requirements.txt", "README.md", "USER_GUIDE.md", "LICENSE", "CITATION.cff",
+                   "CONTACT_TRANSPORT.md", ".streamlit/config.toml",
+                   "audits/validate_contact_transport.py", "tests/test_contact_transport.py"}
+REQUIRED_FILES |= {name for name in FILES if name.startswith("data/") and name.endswith((".csv", ".b64.txt"))}
+
+
+def source_files(include_publication=False):
+    """Return the explicit source allowlist, disclosing absent optional archives."""
+    missing = [name for name in sorted(REQUIRED_FILES) if not (ROOT/name).is_file()]
+    if missing:
+        raise FileNotFoundError("Missing required release files: "+", ".join(missing))
+    candidates = sorted(set(FILES))
+    # Base64 is the portable canonical cache. Do not bundle/deploy a second
+    # native pickle that may diverge or unnecessarily consume Hub LFS quota.
+    candidates = [name for name in candidates if not (
+        name.endswith(".pkl") and (ROOT/Path(name).with_suffix(".b64.txt")).is_file()
+    )]
+    if not include_publication:
+        candidates = [name for name in candidates if not name.startswith("publication_outputs/")]
+    return [name for name in candidates if (ROOT/name).is_file()], [name for name in candidates if not (ROOT/name).is_file()]
+
+
+def build_source_bundle(include_publication=False):
+    import io
+    import sys
+    sys.path.insert(0, str(ROOT))
+    from mixa_data import APP_VERSION
+
+    selected, absent_optional = source_files(include_publication)
+    payloads = {name: (ROOT/name).read_bytes() for name in selected}
+    hashes = {name: hashlib.sha256(data).hexdigest() for name, data in payloads.items()}
+    payloads["SHA256.json"] = json.dumps(hashes, indent=2, sort_keys=True).encode()
+    payloads["SOURCE_RELEASE.json"] = json.dumps(dict(
+        version=APP_VERSION, scope="Application source, tests, bundled examples and available benchmark evidence; no session uploads or secrets.",
+        absent_optional_archives=absent_optional,
+    ), indent=2).encode()
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, data in sorted(payloads.items()):
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, data)
+    return buffer.getvalue()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ROOT / "release" / "MIXA_publication_preview.zip")
-    destination = parser.parse_args().output
-    destination.parent.mkdir(exist_ok=True)
-    mixagit_dir = ROOT / "mixagit"
-    hashes = {}
-    with zipfile.ZipFile(destination, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for name in FILES:
-            payload = (ROOT / name).read_bytes()
-            hashes[name] = hashlib.sha256(payload).hexdigest()
-            archive.writestr(name, payload)
-        archive.writestr("SHA256.json", json.dumps(hashes, indent=2))
-    if mixagit_dir.is_dir():
-        allowed = set(MIXAGIT_FILES) | {"Dockerfile", "runtime.txt"}
-        for existing in list(mixagit_dir.rglob("*")):
-            if existing.is_file():
-                rel = existing.relative_to(mixagit_dir).as_posix()
-                if rel not in allowed:
-                    existing.unlink()
-        for existing_dir in sorted(mixagit_dir.rglob("*"), key=lambda p: len(p.parts), reverse=True):
-            if existing_dir.is_dir() and not any(existing_dir.iterdir()):
-                existing_dir.rmdir()
-        for name in MIXAGIT_FILES:
-            src = ROOT / name
-            if src.is_file():
-                target = mixagit_dir / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(src.read_bytes())
-    print(destination)
+    parser.add_argument("--output", type=Path, default=ROOT/"release/MIXA_source.zip")
+    parser.add_argument("--include-publication-artifacts", action="store_true",
+                        help="Also package existing static publication exports; they are not regenerated.")
+    args = parser.parse_args()
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    payload = build_source_bundle(args.include_publication_artifacts)
+    args.output.write_bytes(payload)
+    print(f"Wrote {args.output} ({len(payload)} bytes)")
 
 
 if __name__ == "__main__":

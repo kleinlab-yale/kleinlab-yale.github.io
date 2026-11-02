@@ -837,13 +837,15 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
     config_key = repr((model, transport, nonspecific, correct_drift, linear_nonspecific, tuple(nuisance), technique, st.session_state.get("prepared_signature")))
     store = st.session_state.setdefault("advanced_control_recipes", {})
     if model == "contact_closure_transport_limit":
-        fnames_joined = " ".join(str(c.get("filename", "")) for c in curves).lower()
-        is_g123_ds = ("lama4g123" in fnames_joined) or ("lamg123" in fnames_joined)
-        base_cctl = contact_closure_transport_limit_rules("LamA4G123" if is_g123_ds else "LM411")
-        extra_defaults = [r for r in parameter_defaults(model, response_scale, "None", nonspecific, "Offset" in nuisance,
-                                                        correct_drift, "Injection bulk response" in nuisance,
-                                                        linear_nonspecific=linear_nonspecific) if r.key not in {b.key for b in base_cctl}]
-        defaults = base_cctl + extra_defaults
+        filenames = {str(c.get("filename", "")).lower() for c in curves}
+        is_g123_ds = all(name.startswith("mcam_lama4g123_kinetics_rep") for name in filenames)
+        is_lm411_ds = all(name.startswith("mcam_lm411_kinetics_rep") for name in filenames)
+        defaults = parameter_defaults(model, response_scale, "None", nonspecific, "Offset" in nuisance,
+                                      correct_drift, "Injection bulk response" in nuisance,
+                                      linear_nonspecific=linear_nonspecific)
+        if is_g123_ds or is_lm411_ds:
+            base_cctl = contact_closure_transport_limit_rules("LamA4G123" if is_g123_ds else "LM411")
+            defaults = base_cctl + [r for r in defaults if r.key not in {b.key for b in base_cctl}]
     else:
         defaults = parameter_defaults(model, response_scale, transport, nonspecific, "Offset" in nuisance,
                                       correct_drift, "Injection bulk response" in nuisance, linear_nonspecific=linear_nonspecific)
@@ -900,12 +902,15 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
     with middle:
         objective = st.selectbox("Objective", ["Least squares", "Soft-L1 sensitivity fit"], key="advanced_objective")
         f_scale = st.number_input("Soft-L1 scale (objective residual units)", min_value=1e-6, value=_initial_value("advanced_loss_scale", 1.), key="advanced_loss_scale") if objective != "Least squares" else 1.
-        starts = st.number_input("Multistart attempts", min_value=1, max_value=30, value=_initial_value("advanced_starts", 3), key="advanced_starts")
+        starts = st.number_input("Multistart attempts", min_value=1, max_value=30, value=_initial_value("advanced_starts", 5 if model == "contact_closure_transport_limit" else 3), key="advanced_starts")
         search = st.selectbox("Start search", ["Local + broad exploration", "Local refinement"], key="advanced_start_search")
     with right:
         runtime = st.number_input("Fit runtime limit (s)", min_value=10., max_value=1200., value=_initial_value("advanced_runtime", 120.), key="advanced_runtime")
-        evaluations = st.number_input("Maximum evaluations per start", min_value=50, max_value=20000, value=_initial_value("advanced_nfev", 1200), key="advanced_nfev")
-    if any(value is None for value in [tau, f_scale, starts, runtime, evaluations]):
+        evaluations = st.number_input("Maximum evaluations per start", min_value=50, max_value=20000, value=_initial_value("advanced_nfev", 500 if model == "contact_closure_transport_limit" else 1200), key="advanced_nfev")
+        seed = st.number_input("Multistart random seed", min_value=0, max_value=2**32-1,
+                               value=_initial_value("advanced_seed", 20261102 if model == "contact_closure_transport_limit" else 1729),
+                               key="advanced_seed")
+    if any(value is None for value in [tau, f_scale, starts, runtime, evaluations, seed]):
         st.error("Enter all noise and solver control values before fitting.")
         return
     recipe = dict(version=APP_VERSION, assay=assay, model=model, transport=transport, nonspecific=nonspecific,
@@ -915,7 +920,7 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
                   windows=windows, normalize=normalize, invert=invert, parameters=[asdict(r) for r in rules],
                   instance_controls=overrides, trace_controls=trace_table.to_dict("records"), correlation_time=tau,
                   loss="linear" if objective == "Least squares" else "soft_l1", f_scale=f_scale,
-                  starts=int(starts), max_nfev=int(evaluations), runtime_s=runtime,
+                  starts=int(starts), max_nfev=int(evaluations), runtime_s=runtime, seed=int(seed),
                   start_strategy="broad" if search == "Local + broad exploration" else "local",
                   input_uncertainty=curves[0].get("input_uncertainty_options", {}),
                   include_map={key: sorted(values) for key, values in include_map.items()})
@@ -923,11 +928,11 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
     if st.button("Run advanced global fit", type="primary", key="advanced_run"):
         try:
             with st.spinner("Fitting selected observations across linked parameter groups..."):
-                starts_run = max(int(starts), 5) if model == "contact_closure_transport_limit" else int(starts)
-                evals_run = (900 if int(evaluations) == 1200 else int(evaluations)) if model == "contact_closure_transport_limit" else int(evaluations)
+                starts_run = int(starts)
+                evals_run = int(evaluations)
                 result = fit_mechanism(curves, model, rules, transport, nonspecific, starts=starts_run, runtime_s=runtime,
                                        max_nfev=evals_run, correlation_time=tau, loss=recipe["loss"], f_scale=f_scale,
-                                       instance_controls=overrides, start_strategy=recipe["start_strategy"])
+                                       instance_controls=overrides, start_strategy=recipe["start_strategy"], seed=recipe["seed"])
                 result.update(recipe=recipe, signature=signature, created_utc=datetime.now(timezone.utc).isoformat())
                 if len({c.get("repeat_id", c.get("filename", "")) for c in result.get("curves", [])}) > 1:
                     result["repeat_report"] = refit_independent_repeats(
@@ -1016,8 +1021,9 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
 
 def render_mechanistic_results(result, data_list, *, signature, runtime=120., starts=3):
     """Use the same saved-fit panels for manual and assisted global analyses."""
-    if not result.get("signature") or result.get("preloaded_demo"):
+    if not result.get("signature") or (result.get("preloaded_demo") and not result.get("preloaded_signature_bound")):
         result["signature"] = signature
+        result["preloaded_signature_bound"] = True
     result.setdefault("created_utc", "Pre-computed")
     result.setdefault("recipe", {})
     if st.session_state.get("advanced_export_signature") != result["signature"]:

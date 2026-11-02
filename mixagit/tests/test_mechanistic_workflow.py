@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import io
 import json
 import zipfile
@@ -6,7 +8,7 @@ from streamlit.testing.v1 import AppTest
 
 
 def test_new_session_defaults_to_simple_langmuir_without_resetting_deliberate_choices():
-    app = AppTest.from_file("app.py", default_timeout=120).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
     assert app.session_state["binding_model_select"] == "1:1 Langmuir"
     assert app.session_state["advanced_transport"] == "None"
     assert not app.session_state["advanced_ns"]
@@ -32,7 +34,7 @@ def test_new_session_defaults_to_simple_langmuir_without_resetting_deliberate_ch
 
 
 def test_integrated_kinetic_controls_preserve_workflow_and_exports():
-    app = AppTest.from_file("app.py", default_timeout=180).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=180).run()
 
     def healthy():
         assert [e.value for e in app.exception] == []
@@ -57,7 +59,7 @@ def test_integrated_kinetic_controls_preserve_workflow_and_exports():
     app.number_input(key="advanced_starts").set_value(1).run()
     click("Run advanced global fit")
     fit = app.session_state["latest_mechanistic_results"]
-    assert fit["n_parameters"] == 17  # 15 local biosensor capacities + two shared rates.
+    assert fit["n_parameters"] == 5  # Three series capacities, shared across concentrations, plus two rates.
     assert fit["recipe"]["assay"]["analyte_valency"] == "Bivalent"
     assert fit["values"]["kon::all"] > 0
     assert len(fit["curves"]) == 15
@@ -99,13 +101,14 @@ def test_integrated_kinetic_controls_preserve_workflow_and_exports():
 
 
 def test_all_mechanisms_and_transport_are_in_the_main_kinetic_model_menu():
-    app = AppTest.from_file("app.py", default_timeout=120).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
     for label in ["Load synthetic demonstration", "Apply dataset assignments"]:
         next(button for button in app.button if button.label == label).click().run()
     app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
     expected = ["1:1 Langmuir", "1:1 + Delivery Lag", "2-State (Advanced)",
-                "Two independent surface populations", "Bivalent analyte / surface avidity",
-                "Sequential binding of two analyte molecules"]
+                "Two independent surface populations", "Two populations (per-curve fractions)",
+                "Bivalent analyte / surface avidity", "Sequential binding of two analyte molecules",
+                "Two-contact binding with transport — rapid-capture limit"]
     assert app.selectbox(key="binding_model_select").options == expected
     assert len([box for box in app.selectbox if box.label in {"Binding model", "Binding mechanism"}]) == 1
     for model in expected[3:]:
@@ -127,7 +130,7 @@ def test_all_mechanisms_and_transport_are_in_the_main_kinetic_model_menu():
 
 
 def test_previous_advanced_page_session_migrates_to_kinetic_analysis():
-    app = AppTest.from_file("app.py", default_timeout=120)
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120)
     app.session_state["workflow_nav"] = "Advanced Kinetics"
     app.session_state["active_section"] = "Advanced Kinetics"
     app.session_state["advanced_model"] = "bivalent"
@@ -139,7 +142,7 @@ def test_previous_advanced_page_session_migrates_to_kinetic_analysis():
 
 
 def test_background_controls_are_shared_across_models_and_saved_in_exports():
-    app = AppTest.from_file("app.py", default_timeout=120).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
     for label in ["Load synthetic demonstration", "Apply dataset assignments"]:
         next(button for button in app.button if button.label == label).click().run()
     app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
@@ -179,7 +182,7 @@ def test_background_controls_are_shared_across_models_and_saved_in_exports():
 
 
 def test_old_advanced_drift_choice_migrates_to_shared_background_controls():
-    app = AppTest.from_file("app.py", default_timeout=120)
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120)
     app.session_state["binding_model_select"] = "Bivalent analyte / surface avidity"
     app.session_state["advanced_normalize"] = False
     app.session_state["advanced_nuisance"] = ["Linear drift", "Offset"]
@@ -193,7 +196,7 @@ def test_old_advanced_drift_choice_migrates_to_shared_background_controls():
 def test_cached_helper_upgrade_does_not_clear_loaded_datasets(monkeypatch):
     import mixa_mechanistic_ui
 
-    app = AppTest.from_file("app.py", default_timeout=120).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
     for label in ["Load synthetic demonstration", "Apply dataset assignments"]:
         next(button for button in app.button if button.label == label).click().run()
     app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
@@ -206,7 +209,7 @@ def test_cached_helper_upgrade_does_not_clear_loaded_datasets(monkeypatch):
 
 
 def test_manual_mechanistic_fit_connects_to_model_comparison_and_publication_report():
-    app = AppTest.from_file("app.py", default_timeout=180).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=180).run()
     for label in ["Load synthetic demonstration", "Apply dataset assignments"]:
         next(button for button in app.button if button.label == label).click().run()
     app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()

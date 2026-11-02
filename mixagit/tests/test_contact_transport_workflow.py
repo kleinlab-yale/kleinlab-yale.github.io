@@ -1,0 +1,82 @@
+from pathlib import Path
+
+from streamlit.testing.v1 import AppTest
+
+
+APP = Path(__file__).resolve().parents[1]/"app.py"
+LABEL = "Two-contact binding with transport — rapid-capture limit"
+
+
+def load_contact_example():
+    app = AppTest.from_file(APP, default_timeout=180).run()
+    app.button(key="load_mcam_lm411_kinetics_btn").click().run()
+    app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
+    assert not app.exception
+    return app
+
+
+def test_mcam_preset_runs_the_visible_controls_and_keeps_shared_rmax():
+    app = load_contact_example()
+    assert app.selectbox(key="binding_model_select").value == LABEL
+    assert app.selectbox(key="advanced_transport").disabled
+    assert app.session_state["latest_mechanistic_results"]["preloaded_demo"]
+    table = next(frame.value for frame in app.dataframe if "key" in frame.value.columns)
+    assert len(table) == 5
+    assert set(table.scope) == {"Per file"}
+    app.number_input(key="advanced_starts").set_value(1).run()
+    assert any("Controls have changed" in w.value for w in app.warning)
+    app.number_input(key="advanced_nfev").set_value(50).run()
+    app.number_input(key="advanced_seed").set_value(1234).run()
+    app.button(key="advanced_run").click().run()
+    assert not app.exception
+    fit = app.session_state["latest_mechanistic_results"]
+    assert fit["model"] == "contact_closure_transport_limit"
+    assert fit["optimizer_settings"]["starts"] == fit["recipe"]["starts"] == 1
+    assert fit["optimizer_settings"]["max_nfev"] == fit["recipe"]["max_nfev"] == 50
+    assert fit["optimizer_settings"]["seed"] == fit["recipe"]["seed"] == 1234
+    assert fit["n_parameters"] == 15
+    assert fit["n_profiled_parameters"] == 3
+    assert not fit.get("preloaded_demo")
+    for filename in {c["filename"] for c in fit["curves"]}:
+        assert len({c["parameters"]["Rmax"] for c in fit["curves"] if c["filename"]==filename}) == 1
+    app.button(key="advanced_prepare_export").click().run()
+    assert not app.exception
+    assert app.session_state["advanced_export"]
+
+
+def test_invalidated_mcam_fit_is_not_silently_reloaded_from_a_cache():
+    app = load_contact_example()
+    assert app.session_state["latest_mechanistic_results"]
+    app.toggle(key="fit_trim_enabled").set_value(True).run()
+    assert not app.exception
+    assert app.session_state["latest_mechanistic_results"] is None
+    # Repeated rendering must not reinstate the obsolete fit either.
+    app.run()
+    assert app.session_state["latest_mechanistic_results"] is None
+    app.button(key="kin_quick_switch_lm411").click().run()
+    assert not app.exception
+    assert app.session_state["latest_mechanistic_results"]["preloaded_demo"]
+
+
+def test_old_population_model_labels_migrate_without_resetting_the_choice():
+    app = AppTest.from_file(APP, default_timeout=120)
+    app.session_state["binding_model_select"] = "Two-site / two-component binding (2:1)"
+    app.run()
+    assert not app.exception
+    assert app.session_state["binding_model_select"] == "Two independent surface populations"
+
+
+def test_complete_study_and_experiment_switch_preserve_the_declared_phases():
+    app = AppTest.from_file(APP, default_timeout=180).run()
+    app.button(key="load_complete_mcam_study_btn").click().run()
+    app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
+    assert not app.exception
+    assert app.session_state["latest_mechanistic_results"]["preloaded_demo"]
+    assert app.session_state["fit_windows"]["phase_assoc_start_s"] == 100.038
+    assert app.session_state["fit_windows"]["phase_dissoc_start_s"] == 220.04102
+    app.selectbox(key="selected_experiment").set_value("MCAM-Fc + LamA4G123 (α4 LG1–LG3)").run()
+    assert not app.exception
+    fit = app.session_state["latest_mechanistic_results"]
+    assert fit and all("LamA4G123" in c["filename"] for c in fit["curves"])
+    assert app.session_state["fit_windows"]["phase_assoc_start_s"] == 100.028
+    assert app.session_state["fit_windows"]["phase_dissoc_start_s"] == 220.04199

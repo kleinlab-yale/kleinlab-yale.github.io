@@ -1,3 +1,11 @@
+> **Current analysis:** The bundled MCAM examples now use the one-analyte
+> contact/transport model documented in [CONTACT_TRANSPORT.md](CONTACT_TRANSPORT.md).
+> LM411 has a conditional overall KD of approximately 12.17 ± 0.48 nM in the
+> reviewed range. The tables and static figure descriptions below are archived
+> exports from earlier models. Generate current figures and parameter tables
+> from the active saved analysis; the earlier full/intermediate labels and
+> numerical values below do not describe the current model.
+
 # Publication Panels (No Titles for Adobe Illustrator), Fit & Error Tables, Figure Legends, and GraphPad Prism Data Outputs
 
 All figure panels in [`publication_outputs/`](publication_outputs/) have **all titles removed** and are saved **as separate individual files** (`PDF`, `SVG` with editable TrueType vector text `pdf.fonttype = 42`, and `600 DPI PNG`) so they can be arranged and labeled directly in Adobe Illustrator. All underlying data, replicate columns, fitted curves, and error metrics ($\text{Mean}$, $\text{SD}$, $\text{SEM}$, $95\%\text{ CI}$) are exported in **GraphPad Prism-ready XY CSV tables** both in [`publication_outputs/`](publication_outputs/) and via one-click download buttons in the MIXA app (**02 / Kinetic Analysis**, **06 / Publication Report**, and **07 / Solution Competition**).

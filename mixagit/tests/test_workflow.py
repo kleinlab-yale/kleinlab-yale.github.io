@@ -7,11 +7,12 @@ import zipfile
 import numpy as np
 import pandas as pd
 from streamlit.testing.v1 import AppTest
+from mixa_data import SAMPLE_FILES
 
 
 class WorkflowTests(unittest.TestCase):
     def test_automatic_full_phases_with_optional_slider_adjustments(self):
-        app = AppTest.from_file("app.py", default_timeout=120).run()
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
 
         def healthy():
             self.assertEqual([e.value for e in app.exception], [])
@@ -70,7 +71,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertFalse(app.toggle(key="fit_trim_enabled").value)
 
     def test_reprocessing_same_files_refreshes_detection_and_resets_old_trimming(self):
-        app = AppTest.from_file("app.py", default_timeout=120).run()
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
 
         def click(label):
             next(b for b in app.button if b.label == label).click().run()
@@ -100,7 +101,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual((windows["fit_dissoc_start_s"], windows["fit_dissoc_end_s"]), (off, 180.))
 
     def test_original_samples_and_visible_background_controls(self):
-        app = AppTest.from_file("app.py", default_timeout=120).run()
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
 
         def click(label):
             next(b for b in app.button if b.label == label).click().run()
@@ -114,29 +115,30 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual({d["repeat_id"] for d in app.session_state["data_list"]}, {"Repeat 1", "Repeat 2"})
         click("Load synthetic demonstration")
         click("Apply dataset assignments")
-        self.assertEqual(len(app.session_state["raw_datasets"]), 8)
+        self.assertEqual(len(app.session_state["raw_datasets"]), 6+len(SAMPLE_FILES))
         next(s for s in app.selectbox if s.label == "Experiment to analyze").set_value("Synthetic demonstration").run()
         revision = app.session_state["design_revision"]
         key = f"dataset_assignments_{revision}"
-        app.session_state[key] = {"edited_rows": {2: {"Subtraction": "Control 0 nM"}}, "added_rows": [], "deleted_rows": []}
+        sample_row = len(SAMPLE_FILES)
+        app.session_state[key] = {"edited_rows": {sample_row: {"Subtraction": "Control 0 nM"}}, "added_rows": [], "deleted_rows": []}
         app.run()
         self.assertFalse(app.session_state["design_committed"])
         click("Apply dataset assignments")
         data = app.session_state["data_list"][0]
-        np.testing.assert_allclose(data["background_responses"][50], app.session_state["raw_datasets"][3]["responses"][0])
-        app.session_state[key] = {"edited_rows": {2: {"Subtraction": "None"}}, "added_rows": [], "deleted_rows": []}
+        np.testing.assert_allclose(data["background_responses"][50], app.session_state["raw_datasets"][sample_row+1]["responses"][0])
+        app.session_state[key] = {"edited_rows": {sample_row: {"Subtraction": "None"}}, "added_rows": [], "deleted_rows": []}
         app.run()
         app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
         self.assertEqual(app.session_state["data_list"], [])
         app.radio(key="workflow_nav").set_value("Data Input").run()
-        self.assertEqual(app.session_state["dataset_draft"].loc[2, "Subtraction"], "None")
+        self.assertEqual(app.session_state["dataset_draft"].loc[sample_row, "Subtraction"], "None")
         click("Apply dataset assignments")
         data = app.session_state["data_list"][0]
         np.testing.assert_array_equal(data["responses"][50], data["raw_responses"][50])
 
     @patch("streamlit.elements.lib.policies._shown_default_value_warning", False)
     def test_complete_selected_window_workflow_and_exports(self):
-        app = AppTest.from_file("app.py", default_timeout=180).run()
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=180).run()
 
         def healthy():
             self.assertEqual([e.value for e in app.exception], [])

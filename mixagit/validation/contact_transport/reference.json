@@ -1,0 +1,215 @@
+{
+  "reference_source_commit": "2a8682bf8b31d83c15ae6f459993e5ec3871e472",
+  "model": "contact_closure_transport_limit",
+  "selection": {
+    "lm411": [
+      {
+        "path": "data/kinetics_MCAM_LM411/MCAM_LM411_kinetics_rep1.csv",
+        "sha256": "ebc176e6af42190b1d4dec9b4b48b97129b39f8bcf64b2b6434629110534c1a9",
+        "repeat_id": "Repeat 1",
+        "on": 100.038,
+        "off": 220.04102,
+        "selected_start": 100.038,
+        "selected_end": 339.84102,
+        "n_per_curve": 1200,
+        "concentrations_nM": [
+          7.813,
+          15.63,
+          31.25,
+          62.5,
+          125.0
+        ],
+        "reference_fit": {
+          "parameters": {
+            "KD_first_contact_M": 2.5387900573742177e-08,
+            "kclose": 0.005456100738423154,
+            "kopen": 0.004629663689429115,
+            "transport_resistance_M_s": 3.959215668011277e-06
+          },
+          "capacity": [
+            1.1056597301796944
+          ],
+          "capacity_upper": 2.0,
+          "rss": 0.7551491587051795,
+          "n_observations": 6000
+        }
+      },
+      {
+        "path": "data/kinetics_MCAM_LM411/MCAM_LM411_kinetics_rep2.csv",
+        "sha256": "041e83beecc3441b7a86039662fbf289bf023a5b62387f6698b2c26cb82a6d43",
+        "repeat_id": "Repeat 2",
+        "on": 100.038,
+        "off": 220.04102,
+        "selected_start": 100.23299,
+        "selected_end": 339.836,
+        "n_per_curve": 1199,
+        "concentrations_nM": [
+          7.813,
+          15.63,
+          31.25,
+          62.5,
+          125.0
+        ],
+        "reference_fit": {
+          "parameters": {
+            "KD_first_contact_M": 2.967566630669892e-08,
+            "kclose": 0.004371906654780453,
+            "kopen": 0.003070662721130726,
+            "transport_resistance_M_s": 4.058741754865981e-06
+          },
+          "capacity": [
+            1.1270110051432802
+          ],
+          "capacity_upper": 2.0,
+          "rss": 1.4833973586377165,
+          "n_observations": 5995
+        }
+      },
+      {
+        "path": "data/kinetics_MCAM_LM411/MCAM_LM411_kinetics_rep3.csv",
+        "sha256": "fbe9b782ef2791831acf30dbbd4380030cfc6c3cbaa04691f261bf2569deb1b0",
+        "repeat_id": "Repeat 3",
+        "on": 100.038,
+        "off": 220.04102,
+        "selected_start": 100.22601,
+        "selected_end": 339.835,
+        "n_per_curve": 1199,
+        "concentrations_nM": [
+          7.813,
+          15.63,
+          31.25,
+          62.5,
+          125.0
+        ],
+        "reference_fit": {
+          "parameters": {
+            "KD_first_contact_M": 3.178357754148175e-08,
+            "kclose": 0.0044912784909717065,
+            "kopen": 0.0029502968391207614,
+            "transport_resistance_M_s": 3.8749032563587954e-06
+          },
+          "capacity": [
+            1.1237248355311633
+          ],
+          "capacity_upper": 2.0,
+          "rss": 2.054411880844786,
+          "n_observations": 5995
+        }
+      }
+    ],
+    "g123": [
+      {
+        "path": "data/kinetics_MCAM_LamA4G123/MCAM_LamA4G123_kinetics_rep1.csv",
+        "sha256": "5c6764322fc557cd9ab6c98fabc090030a89b3ee42c95e33dcd56c54b9ec6bba",
+        "repeat_id": "Repeat 1",
+        "on": 100.028,
+        "off": 220.04199,
+        "selected_start": 100.028,
+        "selected_end": 339.84102,
+        "n_per_curve": 1200,
+        "concentrations_nM": [
+          15.63,
+          31.25,
+          62.5,
+          125.0,
+          250.0,
+          500.0
+        ],
+        "reference_fit": {
+          "parameters": {
+            "KD_first_contact_M": 8.99626848897084e-07,
+            "kclose": 0.003404729392924461,
+            "kopen": 0.00333144936400894,
+            "transport_resistance_M_s": 1.238508168194902e-05
+          },
+          "capacity": [
+            0.7994210004489989
+          ],
+          "capacity_upper": 1.35,
+          "rss": 0.6989135899083604,
+          "n_observations": 7200
+        }
+      },
+      {
+        "path": "data/kinetics_MCAM_LamA4G123/MCAM_LamA4G123_kinetics_rep2.csv",
+        "sha256": "34e940a317dd6b572cd45726302f23de21343875be0997d06f35d5dcf1c92ffd",
+        "repeat_id": "Repeat 2",
+        "on": 100.028,
+        "off": 220.04199,
+        "selected_start": 100.22799,
+        "selected_end": 339.84199,
+        "n_per_curve": 1199,
+        "concentrations_nM": [
+          15.63,
+          31.25,
+          62.5,
+          125.0,
+          250.0,
+          500.0
+        ],
+        "reference_fit": {
+          "parameters": {
+            "KD_first_contact_M": 2.262650375054586e-06,
+            "kclose": 0.002824210721203004,
+            "kopen": 0.0009536976412109839,
+            "transport_resistance_M_s": 1.8772472340856927e-05
+          },
+          "capacity": [
+            1.35
+          ],
+          "capacity_upper": 1.35,
+          "rss": 0.36582822812692806,
+          "n_observations": 7194
+        }
+      },
+      {
+        "path": "data/kinetics_MCAM_LamA4G123/MCAM_LamA4G123_kinetics_rep3.csv",
+        "sha256": "52f3583b972fa15b15027a311d6270613f8a48a3168397c7170d59bf905d2b36",
+        "repeat_id": "Repeat 3",
+        "on": 100.028,
+        "off": 220.04199,
+        "selected_start": 100.03201,
+        "selected_end": 339.84602,
+        "n_per_curve": 1200,
+        "concentrations_nM": [
+          15.63,
+          31.25,
+          62.5,
+          125.0,
+          250.0,
+          500.0
+        ],
+        "reference_fit": {
+          "parameters": {
+            "KD_first_contact_M": 2.590473836014542e-06,
+            "kclose": 0.002707133533921734,
+            "kopen": 0.0011722203330703043,
+            "transport_resistance_M_s": 2.0612654356432044e-05
+          },
+          "capacity": [
+            1.35
+          ],
+          "capacity_upper": 1.35,
+          "rss": 0.32481319834572087,
+          "n_observations": 7200
+        }
+      }
+    ]
+  },
+  "pooled": {
+    "lm411": {
+      "rss": 4.292958398187682,
+      "n_observations": 17990,
+      "n_parameters": 15,
+      "rmse": 0.015447661996415936,
+      "cv_rmse": 0.024659264480893825
+    },
+    "g123": {
+      "rss": 1.3895550163810093,
+      "n_observations": 21594,
+      "n_parameters": 15,
+      "rmse": 0.008021790667641963,
+      "cv_rmse": 0.014819776728903892
+    }
+  }
+}

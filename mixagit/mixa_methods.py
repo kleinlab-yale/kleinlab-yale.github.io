@@ -129,8 +129,8 @@ EQUATIONS = {
         "Reduced 5-parameter rapid-capture and quasi-steady transport limit of the two-contact binding mechanism with surface depletion and rebinding.",
         ["schuck1996", "myszka1998", "hines2014"],
         ["mixa_mechanisms.py:_contact_closure_transport_limit_unit_batch", "mixa_mechanisms.py:binding_prediction", "mixa_mechanisms.py:fit_mechanism", "mixa_mechanisms.py:derived_affinities"],
-        ["tests/test_contact_closure_transport_limit.py"]),
-    "heterogeneous": _entry("Two-site / two-component binding (2:1)", [
+        ["tests/test_contact_transport.py"]),
+    "heterogeneous": _entry("Two independent surface populations", [
         "dRi/dt = kon_i*C*(Rmax_i-Ri)-koff_i*Ri, i=1,2; response = R1+R2",
         "KD_i = koff_i/kon_i; components ordered by affinity (KD,1 <= KD,2)"],
         "Each kon: M^-1 s^-1; each koff: s^-1; capacities: response",

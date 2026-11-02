@@ -83,9 +83,10 @@ def set_equilibrium_response(
 
     - When `surface_kd_nM` is None or <= 0 (linear free-analyte regime / initial velocity):
           R([I]) = R_inf + (R_0 - R_inf) * ([A]_free / [A]_tot)
-    - When `bidentate_two_site` is True (both competitor and immobilized receptor use 2 domains
-      to bind the same 2 epitopes on the analyte, so bidentate surface capture requires both
-      sites on the analyte to be unblocked: [A]_bidentate = [A]_tot * (f_site_free)^2).
+    - `bidentate_two_site` is a legacy API name for an empirical capture sensitivity:
+          [A]_eff = [A]_tot * ([A]_free/[A]_tot)^2.
+      The square is an explicit response assumption, not a microscopic two-contact
+      occupancy model or a consequence of the MCAM structure.
     - When `surface_kd_nM` > 0 (coupled nonlinear surface Langmuir or two-domain cooperative saturation):
           theta([I]) = [A]_eff^m / (K_D,surf^m + [A]_eff^m)
           theta_0    = [A]_tot^m / (K_D,surf^m + [A]_tot^m)
@@ -97,23 +98,15 @@ def set_equilibrium_response(
     if surface_kd_nM is not None and np.isfinite(surface_kd_nM) and float(surface_kd_nM) > 0:
         kd_surf = float(surface_kd_nM)
         m_surf = max(float(surface_cooperativity or 1.0), 0.1)
-        if bidentate_two_site:
-            a_both = a_tot * (f_site ** 2)
-            a_one = a_tot * 2.0 * f_site * (1.0 - f_site)
-            kd_mono = max(kd_surf * 50.0, 508.0)
-            theta_0 = (a_tot ** m_surf) / (kd_surf ** m_surf + a_tot ** m_surf)
-            a_both_m = np.power(np.maximum(a_both, 0.0), m_surf)
-            theta_bi = a_both_m / (kd_surf ** m_surf + a_both_m)
-            theta_mono = a_one / (kd_mono + a_one)
-            frac = (theta_bi + 0.15 * theta_mono) / max(theta_0, 1e-15)
-        elif abs(m_surf - 1.0) < 1e-6:
+        a_effective = a_tot * f_site**2 if bidentate_two_site else a_free
+        if abs(m_surf - 1.0) < 1e-6:
             theta_0 = a_tot / (kd_surf + a_tot)
-            theta = a_free / (kd_surf + a_free)
+            theta = a_effective / (kd_surf + a_effective)
             frac = theta / max(theta_0, 1e-15)
         else:
             a_tot_m = a_tot ** m_surf
             kd_surf_m = kd_surf ** m_surf
-            a_free_m = np.power(np.maximum(a_free, 0.0), m_surf)
+            a_free_m = np.power(np.maximum(a_effective, 0.0), m_surf)
             theta_0 = a_tot_m / (kd_surf_m + a_tot_m)
             theta = a_free_m / (kd_surf_m + a_free_m)
             frac = theta / max(theta_0, 1e-15)
@@ -1125,11 +1118,16 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
     from pathlib import Path
 
     mech = ref_kinetics
+    reference_source = "explicit reference"
     if mech is None:
         try:
             mech = st.session_state.get("latest_mechanistic_results")
         except Exception:
             mech = None
+        filenames = {str(c.get("filename", "")) for c in (mech or {}).get("curves", [])}
+        if not filenames or not all(name.startswith("MCAM_LM411_kinetics_rep") for name in filenames):
+            mech = None
+        reference_source = "active LM411 kinetic fit"
     if mech is None or not isinstance(mech, dict) or not mech.get("repeat_report"):
         import base64
         fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
@@ -1138,6 +1136,7 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
             try:
                 raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
                 mech = pickle.loads(raw_pkl)
+                reference_source = "bundled LM411 kinetic fit"
             except Exception:
                 mech = None
 
@@ -1168,10 +1167,6 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
                 koff_m = float(sum_df[sum_df["parameter"] == "koff"].iloc[0]["mean"])
                 if np.isfinite(koff_m) and koff_m > 0:
                     t12_s = float(np.log(2.0) / koff_m)
-            elif not sum_df.empty and "kopen" in set(sum_df["parameter"]):
-                kopen_m = float(sum_df[sum_df["parameter"] == "kopen"].iloc[0]["mean"])
-                if np.isfinite(kopen_m) and kopen_m > 0:
-                    t12_s = float(np.log(2.0) / kopen_m)
             if model_key == "contact_closure_transport_limit":
                 label = "MCAM-Fc + LM411 Overall Complex KD,overall (Two-Contact Binding with Transport — Rapid-Capture Limit)"
                 symbol = "K_D,overall(MCAM)"
@@ -1194,6 +1189,8 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
                 "reps": reps,
                 "r2": r2_ref,
                 "t12_s": t12_s,
+                "reference_source": reference_source,
+                "model": model_key,
             }
     return {"available": False}
 
@@ -2322,20 +2319,27 @@ def render_solution_competition_section():
                 help="Immobilized receptor saturation constant (e.g., 45.7 nM from direct 120 s BLI association isotherm).",
             )
         with sc2:
+            previous_capture = st.session_state.get("comp_surface_coop_mode", "")
+            if previous_capture.startswith(("Two-Site", "Dual")):
+                st.session_state.comp_surface_coop_mode = "Squared-free-analyte capture (sensitivity)"
             surf_mode_label = st.selectbox(
                 "Competition binding mode",
                 [
                     "1-Site Langmuir surface (m = 1.0)",
                     "2-Site Cooperative capture (m = 2.0)",
-                    "Two-Site Competition (Full Complex vs Competitor)",
+                    "Squared-free-analyte capture (sensitivity)",
                     "Custom cooperativity exponent m",
                 ],
                 key="comp_surface_coop_mode",
                 help="1-Site Langmuir surface models standard saturation of the immobilized receptor by free uncomplexed analyte.",
             )
-            if surf_mode_label.startswith("Two-Site") or surf_mode_label.startswith("Dual"):
+            if surf_mode_label.startswith("Squared-free"):
                 bidentate_two_site = True
-                surface_cooperativity = 2.5
+                surface_cooperativity = st.number_input(
+                    "Surface exponent m_surf (fixed assumption)", min_value=0.2, max_value=6.0,
+                    value=1.0, step=0.2, key="comp_squared_capture_exponent",
+                )
+                st.caption("Uses [A]_eff = [A]_total × ([A]_free/[A]_total)². This is a capture-model sensitivity assumption; the structure does not establish independent site occupancy or a Hill exponent.")
             elif surf_mode_label.startswith("1-Site"):
                 surface_cooperativity = 1.0
             elif surf_mode_label.startswith("2-Site Cooperative"):
