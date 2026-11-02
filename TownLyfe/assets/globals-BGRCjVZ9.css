@@ -7460,15 +7460,29 @@ kbd {
 }
 
 /* Taylor Town gameplay welcome art */
+#root:empty {
+  background: #f6ddcf url("../art/adventure-atlas-v1.jpg") center / cover no-repeat;
+}
+
 .welcome-screen {
+  z-index: 20000;
   overflow: hidden;
-  background: #f6ddcf;
+  background: #f6ddcf url("../art/adventure-atlas-v1.jpg") center / cover no-repeat;
+}
+
+body:has(.welcome-screen) #tl-pizzeria-shift-hud,
+body:has(.welcome-screen) #tl-pizzeria-menu-bar,
+body:has(.welcome-screen) #tl-npc-playdate-bar,
+body:has(.welcome-screen) #tl-vanity-studio-bar,
+body:has(.welcome-screen) #tl-cooking-rating-toast {
+  display: none !important;
 }
 
 .welcome-art {
   position: absolute;
   inset: 0;
   z-index: -1;
+  background-image: url("../art/adventure-atlas-v1.jpg");
   background-position: center;
   background-size: cover;
   filter: saturate(1.04) contrast(1.015);
