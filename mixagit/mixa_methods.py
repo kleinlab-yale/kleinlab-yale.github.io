@@ -120,12 +120,22 @@ EQUATIONS = {
         "Explicit mass-action derivation and equilibrium balance for the stated network. Hines is a source for identifiability analysis, not a claim that this particular equation was taken from that paper.",
         ["hines2014"], ["mixa_mechanisms.py:_binding_rhs", "mixa_science.py:two_state_signal", "mixa_mechanisms.py:derived_affinities"],
         ["tests/test_mechanisms.py:test_two_state_global_optimizer_not_curvewise_average"]),
-    "heterogeneous": _entry("Two independent surface populations", [
+    "contact_closure_transport_limit": _entry("Two-contact binding with transport — rapid-capture limit", [
+        "u = 1 - x - y; capture_flux = (C_bulk - K1*x/max(u, 1e-12))/h",
+        "closure_flux = kc*x - ko*y; dx/dt = capture_flux - closure_flux; dy/dt = closure_flux",
+        "response = Rmax*(x + y); KD_overall = K1/(1 + kc/ko)"],
+        "x,y,u: dimensionless fractions; Rmax: response; K1,KD_overall,C_bulk: M; kc,ko: s^-1; h: M s",
+        "One analyte molecule forms an initial contact (x) and an intracomplex second contact (y); both states contribute equal analyte mass (Rmax*(x+y)). Rapid-capture + quasi-steady surface transport limit resolves K1 = koff1/kon1, kc, ko, transport resistance h, and one shared Rmax per repeat, without resolving initial kon1 and koff1 separately.",
+        "Reduced 5-parameter rapid-capture and quasi-steady transport limit of the two-contact binding mechanism with surface depletion and rebinding.",
+        ["schuck1996", "myszka1998", "hines2014"],
+        ["mixa_mechanisms.py:_contact_closure_transport_limit_unit_batch", "mixa_mechanisms.py:binding_prediction", "mixa_mechanisms.py:fit_mechanism", "mixa_mechanisms.py:derived_affinities"],
+        ["tests/test_contact_closure_transport_limit.py"]),
+    "heterogeneous": _entry("Two-site / two-component binding (2:1)", [
         "dRi/dt = kon_i*C*(Rmax_i-Ri)-koff_i*Ri, i=1,2; response = R1+R2",
-        "KD_i = koff_i/kon_i; components may exchange labels"],
+        "KD_i = koff_i/kon_i; components ordered by affinity (KD,1 <= KD,2)"],
         "Each kon: M^-1 s^-1; each koff: s^-1; capacities: response",
-        "Independent populations see the same analyte; no interconversion or competition between populations. No unique biological identity is assigned to a component.",
-        "Two discrete mass-action populations. Svitel provides related surface-heterogeneity theory; MIXA does not implement that paper's continuous regularized distribution inversion.",
+        "Two-site / two-component mass-action binding with shared per-replicate capacities (Rmax, Rmax2) across concentrations.",
+        "Two discrete mass-action binding components. Svitel provides related surface-binding theory; MIXA does not implement that paper's continuous regularized distribution inversion.",
         ["svitel2003"], ["mixa_mechanisms.py:_binding_rhs", "mixa_mechanisms.py:binding_prediction"],
         ["tests/test_mechanisms.py:test_mechanism_prediction_invariant_to_observation_selection"]),
     "biphasic": _entry("Two independent populations (per-curve fraction, 2:1)", [
@@ -394,7 +404,7 @@ def equation_ids(result, family="Kinetic"):
     aliases = {"1:1": "langmuir", "1:1 Langmuir": "langmuir", "2-state": "two_state",
                "2-State (Advanced)": "two_state", "1:1+MT": "delivery_lag", "1:1 + Delivery Lag": "delivery_lag"}
     model = aliases.get(model, model)
-    if model not in {"langmuir", "two_state", "heterogeneous", "biphasic", "bivalent", "sequential", "delivery_lag"}:
+    if model not in {"langmuir", "two_state", "contact_closure_transport_limit", "heterogeneous", "biphasic", "bivalent", "sequential", "delivery_lag"}:
         raise ValueError(f"No equation mapping for saved model {model!r}.")
     ids += [model, "observation_terms"]
     if result.get("baseline_uncertainty", {}).get("applied"):
@@ -513,8 +523,8 @@ def write_methods_exports(archive, results, prefix="methods"):
     archive.writestr(f"{prefix}/equations_and_sources.json", json.dumps(json_safe(record), indent=2, allow_nan=False))
     archive.writestr(f"{prefix}/METHODS.md", methods_markdown(record))
     archive.writestr(f"{prefix}/USER_GUIDE.md", guide)
-    archive.writestr(f"{prefix}/REFIT_REVIEW.md", (ROOT/"REFIT_REVIEW.md").read_bytes())
-    archive.writestr(f"{prefix}/JOINT_INFERENCE.md", (ROOT/"JOINT_INFERENCE.md").read_bytes())
-    archive.writestr(f"{prefix}/FRONTIER_VALIDATION.md", (ROOT/"FRONTIER_VALIDATION.md").read_bytes())
+    for md_name in ("REFIT_REVIEW.md", "JOINT_INFERENCE.md", "FRONTIER_VALIDATION.md"):
+        if (ROOT / md_name).is_file():
+            archive.writestr(f"{prefix}/{md_name}", (ROOT / md_name).read_bytes())
     archive.writestr(f"{prefix}/REFERENCES.bib", bibliography(record))
     archive.writestr(f"{prefix}/validation_evidence.json", json.dumps(json_safe(validation_evidence()), indent=2, allow_nan=False))

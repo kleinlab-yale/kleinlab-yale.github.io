@@ -107,7 +107,8 @@ def render_fitting_education_contents():
             ("Reversible background", "Add another binding population", "Control data help assign a nonspecific interpretation"),
             ("Physical transport", "Model analyte supply/depletion and possible rebinding", "Density and flow/shaking variation can help distinguish it"),
             ("Two-state", "Binding followed by a reversible change in bound state", "Check whether all four rates are determined"),
-            ("Heterogeneous", "Two independent surface populations", "Not the same as two sites on one molecule"),
+            ("Two-contact + transport (rapid-capture limit)", "One analyte forms an initial contact then an intracomplex second contact with surface transport", "Resolves K1, kclose, kopen, h, and shared Rmax; separate initial kon/koff are not resolved"),
+            ("Heterogeneous", "Two-site / two-component binding (2:1)", "Shared per-replicate Rmax1 and Rmax2 across concentrations"),
             ("Bivalent analyte", "A soluble analyte can attach to two surface sites", "Second attachment depends on surface availability"),
             ("Sequential capture", "A second soluble analyte adds response", "Requires the matching reaction/observation model"),
         ], columns=["Option", "What it represents", "What to examine"]), hide_index=True)

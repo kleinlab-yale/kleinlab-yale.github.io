@@ -21,8 +21,9 @@ from mixa_diagnostics import (overview_figure, render_saved_fit_diagnostics, sav
                               write_diagnostic_tables)
 from mixa_figures import figure_style, independent_summary, kinetic_repeat_points, _kinetic_panel
 from mixa_mechanisms import (MODEL_LABELS, MODEL_NOTES, SCOPES, Parameter,
-                            assay_guidance, derived_affinities, expand_parameter_controls, fit_mechanism,
-                            fit_single_cycle_kinetics, parameter_defaults, prepare_curves, profile_parameter,
+                            assay_guidance, contact_closure_transport_limit_rules, derived_affinities,
+                            expand_parameter_controls, fit_mechanism, fit_single_cycle_kinetics,
+                            parameter_defaults, prepare_curves, profile_parameter,
                             refit_independent_repeats, stoichiometry_from_capacity, validate_parameters)
 from mixa_methods import source_code_sha256
 from mixa_reporting import _format_parameter_value
@@ -79,7 +80,40 @@ def build_kinetics_figure_legend(result):
             if kon2 is not None and koff2 is not None
             else ""
         )
-        if model_key == "sequential" and "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
+        if model_key == "contact_closure_transport_limit" and "KD_overall_nM" in s_df.index and "KD_first_contact_nM" in s_df.index:
+            ro = s_df.loc["KD_overall_nM"]
+            r1 = s_df.loc["KD_first_contact_nM"]
+            kc_row = s_df.loc["kclose"] if "kclose" in s_df.index else None
+            ko_row = s_df.loc["kopen"] if "kopen" in s_df.index else None
+            h_row = s_df.loc["transport_resistance_M_s"] if "transport_resistance_M_s" in s_df.index else None
+            rm_row = s_df.loc["Rmax"] if "Rmax" in s_df.index else None
+            ro_fmt = f"{ro['mean']:.0f} \\pm {ro['sd']:.0f}" if ro["mean"] >= 100 else f"{ro['mean']:.2f} \\pm {ro['sd']:.2f}"
+            r1_fmt = (
+                f"{r1['mean']/1e3:.2f} \\pm {r1['sd']/1e3:.2f}\\ \\mu\\text{{M}} ({r1['mean']:.0f} \\pm {r1['sd']:.0f}\\text{{ nM}})"
+                if r1["mean"] >= 1000
+                else (f"{r1['mean']:.0f} \\pm {r1['sd']:.0f}\\text{{ nM}}" if r1["mean"] >= 100 else f"{r1['mean']:.2f} \\pm {r1['sd']:.2f}\\text{{ nM}}")
+            )
+            rates_txt = ""
+            if kc_row is not None and ko_row is not None:
+                rates_txt += (
+                    f", $k_{{\\text{{close}}}} = ({kc_row['mean']*1e3:.2f} \\pm {kc_row['sd']*1e3:.2f}) \\times 10^{{-3}}\\text{{ s}}^{{-1}}$, "
+                    f"$k_{{\\text{{open}}}} = ({ko_row['mean']*1e3:.2f} \\pm {ko_row['sd']*1e3:.2f}) \\times 10^{{-3}}\\text{{ s}}^{{-1}}$"
+                )
+            if h_row is not None:
+                rates_txt += f", $h = ({h_row['mean']*1e6:.2f} \\pm {h_row['sd']*1e6:.2f}) \\times 10^{{-6}}\\text{{ M\\,s}}$"
+            if rm_row is not None:
+                rates_txt += f", shared $R_{{\\max}} = {rm_row['mean']:.3f} \\pm {rm_row['sd']:.3f}\\text{{ nm}}$"
+            cap_note = ""
+            if any("total_Rmax_upper" in str(b) or "Rmax::" in str(b) for b in result.get("boundary_parameters", [])):
+                cap_note = " Capacity upper ceiling is active in one or more replicates and is reported as a conditional constraint."
+            kd_summary_str = (
+                f"Across $N = {int(ro['n_independent'])}$ independent replicates, the two-contact binding with transport (rapid-capture limit) model "
+                f"($R = R_{{\\max}}(x + y)$, $K_{{D,\\text{{overall}}}} = K_{{D,1}} / (1 + k_{{\\text{{close}}}}/k_{{\\text{{open}}}})$) yields "
+                f"**overall $K_{{D,\\text{{overall}}}} = {ro_fmt}\\text{{ nM}}$** and **first-contact $K_{{D,1}} = {r1_fmt}$**"
+                f"{rates_txt} (global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$ across independent repeat fits).{cap_note} "
+                f"Separate initial $k_{{\\text{{on}}}}$ and $k_{{\\text{{off}}}}$ are not resolved in the rapid-capture limit."
+            )
+        elif model_key == "sequential" and "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
             r1 = s_df.loc["KD_step_1_nM"]
             r2 = s_df.loc["KD_step_2_nM"]
             r2_fmt = f"{r2['mean']:.0f} \\pm {r2['sd']:.0f}" if r2["mean"] >= 100 else f"{r2['mean']:.1f} \\pm {r2['sd']:.1f}"
@@ -128,11 +162,11 @@ def build_kinetics_figure_legend(result):
                         f"${mean_pop1_pct:.1f}\\%$ for Population 1 ($\\theta_1$) and ${mean_pop2_pct:.1f}\\%$ for Population 2 ($1 - \\theta_1$)."
                     )
             kd_summary_str = (
-                f"Across $N = {int(r1['n_independent'])}$ independent replicates, the two-population (`2:1`) surface-binding model "
-                f"($R = R_1 + R_2$) with shared per-replicate $R_{{\\max}}$ yields **apparent Component 1 $K_{{D,1}} = {r1['mean']:.1f} \\pm {r1['sd']:.1f}\\text{{ nM}}$ (higher-affinity / slower-dissociating component)**{rates1_txt} "
-                f"and **apparent Component 2 $K_{{D,2}} = {r2_fmt}$ (lower-affinity / faster-dissociating component)**{rates2_txt} "
+                f"Across $N = {int(r1['n_independent'])}$ independent replicates, the two-site / two-component (`2:1`) binding model "
+                f"($R = R_1 + R_2$) with shared per-replicate $R_{{\\max}}$ yields **Component 1 $K_{{D,1}} = {r1['mean']:.1f} \\pm {r1['sd']:.1f}\\text{{ nM}}$ (higher-affinity / slower-dissociating component)**{rates1_txt} "
+                f"and **Component 2 $K_{{D,2}} = {r2_fmt}$ (lower-affinity / faster-dissociating component)**{rates2_txt} "
                 f"(global $R^2 = {r2_val:.3f}$, $\\text{{Mean}} \\pm \\text{{SD}}$ across independent repeat refits).{frac_txt} "
-                f"Components are ordered by fitted affinity ($K_{{D,1}} \\le K_{{D,2}}$) as apparent kinetic components of the specified surface-binding model."
+                f"Components are ordered by fitted affinity ($K_{{D,1}} \\le K_{{D,2}}$) with shared per-replicate capacities."
             )
         elif "KD_higher_affinity_nM" in s_df.index and "KD_lower_affinity_nM" in s_df.index:
             r1 = s_df.loc["KD_higher_affinity_nM"]
@@ -202,7 +236,11 @@ def _response_figure(result, data_list, show_title=True):
     fit_lbl = (
         "Sequential Capture Fit"
         if model_key == "sequential"
-        else ("Two-Population (2:1) Fit" if model_key in {"biphasic", "heterogeneous"} else "Kinetic Fit")
+        else (
+            "Two-Contact + Transport Fit"
+            if model_key == "contact_closure_transport_limit"
+            else ("Two-Site / Two-Component (2:1) Fit" if model_key in {"biphasic", "heterogeneous"} else "Kinetic Fit")
+        )
     )
     ax.plot([], [], color="#0f172a", lw=1.6, ls="--", label=fit_lbl)
     if t_dissoc_rel is not None and t_dissoc_rel > 0:
@@ -217,7 +255,20 @@ def _response_figure(result, data_list, show_title=True):
         report = result.get("repeat_report")
         if report is not None and not report["summary"].empty:
             s_df = report["summary"].set_index("parameter")
-            if model_key == "sequential" and "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
+            if model_key == "contact_closure_transport_limit" and "KD_overall_nM" in s_df.index and "KD_first_contact_nM" in s_df.index:
+                ro = s_df.loc["KD_overall_nM"]
+                r1 = s_df.loc["KD_first_contact_nM"]
+                ro_fmt = rf"{ro['mean']:.0f} \pm {ro['sd']:.0f}\ \mathrm{{nM}}" if ro["mean"] >= 100 else rf"{ro['mean']:.2f} \pm {ro['sd']:.2f}\ \mathrm{{nM}}"
+                r1_fmt = (
+                    rf"{r1['mean']/1e3:.2f} \pm {r1['sd']/1e3:.2f}\ \mu\mathrm{{M}}"
+                    if r1["mean"] >= 1000
+                    else (rf"{r1['mean']:.0f} \pm {r1['sd']:.0f}\ \mathrm{{nM}}" if r1["mean"] >= 100 else rf"{r1['mean']:.2f} \pm {r1['sd']:.2f}\ \mathrm{{nM}}")
+                )
+                subtitle_line = (
+                    rf"Two-Contact + Transport (Shared $R_{{\max}}$): $K_{{D,\mathrm{{overall}}}} = {ro_fmt}$   |   "
+                    rf"$K_{{D,1}} = {r1_fmt}$   ($R^2 = {r2_val:.3f}$)"
+                )
+            elif model_key == "sequential" and "KD_step_1_nM" in s_df.index and "KD_step_2_nM" in s_df.index:
                 r1 = s_df.loc["KD_step_1_nM"]
                 r2 = s_df.loc["KD_step_2_nM"]
                 r2_fmt = f"{r2['mean']:.0f} \\pm {r2['sd']:.0f}" if r2["mean"] >= 100 else f"{r2['mean']:.1f} \\pm {r2['sd']:.1f}"
@@ -252,7 +303,12 @@ def _response_figure(result, data_list, show_title=True):
             aff = derived_affinities(result)
             if not aff.empty and "metric" in aff.columns:
                 m_vals = aff.groupby("metric")["value"].mean()
-                if "KD_step_1_nM" in m_vals and "KD_step_2_nM" in m_vals:
+                if "KD_overall_nM" in m_vals and "KD_first_contact_nM" in m_vals:
+                    subtitle_line = (
+                        rf"Two-Contact + Transport: $K_{{D,\mathrm{{overall}}}} = {m_vals['KD_overall_nM']:.2f}\ \mathrm{{nM}}$   |   "
+                        rf"$K_{{D,1}} = {m_vals['KD_first_contact_nM']:.2f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
+                    )
+                elif "KD_step_1_nM" in m_vals and "KD_step_2_nM" in m_vals:
                     subtitle_line = (
                         rf"Apparent Step 1 $K_{{D,\mathrm{{step\,1}}}} = {m_vals['KD_step_1_nM']:.2f}\ \mathrm{{nM}}$   |   "
                         rf"Apparent Step 2 $K_{{D,\mathrm{{step\,2}}}} = {m_vals['KD_step_2_nM']:.1f}\ \mathrm{{nM}}$   ($R^2 = {r2_val:.3f}$)"
@@ -361,7 +417,17 @@ def build_kinetics_prism_and_summary_tables(result):
             if "koff2" in s_idx.index and pd.notna(s_idx.loc["koff2", "mean"]) and float(s_idx.loc["koff2", "mean"]) > 0
             else ""
         )
-        if model_key == "sequential":
+        if model_key == "contact_closure_transport_limit":
+            meta_map = {
+                "KD_overall_nM": ("Two-Contact Equilibrium (Initial Capture + Intracomplex Closure)", "KD_overall (Overall Two-Contact Dissociation Constant)", "nM"),
+                "KD_first_contact_nM": ("Initial Capture Contact (Rapid-Capture Limit)", "KD_first_contact (First-Contact Dissociation Constant, nM)", "nM"),
+                "KD_first_contact_M": ("Initial Capture Contact (Rapid-Capture Limit)", "KD_first_contact_M (First-Contact Dissociation Constant, M)", "M"),
+                "kclose": ("Intracomplex Second-Contact Rearrangement", "kclose (Intracomplex Contact-Closing Rate)", "s^-1"),
+                "kopen": ("Intracomplex Second-Contact Rearrangement", "kopen (Intracomplex Contact-Opening Rate)", "s^-1"),
+                "transport_resistance_M_s": ("Quasi-Steady Surface Transport", "transport_resistance_M_s (Effective Surface Transport Resistance h)", "M s"),
+                "Rmax": ("Shared Surface Capacity", "Rmax (Shared Per-Replicate Maximum Response)", "nm"),
+            }
+        elif model_key == "sequential":
             meta_map = {
                 "KD_step_1_nM": ("Apparent Step 1 (Sequential Surface-Capture Model)", "KD_step1 (Apparent Step 1 Dissociation Constant)", "nM"),
                 "kon": ("Apparent Step 1 (Sequential Surface-Capture Model)", "kon1 (Apparent Step 1 Association Rate)", "M^-1 s^-1"),
@@ -390,6 +456,7 @@ def build_kinetics_prism_and_summary_tables(result):
                 "koff_lower_affinity": ("Component 2 (Lower-Affinity Component)", "koff2 (Component 2 Dissociation Rate)", "s^-1"),
             }
         ordered_keys = [
+            "KD_overall_nM", "KD_first_contact_nM", "KD_first_contact_M", "kclose", "kopen", "transport_resistance_M_s",
             "KD_step_1_nM", "KD_population_1_nM", "kon", "koff", "Rmax",
             "KD_step_2_nM", "KD_population_2_nM", "kon2", "koff2", "Rmax2",
         ]
@@ -538,7 +605,8 @@ def render_mechanistic_publication(result, data_list):
     if not result:
         return
     st.caption(f"Saved mechanistic model: {MODEL_LABELS.get(result['model'], result['model'])} | Surface transport: {result.get('transport', 'None')} | Run: {result.get('created_utc', '')}")
-    unqualified = bool(result.get("boundary_parameters")) or result.get("loss", "linear") != "linear" or bool(result.get("timed_out"))
+    non_cap_bounds = [b for b in result.get("boundary_parameters", []) if b.split("::", 1)[0] not in {"Rmax", "Rmax2"}]
+    unqualified = bool(non_cap_bounds) or result.get("loss", "linear") != "linear" or bool(result.get("timed_out"))
     if unqualified:
         st.warning("Diagnostic output: active parameter bounds, timeout, or non-Gaussian objective detected.")
     if not result.get("single_cycle"):
@@ -598,6 +666,9 @@ def _repeat_figure(report):
     rows = int(np.ceil(count / columns))
     titles = {"kon": r"$k_\mathrm{on,1}$", "koff": r"$k_\mathrm{off,1}$", "KD_nM": r"$K_\mathrm{D}$",
               "KD_overall_nM": r"$K_\mathrm{D}$ (overall)", "KD_first_step_nM": r"$K_\mathrm{D}$ (first step)",
+              "KD_first_contact_nM": r"$K_\mathrm{D,1}$ (first contact)", "KD_first_contact_M": r"$K_\mathrm{D,1}$",
+              "kclose": r"$k_\mathrm{close}$", "kopen": r"$k_\mathrm{open}$",
+              "transport_resistance_M_s": r"$h_\mathrm{transport}$", "Rmax": r"$R_{\max}$",
               "KD_step_1_nM": r"Apparent $K_{\mathrm{D,step\,1}}$", "KD_step_2_nM": r"Apparent $K_{\mathrm{D,step\,2}}$",
               "KD_step1_nM": r"Apparent $K_{\mathrm{D,step\,1}}$", "KD_step2_nM": r"Apparent $K_{\mathrm{D,step\,2}}$",
               "KD_population_1_nM": r"Apparent $K_{\mathrm{D,pop\,1}}$", "KD_population_2_nM": r"Apparent $K_{\mathrm{D,pop\,2}}$",
@@ -607,6 +678,7 @@ def _repeat_figure(report):
               "KD_lower_affinity_nM": r"Apparent $K_{\mathrm{D,pop\,2}}$",
               "kon2": r"$k_\mathrm{on,2}$", "koff2": r"$k_\mathrm{off,2}$"}
     units = {"M^-1 s^-1": r"$\mathrm{M}^{-1}\,\mathrm{s}^{-1}$", "s^-1": r"$\mathrm{s}^{-1}$",
+             "M s": r"$\mathrm{M}\,\mathrm{s}$", "M": r"$\mathrm{M}$",
              "response^-1 s^-1": r"$\mathrm{response}^{-1}\,\mathrm{s}^{-1}$"}
     with figure_style():
         fig, axes = plt.subplots(rows, columns, figsize=(max(3.5, columns * 2.3), 3.5 * rows), layout="constrained", squeeze=False)
@@ -764,8 +836,17 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
     response_scale = max(float(np.ptp(np.concatenate([c["response"][c["fit_mask"]] for c in curves]))), 1e-6)
     config_key = repr((model, transport, nonspecific, correct_drift, linear_nonspecific, tuple(nuisance), technique, st.session_state.get("prepared_signature")))
     store = st.session_state.setdefault("advanced_control_recipes", {})
-    defaults = parameter_defaults(model, response_scale, transport, nonspecific, "Offset" in nuisance,
-                                  correct_drift, "Injection bulk response" in nuisance, linear_nonspecific=linear_nonspecific)
+    if model == "contact_closure_transport_limit":
+        fnames_joined = " ".join(str(c.get("filename", "")) for c in curves).lower()
+        is_g123_ds = ("lama4g123" in fnames_joined) or ("lamg123" in fnames_joined)
+        base_cctl = contact_closure_transport_limit_rules("LamA4G123" if is_g123_ds else "LM411")
+        extra_defaults = [r for r in parameter_defaults(model, response_scale, "None", nonspecific, "Offset" in nuisance,
+                                                        correct_drift, "Injection bulk response" in nuisance,
+                                                        linear_nonspecific=linear_nonspecific) if r.key not in {b.key for b in base_cctl}]
+        defaults = base_cctl + extra_defaults
+    else:
+        defaults = parameter_defaults(model, response_scale, transport, nonspecific, "Offset" in nuisance,
+                                      correct_drift, "Injection bulk response" in nuisance, linear_nonspecific=linear_nonspecific)
     if linear_nonspecific:
         ns_scale = response_scale / max(max(c["concentration_M"] for c in curves) *
                                         max(c["off"] - c["on"] for c in curves), 1e-18)
@@ -842,13 +923,15 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
     if st.button("Run advanced global fit", type="primary", key="advanced_run"):
         try:
             with st.spinner("Fitting selected observations across linked parameter groups..."):
-                result = fit_mechanism(curves, model, rules, transport, nonspecific, starts=int(starts), runtime_s=runtime,
-                                       max_nfev=int(evaluations), correlation_time=tau, loss=recipe["loss"], f_scale=f_scale,
+                starts_run = max(int(starts), 5) if model == "contact_closure_transport_limit" else int(starts)
+                evals_run = (900 if int(evaluations) == 1200 else int(evaluations)) if model == "contact_closure_transport_limit" else int(evaluations)
+                result = fit_mechanism(curves, model, rules, transport, nonspecific, starts=starts_run, runtime_s=runtime,
+                                       max_nfev=evals_run, correlation_time=tau, loss=recipe["loss"], f_scale=f_scale,
                                        instance_controls=overrides, start_strategy=recipe["start_strategy"])
                 result.update(recipe=recipe, signature=signature, created_utc=datetime.now(timezone.utc).isoformat())
                 if len({c.get("repeat_id", c.get("filename", "")) for c in result.get("curves", [])}) > 1:
                     result["repeat_report"] = refit_independent_repeats(
-                        result["curves"], result, starts=min(int(starts), 3), runtime_s=runtime
+                        result["curves"], result, starts=starts_run if model == "contact_closure_transport_limit" else min(int(starts), 3), runtime_s=runtime
                     )
             st.session_state.latest_mechanistic_results = result
             st.session_state.latest_kinetic_results = None

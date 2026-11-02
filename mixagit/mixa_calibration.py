@@ -31,7 +31,7 @@ def target_definition(problem, target):
         return dict(kind="parameter", keys=[target], positive=rule["positive"], value=values[target],
                     lower=rule["lower"], upper=rule["upper"])
     metric, dependencies = target.split("::", 1)
-    if metric not in {"KD_nM", "KD_first_step_nM", "KD_overall_nM", "KD_step_1_nM", "KD_step_2_nM"}:
+    if metric not in {"KD_nM", "KD_first_step_nM", "KD_first_contact_nM", "KD_overall_nM", "KD_step_1_nM", "KD_step_2_nM"}:
         raise ValueError("This derived target does not have a supported exact constraint.")
     return dict(kind=metric, keys=dependencies.split("|"), positive=True,
                 value=float(table.at[target, "value"]), lower=0., upper=np.inf)
@@ -41,6 +41,10 @@ def target_value(definition, values):
     keys = definition["keys"]
     if definition["kind"] == "parameter":
         return values[keys[0]]
+    if definition["kind"] == "KD_first_contact_nM":
+        return values[keys[0]]*1e9
+    if definition["kind"] == "KD_overall_nM" and len(keys) == 3:
+        return values[keys[0]]*values[keys[2]]/(values[keys[1]]+values[keys[2]])*1e9
     value = values[keys[1]]/values[keys[0]]*1e9
     if definition["kind"] == "KD_overall_nM":
         value *= values[keys[3]]/(values[keys[2]]+values[keys[3]])
@@ -74,7 +78,7 @@ def constrained_refit(problem, target, value, *, curves=None, initial=None, star
 
     low = np.array([encode(k, controls[k]["lower"]) for k in names])
     high = np.array([encode(k, controls[k]["upper"]) for k in names])
-    numerator = definition["keys"][1]
+    numerator = definition["keys"][0] if (definition["kind"] == "KD_first_contact_nM" or (definition["kind"] == "KD_overall_nM" and len(definition["keys"]) == 3)) else definition["keys"][1]
     if numerator in names:
         base[numerator] = np.clip(base[numerator]*value/target_value(definition, base),
                                   controls[numerator]["lower"], controls[numerator]["upper"])
@@ -93,10 +97,17 @@ def constrained_refit(problem, target, value, *, curves=None, initial=None, star
 
     def equality_jac(z):
         values = decode(z)
-        keys, coefficients = definition["keys"], [-1., 1.]
-        if definition["kind"] == "KD_overall_nM":
-            ratio = values[keys[2]]/(values[keys[2]]+values[keys[3]])
-            coefficients += [-ratio, ratio]
+        keys = definition["keys"]
+        if definition["kind"] == "KD_first_contact_nM":
+            coefficients = [1.]
+        elif definition["kind"] == "KD_overall_nM" and len(keys) == 3:
+            ratio = values[keys[1]]/(values[keys[1]]+values[keys[2]])
+            coefficients = [1., -ratio, ratio]
+        else:
+            coefficients = [-1., 1.]
+            if definition["kind"] == "KD_overall_nM":
+                ratio = values[keys[2]]/(values[keys[2]]+values[keys[3]])
+                coefficients += [-ratio, ratio]
         by_key = dict(zip(keys, coefficients))
         return np.array([by_key.get(k, 0.) for k in names])
 

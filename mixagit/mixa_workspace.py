@@ -107,19 +107,19 @@ def _load_mcam_lm411_kinetics():
             tuple((k, tuple(sorted(v))) for k, v in sorted(st.session_state.include_map.items())),
         )
         st.session_state.fit_windows = {
-            "phase_assoc_start_s": 100.03299,
-            "phase_dissoc_start_s": 220.036,
-            "fit_assoc_start_s": 100.03299,
-            "fit_assoc_end_s": 220.036,
-            "fit_dissoc_start_s": 220.036,
+            "phase_assoc_start_s": 100.038,
+            "phase_dissoc_start_s": 220.04102,
+            "fit_assoc_start_s": 100.038,
+            "fit_assoc_end_s": 220.04102,
+            "fit_dissoc_start_s": 220.04102,
             "fit_dissoc_end_s": 339.84102,
         }
         st.session_state.phase_adjust_enabled = False
         st.session_state.fit_trim_enabled = False
         st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
 
-        # Configure 2:1 Two-Population Fit with Shared Per-File Rmax
-        st.session_state.binding_model_select = MODEL_LABELS["heterogeneous"]
+        # Configure Two-contact binding with transport — rapid-capture limit with Shared Per-File Rmax
+        st.session_state.binding_model_select = MODEL_LABELS["contact_closure_transport_limit"]
         st.session_state.rmax_group_mode = "Per file (repeat-specific)"
         st.session_state.advanced_transport = "None"
         st.session_state.normalize_baseline = False
@@ -129,7 +129,7 @@ def _load_mcam_lm411_kinetics():
         st.session_state.advanced_technique = "BLI"
         st.session_state.advanced_immobilized = "Receptor"
         st.session_state.advanced_analyte = "Ligand"
-        st.session_state.advanced_valency = "Bivalent"
+        st.session_state.advanced_valency = "Monovalent"
         st.session_state.advanced_process = "Binding"
         st.session_state.advanced_invert = False
         st.session_state.advanced_nuisance = []
@@ -151,6 +151,23 @@ def _load_mcam_lm411_kinetics():
             {"key": "koff2", "scope": "Global", "initial": 0.041, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
             {"key": "Rmax2", "scope": "Per file", "initial": 1.03, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
         ]
+        cctl_key_lm = repr((
+            "contact_closure_transport_limit",
+            "None",
+            False,
+            False,
+            False,
+            (),
+            "BLI",
+            st.session_state.prepared_signature,
+        ))
+        st.session_state.setdefault("advanced_control_recipes", {})[cctl_key_lm] = [
+            {"key": "KD_first_contact_M", "scope": "Per file", "initial": 3.0e-8, "lower": 1.0e-12, "upper": 1.0e-3, "fixed": False, "positive": True, "unit": "M"},
+            {"key": "kclose", "scope": "Per file", "initial": 0.004, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "kopen", "scope": "Per file", "initial": 0.003, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "transport_resistance_M_s", "scope": "Per file", "initial": 4.0e-6, "lower": 1.0e-14, "upper": 10.0, "fixed": False, "positive": True, "unit": "M s"},
+            {"key": "Rmax", "scope": "Per file", "initial": 1.12, "lower": 1.0e-5, "upper": 2.0, "fixed": False, "positive": True, "unit": "response"},
+        ]
 
         import base64
         fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
@@ -163,8 +180,8 @@ def _load_mcam_lm411_kinetics():
             st.session_state.latest_mechanistic_results = _res_lm
         st.session_state.import_notice = (
             "Loaded MCAM-Fc + Laminin-411 (tE411) Direct Binding Kinetics (3 BLI replicates, 7.81–125 nM) "
-            "with 2:1 Fit (Shared Per-Replicate Rmax) pre-configured and pre-loaded "
-            "(Steady-State K_D,eq = 45.7 ± 3.7 nM; 1:1 Fit K_D = 22.9 ± 2.2 nM; 2:1 Fit K_D,1 = 8.4 ± 1.4 nM [39%], K_D,2 = 218 ± 28 nM [61%])."
+            "with Two-contact binding with transport — rapid-capture limit (Shared Per-Replicate Rmax) pre-configured and pre-loaded "
+            "(Two-Contact Transport Limit K_D,overall = 12.17 ± 0.48 nM, K_1 = 28.95 ± 3.26 nM, Rmax = 1.119 ± 0.011 nm; Steady-State K_D,eq = 45.7 ± 3.7 nM; 1:1 K_D = 22.9 ± 2.2 nM)."
         )
     except ValueError as exc:
         st.session_state.import_error = str(exc)
@@ -209,7 +226,7 @@ def _load_mcam_lama4g123_kinetics():
         st.session_state.fit_trim_enabled = False
         st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
 
-        st.session_state.binding_model_select = MODEL_LABELS["heterogeneous"]
+        st.session_state.binding_model_select = MODEL_LABELS["contact_closure_transport_limit"]
         st.session_state.rmax_group_mode = "Per file (repeat-specific)"
         st.session_state.advanced_transport = "None"
         st.session_state.normalize_baseline = False
@@ -219,7 +236,7 @@ def _load_mcam_lama4g123_kinetics():
         st.session_state.advanced_technique = "BLI"
         st.session_state.advanced_immobilized = "Receptor"
         st.session_state.advanced_analyte = "Ligand"
-        st.session_state.advanced_valency = "Bivalent"
+        st.session_state.advanced_valency = "Monovalent"
         st.session_state.advanced_process = "Binding"
         st.session_state.advanced_invert = False
         st.session_state.advanced_nuisance = []
@@ -234,12 +251,29 @@ def _load_mcam_lama4g123_kinetics():
             st.session_state.prepared_signature,
         ))
         st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-            {"key": "kon", "scope": "Global", "initial": 1.5e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+            {"key": "kon", "scope": "Global", "initial": 1.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
             {"key": "koff", "scope": "Global", "initial": 0.0014, "lower": 1.0e-5, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "Rmax", "scope": "Per file", "initial": 0.20, "lower": 0.01, "upper": 0.35, "fixed": False, "positive": True, "unit": "response"},
+            {"key": "Rmax", "scope": "Per file", "initial": 0.18, "lower": 0.01, "upper": 0.25, "fixed": False, "positive": True, "unit": "response"},
             {"key": "kon2", "scope": "Global", "initial": 7.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
             {"key": "koff2", "scope": "Global", "initial": 0.125, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
-            {"key": "Rmax2", "scope": "Per file", "initial": 1.00, "lower": 0.50, "upper": 1.25, "fixed": False, "positive": True, "unit": "response"},
+            {"key": "Rmax2", "scope": "Per file", "initial": 1.00, "lower": 0.10, "upper": 1.10, "fixed": False, "positive": True, "unit": "response"},
+        ]
+        cctl_key_g123 = repr((
+            "contact_closure_transport_limit",
+            "None",
+            False,
+            False,
+            False,
+            (),
+            "BLI",
+            st.session_state.prepared_signature,
+        ))
+        st.session_state.setdefault("advanced_control_recipes", {})[cctl_key_g123] = [
+            {"key": "KD_first_contact_M", "scope": "Per file", "initial": 1.0e-6, "lower": 1.0e-12, "upper": 1.0e-3, "fixed": False, "positive": True, "unit": "M"},
+            {"key": "kclose", "scope": "Per file", "initial": 0.003, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "kopen", "scope": "Per file", "initial": 0.001, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
+            {"key": "transport_resistance_M_s", "scope": "Per file", "initial": 1.0e-5, "lower": 1.0e-14, "upper": 10.0, "fixed": False, "positive": True, "unit": "M s"},
+            {"key": "Rmax", "scope": "Per file", "initial": 0.80, "lower": 1.0e-5, "upper": 1.35, "fixed": False, "positive": True, "unit": "response"},
         ]
 
         import base64
@@ -253,8 +287,8 @@ def _load_mcam_lama4g123_kinetics():
             st.session_state.latest_mechanistic_results = _res_g123
         st.session_state.import_notice = (
             "Loaded MCAM-Fc + LamA4G123 (isolated α4 LG1–LG3 globular domain without βγ chains; 3 BLI replicates, 15.63–500 nM) "
-            "with 2:1 Fit (Shared Per-Replicate Rmax) pre-configured and pre-loaded "
-            "(Steady-State K_D,eq = 1.58 ± 0.74 µM; 1:1 Fit K_D = 1.40 ± 0.80 µM; 2:1 Fit Dominant Fast Component K_D,2 = 1.73 ± 0.57 µM [84%], Minor Slow Component K_D,1 = 83 ± 56 nM [16%])."
+            "with Two-contact binding with transport — rapid-capture limit (Shared Per-Replicate Rmax, conditional 1.35 nm ceiling) pre-configured and pre-loaded "
+            "(Two-Contact Transport Limit K_D,overall = 599.6 ± 170.7 nM [0.60 ± 0.17 µM], K_1 = 1.92 ± 0.90 µM; Steady-State K_D,eq = 1.58 ± 0.74 µM; 1:1 K_D = 1.40 ± 0.80 µM)."
         )
     except ValueError as exc:
         st.session_state.import_error = str(exc)
@@ -326,9 +360,9 @@ def _load_complete_mcam_study():
         st.session_state.comp_surface_coop_mode = "1-Site Langmuir surface (m = 1.0)"
         st.session_state.comp_lock_lit_kd = False
     st.session_state.import_notice = (
-        "Loaded Complete MCAM–Laminin-411, LamA4G123 (α4 LG1–LG3) & α6β1 Integrin Demonstration Study (Shared Per-Replicate Rmax): "
-        "(1) Intact Laminin-411 Trimer Kinetics (3 reps, 7.81–125 nM; Steady-State K_D,eq = 45.7 ± 3.7 nM, 1:1 K_D = 22.9 ± 2.2 nM, 2:1 K_D,1 = 8.4 ± 1.4 nM [39%] & K_D,2 = 218 ± 28 nM [61%]), "
-        "(2) Isolated LamA4G123 (α4 LG1–LG3 without βγ chains; 3 reps, 15.63–500 nM; Steady-State K_D,eq = 1.58 ± 0.74 µM, 1:1 K_D = 1.40 ± 0.80 µM, 2:1 Dominant Fast Component K_D,2 = 1.73 ± 0.57 µM [84%] & Minor Component K_D,1 = 83 ± 56 nM [16%]; switchable via 'Experiment to analyze'), and "
+        "Loaded Complete MCAM–Laminin-411, LamA4G123 (α4 LG1–LG3) & α6β1 Integrin Demonstration Study (Two-Contact Binding with Transport — Rapid-Capture Limit, Shared Per-Replicate Rmax): "
+        "(1) Intact Laminin-411 Trimer Kinetics (3 reps, 7.81–125 nM; Two-Contact Transport Limit K_D,overall = 12.17 ± 0.48 nM, K_1 = 28.95 ± 3.26 nM, Rmax = 1.119 ± 0.011 nm; Steady-State K_D,eq = 45.7 ± 3.7 nM; 1:1 K_D = 22.9 ± 2.2 nM), "
+        "(2) Isolated LamA4G123 (α4 LG1–LG3 without βγ chains; 3 reps, 15.63–500 nM; Two-Contact Transport Limit K_D,overall = 599.6 ± 170.7 nM [0.60 ± 0.17 µM], K_1 = 1.92 ± 0.90 µM at conditional 1.35 nm ceiling; Steady-State K_D,eq = 1.58 ± 0.74 µM; 1:1 K_D = 1.40 ± 0.80 µM; switchable via 'Experiment to analyze'), and "
         "(3) α6β1 Integrin Solution Inhibition (3 reps, IC50 = 11.5 ± 0.5 nM, K_D(α6β1) = 0.73 ± 0.22 nM) in '07 / Solution Competition'."
     )
 
@@ -940,7 +974,7 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.phase_adjust_enabled = False
             st.session_state.fit_trim_enabled = False
             st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-            st.session_state.binding_model_select = MODEL_LABELS["heterogeneous"]
+            st.session_state.binding_model_select = MODEL_LABELS["contact_closure_transport_limit"]
             st.session_state.rmax_group_mode = "Per file (repeat-specific)"
             st.session_state.advanced_transport = "None"
             st.session_state.normalize_baseline = False
@@ -950,7 +984,7 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.advanced_technique = "BLI"
             st.session_state.advanced_immobilized = "Receptor"
             st.session_state.advanced_analyte = "Ligand"
-            st.session_state.advanced_valency = "Bivalent"
+            st.session_state.advanced_valency = "Monovalent"
             st.session_state.advanced_process = "Binding"
             st.session_state.advanced_invert = False
             st.session_state.advanced_nuisance = []
@@ -972,6 +1006,23 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
                 {"key": "koff2", "scope": "Global", "initial": 0.041, "lower": 1.0e-5, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
                 {"key": "Rmax2", "scope": "Per file", "initial": 1.03, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "response"},
             ]
+            cctl_key_lm = repr((
+                "contact_closure_transport_limit",
+                "None",
+                False,
+                False,
+                False,
+                (),
+                "BLI",
+                st.session_state.prepared_signature,
+            ))
+            st.session_state.setdefault("advanced_control_recipes", {})[cctl_key_lm] = [
+                {"key": "KD_first_contact_M", "scope": "Per file", "initial": 3.0e-8, "lower": 1.0e-12, "upper": 1.0e-3, "fixed": False, "positive": True, "unit": "M"},
+                {"key": "kclose", "scope": "Per file", "initial": 0.004, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "kopen", "scope": "Per file", "initial": 0.003, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "transport_resistance_M_s", "scope": "Per file", "initial": 4.0e-6, "lower": 1.0e-14, "upper": 10.0, "fixed": False, "positive": True, "unit": "M s"},
+                {"key": "Rmax", "scope": "Per file", "initial": 1.12, "lower": 1.0e-5, "upper": 2.0, "fixed": False, "positive": True, "unit": "response"},
+            ]
             import base64
             fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
             fit_b64 = fit_pkl.with_suffix(".b64.txt")
@@ -984,16 +1035,16 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
         elif experiment == "MCAM-Fc + LamA4G123 (α4 LG1–LG3)":
             st.session_state.fit_windows = {
                 "phase_assoc_start_s": 100.028,
-                "phase_dissoc_start_s": 220.04102,
+                "phase_dissoc_start_s": 220.04199,
                 "fit_assoc_start_s": 100.028,
-                "fit_assoc_end_s": 220.04102,
-                "fit_dissoc_start_s": 220.04102,
+                "fit_assoc_end_s": 220.04199,
+                "fit_dissoc_start_s": 220.04199,
                 "fit_dissoc_end_s": 339.84602,
             }
             st.session_state.phase_adjust_enabled = False
             st.session_state.fit_trim_enabled = False
             st.session_state.fitted_interval_signature = (tuple(st.session_state.fit_windows.values()), False, False)
-            st.session_state.binding_model_select = MODEL_LABELS["heterogeneous"]
+            st.session_state.binding_model_select = MODEL_LABELS["contact_closure_transport_limit"]
             st.session_state.rmax_group_mode = "Per file (repeat-specific)"
             st.session_state.advanced_transport = "None"
             st.session_state.normalize_baseline = False
@@ -1003,7 +1054,7 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
             st.session_state.advanced_technique = "BLI"
             st.session_state.advanced_immobilized = "Receptor"
             st.session_state.advanced_analyte = "Ligand"
-            st.session_state.advanced_valency = "Bivalent"
+            st.session_state.advanced_valency = "Monovalent"
             st.session_state.advanced_process = "Binding"
             st.session_state.advanced_invert = False
             st.session_state.advanced_nuisance = []
@@ -1018,12 +1069,29 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
                 st.session_state.prepared_signature,
             ))
             st.session_state.setdefault("advanced_control_recipes", {})[config_key] = [
-                {"key": "kon", "scope": "Global", "initial": 1.5e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
+                {"key": "kon", "scope": "Global", "initial": 1.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
                 {"key": "koff", "scope": "Global", "initial": 0.0014, "lower": 1.0e-5, "upper": 1.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "Rmax", "scope": "Per file", "initial": 0.20, "lower": 0.01, "upper": 0.35, "fixed": False, "positive": True, "unit": "response"},
+                {"key": "Rmax", "scope": "Per file", "initial": 0.18, "lower": 0.01, "upper": 0.25, "fixed": False, "positive": True, "unit": "response"},
                 {"key": "kon2", "scope": "Global", "initial": 7.6e4, "lower": 1.0e2, "upper": 1.0e8, "fixed": False, "positive": True, "unit": "M^-1 s^-1"},
                 {"key": "koff2", "scope": "Global", "initial": 0.125, "lower": 1.0e-4, "upper": 5.0, "fixed": False, "positive": True, "unit": "s^-1"},
-                {"key": "Rmax2", "scope": "Per file", "initial": 1.00, "lower": 0.50, "upper": 1.25, "fixed": False, "positive": True, "unit": "response"},
+                {"key": "Rmax2", "scope": "Per file", "initial": 1.00, "lower": 0.10, "upper": 1.10, "fixed": False, "positive": True, "unit": "response"},
+            ]
+            cctl_key_g123 = repr((
+                "contact_closure_transport_limit",
+                "None",
+                False,
+                False,
+                False,
+                (),
+                "BLI",
+                st.session_state.prepared_signature,
+            ))
+            st.session_state.setdefault("advanced_control_recipes", {})[cctl_key_g123] = [
+                {"key": "KD_first_contact_M", "scope": "Per file", "initial": 1.0e-6, "lower": 1.0e-12, "upper": 1.0e-3, "fixed": False, "positive": True, "unit": "M"},
+                {"key": "kclose", "scope": "Per file", "initial": 0.003, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "kopen", "scope": "Per file", "initial": 0.001, "lower": 1.0e-6, "upper": 10.0, "fixed": False, "positive": True, "unit": "s^-1"},
+                {"key": "transport_resistance_M_s", "scope": "Per file", "initial": 1.0e-5, "lower": 1.0e-14, "upper": 10.0, "fixed": False, "positive": True, "unit": "M s"},
+                {"key": "Rmax", "scope": "Per file", "initial": 0.80, "lower": 1.0e-5, "upper": 1.35, "fixed": False, "positive": True, "unit": "response"},
             ]
             import base64
             fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"

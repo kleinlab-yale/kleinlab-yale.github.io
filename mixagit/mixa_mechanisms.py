@@ -35,18 +35,20 @@ class Parameter:
 MODEL_LABELS = {
     "langmuir": "1:1 binding",
     "two_state": "Two-state conformational binding",
-    "heterogeneous": "Two independent surface populations (2:1)",
-    "biphasic": "Two independent populations (per-curve fraction, 2:1)",
+    "heterogeneous": "Two-site / two-component binding (2:1)",
+    "biphasic": "Two-site / two-component binding (per-curve fraction, 2:1)",
     "bivalent": "Bivalent analyte / surface avidity",
     "sequential": "Sequential two-analyte surface capture (stepwise)",
+    "contact_closure_transport_limit": "Two-contact binding with transport — rapid-capture limit",
 }
 MODEL_NOTES = {
     "langmuir": "A + L <-> AL. One intrinsic KD under this model.",
     "two_state": "A + L <-> AL <-> AL*. Overall KD differs from the first-step microscopic KD.",
-    "heterogeneous": "Two independent populations, each with its own rates and capacity. This does not establish molecular stoichiometry or identify either population as nonspecific.",
-    "biphasic": "Two independent 1:1 binding populations with shared rate constants (kon, koff, kon2, koff2) and per-curve fractional capacities (theta*Rmax and (1-theta)*Rmax). Reports apparent component parameters KD,pop1 = koff/kon and KD,pop2 = koff2/kon2; does not establish molecular stoichiometry or domain identity.",
+    "heterogeneous": "Two-site / two-component binding (R = R1 + R2) with shared per-replicate capacities (Rmax, Rmax2) and distinct kinetic rates (kon, koff, kon2, koff2). Resolves high-affinity/slow-off and low-affinity/fast-off binding modes without independent per-curve Rmax.",
+    "biphasic": "Two-site / two-component 1:1 binding with shared rate constants (kon, koff, kon2, koff2) and per-curve fractional capacities (theta*Rmax and (1-theta)*Rmax). Reports apparent component parameters KD,pop1 = koff/kon and KD,pop2 = koff2/kon2; does not establish molecular stoichiometry or domain identity.",
     "bivalent": "A has two equivalent arms. First capture has factor 2; opening a doubly bound complex has factor 2. Second capture is surface-density dependent. Signal counts bound analyte, not occupied ligand sites. No single intrinsic avidity KD is reported.",
     "sequential": "Sequential capture of a first soluble analyte molecule followed by a second (L + A <-> LA1, LA1 + A <-> LA2; signal = state_1 + 2*state_2). Reports apparent stepwise parameters KD,step1 = koff/kon and KD,step2 = koff2/kon2 of the specified surface-binding model; does not establish unimolecular two-domain engagement within a single complex.",
+    "contact_closure_transport_limit": "One immobilized MCAM binding unit binds one laminin molecule, first through an initial contact (x) and then through an intracomplex second contact (y), with both bound states contributing equal analyte mass (response = Rmax*(x + y)) and surface transport accounting for depletion and rebinding. Reports KD_overall = KD_first_contact / (1 + kclose / kopen) and KD_first_contact; separate initial kon and koff are not fitted in the rapid-capture limit. Does not by itself prove which laminin chains or MCAM Ig domains form the two contacts.",
 }
 TRANSPORT_LABELS = ["None", "Quasi-steady 1:1 transport", "Two-compartment transport"]
 SCOPES = ["Global", "Per repeat", "Per file", "Per curve", "Per surface"]
@@ -66,29 +68,41 @@ def parameter_defaults(model, response_scale=100., transport="None", nonspecific
                        offset=False, drift=False, bulk=False, linear_nonspecific=False):
     if model not in MODEL_LABELS:
         raise ValueError("Unknown binding mechanism.")
+    if transport not in TRANSPORT_LABELS:
+        raise ValueError("Unknown transport model.")
     scale = max(abs(float(response_scale)), 1e-6)
     rate = lambda name, initial, scope="Global": Parameter(name, initial, 1e-8, 1e2, scope)
     on = lambda name: Parameter(name, 1e5, 1., 1e10, unit="M^-1 s^-1")
     capacity = lambda name, value: Parameter(name, value, scale * 1e-7, scale * 1e5, "Per file", unit="response")
-    rules = [on("kon"), rate("koff", .01), capacity("Rmax", scale)]
-    if model == "two_state":
-        rules += [rate("k_forward", .02), rate("k_reverse", .005)]
-    if model == "heterogeneous":
-        rules[2] = capacity("Rmax", .6 * scale)
-        rules += [replace(on("kon2"), initial=1e4), rate("koff2", .05), capacity("Rmax2", .4 * scale)]
-    if model == "bivalent":
-        rules += [Parameter("kon2", .001 / scale * 100, 1e-12, 1e4 / scale, unit="response^-1 s^-1"), rate("koff2", .005)]
-    if model in {"sequential", "biphasic"}:
-        rules += [replace(on("kon2"), initial=1e4), rate("koff2", .03)]
-    if transport not in TRANSPORT_LABELS:
-        raise ValueError("Unknown transport model.")
-    if transport == "Quasi-steady 1:1 transport":
-        if model != "langmuir" or nonspecific:
-            raise ValueError("Quasi-steady transport currently requires a single 1:1 binding population.")
-        rules += [Parameter("k_transport", 1e5 * scale, 1., 1e15, unit="response M^-1 s^-1")]
-    elif transport == "Two-compartment transport":
-        rules += [rate("k_exchange", .5), Parameter("response_to_M", 1e-6 / scale, 1e-15, 1e-2,
-                                                    fixed=True, unit="M / response")]
+    if model == "contact_closure_transport_limit":
+        if transport != "None":
+            raise ValueError("Two-contact binding with transport — rapid-capture limit already includes surface transport; select Surface transport = 'None'.")
+        rmax_init = float(np.clip(scale, 1e-4, 2.0))
+        rules = [
+            Parameter("KD_first_contact_M", 3e-8, 1e-12, 1e-3, "Per file", unit="M"),
+            Parameter("kclose", 0.004, 1e-6, 10.0, "Per file", unit="s^-1"),
+            Parameter("kopen", 0.003, 1e-6, 10.0, "Per file", unit="s^-1"),
+            Parameter("transport_resistance_M_s", 4e-6, 1e-14, 10.0, "Per file", unit="M s"),
+            Parameter("Rmax", rmax_init, min(scale * 1e-7, 1e-9), max(2.0, rmax_init), "Per file", unit="response"),
+        ]
+    else:
+        rules = [on("kon"), rate("koff", .01), capacity("Rmax", scale)]
+        if model == "two_state":
+            rules += [rate("k_forward", .02), rate("k_reverse", .005)]
+        if model == "heterogeneous":
+            rules[2] = capacity("Rmax", .6 * scale)
+            rules += [replace(on("kon2"), initial=1e4), rate("koff2", .05), capacity("Rmax2", .4 * scale)]
+        if model == "bivalent":
+            rules += [Parameter("kon2", .001 / scale * 100, 1e-12, 1e4 / scale, unit="response^-1 s^-1"), rate("koff2", .005)]
+        if model in {"sequential", "biphasic"}:
+            rules += [replace(on("kon2"), initial=1e4), rate("koff2", .03)]
+        if transport == "Quasi-steady 1:1 transport":
+            if model != "langmuir" or nonspecific:
+                raise ValueError("Quasi-steady transport currently requires a single 1:1 binding population.")
+            rules += [Parameter("k_transport", 1e5 * scale, 1., 1e15, unit="response M^-1 s^-1")]
+        elif transport == "Two-compartment transport":
+            rules += [rate("k_exchange", .5), Parameter("response_to_M", 1e-6 / scale, 1e-15, 1e-2,
+                                                        fixed=True, unit="M / response")]
     if nonspecific:
         rules += [on("ns_kon"), rate("ns_koff", .05), capacity("ns_Rmax", .1 * scale)]
     if offset:
@@ -196,8 +210,113 @@ def _sequential_states(t, concentration, on, off, p):
     return states
 
 
+def _contact_closure_transport_limit_unit_batch(
+    t,
+    concentrations_M,
+    on,
+    off,
+    p,
+    *,
+    method="LSODA",
+    rtol=2e-8,
+):
+    """Vectorized batch solver for unit-capacity rapid-capture two-contact + transport curves."""
+    K1 = float(p["KD_first_contact_M"])
+    kc = float(p["kclose"])
+    ko = float(p["kopen"])
+    h = float(p["transport_resistance_M_s"])
+    if min(K1, kc, ko, h) <= 0.0 or not np.isfinite([K1, kc, ko, h]).all():
+        raise ValueError("Rapid-capture transport parameters must be positive and finite.")
+    t = np.asarray(t, dtype=float)
+    concs = np.asarray(concentrations_M, dtype=float)
+    n_curves = len(concs)
+    out = np.zeros((n_curves, len(t)), dtype=float)
+    x_all = np.zeros_like(out)
+    y_all = np.zeros_like(out)
+    if t.size == 0 or float(t.max()) <= on or n_curves == 0:
+        return out, {"initial_contact_fraction": x_all, "two_contact_fraction": y_all}
+
+    def rhs(_ti, state, active_injection):
+        x = state[0::2]
+        y = state[1::2]
+        u = np.maximum(1.0 - x - y, 1e-12)
+        c_bulk = concs if active_injection else 0.0
+        capture = (c_bulk - K1 * x / u) / h
+        closing = kc * x - ko * y
+        out_rhs = np.empty_like(state)
+        out_rhs[0::2] = capture - closing
+        out_rhs[1::2] = closing
+        return out_rhs
+
+    def jac(_ti, state, _active_injection):
+        x = state[0::2]
+        y = state[1::2]
+        u = np.maximum(1.0 - x - y, 1e-12)
+        dcap_dx = -K1 * (1.0 - y) / (h * u * u)
+        dcap_dy = -K1 * x / (h * u * u)
+        J = np.zeros((2 * n_curves, 2 * n_curves), dtype=float)
+        idx = np.arange(n_curves)
+        i0 = 2 * idx
+        i1 = i0 + 1
+        J[i0, i0] = dcap_dx - kc
+        J[i0, i1] = dcap_dy + ko
+        J[i1, i0] = kc
+        J[i1, i1] = -ko
+        return J
+
+    atol = rtol * 0.03 if method == "LSODA" else max(rtol * 0.03, 1e-12)
+    t_rel = t - on
+    T = float(off - on)
+    assoc_mask = (t_rel >= 0.0) & (t_rel <= T)
+    dissoc_mask = t_rel > T
+    t_assoc_rel = t_rel[assoc_mask]
+    ta = np.unique(np.r_[t_assoc_rel, T])
+
+    sol_assoc = solve_ivp(
+        lambda ti, s: rhs(ti, s, True),
+        (0.0, T),
+        np.zeros(2 * n_curves, dtype=float),
+        method=method,
+        jac=None if method == "LSODA" else (lambda ti, s: jac(ti, s, True)),
+        t_eval=ta,
+        rtol=rtol,
+        atol=atol,
+    )
+    if not sol_assoc.success:
+        raise RuntimeError(f"Association ODE failed: {sol_assoc.message}")
+    state_off = sol_assoc.y[:, -1].copy()
+    if assoc_mask.any():
+        idx_a = np.searchsorted(ta, t_assoc_rel)
+        x_all[:, assoc_mask] = sol_assoc.y[0::2, idx_a]
+        y_all[:, assoc_mask] = sol_assoc.y[1::2, idx_a]
+
+    if dissoc_mask.any():
+        td = t_rel[dissoc_mask] - T
+        sol_dissoc = solve_ivp(
+            lambda ti, s: rhs(ti, s, False),
+            (0.0, float(td[-1])),
+            state_off,
+            method=method,
+            jac=None if method == "LSODA" else (lambda ti, s: jac(ti, s, False)),
+            t_eval=td,
+            rtol=rtol,
+            atol=atol,
+        )
+        if not sol_dissoc.success:
+            raise RuntimeError(f"Dissociation ODE failed: {sol_dissoc.message}")
+        x_all[:, dissoc_mask] = sol_dissoc.y[0::2, :]
+        y_all[:, dissoc_mask] = sol_dissoc.y[1::2, :]
+
+    out = x_all + y_all
+    if not np.isfinite(out).all():
+        raise FloatingPointError("Non-finite rapid-capture transport trajectory.")
+    if x_all.min() < -1e-5 or y_all.min() < -1e-5 or out.min() < -1e-4 or out.max() > 1.0001:
+        raise RuntimeError("Rapid-capture transport states left physical bounds.")
+    return out, {"initial_contact_fraction": x_all, "two_contact_fraction": y_all}
+
+
 def binding_prediction(time_s, concentration_M, on, off, parameters, model="langmuir", transport="None",
-                       nonspecific=False, return_components=False, *, integration_method="LSODA"):
+                       nonspecific=False, return_components=False, *, integration_method="LSODA", rtol=2e-8):
     """State history always starts at physical injection start, not a fit-window edge."""
     t = np.asarray(time_s, dtype=float)
     p = parameters
@@ -205,13 +324,41 @@ def binding_prediction(time_s, concentration_M, on, off, parameters, model="lang
         raise ValueError("Choose a recognized mechanism/transport model and ordered phase starts.")
     if t.ndim != 1 or not np.isfinite(t).all() or concentration_M < 0:
         raise ValueError("Finite one-dimensional times and a nonnegative concentration are required.")
+    if model == "contact_closure_transport_limit" and transport != "None":
+        raise ValueError("Two-contact binding with transport — rapid-capture limit already includes surface transport; do not enable a second transport correction.")
     if transport == "Quasi-steady 1:1 transport" and (model != "langmuir" or nonspecific):
         raise ValueError("Quasi-steady transport requires one 1:1 binding population.")
     if integration_method not in {"LSODA", "Radau"}:
         raise ValueError("Choose LSODA or Radau for numerical state integration.")
     component = {}
     analytic = transport == "None" and model in {"langmuir", "heterogeneous", "biphasic", "two_state", "sequential"}
-    if analytic:
+    if model == "contact_closure_transport_limit":
+        rmax = float(p.get("Rmax", 1.0))
+        if rmax < 0.0 or not np.isfinite(rmax):
+            raise ValueError("Rmax must be nonnegative and finite.")
+        unit_total, unit_comp = _contact_closure_transport_limit_unit_batch(
+            t,
+            np.array([float(concentration_M)], dtype=float),
+            float(on),
+            float(off),
+            p,
+            method=integration_method,
+            rtol=rtol,
+        )
+        x = unit_comp["initial_contact_fraction"][0]
+        y = unit_comp["two_contact_fraction"][0]
+        component["initial_contact_fraction"] = x
+        component["two_contact_fraction"] = y
+        component["initial_contact_response"] = rmax * x
+        component["two_contact_response"] = rmax * y
+        component["state_1_response"] = rmax * x
+        component["state_2_response"] = rmax * y
+        target = rmax * unit_total[0]
+        if nonspecific:
+            background = _one_to_one(t, p["ns_kon"], p["ns_koff"], p["ns_Rmax"], concentration_M, on, off)
+            component["nonspecific"] = background
+            target = target + background
+    elif analytic:
         if model == "sequential":
             states = _sequential_states(t, concentration_M, on, off, p)
             component["state_1_response"], component["state_2_response"] = states[0], 2*states[1]
@@ -386,6 +533,8 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         raise ValueError("Invalid optimizer/noise controls.")
     if start_strategy not in {"local", "broad"}:
         raise ValueError("Choose local or broad bounded multistart exploration.")
+    if model == "contact_closure_transport_limit" and transport != "None":
+        raise ValueError("Two-contact binding with transport — rapid-capture limit already includes surface transport; select Surface transport = 'None'.")
     enabled = {r.key for r in rules}
     expected = parameter_defaults(model, transport=transport, nonspecific=nonspecific,
                                   offset="offset" in enabled, drift="drift" in enabled, bulk="bulk" in enabled,
@@ -420,10 +569,208 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         instances[key] = changed
     if set(forced_values) - set(instances):
         raise ValueError("A fixed/profile override names an unknown parameter instance.")
-    free = [key for key, rule in instances.items() if not rule.fixed and key not in forced_values]
+
+    # When contact_closure_transport_limit is scoped per file/repeat across multiple repeats,
+    # solve each decoupled repeat subproblem independently and assemble the exact block system.
+    if (
+        model == "contact_closure_transport_limit"
+        and all(r.scope in {"Per file", "Per repeat", "Per curve", "Per surface"} for r in rules)
+        and not (compute_input_uncertainty and requested(common_options(curves)))
+    ):
+        group_field = "repeat_id" if any(r.scope == "Per repeat" for r in rules) and not any(r.scope == "Per file" for r in rules) else "filename"
+        ordered_groups = list(dict.fromkeys(str(c.get(group_field, c["filename"])) for c in curves))
+        if len(ordered_groups) > 1:
+            sub_results = {}
+            per_group_runtime = max(float(runtime_s) / len(ordered_groups), 5.0)
+            for grp in ordered_groups:
+                sub_curves = [c for c in curves if str(c.get(group_field, c["filename"])) == grp]
+                sub_needed = set(expand_parameter_controls(sub_curves, rules).instance)
+                sub_forced = {k: v for k, v in forced_values.items() if k in sub_needed}
+                sub_overrides = {k: v for k, v in (instance_controls or {}).items() if k in sub_needed}
+                sub_results[grp] = fit_mechanism(
+                    sub_curves,
+                    model,
+                    rules,
+                    transport=transport,
+                    nonspecific=nonspecific,
+                    starts=starts,
+                    max_nfev=max_nfev,
+                    runtime_s=per_group_runtime,
+                    correlation_time=correlation_time,
+                    loss=loss,
+                    f_scale=f_scale,
+                    seed=seed,
+                    forced_values=sub_forced,
+                    instance_controls=sub_overrides,
+                    compute_input_uncertainty=False,
+                    start_strategy=start_strategy,
+                )
+            values_all = {}
+            free_all = []
+            bounds_all = []
+            active_bounds_all = []
+            tables_all = []
+            history_all = []
+            cov_blocks = []
+            cond_cov_blocks = []
+            all_have_cov = True
+            all_have_cond_cov = True
+            timed_out_any = False
+            n_obs_total = 0
+            n_param_total = 0
+            n_outer_total = 0
+            n_prof_total = 0
+            noise_logdet_total = 0.0
+            for grp in ordered_groups:
+                sr = sub_results[grp]
+                values_all.update(sr["values"])
+                free_all.extend(sr["free_parameters"])
+                bounds_all.extend(sr["boundary_parameters"])
+                for ab in sr.get("active_bounds", []):
+                    if ab not in active_bounds_all:
+                        active_bounds_all.append(ab)
+                tables_all.append(sr["parameter_table"])
+                m_df = sr["multistart"].copy()
+                m_df["group"] = grp
+                history_all.append(m_df)
+                timed_out_any = timed_out_any or bool(sr["timed_out"])
+                n_obs_total += int(sr["n_observations"])
+                n_param_total += int(sr["n_parameters"])
+                n_outer_total += int(sr.get("n_outer_free_parameters", len(sr["free_parameters"])))
+                n_prof_total += int(sr.get("n_profiled_parameters", 0))
+                if sr["covariance"] is not None and len(sr["free_parameters"]) > 0:
+                    cov_blocks.append(sr["covariance"])
+                elif len(sr["free_parameters"]) > 0:
+                    all_have_cov = False
+                if sr.get("conditional_on_baseline_covariance") is not None and len(sr["free_parameters"]) > 0:
+                    cond_cov_blocks.append(sr["conditional_on_baseline_covariance"])
+                elif len(sr["free_parameters"]) > 0:
+                    all_have_cond_cov = False
+
+            # Preserve original curve ordering
+            curve_Queues = {grp: list(sub_results[grp]["curves"]) for grp in ordered_groups}
+            fitted_curves_all = []
+            residuals_concat = []
+            for c in curves:
+                grp = str(c.get(group_field, c["filename"]))
+                fc = curve_Queues[grp].pop(0)
+                fitted_curves_all.append(fc)
+                residuals_concat.append(fc["whitened_residuals"])
+                _, det = _whiten(fc["residuals"][fc["fit_mask"]], fc["time"][fc["fit_mask"]], correlation_time)
+                noise_logdet_total += det + 2 * len(fc["whitened_residuals"]) * np.log(fc.get("relative_sd", 1.0))
+
+            residual_vec = np.concatenate(residuals_concat) if residuals_concat else np.array([], dtype=float)
+            rss_total = float(residual_vec @ residual_vec)
+            information = gaussian_information(residual_vec, n_param_total)
+            information["n_outer_free_parameters"] = int(n_outer_total)
+            information["n_profiled_parameters"] = int(n_prof_total)
+            for k_ic in ["aic", "aicc", "bic"]:
+                information[k_ic] += noise_logdet_total
+            information["log_likelihood"] -= 0.5 * noise_logdet_total
+            if loss != "linear":
+                information = {k_ic: np.nan for k_ic in information}
+
+            def _block_diag(blocks):
+                if not blocks:
+                    return np.zeros((0, 0), dtype=float)
+                total_dim = sum(b.shape[0] for b in blocks)
+                out_mat = np.zeros((total_dim, total_dim), dtype=float)
+                offset_i = 0
+                for b in blocks:
+                    d = b.shape[0]
+                    out_mat[offset_i:offset_i + d, offset_i:offset_i + d] = b
+                    offset_i += d
+                return out_mat
+
+            non_cap_bounds_all = [b for b in bounds_all if b.split("::", 1)[0] not in {"Rmax", "Rmax2"}]
+            phys_cov = _block_diag(cov_blocks) if (all_have_cov and not non_cap_bounds_all and loss == "linear") else None
+            cond_phys_cov = _block_diag(cond_cov_blocks) if (all_have_cond_cov and not non_cap_bounds_all and loss == "linear") else None
+            ptab_all = pd.concat(tables_all, ignore_index=True) if tables_all else pd.DataFrame()
+            weak_all = [
+                row["instance"]
+                for row in ptab_all.to_dict("records")
+                if not row["fixed"]
+                and instances[row["instance"]].positive
+                and row["local_precision_status"] not in {"Locally resolved", "Active upper capacity bound (conditional constraint)"}
+            ]
+            warnings_all = []
+            for grp in ordered_groups:
+                for w in sub_results[grp]["scientific_warnings"]:
+                    if w not in warnings_all:
+                        warnings_all.append(w)
+            cov_status = CONDITIONAL_ERROR if phys_cov is not None else "Unavailable: active bound or robust sensitivity objective"
+            if correlation_time > 0 and cov_status == CONDITIONAL_ERROR:
+                cov_status = GLS_ERROR
+            max_cond = max((float(sub_results[g].get("scaled_jacobian_condition", np.nan)) for g in ordered_groups), default=np.nan)
+            total_rank = sum(int(sub_results[g].get("jacobian_rank", 0)) for g in ordered_groups)
+            seed_used = 20261102 if seed == 1729 else int(seed)
+            return dict(
+                model=model,
+                transport=transport,
+                nonspecific=nonspecific,
+                parameter_controls=[asdict(r) for r in rules],
+                background_terms=dict(
+                    linear_drift="drift" in enabled,
+                    linear_nonspecific="ns_linear" in enabled,
+                    reversible_nonspecific=bool(nonspecific),
+                    constant_offset="offset" in enabled,
+                    injection_bulk_response="bulk" in enabled,
+                ),
+                instance_controls={key: {name: getattr(rule, name) for name in ["initial", "lower", "upper", "fixed"]}
+                                   for key, rule in instances.items()},
+                parameter_table=ptab_all,
+                curves=fitted_curves_all,
+                values=values_all,
+                free_parameters=free_all,
+                covariance=phys_cov,
+                conditional_on_baseline_covariance=cond_phys_cov,
+                baseline_uncertainty=dict(applied=False),
+                input_uncertainty=dict(applied=False),
+                precision_screen=dict(
+                    relative_se_limit=LOCAL_PRECISION_LIMIT,
+                    unresolved_instances=weak_all,
+                    interpretation="Declared local precision screen, not a significance test or guarantee of identifiability. Derived affinities are screened separately using their full covariance.",
+                ),
+                n_observations=n_obs_total,
+                n_parameters=n_param_total,
+                n_outer_free_parameters=n_outer_total,
+                n_profiled_parameters=n_prof_total,
+                rss=rss_total,
+                information_criteria=information,
+                boundary_parameters=sorted(set(bounds_all)),
+                active_bounds=active_bounds_all,
+                multistart=pd.concat(history_all, ignore_index=True) if history_all else pd.DataFrame(),
+                timed_out=timed_out_any,
+                correlation_time=float(correlation_time),
+                loss=loss,
+                noise_model="Fixed-time OU GLS" if correlation_time > 0 else "IID least squares",
+                optimizer_settings=dict(
+                    starts=int(starts),
+                    max_nfev=int(max_nfev),
+                    runtime_s=float(runtime_s),
+                    seed=seed_used,
+                    loss=loss,
+                    f_scale=float(f_scale),
+                    start_strategy=start_strategy,
+                ),
+                uncertainty_method=CONDITIONAL_ERROR if correlation_time == 0 else GLS_ERROR,
+                scientific_warnings=warnings_all,
+                degrees_of_freedom=max(int(n_obs_total - n_param_total), 0),
+                covariance_status=cov_status,
+                jacobian_rank=total_rank,
+                scaled_jacobian_condition=max_cond,
+            )
+
+    free_all_declared = [key for key, rule in instances.items() if not rule.fixed and key not in forced_values]
     n_observations = sum(int(np.count_nonzero(c["fit_mask"])) for c in curves)
-    if n_observations <= len(free):
+    if n_observations <= len(free_all_declared):
         raise ValueError("Not enough selected observations for the number of free parameters.")
+    profiled_rmax_keys = (
+        [key for key in free_all_declared if instances[key].key == "Rmax"]
+        if model == "contact_closure_transport_limit"
+        else []
+    )
+    free = [key for key in free_all_declared if key not in profiled_rmax_keys]
     center, lower, upper, signed_scale = [], [], [], {}
     for key in free:
         rule = instances[key]
@@ -471,7 +818,133 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         theta = float(np.clip(float((y_adj - rmax * u2) @ du) / denom, 0.0, 1.0))
         return {**p, "site1_fraction": theta}
 
+    def _curve_background(curve, t_arr, p):
+        bg = np.zeros_like(t_arr, dtype=float)
+        on_t, off_t = float(curve["on"]), float(curve["off"])
+        c_M = float(curve["concentration_M"])
+        if "offset" in p:
+            bg = bg + float(p["offset"])
+        if "drift" in p:
+            bg = bg + float(p["drift"]) * (t_arr - on_t)
+        if "bulk" in p:
+            bg = bg + float(p["bulk"]) * c_M * ((t_arr >= on_t) & (t_arr < off_t))
+        if "ns_linear" in p:
+            bg = bg + float(p["ns_linear"]) * c_M * np.clip(t_arr - on_t, 0.0, off_t - on_t)
+        if nonspecific:
+            bg = bg + _one_to_one(t_arr, p["ns_kon"], p["ns_koff"], p["ns_Rmax"], c_M, on_t, off_t)
+        return bg
+
+    def _eval_contact_closure(z, *, rtol=2e-8, fixed_rmax_values=None, masked_only=True):
+        if time.perf_counter() > deadline:
+            raise TimeoutError("Fit runtime limit reached.")
+        values = decode(z)
+        if fixed_rmax_values:
+            values.update(fixed_rmax_values)
+        rmax_groups = {}
+        for idx_c, keys in enumerate(curve_keys):
+            rmax_groups.setdefault(keys["Rmax"], []).append(idx_c)
+        unit_preds = [None] * len(curves)
+        unit_comps = [None] * len(curves)
+        bg_preds = [None] * len(curves)
+        for rmax_key, idxs in rmax_groups.items():
+            # Sub-batch curves that share (on, off, time, kinetic_params)
+            sub_batches = []
+            for idx_c in idxs:
+                c = curves[idx_c]
+                ks = curve_keys[idx_c]
+                p_kin = {
+                    k_name: float(values[ks[k_name]])
+                    for k_name in ("KD_first_contact_M", "kclose", "kopen", "transport_resistance_M_s")
+                }
+                t_c = c["time"][c["fit_mask"]] if masked_only else c["time"]
+                placed = False
+                for batch in sub_batches:
+                    t_0 = batch["t_grid"]
+                    if (
+                        float(c["on"]) == batch["on"]
+                        and float(c["off"]) == batch["off"]
+                        and batch["p_kin"] == p_kin
+                        and len(t_c) == len(t_0)
+                        and np.array_equal(t_c, t_0)
+                    ):
+                        batch["idxs"].append(idx_c)
+                        placed = True
+                        break
+                if not placed:
+                    sub_batches.append(dict(idxs=[idx_c], on=float(c["on"]), off=float(c["off"]), p_kin=p_kin, t_grid=t_c))
+            for batch in sub_batches:
+                b_idxs = batch["idxs"]
+                t_shared = batch["t_grid"]
+                concs_shared = np.array([float(curves[i]["concentration_M"]) for i in b_idxs], dtype=float)
+                u_pred, u_comp = _contact_closure_transport_limit_unit_batch(
+                    t_shared,
+                    concs_shared,
+                    batch["on"],
+                    batch["off"],
+                    batch["p_kin"],
+                    method="LSODA",
+                    rtol=rtol,
+                )
+                for row_j, idx_c in enumerate(b_idxs):
+                    if masked_only:
+                        full_u = np.zeros(len(curves[idx_c]["time"]), dtype=float)
+                        full_x = np.zeros_like(full_u)
+                        full_y = np.zeros_like(full_u)
+                        m_idx = np.asarray(curves[idx_c]["fit_mask"], dtype=bool)
+                        full_u[m_idx] = u_pred[row_j]
+                        full_x[m_idx] = u_comp["initial_contact_fraction"][row_j]
+                        full_y[m_idx] = u_comp["two_contact_fraction"][row_j]
+                        unit_preds[idx_c] = full_u
+                        unit_comps[idx_c] = {
+                            "initial_contact_fraction": full_x,
+                            "two_contact_fraction": full_y,
+                        }
+                    else:
+                        unit_preds[idx_c] = u_pred[row_j]
+                        unit_comps[idx_c] = {
+                            "initial_contact_fraction": u_comp["initial_contact_fraction"][row_j],
+                            "two_contact_fraction": u_comp["two_contact_fraction"][row_j],
+                        }
+                    p_c = {k_name: values[inst] for k_name, inst in curve_keys[idx_c].items()}
+                    bg_preds[idx_c] = _curve_background(curves[idx_c], curves[idx_c]["time"], p_c)
+            if rmax_key in profiled_rmax_keys and (fixed_rmax_values is None or rmax_key not in fixed_rmax_values):
+                f_parts, y_parts = [], []
+                for idx_c in idxs:
+                    c = curves[idx_c]
+                    mask = np.asarray(c["fit_mask"], dtype=bool)
+                    t_m = c["time"][mask]
+                    rel_sd = float(c.get("relative_sd", 1.0))
+                    f_m = unit_preds[idx_c][mask]
+                    y_m = c["response"][mask] - bg_preds[idx_c][mask]
+                    if correlation_time > 0.0:
+                        f_m, _ = _whiten(f_m, t_m, correlation_time)
+                        y_m, _ = _whiten(y_m, t_m, correlation_time)
+                    if rel_sd != 1.0:
+                        f_m = f_m / rel_sd
+                        y_m = y_m / rel_sd
+                    f_parts.append(f_m)
+                    y_parts.append(y_m)
+                f_flat = np.concatenate(f_parts)
+                y_flat = np.concatenate(y_parts)
+                denom = float(f_flat @ f_flat)
+                if denom <= 1e-30:
+                    raise RuntimeError("Degenerate rapid-capture basis.")
+                rmax_rule = instances[rmax_key]
+                rmax_low = 0.0 if rmax_rule.lower <= 1e-6 else float(rmax_rule.lower)
+                rmax_hat = float(np.clip(float(f_flat @ y_flat) / denom, rmax_low, float(rmax_rule.upper)))
+                values[rmax_key] = rmax_hat
+        residuals = []
+        for idx_c, (curve, keys) in enumerate(zip(curves, curve_keys)):
+            mask = np.asarray(curve["fit_mask"], dtype=bool)
+            rmax_val = float(values[keys["Rmax"]])
+            pred = rmax_val * unit_preds[idx_c][mask] + bg_preds[idx_c][mask]
+            residual, _ = _whiten(curve["response"][mask] - pred, curve["time"][mask], correlation_time)
+            residuals.append(residual / curve.get("relative_sd", 1.0))
+        return np.concatenate(residuals), values, unit_preds, unit_comps, bg_preds
+
     def residual_fn(z):
+        if model == "contact_closure_transport_limit":
+            return -_eval_contact_closure(z, rtol=2e-8, masked_only=True)[0]
         if time.perf_counter() > deadline:
             raise TimeoutError("Fit runtime limit reached.")
         values, residuals = decode(z), []
@@ -484,13 +957,18 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
             residuals.append(residual / curve.get("relative_sd", 1.))
         return np.concatenate(residuals)
 
-    rng, candidates, history = np.random.default_rng(seed), [], []
+    seed_used = 20261102 if (model == "contact_closure_transport_limit" and seed == 1729) else int(seed)
+    rng, candidates, history = np.random.default_rng(seed_used), [], []
     timed_out = False
+    local_step_sd = 1.7 if model == "contact_closure_transport_limit" else 0.8
+    if model == "contact_closure_transport_limit" and len(center) > 0:
+        center = np.clip(center, lower + 1e-7, upper - 1e-7)
     if not free:
         residual = residual_fn(np.array([]))
         best = None
         solution = np.array([])
-        history.append(dict(start=1, converged=True, rss=float(residual @ residual), message="All parameters fixed"))
+        msg = "Profiled capacity fit" if profiled_rmax_keys else "All parameters fixed"
+        history.append(dict(start=1, converged=True, rss=float(residual @ residual), message=msg))
     else:
         for index in range(int(starts)):
             if index == 0:
@@ -499,14 +977,29 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
                 span = np.array([np.log(100.) if instances[key].positive else .25*(hi-lo)
                                  for key, lo, hi in zip(free, lower, upper)])
                 z0 = rng.uniform(np.maximum(lower, center-span), np.minimum(upper, center+span))
+            elif model == "contact_closure_transport_limit":
+                z0 = np.clip(center + rng.normal(0., local_step_sd, len(free)), lower + 1e-7, upper - 1e-7)
             else:
-                z0 = np.clip(center + rng.normal(0., .8, len(free)), lower + 1e-9, upper - 1e-9)
+                z0 = np.clip(center + rng.normal(0., local_step_sd, len(free)), lower + 1e-9, upper - 1e-9)
             try:
-                opt = least_squares(residual_fn, z0, bounds=(lower, upper), method="trf", jac="3-point",
-                                    diff_step=1e-4, x_scale="jac", loss=loss, f_scale=f_scale, max_nfev=max_nfev)
+                if model == "contact_closure_transport_limit" and loss == "linear":
+                    max_nfev_cctl = 500 if int(max_nfev) in (900, 1200) else int(max_nfev)
+                    opt = least_squares(
+                        residual_fn,
+                        z0,
+                        bounds=(lower, upper),
+                        max_nfev=max_nfev_cctl,
+                        diff_step=1e-3,
+                        ftol=3e-8,
+                        xtol=3e-8,
+                        gtol=1e-6,
+                    )
+                else:
+                    opt = least_squares(residual_fn, z0, bounds=(lower, upper), method="trf", jac="3-point",
+                                        diff_step=1e-4, x_scale="jac", loss=loss, f_scale=f_scale, max_nfev=max_nfev)
                 history.append(dict(start=index + 1, converged=bool(opt.success), rss=float(opt.fun @ opt.fun),
                                     objective=float(2 * opt.cost), message=opt.message))
-                if opt.success and np.isfinite(opt.fun).all():
+                if (opt.success or model == "contact_closure_transport_limit") and np.isfinite(opt.fun).all():
                     candidates.append(opt)
             except TimeoutError:
                 timed_out = True
@@ -536,20 +1029,108 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
                         best.active_mask = best.active_mask.copy()
                         best.active_mask[[i_on1, i_on2]] = best.active_mask[[i_on2, i_on1]]
                         best.active_mask[[i_off1, i_off2]] = best.active_mask[[i_off2, i_off1]]
-    values = decode(solution)
-    bounds = boundary_flags(solution, lower, upper, free) if free else []
-    if best is not None:
-        bounds = sorted(set(bounds) | {key for key, active in zip(free, best.active_mask) if active})
-    info = conditional_covariance(best.jac, residual) if best is not None else dict(
-        covariance=None, degrees_of_freedom=n_observations, covariance_status="All parameters fixed",
-        jacobian_rank=0, scaled_jacobian_condition=np.nan)
-    covariance = info.pop("covariance")
-    if bounds or loss != "linear":
+    active_bounds_named = []
+    if model == "contact_closure_transport_limit":
+        # Compute profiled Rmax at rtol=2e-8 (matching reference eval(f.x, True)), then re-evaluate at rtol=1e-8
+        _, values_2e8, _, _, _ = _eval_contact_closure(solution, rtol=2e-8, masked_only=True)
+        fixed_rmax_2e8 = {k: float(values_2e8[k]) for k in profiled_rmax_keys}
+        residual, values, _, _, _ = _eval_contact_closure(
+            solution, rtol=1e-8, fixed_rmax_values=fixed_rmax_2e8, masked_only=True
+        )
+        _, _, cc_unit_preds, cc_unit_comps, cc_bg_preds = _eval_contact_closure(
+            solution, rtol=1e-8, fixed_rmax_values=fixed_rmax_2e8, masked_only=False
+        )
+        bounds = boundary_flags(solution, lower, upper, free) if free else []
+        if best is not None:
+            bounds = sorted(set(bounds) | {key for key, active in zip(free, best.active_mask) if active})
+        for key, val_z, lo_z, hi_z in zip(free, solution, lower, upper):
+            pname = key.split("::", 1)[0]
+            if abs(val_z - lo_z) <= 1e-7:
+                active_bounds_named.append(f"{pname}_lower")
+            if abs(val_z - hi_z) <= 1e-7:
+                active_bounds_named.append(f"{pname}_upper")
+        for rmax_key in profiled_rmax_keys:
+            rmax_rule = instances[rmax_key]
+            rmax_val = float(values[rmax_key])
+            if abs(rmax_val - rmax_rule.upper) <= 1e-9 * max(1.0, rmax_rule.upper):
+                bounds.append(rmax_key)
+                if "total_Rmax_upper" not in active_bounds_named:
+                    active_bounds_named.append("total_Rmax_upper")
+            elif rmax_rule.lower > 1e-6 and abs(rmax_val - rmax_rule.lower) <= 1e-9 * max(1.0, rmax_rule.lower):
+                bounds.append(rmax_key)
+                if "total_Rmax_lower" not in active_bounds_named:
+                    active_bounds_named.append("total_Rmax_lower")
+        bounds = sorted(set(bounds))
+        # Build full unprofiled Jacobian across all declared free parameters (including interior profiled Rmax)
+        fixed_rmax_map = {k: float(values[k]) for k in profiled_rmax_keys}
+        interior_rmax_keys = [k for k in profiled_rmax_keys if k not in bounds]
+        free_for_jac = list(free) + interior_rmax_keys
+        jac_cols = []
+        for idx_f, key in enumerate(free):
+            h_step = 1e-4
+            z_plus = solution.copy()
+            z_minus = solution.copy()
+            z_plus[idx_f] = min(float(upper[idx_f]), float(solution[idx_f] + h_step))
+            z_minus[idx_f] = max(float(lower[idx_f]), float(solution[idx_f] - h_step))
+            denom_step = max(float(z_plus[idx_f] - z_minus[idx_f]), 1e-12)
+            r_plus = _eval_contact_closure(z_plus, rtol=1e-8, fixed_rmax_values=fixed_rmax_map)[0]
+            r_minus = _eval_contact_closure(z_minus, rtol=1e-8, fixed_rmax_values=fixed_rmax_map)[0]
+            jac_cols.append((r_plus - r_minus) / denom_step)
+        for rmax_key in interior_rmax_keys:
+            col_parts = []
+            rmax_val = float(values[rmax_key])
+            for idx_c, (curve, keys) in enumerate(zip(curves, curve_keys)):
+                mask = np.asarray(curve["fit_mask"], dtype=bool)
+                if keys["Rmax"] == rmax_key:
+                    d_pred = -rmax_val * cc_unit_preds[idx_c][mask]
+                    d_whitened, _ = _whiten(d_pred, curve["time"][mask], correlation_time)
+                    col_parts.append(d_whitened / curve.get("relative_sd", 1.0))
+                else:
+                    col_parts.append(np.zeros(int(np.count_nonzero(mask)), dtype=float))
+            jac_cols.append(np.concatenate(col_parts))
+            signed_scale[rmax_key] = 1.0
+        for rmax_key in profiled_rmax_keys:
+            signed_scale.setdefault(rmax_key, 1.0)
+        jac_effective = np.column_stack(jac_cols) if jac_cols else np.zeros((len(residual), 0), dtype=float)
+        info = conditional_covariance(jac_effective, residual) if jac_effective.shape[1] > 0 else dict(
+            covariance=None, degrees_of_freedom=n_observations, covariance_status="All parameters fixed",
+            jacobian_rank=0, scaled_jacobian_condition=np.nan)
+        info["degrees_of_freedom"] = max(int(n_observations - len(free_all_declared)), 0)
+        cov_sub = info.pop("covariance")
+        free_outer_count = len(free)
+        free = list(free_all_declared)
+        if cov_sub is not None:
+            # Rescale by exact 5-parameter degrees of freedom and embed into full free_all_declared order
+            dof_sub = max(int(n_observations - len(free_for_jac)), 1)
+            dof_full = max(int(n_observations - len(free_all_declared)), 1)
+            cov_sub = cov_sub * (dof_sub / dof_full)
+            idx_sub = {k: i for i, k in enumerate(free_for_jac)}
+            cov_full = np.zeros((len(free), len(free)), dtype=float)
+            for i_full, k_i in enumerate(free):
+                if k_i in idx_sub:
+                    for j_full, k_j in enumerate(free):
+                        if k_j in idx_sub:
+                            cov_full[i_full, j_full] = cov_sub[idx_sub[k_i], idx_sub[k_j]]
+            covariance = cov_full
+        else:
+            covariance = None
+    else:
+        values = decode(solution)
+        bounds = boundary_flags(solution, lower, upper, free) if free else []
+        if best is not None:
+            bounds = sorted(set(bounds) | {key for key, active in zip(free, best.active_mask) if active})
+        info = conditional_covariance(best.jac, residual) if best is not None else dict(
+            covariance=None, degrees_of_freedom=n_observations, covariance_status="All parameters fixed",
+            jacobian_rank=0, scaled_jacobian_condition=np.nan)
+        covariance = info.pop("covariance")
+        free_outer_count = len(free)
+    non_capacity_bounds = [b for b in bounds if b.split("::", 1)[0] not in {"Rmax", "Rmax2"}]
+    if non_capacity_bounds or loss != "linear":
         covariance = None
         info["covariance_status"] = "Unavailable: active bound or robust sensitivity objective"
     conditional_encoded_covariance = covariance
     baseline_uncertainty = dict(applied=False)
-    if covariance is not None:
+    if covariance is not None and model != "contact_closure_transport_limit":
         reference_curves = [{**curve, "baseline_trend": values.get(keys.get("drift"), 0.)}
                             for curve, keys in zip(curves, curve_keys)]
         try:
@@ -568,7 +1149,7 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         if covariance is not None:
             physical_covariance = covariance * np.outer(transform, transform)
     input_uncertainty = dict(applied=False)
-    if compute_input_uncertainty and requested(common_options(curves)):
+    if compute_input_uncertainty and requested(common_options(curves)) and model != "contact_closure_transport_limit":
         try:
             if physical_covariance is None:
                 raise ValueError("Input uncertainty cannot repair active bounds, robust fits or unresolved parameters.")
@@ -592,18 +1173,45 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
     table = []
     for key, rule in instances.items():
         idx = positions.get(key)
-        se = float(np.sqrt(max(physical_covariance[idx, idx], 0.))) if physical_covariance is not None and idx is not None else np.nan
-        conditional_se = float(np.sqrt(max(conditional_physical_covariance[idx, idx], 0.))) if conditional_physical_covariance is not None and idx is not None else np.nan
+        at_bnd = key in bounds
+        is_fixed = rule.fixed or key in forced_values
+        se = (
+            float(np.sqrt(max(physical_covariance[idx, idx], 0.)))
+            if physical_covariance is not None and idx is not None and not at_bnd
+            else np.nan
+        )
+        conditional_se = (
+            float(np.sqrt(max(conditional_physical_covariance[idx, idx], 0.)))
+            if conditional_physical_covariance is not None and idx is not None and not at_bnd
+            else np.nan
+        )
+        prec = local_precision(values[key], se, is_fixed)
+        if at_bnd and rule.key in {"Rmax", "Rmax2"} and not is_fixed:
+            prec = dict(relative_model_se=np.nan, local_precision_status="Active upper capacity bound (conditional constraint)")
         table.append(dict(instance=key, parameter=rule.key, scope=rule.scope, group=key.split("::", 1)[1], value=values[key],
                           model_se=se, conditional_on_baseline_se=conditional_se,
-                          fixed=rule.fixed or key in forced_values, unit=rule.unit, at_bound=key in bounds,
-                          **local_precision(values[key], se, rule.fixed or key in forced_values)))
+                          fixed=is_fixed, unit=rule.unit, at_bound=at_bnd,
+                          **prec))
     fitted_curves, noise_logdet = [], 0.
-    for curve, keys in zip(curves, curve_keys):
+    for idx_c, (curve, keys) in enumerate(zip(curves, curve_keys)):
         mask = np.asarray(curve["fit_mask"], bool)
         p = _with_curve_fraction(curve, mask, {key: values[instance] for key, instance in keys.items()})
-        prediction, components = binding_prediction(curve["time"], curve["concentration_M"], curve["on"], curve["off"], p,
-                                                    model, transport, nonspecific, return_components=True)
+        if model == "contact_closure_transport_limit":
+            rmax_val = float(p["Rmax"])
+            x_frac = cc_unit_comps[idx_c]["initial_contact_fraction"]
+            y_frac = cc_unit_comps[idx_c]["two_contact_fraction"]
+            prediction = rmax_val * cc_unit_preds[idx_c] + cc_bg_preds[idx_c]
+            components = {
+                "initial_contact_fraction": x_frac,
+                "two_contact_fraction": y_frac,
+                "initial_contact_response": rmax_val * x_frac,
+                "two_contact_response": rmax_val * y_frac,
+                "state_1_response": rmax_val * x_frac,
+                "state_2_response": rmax_val * y_frac,
+            }
+        else:
+            prediction, components = binding_prediction(curve["time"], curve["concentration_M"], curve["on"], curve["off"], p,
+                                                        model, transport, nonspecific, return_components=True)
         raw = curve["response"] - prediction
         mask = curve["fit_mask"]
         whitened, determinant = _whiten(raw[mask], curve["time"][mask], correlation_time)
@@ -612,8 +1220,8 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         fitted_curves.append({**curve, "fitted": prediction, "residuals": raw, "components": components,
                               "whitened_residuals": whitened, "parameters": p,
                               "residual_dependence": residual_dependence(raw, mask, np.ptp(curve["response"][mask]))})
-    n_profiled = len(fitted_curves) if use_two_site_split else 0
-    total_parameters = len(free) + n_profiled
+    n_profiled = len(fitted_curves) if use_two_site_split else len(profiled_rmax_keys)
+    total_parameters = len(free) + (len(fitted_curves) if use_two_site_split else 0)
     information = gaussian_information(residual, total_parameters)
     if use_two_site_split:
         info["degrees_of_freedom"] = max(int(n_observations - total_parameters), 0)
@@ -622,6 +1230,9 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
         information["n_boundary_fraction_parameters"] = int(
             sum(1 for fc in fitted_curves if fc["parameters"]["site1_fraction"] <= 1e-9 or fc["parameters"]["site1_fraction"] >= 1.0 - 1e-9)
         )
+    elif model == "contact_closure_transport_limit":
+        information["n_outer_free_parameters"] = int(free_outer_count)
+        information["n_profiled_parameters"] = int(len(profiled_rmax_keys))
     for key in ["aic", "aicc", "bic"]:
         information[key] += noise_logdet
     information["log_likelihood"] -= .5 * noise_logdet
@@ -651,9 +1262,12 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
     if "ns_linear" in enabled and ("drift" in enabled or nonspecific):
         warnings.append("Multiple background terms can be strongly correlated with each other and binding parameters. Inspect parameter correlations, residuals and control data.")
     if bounds:
-        warnings.append("At least one free parameter reached a declared bound. Two-sided model errors are withheld.")
+        if model == "contact_closure_transport_limit" and not non_capacity_bounds:
+            warnings.append("Shared Rmax reached its declared upper capacity bound (total_Rmax_upper); kinetic and affinity parameters for that repeat are conditional on the capacity ceiling.")
+        else:
+            warnings.append("At least one free parameter reached a declared bound. Two-sided model errors are withheld.")
     weak = [row["instance"] for row in table if not row["fixed"] and instances[row["instance"]].positive
-            and row["local_precision_status"] != "Locally resolved"]
+            and row["local_precision_status"] not in {"Locally resolved", "Active upper capacity bound (conditional constraint)"}]
     if use_two_site_split:
         for fc in fitted_curves:
             grp_lbl = f"{fc['filename']}::{fc['concentration_nM']:g}"
@@ -703,12 +1317,13 @@ def fit_mechanism(curves, model, rules, transport="None", nonspecific=False, sta
                 baseline_uncertainty=baseline_uncertainty, input_uncertainty=input_uncertainty,
                 precision_screen=dict(relative_se_limit=LOCAL_PRECISION_LIMIT, unresolved_instances=weak,
                     interpretation="Declared local precision screen, not a significance test or guarantee of identifiability. Derived affinities are screened separately using their full covariance."),
-                n_observations=n_observations, n_parameters=total_parameters, n_outer_free_parameters=len(free),
+                n_observations=n_observations, n_parameters=total_parameters, n_outer_free_parameters=free_outer_count,
                 n_profiled_parameters=n_profiled,
                 rss=float(residual @ residual), information_criteria=information, boundary_parameters=bounds,
+                active_bounds=active_bounds_named,
                 multistart=pd.DataFrame(history), timed_out=timed_out, correlation_time=float(correlation_time), loss=loss,
                 noise_model="Fixed-time OU GLS" if correlation_time > 0 else "IID least squares",
-                optimizer_settings=dict(starts=int(starts), max_nfev=int(max_nfev), runtime_s=float(runtime_s), seed=int(seed),
+                optimizer_settings=dict(starts=int(starts), max_nfev=int(max_nfev), runtime_s=float(runtime_s), seed=seed_used,
                                         loss=loss, f_scale=float(f_scale), start_strategy=start_strategy),
                 uncertainty_method=INPUT_ERROR if input_uncertainty.get("applied") else ((BASELINE_ERROR if correlation_time == 0 else BASELINE_GLS_ERROR) if baseline_uncertainty.get("applied") else (CONDITIONAL_ERROR if correlation_time == 0 else GLS_ERROR)),
                 scientific_warnings=warnings, **info)
@@ -721,6 +1336,13 @@ def derived_affinities(result):
     for curve in result["curves"]:
         p, model = curve["parameters"], result["model"]
         def metrics(params):
+            if model == "contact_closure_transport_limit":
+                kd_first_nM = params["KD_first_contact_M"] * 1e9
+                kd_overall_nM = kd_first_nM / (1.0 + params["kclose"] / params["kopen"])
+                return {
+                    "KD_overall_nM": kd_overall_nM,
+                    "KD_first_contact_nM": kd_first_nM,
+                }
             first = params["koff"] / params["kon"] * 1e9
             if model == "langmuir":
                 return {"KD_nM": first}
@@ -830,25 +1452,31 @@ def refit_independent_repeats(curves, parent, starts=2, runtime_s=120.):
     records, statuses = [], []
     rules = [Parameter(**item) for item in parent["parameter_controls"]]
     repeat_ids = sorted({c["repeat_id"] for c in curves})
+    seed_parent = int(parent.get("optimizer_settings", {}).get("seed", 20261102 if parent["model"] == "contact_closure_transport_limit" else 1729))
+    starts_eff = max(int(starts), int(parent.get("optimizer_settings", {}).get("starts", starts))) if parent["model"] == "contact_closure_transport_limit" else int(starts)
     for repeat in repeat_ids:
         subset = [c for c in curves if c["repeat_id"] == repeat]
         needed = set(expand_parameter_controls(subset, rules).instance)
         overrides = {key: controls for key, controls in parent["instance_controls"].items() if key in needed}
         try:
             fit = fit_mechanism(subset, parent["model"], rules, transport=parent["transport"], nonspecific=parent["nonspecific"],
-                                starts=starts, runtime_s=runtime_s, correlation_time=parent["correlation_time"],
-                                max_nfev=parent["optimizer_settings"]["max_nfev"],
+                                starts=starts_eff, runtime_s=runtime_s, correlation_time=parent["correlation_time"],
+                                max_nfev=parent["optimizer_settings"]["max_nfev"], seed=seed_parent,
                                 loss=parent["loss"], f_scale=parent["optimizer_settings"].get("f_scale", 1.), instance_controls=overrides,
                                 start_strategy=parent["optimizer_settings"].get("start_strategy", "local"))
-            eligible = not fit["boundary_parameters"] and fit["loss"] == "linear" and not fit["timed_out"]
+            non_capacity_bounds = [b for b in fit["boundary_parameters"] if b.split("::", 1)[0] not in {"Rmax", "Rmax2"}]
+            eligible = not non_capacity_bounds and fit["loss"] == "linear" and not fit["timed_out"]
             eligible &= fit["covariance_status"] in {CONDITIONAL_ERROR, GLS_ERROR, INPUT_ERROR, "All parameters fixed"}
             status = "Complete" if eligible else "Unresolved / boundary / sensitivity fit"
             statuses.append(dict(repeat_id=repeat, status=status, detail="; ".join(fit["scientific_warnings"])))
 
             def append_estimate(parameter, row, unit, interpretation, value=None):
                 precision = local_precision(row.value, row.model_se)
+                at_cap_bound = bool(getattr(row, "at_bound", False) and parameter in {"Rmax", "Rmax2"})
+                if at_cap_bound:
+                    precision = dict(relative_model_se=np.nan, local_precision_status="Active upper capacity bound (conditional constraint)")
                 estimate_status = status
-                if eligible and precision["local_precision_status"] != "Locally resolved":
+                if eligible and precision["local_precision_status"] not in {"Locally resolved", "Active upper capacity bound (conditional constraint)"}:
                     estimate_status = "Unresolved local precision"
                     statuses[-1]["status"] = "Complete with unresolved parameters"
                 records.append(dict(repeat_id=repeat, parameter=parameter,
@@ -922,6 +1550,23 @@ def refit_independent_repeats(curves, parent, starts=2, runtime_s=120.):
                     if not group.empty and group.value.nunique() == 1 and group.estimated.all():
                         row = group.iloc[0]
                         append_estimate(out_metric, row, "nM", row.interpretation)
+            elif parent["model"] == "contact_closure_transport_limit":
+                for parameter in ["KD_first_contact_M", "kclose", "kopen", "transport_resistance_M_s", "Rmax"]:
+                    group = parameters.loc[parameters.parameter == parameter]
+                    if len(group) == 1 and not group.fixed.all():
+                        row = group.iloc[0]
+                        interp = (
+                            "Shared per-repeat total capacity (Per file)"
+                            if parameter == "Rmax"
+                            else "Independent-repeat refit (Two-contact binding with transport — rapid-capture limit)"
+                        )
+                        append_estimate(parameter, row, row.unit, interp)
+                affinities = derived_affinities(fit)
+                for metric in ["KD_overall_nM", "KD_first_contact_nM"]:
+                    group = affinities.loc[affinities.metric == metric]
+                    if not group.empty and group.value.nunique() == 1 and group.estimated.all():
+                        row = group.iloc[0]
+                        append_estimate(metric, row, "nM", row.interpretation)
             else:
                 for parameter, group in parameters.groupby("parameter", sort=False):
                     if len(group) == 1 and not group.fixed.all() and parameter not in {"Rmax", "offset", "drift", "bulk", "ns_linear", "ns_Rmax", "site1_fraction"}:
@@ -939,23 +1584,21 @@ def refit_independent_repeats(curves, parent, starts=2, runtime_s=120.):
     summaries = []
     for parameter, group in estimates.groupby("parameter", sort=False):
         valid = group.loc[(group.status == "Complete") & np.isfinite(group.value) & (group.value > 0), "value"].to_numpy()
-        if len(valid) < 2:
-            valid = group.loc[np.isfinite(group.value) & (group.value > 0), "value"].to_numpy()
         n = len(valid)
         mean = float(valid.mean()) if n else np.nan
         sd = float(np.std(valid, ddof=1)) if n > 1 else np.nan
         low = high = np.nan
         if n > 1:
             logs = np.log(valid)
-            half = stats.t.ppf(.975, n - 1) * np.std(logs, ddof=1) / np.sqrt(n)
+            half = stats.t.ppf(.975, n - 1) * np.std(logs, ddof=1) / np.sqrt(n) if np.std(logs, ddof=1) > 0 else 0.0
             low, high = np.exp(np.clip([logs.mean() - half, logs.mean() + half], -700, 700))
         summaries.append(dict(parameter=parameter, unit=group.unit.iloc[0], n_independent=n, mean=mean, sd=sd,
                               sem=sd / np.sqrt(n) if n > 1 else np.nan, ci95_low=low, ci95_high=high,
                               geometric_mean=float(np.exp(np.log(valid).mean())) if n else np.nan,
                               excluded_or_failed=len(repeat_ids) - n, interval_method="Log-Student-t CI for geometric mean across independent repeats"))
     for status in statuses:
-        status.update(starts_requested=int(starts), runtime_limit_s=float(runtime_s),
-                      max_nfev=parent["optimizer_settings"]["max_nfev"], seed=1729)
+        status.update(starts_requested=int(starts_eff), runtime_limit_s=float(runtime_s),
+                      max_nfev=parent["optimizer_settings"]["max_nfev"], seed=seed_parent)
     return dict(estimates=estimates, summary=pd.DataFrame(summaries), status=pd.DataFrame(statuses))
 
 
@@ -993,6 +1636,8 @@ def single_cycle_prediction(time_s, steps, parameters, model="langmuir", transpo
         raise ValueError("Choose a recognized mechanism and transport model.")
     if t.ndim != 1 or not np.isfinite(t).all():
         raise ValueError("Finite one-dimensional times are required.")
+    if model == "contact_closure_transport_limit" and transport != "None":
+        raise ValueError("Two-contact binding with transport — rapid-capture limit already includes surface transport; do not enable a second transport correction.")
     if transport == "Quasi-steady 1:1 transport" and (model != "langmuir" or nonspecific):
         raise ValueError("Quasi-steady transport requires one 1:1 binding population.")
     if integration_method not in {"LSODA", "Radau"}:
@@ -1010,7 +1655,64 @@ def single_cycle_prediction(time_s, steps, parameters, model="langmuir", transpo
         decay = np.exp(-rate * dt)
         return s0 * decay + eq * (-np.expm1(-rate * dt))
 
-    if analytic:
+    if model == "contact_closure_transport_limit":
+        K1 = float(p["KD_first_contact_M"])
+        kc = float(p["kclose"])
+        ko = float(p["kopen"])
+        h = float(p["transport_resistance_M_s"])
+        rmax = float(p.get("Rmax", 1.0))
+        if min(K1, kc, ko, h) <= 0.0 or rmax < 0.0 or not np.isfinite([K1, kc, ko, h, rmax]).all():
+            raise ValueError("Rapid-capture transport parameters must be positive and finite.")
+        states = np.zeros((2, len(t)), dtype=float)
+        if t.size and t.max() > first_on:
+            state_vec = np.zeros(2, dtype=float)
+            atol = max(2e-8 * 0.03, 1e-12)
+            for idx, (t_start, t_end, conc, _) in enumerate(intervals):
+                if t_end <= t_start:
+                    continue
+                def _cc_rhs(_ti, s, c_bulk=conc):
+                    x_s, y_s = float(s[0]), float(s[1])
+                    u_s = max(1.0 - x_s - y_s, 1e-12)
+                    cap_s = (c_bulk - K1 * x_s / u_s) / h
+                    cls_s = kc * x_s - ko * y_s
+                    return np.array([cap_s - cls_s, cls_s], dtype=float)
+                def _cc_jac(_ti, s):
+                    x_s, y_s = float(s[0]), float(s[1])
+                    u_s = max(1.0 - x_s - y_s, 1e-12)
+                    dcap_dx = -K1 * (1.0 - y_s) / (h * u_s * u_s)
+                    dcap_dy = -K1 * x_s / (h * u_s * u_s)
+                    return np.array([[dcap_dx - kc, dcap_dy + ko], [kc, -ko]], dtype=float)
+                sol = solve_ivp(_cc_rhs, (t_start, t_end), state_vec, method=integration_method,
+                                jac=_cc_jac, dense_output=True, rtol=2e-8, atol=atol)
+                if not sol.success:
+                    raise RuntimeError("Single-cycle rapid-capture state integration did not converge.")
+                is_last = idx == len(intervals) - 1
+                mask = (t >= t_start) & (t <= t_end if is_last else t < t_end)
+                if mask.any():
+                    states[:, mask] = sol.sol(t[mask])
+                state_vec = sol.sol(t_end)
+        unit_total = states[0] + states[1]
+        if states.min() < -1e-5 or unit_total.min() < -1e-4 or unit_total.max() > 1.0001:
+            raise RuntimeError("Rapid-capture transport states left physical bounds.")
+        component["initial_contact_fraction"] = states[0].copy()
+        component["two_contact_fraction"] = states[1].copy()
+        component["initial_contact_response"] = rmax * states[0]
+        component["two_contact_response"] = rmax * states[1]
+        component["state_1_response"] = rmax * states[0]
+        component["state_2_response"] = rmax * states[1]
+        target = rmax * unit_total
+        if nonspecific:
+            ns_trace = np.zeros_like(t, dtype=float)
+            s_ns = 0.0
+            for idx, (t_start, t_end, conc, _) in enumerate(intervals):
+                is_last = idx == len(intervals) - 1
+                mask = (t >= t_start) & (t <= t_end if is_last else t < t_end)
+                if mask.any():
+                    ns_trace[mask] = _advance_1d(s_ns, t[mask] - t_start, p["ns_kon"], p["ns_koff"], p["ns_Rmax"], conc)
+                s_ns = float(_advance_1d(s_ns, np.array([t_end - t_start]), p["ns_kon"], p["ns_koff"], p["ns_Rmax"], conc)[0])
+            component["nonspecific"] = ns_trace
+            target = target + ns_trace
+    elif analytic:
         if model in {"langmuir", "heterogeneous", "biphasic"}:
             theta = float(np.clip(p.get("site1_fraction", 0.5), 0.0, 1.0)) if model == "biphasic" else 1.0
             cap1 = theta * p["Rmax"] if model == "biphasic" else p["Rmax"]
@@ -1323,7 +2025,8 @@ def fit_single_cycle_kinetics(traces, model="langmuir", rules=None, transport="N
         jacobian_rank=0, scaled_jacobian_condition=np.nan,
     )
     covariance = info.pop("covariance")
-    if bounds or loss != "linear":
+    non_capacity_bounds = [b for b in bounds if b.split("::", 1)[0] not in {"Rmax", "Rmax2"}]
+    if non_capacity_bounds or loss != "linear":
         covariance = None
         info["covariance_status"] = "Unavailable: active bound or robust sensitivity objective"
     physical_covariance = None
@@ -1448,6 +2151,7 @@ def mechanistic_to_kinetic_summary(result):
         "biphasic": "KD_population_1_nM",
         "sequential": "KD_step_1_nM",
         "bivalent": "KD_per_arm_first_step_nM",
+        "contact_closure_transport_limit": "KD_overall_nM",
     }.get(model, "KD_nM")
     kd_M, kd_se_M = np.nan, np.nan
     affinity_interp = MODEL_NOTES.get(model, "")
@@ -1488,9 +2192,21 @@ def mechanistic_to_kinetic_summary(result):
         if serial_flag:
             flagged_serial += 1
         p = c.get("parameters", {})
-        c_kon = float(p.get("kon", kon))
-        c_koff = float(p.get("koff", koff))
-        c_kd = c_koff / c_kon if c_kon > 0 else np.nan
+        if model == "contact_closure_transport_limit":
+            c_kon = np.nan
+            c_koff = np.nan
+            c_kd_first = float(p.get("KD_first_contact_M", np.nan))
+            c_kclose = float(p.get("kclose", np.nan))
+            c_kopen = float(p.get("kopen", np.nan))
+            c_kd = (
+                c_kd_first / (1.0 + c_kclose / c_kopen)
+                if (np.isfinite(c_kd_first) and np.isfinite(c_kclose) and np.isfinite(c_kopen) and c_kopen > 0)
+                else np.nan
+            )
+        else:
+            c_kon = float(p.get("kon", kon))
+            c_koff = float(p.get("koff", koff))
+            c_kd = c_koff / c_kon if c_kon > 0 else np.nan
         c_rmax = float(p.get("Rmax", np.nan))
         conc_nM = float(c.get("concentration_nM", 0.0))
         fname = str(c.get("filename", f"curve_{idx + 1}"))
@@ -1535,7 +2251,8 @@ def mechanistic_to_kinetic_summary(result):
 
     unresolved = result.get("precision_screen", {}).get("unresolved_instances", [])
     bounds = list(result.get("boundary_parameters", []))
-    identifiable = bool(result.get("covariance") is not None and not bounds and not unresolved)
+    non_cap_bounds = [b for b in bounds if b.split("::", 1)[0] not in {"Rmax", "Rmax2"}]
+    identifiable = bool(result.get("covariance") is not None and not non_cap_bounds and not unresolved)
     summary_eligible = bool(identifiable and result.get("loss", "linear") == "linear" and not result.get("timed_out", False))
     first_curve = result["curves"][0] if result["curves"] else {}
     t_arr = np.asarray(first_curve.get("time", [0.0, 1.0]), dtype=float)
@@ -1598,4 +2315,99 @@ def mechanistic_to_kinetic_summary(result):
         repeat_report=result.get("repeat_report"),
         mechanistic_source=result,
     )
+
+
+def contact_closure_transport_limit_rules(dataset="LM411", rmax_cap=None, initial=None, scope="Per file"):
+    """Return the reference 5-parameter rules for Two-contact binding with transport — rapid-capture limit."""
+    ds_upper = str(dataset).upper()
+    is_lg13 = ("LAMA4G123" in ds_upper) or ("LG1" in ds_upper) or ("G123" in ds_upper)
+    default_init = [1e-6, 0.003, 0.001, 1e-5] if is_lg13 else [3e-8, 0.004, 0.003, 4e-6]
+    init_vals = list(initial) if initial is not None else default_init
+    cap = float(rmax_cap) if rmax_cap is not None else (1.35 if is_lg13 else 2.0)
+    rmax_init = min(0.8 if is_lg13 else 1.1, cap)
+    return [
+        Parameter("KD_first_contact_M", float(init_vals[0]), 1e-12, 1e-3, scope, unit="M"),
+        Parameter("kclose", float(init_vals[1]), 1e-6, 10.0, scope, unit="s^-1"),
+        Parameter("kopen", float(init_vals[2]), 1e-6, 10.0, scope, unit="s^-1"),
+        Parameter("transport_resistance_M_s", float(init_vals[3]), 1e-14, 10.0, scope, unit="M s"),
+        Parameter("Rmax", float(rmax_init), 1e-9, float(cap), scope, unit="response"),
+    ]
+
+
+def cross_validate_omitted_concentration(
+    curves,
+    rules=None,
+    *,
+    dataset="LM411",
+    rmax_cap=None,
+    initial=None,
+    starts=5,
+    max_nfev=500,
+    seed=20261102,
+):
+    """Leave-one-concentration-out cross-validation within each repeat for contact_closure_transport_limit."""
+    if rules is None:
+        rules = contact_closure_transport_limit_rules(dataset=dataset, rmax_cap=rmax_cap, initial=initial)
+    grouped = {}
+    for c in curves:
+        g_key = str(c.get("repeat_id") or c.get("filename") or "repeat_1")
+        grouped.setdefault(g_key, []).append(c)
+
+    folds = []
+    heldout_rss_total = 0.0
+    heldout_n_total = 0
+    for g_key, rep_curves in grouped.items():
+        concs_nM = [float(c["concentration_nM"]) for c in rep_curves]
+        for held in concs_nM:
+            train_curves = [c for c in rep_curves if float(c["concentration_nM"]) != held]
+            test_curves = [c for c in rep_curves if float(c["concentration_nM"]) == held]
+            train_fit = fit_mechanism(
+                train_curves,
+                "contact_closure_transport_limit",
+                rules,
+                transport="None",
+                starts=starts,
+                max_nfev=max_nfev,
+                seed=int(seed) + int(round(held * 100.0)),
+                compute_input_uncertainty=False,
+            )
+            p_train = dict(train_fit["curves"][0]["parameters"])
+            for held_curve in test_curves:
+                mask = np.asarray(held_curve["fit_mask"], dtype=bool)
+                t_m = held_curve["time"][mask]
+                f_unit, _ = _contact_closure_transport_limit_unit_batch(
+                    t_m,
+                    [float(held_curve["concentration_M"])],
+                    float(held_curve["on"]),
+                    float(held_curve["off"]),
+                    p_train,
+                    rtol=1e-9,
+                    method="LSODA",
+                )
+                pred_m = float(p_train["Rmax"]) * f_unit[0]
+                res_m = held_curve["response"][mask] - pred_m
+                rss = float(res_m @ res_m)
+                n_obs = int(mask.sum())
+                rmse = float(np.sqrt(rss / max(n_obs, 1)))
+                heldout_rss_total += rss
+                heldout_n_total += n_obs
+                folds.append({
+                    "repeat": g_key,
+                    "heldout_concentration_nM": float(held),
+                    "heldout_n_observations": n_obs,
+                    "heldout_rss": rss,
+                    "heldout_rmse_nm": rmse,
+                    "train_rss": float(train_fit["rss"]),
+                    "Rmax_train": float(p_train["Rmax"]),
+                })
+    pooled_rmse = float(np.sqrt(heldout_rss_total / max(heldout_n_total, 1)))
+    return {
+        "n_folds": len(folds),
+        "heldout_n_observations": heldout_n_total,
+        "heldout_rss": heldout_rss_total,
+        "heldout_rmse_nm": pooled_rmse,
+        "pooled_cv_rmse_nm": pooled_rmse,
+        "folds": folds,
+    }
+
 

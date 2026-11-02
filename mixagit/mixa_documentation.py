@@ -102,4 +102,5 @@ def render_methods_contents():
                 st.markdown("#### "+label)
                 st.write(evidence[key]["status"])
         st.write(evidence.get("scope", ""))
-        st.markdown((ROOT/"METHODS_VALIDATION.md").read_text())
+        if (ROOT / "METHODS_VALIDATION.md").is_file():
+            st.markdown((ROOT / "METHODS_VALIDATION.md").read_text(encoding="utf-8"))

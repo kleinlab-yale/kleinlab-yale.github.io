@@ -763,7 +763,7 @@ KINETIC_BINDING_MODELS = {
     "1:1 Langmuir": "langmuir",
     "1:1 + Delivery Lag": None,
     "2-State (Advanced)": "two_state",
-    **{MODEL_LABELS[key]: key for key in ["heterogeneous", "biphasic", "bivalent", "sequential"]},
+    **{MODEL_LABELS[key]: key for key in ["heterogeneous", "biphasic", "bivalent", "sequential", "contact_closure_transport_limit"]},
 }
 
 KINETIC_STARTING_SETTINGS = {
@@ -5178,7 +5178,7 @@ def build_compare_report(kin_results, eq_results, kobs_results=None):
         qualification_failures.append("Equilibrium was not supported at the sampling time.")
     if "hill" in str(eq_results.get("model", "")).lower() or "half-saturation" in str(eq_results.get("affinity_interpretation", "")).lower():
         qualification_failures.append("Hill half-saturation and intrinsic kinetic KD are not interchangeable affinity quantities.")
-    if str(kin_results.get("model", "")).lower() in {"bivalent", "heterogeneous", "biphasic", "sequential"}:
+    if str(kin_results.get("model", "")).lower() in {"bivalent", "heterogeneous", "biphasic", "sequential", "contact_closure_transport_limit"}:
         qualification_failures.append(
             "Multi-site or avidity kinetic constants and simple 1:1 equilibrium KD are not directly interchangeable thermodynamic quantities."
         )
@@ -6146,20 +6146,25 @@ def legacy_main():
         invalidate_results()
         st.session_state.fitted_interval_signature = interval_signature
     if st.session_state.get("latest_mechanistic_results") is None:
+        import base64
         import pickle
         from pathlib import Path
         _exp_cur = st.session_state.get("selected_experiment")
         if _exp_cur == "MCAM-Fc + LM411 (tE411)":
             _pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
-            if _pkl.is_file():
-                _res_lm = pickle.loads(_pkl.read_bytes())
+            _b64 = _pkl.with_suffix(".b64.txt")
+            if _b64.is_file() or _pkl.is_file():
+                _raw_bytes = base64.b64decode(_b64.read_text(encoding="utf-8")) if _b64.is_file() else _pkl.read_bytes()
+                _res_lm = pickle.loads(_raw_bytes)
                 _res_lm.setdefault("signature", "preloaded_demo_lm411")
                 _res_lm["preloaded_demo"] = True
                 st.session_state.latest_mechanistic_results = _res_lm
         elif _exp_cur == "MCAM-Fc + LamA4G123 (α4 LG1–LG3)":
             _pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LamA4G123" / "mcam_lama4g123_two_site_fit.pkl"
-            if _pkl.is_file():
-                _res_g123 = pickle.loads(_pkl.read_bytes())
+            _b64 = _pkl.with_suffix(".b64.txt")
+            if _b64.is_file() or _pkl.is_file():
+                _raw_bytes = base64.b64decode(_b64.read_text(encoding="utf-8")) if _b64.is_file() else _pkl.read_bytes()
+                _res_g123 = pickle.loads(_raw_bytes)
                 _res_g123.setdefault("signature", "preloaded_demo_lama4g123")
                 _res_g123["preloaded_demo"] = True
                 st.session_state.latest_mechanistic_results = _res_g123
@@ -6271,11 +6276,11 @@ def legacy_main():
             binding_model = st.selectbox("Binding model", list(KINETIC_BINDING_MODELS), key="binding_model_select")
         mechanism = KINETIC_BINDING_MODELS[binding_model]
         transport_options = TRANSPORT_LABELS if mechanism == "langmuir" else (
-            ["None", "Two-compartment transport"] if mechanism else ["None"])
+            ["None"] if mechanism in {None, "contact_closure_transport_limit"} else ["None", "Two-compartment transport"])
         if st.session_state.get("advanced_transport") not in transport_options:
             st.session_state.advanced_transport = "None"
         with transport_column:
-            surface_transport = st.selectbox("Surface transport", transport_options, key="advanced_transport", disabled=mechanism is None)
+            surface_transport = st.selectbox("Surface transport", transport_options, key="advanced_transport", disabled=mechanism in {None, "contact_closure_transport_limit"})
         st.markdown("#### Background Corrections")
         background_left, background_right = st.columns(2)
         with background_left:

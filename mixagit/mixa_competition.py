@@ -1131,10 +1131,13 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
         except Exception:
             mech = None
     if mech is None or not isinstance(mech, dict) or not mech.get("repeat_report"):
+        import base64
         fit_pkl = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM411" / "mcam_lm411_two_site_fit.pkl"
-        if fit_pkl.is_file():
+        fit_b64 = fit_pkl.with_suffix(".b64.txt")
+        if fit_b64.is_file() or fit_pkl.is_file():
             try:
-                mech = pickle.loads(fit_pkl.read_bytes())
+                raw_pkl = base64.b64decode(fit_b64.read_text(encoding="utf-8")) if fit_b64.is_file() else fit_pkl.read_bytes()
+                mech = pickle.loads(raw_pkl)
             except Exception:
                 mech = None
 
@@ -1142,8 +1145,8 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
         rep_report = mech["repeat_report"]
         sum_df = rep_report.get("summary", pd.DataFrame())
         est_df = rep_report.get("estimates", pd.DataFrame())
-        model_key = mech.get("model", "sequential")
-        param_candidates = ["KD_step_1_nM", "KD_population_1_nM", "KD_nM", "KD_overall_nM", "KD_higher_affinity_nM"]
+        model_key = mech.get("model", "contact_closure_transport_limit")
+        param_candidates = ["KD_overall_nM", "KD_step_1_nM", "KD_population_1_nM", "KD_nM", "KD_higher_affinity_nM"]
         chosen_key = next((k for k in param_candidates if not sum_df.empty and k in set(sum_df["parameter"])), None)
         if chosen_key is not None:
             s_row = sum_df[sum_df["parameter"] == chosen_key].iloc[0]
@@ -1165,12 +1168,19 @@ def _resolve_reference_receptor_kinetics(ref_kinetics=None):
                 koff_m = float(sum_df[sum_df["parameter"] == "koff"].iloc[0]["mean"])
                 if np.isfinite(koff_m) and koff_m > 0:
                     t12_s = float(np.log(2.0) / koff_m)
-            label = (
-                "MCAM-Fc + LM411 Apparent Step 1 KD,step1 (Sequential Surface-Capture Model)"
-                if model_key == "sequential"
-                else "Apparent Population 1 KD,pop1 (Reference Surface Fit)"
-            )
-            symbol = "K_D,step1(MCAM)" if model_key == "sequential" else "K_D,pop1(Ref)"
+            elif not sum_df.empty and "kopen" in set(sum_df["parameter"]):
+                kopen_m = float(sum_df[sum_df["parameter"] == "kopen"].iloc[0]["mean"])
+                if np.isfinite(kopen_m) and kopen_m > 0:
+                    t12_s = float(np.log(2.0) / kopen_m)
+            if model_key == "contact_closure_transport_limit":
+                label = "MCAM-Fc + LM411 Overall Complex KD,overall (Two-Contact Binding with Transport — Rapid-Capture Limit)"
+                symbol = "K_D,overall(MCAM)"
+            elif model_key == "sequential":
+                label = "MCAM-Fc + LM411 Apparent Step 1 KD,step1 (Sequential Surface-Capture Model)"
+                symbol = "K_D,step1(MCAM)"
+            else:
+                label = "MCAM-Fc + LM411 High-Affinity Component KD,1 (2:1 Shared-Rmax Fit)"
+                symbol = "K_D,1(MCAM)"
             return {
                 "available": True,
                 "label": label,
@@ -2309,7 +2319,7 @@ def render_solution_competition_section():
                 value=float(st.session_state.get("comp_surface_kd_input", default_kd_surf)),
                 format="%.4g",
                 key="comp_surface_kd_input",
-                help="Immobilized receptor saturation constant (e.g., 34.4 nM from direct 120 s BLI association isotherm).",
+                help="Immobilized receptor saturation constant (e.g., 45.7 nM from direct 120 s BLI association isotherm).",
             )
         with sc2:
             surf_mode_label = st.selectbox(
@@ -2546,7 +2556,7 @@ def render_solution_competition_section():
         )
     with m3:
         st.metric(
-            "Apparent Step 1 K_D,step1(MCAM)",
+            "Reference Surface K_D,1(MCAM)",
             ref_kd_disp,
             delta=rel_lbl,
             delta_color="off",

@@ -200,14 +200,20 @@ def coordinate_scales(problem, fit, table=None):
             coordinate = "log"
             metric, dependencies = name.split("::", 1)
             keys = dependencies.split("|")
-            coefficients = [-1., 1.]
-            if metric == "KD_overall_nM":
-                forward, reverse = values[keys[2]], values[keys[3]]
-                coefficients += [-forward/(forward+reverse), forward/(forward+reverse)]
-            elif metric in {"KD_lower_population_nM", "KD_higher_population_nM"}:
-                first, second = values[keys[1]]/values[keys[0]], values[keys[3]]/values[keys[2]]
-                choose_first = (first <= second) == (metric == "KD_lower_population_nM")
-                coefficients = [-1., 1., 0., 0.] if choose_first else [0., 0., -1., 1.]
+            if metric == "KD_first_contact_nM":
+                coefficients = [1.]
+            elif metric == "KD_overall_nM" and len(keys) == 3:
+                forward, reverse = values[keys[1]], values[keys[2]]
+                coefficients = [1., -forward/(forward+reverse), forward/(forward+reverse)]
+            else:
+                coefficients = [-1., 1.]
+                if metric == "KD_overall_nM":
+                    forward, reverse = values[keys[2]], values[keys[3]]
+                    coefficients += [-forward/(forward+reverse), forward/(forward+reverse)]
+                elif metric in {"KD_lower_population_nM", "KD_higher_population_nM"}:
+                    first, second = values[keys[1]]/values[keys[0]], values[keys[3]]/values[keys[2]]
+                    choose_first = (first <= second) == (metric == "KD_lower_population_nM")
+                    coefficients = [-1., 1., 0., 0.] if choose_first else [0., 0., -1., 1.]
             for key, coefficient in zip(keys, coefficients):
                 if key in positions:
                     gradient[positions[key]] += coefficient
@@ -225,24 +231,32 @@ def estimates(problem, values):
         if set(keys.values())-set(values):
             continue
         p = {k: values[v] for k, v in keys.items()}
-        first = p["koff"]/p["kon"]*1e9
-        if problem["model"] == "two_state":
-            metrics = [("KD_first_step_nM", first, ["kon", "koff"]),
-                       ("KD_overall_nM", first*p["k_reverse"]/(p["k_forward"]+p["k_reverse"]),
-                        ["kon", "koff", "k_forward", "k_reverse"])]
-        elif problem["model"] in {"heterogeneous", "biphasic", "sequential"}:
-            second = p["koff2"]/p["kon2"]*1e9
-            if problem["model"] in {"heterogeneous", "biphasic"}:
-                dependencies = ["kon", "koff", "kon2", "koff2"]
-                metrics = [("KD_lower_population_nM", min(first, second), dependencies),
-                           ("KD_higher_population_nM", max(first, second), dependencies)]
-            else:
-                metrics = [("KD_step_1_nM", first, ["kon", "koff"]), ("KD_step_2_nM", second, ["kon2", "koff2"])]
-        elif problem["model"] == "bivalent":
-            metrics = [("KD_per_arm_first_step_nM", first, ["kon", "koff"]),
-                       ("KD_macroscopic_capture_nM", first/2, ["kon", "koff"])]
+        if problem["model"] == "contact_closure_transport_limit":
+            first_c = p["KD_first_contact_M"] * 1e9
+            overall_c = first_c / (1. + p["kclose"] / p["kopen"])
+            metrics = [
+                ("KD_first_contact_nM", first_c, ["KD_first_contact_M"]),
+                ("KD_overall_nM", overall_c, ["KD_first_contact_M", "kclose", "kopen"]),
+            ]
         else:
-            metrics = [("KD_nM", first, ["kon", "koff"])]
+            first = p["koff"]/p["kon"]*1e9
+            if problem["model"] == "two_state":
+                metrics = [("KD_first_step_nM", first, ["kon", "koff"]),
+                           ("KD_overall_nM", first*p["k_reverse"]/(p["k_forward"]+p["k_reverse"]),
+                            ["kon", "koff", "k_forward", "k_reverse"])]
+            elif problem["model"] in {"heterogeneous", "biphasic", "sequential"}:
+                second = p["koff2"]/p["kon2"]*1e9
+                if problem["model"] in {"heterogeneous", "biphasic"}:
+                    dependencies = ["kon", "koff", "kon2", "koff2"]
+                    metrics = [("KD_lower_population_nM", min(first, second), dependencies),
+                               ("KD_higher_population_nM", max(first, second), dependencies)]
+                else:
+                    metrics = [("KD_step_1_nM", first, ["kon", "koff"]), ("KD_step_2_nM", second, ["kon2", "koff2"])]
+            elif problem["model"] == "bivalent":
+                metrics = [("KD_per_arm_first_step_nM", first, ["kon", "koff"]),
+                           ("KD_macroscopic_capture_nM", first/2, ["kon", "koff"])]
+            else:
+                metrics = [("KD_nM", first, ["kon", "koff"])]
         for name, value, dependencies in metrics:
             instances = [keys[k] for k in dependencies]
             key = name+" ["+", ".join(dict.fromkeys(k.split("::", 1)[-1] for k in instances))+"]"
