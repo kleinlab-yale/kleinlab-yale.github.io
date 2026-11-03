@@ -11,6 +11,24 @@ from mixa_data import SAMPLE_FILES
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_cached_prior_release_helpers_refresh_without_losing_data(self):
+        import mixa_data
+        import mixa_workspace
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "mixa_app.py", default_timeout=120).run()
+        next(b for b in app.button if b.label == "Load synthetic demonstration").click().run()
+        next(b for b in app.button if b.label == "Apply dataset assignments").click().run()
+        files = [d["filename"] for d in app.session_state["data_list"]]
+        mixa_data.APP_VERSION = "0.5.10-preview"
+        def stale_intake(*args, **kwargs):
+            raise RuntimeError("stale prior-release intake")
+        mixa_workspace.render_dataset_workspace = stale_intake
+        app.run()
+        self.assertEqual([e.value for e in app.exception], [])
+        self.assertEqual(mixa_data.APP_VERSION, "0.5.11-preview")
+        self.assertIsNot(mixa_workspace.render_dataset_workspace, stale_intake)
+        self.assertEqual([d["filename"] for d in app.session_state["data_list"]], files)
+        self.assertTrue(any(b.label == "Load synthetic demonstration" for b in app.button))
+
     def test_cached_pre_upgrade_model_labels_reload_without_losing_data(self):
         import mixa_mechanisms
         import mixa_mechanistic_ui

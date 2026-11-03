@@ -3,6 +3,7 @@ import inspect
 import json
 import os
 import re
+import sys
 import time as pytime
 import zipfile
 from datetime import datetime
@@ -19,6 +20,24 @@ import pandas as pd
 import streamlit as st
 from scipy import stats
 from scipy.optimize import curve_fit, least_squares, lsq_linear
+
+import mixa_data
+
+# Streamlit can retain all imported helpers after a hot source deployment. Refresh
+# an older release in dependency order before binding its functions below. This
+# preserves session data while keeping the version, intake UI and fit APIs aligned.
+if getattr(mixa_data, "APP_VERSION", None) != "0.5.11-preview":
+    for _helper in (
+        "mixa_input_uncertainty", "mixa_uncertainty", "mixa_selection",
+        "mixa_science", "mixa_plotting", "mixa_figures", "mixa_data",
+        "mixa_methods", "mixa_documentation", "mixa_workspace", "mixa_mechanisms",
+        "mixa_reporting", "mixa_diagnostics", "mixa_inference", "mixa_inference_figures",
+        "mixa_calibration", "mixa_joint", "mixa_residual_tests", "mixa_inference_ui",
+        "mixa_automation", "mixa_mechanistic_ui", "mixa_assistant_ui", "mixa_education",
+        "mixa_competition",
+    ):
+        if _helper in sys.modules:
+            reload(sys.modules[_helper])
 
 import mixa_science
 import mixa_input_uncertainty
