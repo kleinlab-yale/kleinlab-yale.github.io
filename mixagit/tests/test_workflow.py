@@ -24,7 +24,7 @@ class WorkflowTests(unittest.TestCase):
         mixa_workspace.render_dataset_workspace = stale_intake
         app.run()
         self.assertEqual([e.value for e in app.exception], [])
-        self.assertEqual(mixa_data.APP_VERSION, "0.5.11-preview")
+        self.assertEqual(mixa_data.APP_VERSION, "0.5.12-preview")
         self.assertIsNot(mixa_workspace.render_dataset_workspace, stale_intake)
         self.assertEqual([d["filename"] for d in app.session_state["data_list"]], files)
         self.assertTrue(any(b.label == "Load synthetic demonstration" for b in app.button))

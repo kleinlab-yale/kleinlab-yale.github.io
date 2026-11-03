@@ -70,7 +70,7 @@ def render_methods_contents():
     st.download_button("Download current source, tests and benchmarks", build_source_bundle(),
                        f"MIXA_{APP_VERSION}_source.zip", "application/zip", key="methods_download_source", on_click="ignore")
     guide_tab, pub_study_tab, equations_tab, validation_tab = st.tabs(
-        ["User guide", "MCAM + LM411 & α6β1 Publication Study", "Equations & Sources", "Validation & Scope"]
+        ["User guide", "MCAM laminin binding and competition", "Equations & Sources", "Validation & Scope"]
     )
     with guide_tab:
         st.markdown(guide)

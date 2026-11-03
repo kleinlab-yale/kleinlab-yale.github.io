@@ -1,6 +1,6 @@
 # MIXA User Guide
 
-Version: 0.5.11-preview
+Version: 0.5.12-preview
 
 MIXA analyzes SPR/BLI binding responses with explicit reaction models, selected
 observation intervals, reproducible preprocessing and separately defined
@@ -16,6 +16,16 @@ sequential capture. Solver controls apply exactly as displayed; the model's
 transport contribution is intrinsic to its equations.
 
 ## 1. Data, Repeats and Controls
+
+The complete MCAM study now includes LM411, LM421, isolated laminin α4 LG1–3,
+and the α6β1 competition experiment. LM421 is also available as its own load
+button and kinetic quick switch. Its three series are the primary a/b/c
+instrument exports supplied on 3 November 2026; saved Fit and Fit2-1 exports
+are excluded. Only the measured Data1 columns are used. The matched LM411/LM421
+preset includes 7.813–125 nM and retains 250 nM for a separately selected
+sensitivity analysis. Capacity is fitted once per series and shared across
+its concentrations, using the two-contact model with transport in the
+rapid-capture limit. Empty control exports do not trigger another subtraction.
 
 Import one or several SPR or BLI dataset files (`.csv`, `.tsv`, `.txt`, `.xlsx`, `.xls`).
 Instrument metadata preambles are skipped automatically. Wide format has a time column

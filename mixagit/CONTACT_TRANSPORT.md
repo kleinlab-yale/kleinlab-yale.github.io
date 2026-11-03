@@ -8,7 +8,7 @@ association and dissociation rates are not estimated.
 
 ## Use the MCAM examples
 
-1. In **Data Input**, load either MCAM + LM411 or MCAM + LamA4G123. The same
+1. In **Data Input**, load MCAM + LM411, MCAM + LM421 or MCAM + LamA4G123. The same
    choices are available as quick-switch buttons in **Kinetic Analysis**.
 2. Open **Kinetic Analysis**. The preset selects the contact/transport model,
    the known experimental phase times, and five parameters **per file**. Each
@@ -81,3 +81,24 @@ The solution-competition module is a separate analysis. Its proportional
 free-analyte, surface-saturation and empirical capture-sensitivity assumptions
 are explicit controls. A Hill exponent is not a count of structural contacts;
 the empirical inhibition midpoint is distinct from a mass-action KD.
+
+## Added LM421 series in version 0.5.12
+
+The complete study and a dedicated LM421 button include the primary a/b/c
+concentration series from `20260407_protA_MCAMecdFc-tE421vsCtrl.zip`. The
+measured Data1 column is used; Fit1 and nested Fit/Fit2-1 exports are not
+additional measurements. Empty reference exports are not subtracted again.
+The primary range, 7.813–125 nM, follows the original inclusion flags and
+matches the LM411 comparison. The 250 nM trace remains selectable.
+
+With one fitted Rmax per series shared across concentrations, the LM421
+overall KD is **13.90 ± 1.71 nM** (mean ± sample SD across three series),
+compared with **12.17 ± 0.48 nM** for LM411. Effective initial-contact KD is
+**31.31 ± 4.84 nM**. These are effective model parameters, not separately
+measured LG1/LG2 affinities. Two contacts plus transport lowers pooled fit
+RMSE by 39% and omitted-concentration prediction RMSE by 31% versus 1:1 plus
+transport, with five parameters per series in each model. All 60 prediction
+folds use training curves only. Including 250 nM gives **13.75 ± 1.47 nM**.
+The response shading is measured mean ± sample SD, distinct from parameter
+uncertainty. The saved fit is checked against the current observations
+before it is displayed.

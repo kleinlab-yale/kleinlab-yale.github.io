@@ -2,8 +2,8 @@ cff-version: 1.2.0
 title: "MIXA: Transparent Mechanistic, Equilibrium, and Hierarchical Statistical Analysis of SPR and BLI Binding Data"
 message: "If you use MIXA in published research, please cite the software version, archive the exported reproducibility package (including analysis_code_sha256.json and methods/equations_and_sources.json), and cite the applicable primary methodological references."
 type: software
-version: "0.5.11-preview"
-date-released: "2026-11-02"
+version: "0.5.12-preview"
+date-released: "2026-11-03"
 license: MIT
 authors:
   - name: "MIXA Contributors"

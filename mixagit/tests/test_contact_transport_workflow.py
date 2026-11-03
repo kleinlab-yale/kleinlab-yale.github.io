@@ -80,3 +80,31 @@ def test_complete_study_and_experiment_switch_preserve_the_declared_phases():
     assert fit and all("LamA4G123" in c["filename"] for c in fit["curves"])
     assert app.session_state["fit_windows"]["phase_assoc_start_s"] == 100.028
     assert app.session_state["fit_windows"]["phase_dissoc_start_s"] == 220.04199
+
+
+def test_lm421_is_preloaded_and_uses_the_matched_shared_capacity_preset():
+    app = AppTest.from_file(APP, default_timeout=180).run()
+    app.button(key="load_complete_mcam_study_btn").click().run()
+    design = app.session_state["dataset_design"]
+    assert len(app.session_state["raw_datasets"]) == 9
+    assert set(design.Experiment) == {"MCAM-Fc + LM411 (tE411)", "MCAM-Fc + LM421 (tE421)", "MCAM-Fc + LamA4G123 (α4 LG1–LG3)"}
+    app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
+    app.selectbox(key="selected_experiment").set_value("MCAM-Fc + LM421 (tE421)").run()
+    assert not app.exception
+    assert app.selectbox(key="binding_model_select").value == LABEL
+    assert all(set(x)=={7.813,15.63,31.25,62.5,125.} for x in app.session_state["include_map"].values())
+    assert app.session_state["fit_windows"]["phase_assoc_start_s"] == 100.038002
+    assert app.session_state["fit_windows"]["phase_dissoc_start_s"] == 220.046997
+    fit = app.session_state["latest_mechanistic_results"]
+    assert fit and fit["preloaded_demo"]
+    assert fit["n_parameters"] == 15
+    for filename in {c["filename"] for c in fit["curves"]}:
+        assert "LM421" in filename
+        assert len({c["parameters"]["Rmax"] for c in fit["curves"] if c["filename"]==filename}) == 1
+    app.button(key="kin_quick_switch_lm411").click().run()
+    app.button(key="kin_quick_switch_lm421").click().run()
+    assert not app.exception
+    assert app.session_state["latest_mechanistic_results"]["preloaded_demo"]
+    app.button(key="advanced_prepare_export").click().run()
+    assert not app.exception
+    assert app.session_state["advanced_export"]

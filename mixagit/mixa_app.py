@@ -26,7 +26,7 @@ import mixa_data
 # Streamlit can retain all imported helpers after a hot source deployment. Refresh
 # an older release in dependency order before binding its functions below. This
 # preserves session data while keeping the version, intake UI and fit APIs aligned.
-if getattr(mixa_data, "APP_VERSION", None) != "0.5.11-preview":
+if getattr(mixa_data, "APP_VERSION", None) != "0.5.12-preview":
     for _helper in (
         "mixa_input_uncertainty", "mixa_uncertainty", "mixa_selection",
         "mixa_science", "mixa_plotting", "mixa_figures", "mixa_data",
@@ -6296,10 +6296,10 @@ def legacy_main():
 
     if active_section == "Kinetic Analysis":
         st.markdown("### Kinetic Fitting Analysis")
-        from mixa_workspace import _load_mcam_lm411_kinetics, _load_mcam_lama4g123_kinetics
+        from mixa_workspace import _load_mcam_lm411_kinetics, _load_mcam_lm421_kinetics, _load_mcam_lama4g123_kinetics
         _cur_exp = st.session_state.get("selected_experiment", "")
         st.caption("**Bundled MCAM kinetic examples: two-contact binding with transport**")
-        _qcol1, _qcol2 = st.columns(2)
+        _qcol1, _qcol2, _qcol3 = st.columns(3)
         _qcol1.button(
             "Intact Laminin-411 Trimer (tE411, α4β1γ1) — 7.81–125 nM (3 reps)",
             on_click=_load_mcam_lm411_kinetics,
@@ -6308,6 +6308,13 @@ def legacy_main():
             use_container_width=True,
         )
         _qcol2.button(
+            "Laminin-421 Trimer (tE421, α4β2γ1) — 7.81–125 nM (3 reps)",
+            on_click=_load_mcam_lm421_kinetics,
+            key="kin_quick_switch_lm421",
+            type="primary" if _cur_exp == "MCAM-Fc + LM421 (tE421)" else "secondary",
+            use_container_width=True,
+        )
+        _qcol3.button(
             "Isolated LamA4G123 (α4 LG1–LG3 Only, no βγ) — 15.63–500 nM (3 reps)",
             on_click=_load_mcam_lama4g123_kinetics,
             key="kin_quick_switch_g123",

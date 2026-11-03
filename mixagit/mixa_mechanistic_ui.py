@@ -248,7 +248,7 @@ def _response_figure(result, data_list, show_title=True):
 
     fnames_joined = " ".join(str(c.get("filename", "")) for c in result.get("curves", [])).lower()
     is_g123 = ("lama4g123" in fnames_joined) or ("lamg123" in fnames_joined)
-    analyte_label = "LamA4G123" if is_g123 else "Laminin-411"
+    analyte_label = "LamA4G123" if is_g123 else ("Laminin-421" if "mcam_lm421" in fnames_joined else "Laminin-411")
 
     if show_title:
         subtitle_line = f"$R^2 = {r2_val:.3f}$"
@@ -840,11 +840,12 @@ def render_mechanistic_workspace(data_list, include_map, windows, *, model, tran
         filenames = {str(c.get("filename", "")).lower() for c in curves}
         is_g123_ds = all(name.startswith("mcam_lama4g123_kinetics_rep") for name in filenames)
         is_lm411_ds = all(name.startswith("mcam_lm411_kinetics_rep") for name in filenames)
+        is_lm421_ds = all(name.startswith("mcam_lm421_kinetics_rep") for name in filenames)
         defaults = parameter_defaults(model, response_scale, "None", nonspecific, "Offset" in nuisance,
                                       correct_drift, "Injection bulk response" in nuisance,
                                       linear_nonspecific=linear_nonspecific)
-        if is_g123_ds or is_lm411_ds:
-            base_cctl = contact_closure_transport_limit_rules("LamA4G123" if is_g123_ds else "LM411")
+        if is_g123_ds or is_lm411_ds or is_lm421_ds:
+            base_cctl = contact_closure_transport_limit_rules("LamA4G123" if is_g123_ds else ("LM421" if is_lm421_ds else "LM411"))
             defaults = base_cctl + [r for r in defaults if r.key not in {b.key for b in base_cctl}]
     else:
         defaults = parameter_defaults(model, response_scale, transport, nonspecific, "Offset" in nuisance,

@@ -13,7 +13,7 @@ import pandas as pd
 
 from mixa_input_uncertainty import source_id
 
-APP_VERSION = "0.5.11-preview"
+APP_VERSION = "0.5.12-preview"
 
 ROLES = ["Sample", "Negative control", "Exclude"]
 BACKGROUND_MODES = ["None", "Matched concentrations", "Control 0 nM", "Same-file 0 nM"]
@@ -304,6 +304,24 @@ def load_bundled_mcam_lm411_kinetics_datasets():
             if len(t_arr) > 600:
                 ds["phase_assoc_start_s"] = float(t_arr[0])
                 ds["phase_dissoc_start_s"] = float(t_arr[600])
+                ds["baseline_prealigned"] = True
+            datasets.append(ds)
+    return datasets
+
+
+def load_bundled_mcam_lm421_kinetics_datasets():
+    """Load the three primary tE421 exported concentration series (a, b, c)."""
+    root = Path(__file__).resolve().parent / "data" / "kinetics_MCAM_LM421"
+    datasets = []
+    for rep_idx in (1, 2, 3):
+        path = root / f"MCAM_LM421_kinetics_rep{rep_idx}.csv"
+        if path.is_file():
+            ds = read_dataset(path.read_bytes(), path.name)
+            ds["repeat_id"] = f"Repeat {rep_idx}"
+            times = np.asarray(ds["time"], dtype=float)
+            if len(times) > 600:
+                ds["phase_assoc_start_s"] = float(times[0])
+                ds["phase_dissoc_start_s"] = float(times[600])
                 ds["baseline_prealigned"] = True
             datasets.append(ds)
     return datasets

@@ -24,6 +24,7 @@ from mixa_data import (
     ingest_uploaded_files,
     load_bundled_mcam_lama4g123_kinetics_datasets,
     load_bundled_mcam_lm411_kinetics_datasets,
+    load_bundled_mcam_lm421_kinetics_datasets,
     load_sample_datasets,
     prepare_experiment,
     read_dataset,
@@ -94,6 +95,10 @@ KINETIC_DEMOS = {
         dataset="LM411", folder="kinetics_MCAM_LM411", stem="mcam_lm411_two_site_fit",
         on=100.038, off=220.04102, end=339.84102,
     ),
+    "MCAM-Fc + LM421 (tE421)": dict(
+        dataset="LM421", folder="kinetics_MCAM_LM421", stem="mcam_lm421_two_contact_transport_fit",
+        on=100.038002, off=220.046997, end=339.853009, max_nfev=600,
+    ),
     "MCAM-Fc + LamA4G123 (α4 LG1–LG3)": dict(
         dataset="LamA4G123", folder="kinetics_MCAM_LamA4G123", stem="mcam_lama4g123_two_site_fit",
         on=100.028, off=220.04199, end=339.84602,
@@ -128,7 +133,7 @@ def _configure_kinetic_demo(experiment):
         advanced_ns=False, advanced_technique="BLI", advanced_immobilized="Receptor",
         advanced_analyte="Ligand", advanced_valency="Monovalent", advanced_process="Binding",
         advanced_invert=False, advanced_nuisance=[], advanced_starts=5,
-        advanced_nfev=500, advanced_seed=20261102, advanced_start_search="Local refinement",
+        advanced_nfev=demo.get("max_nfev", 500), advanced_seed=20261102, advanced_start_search="Local refinement",
     )
     st.session_state.update(settings)
     config_key = repr(("contact_closure_transport_limit", "None", False, False, False, (),
@@ -171,6 +176,12 @@ def _configure_kinetic_demo(experiment):
             compatible = False
             break
     if compatible:
+        # Older bundled caches predate the assay annotation required by exports.
+        # All three curated kinetic demos share this declared experimental setup.
+        result.setdefault("recipe", {}).setdefault("assay", dict(
+            technique="BLI", immobilized="Receptor", analyte="Ligand",
+            analyte_valency="Monovalent", target_process="Binding",
+        ))
         result["preloaded_demo"] = True
         result["preloaded_signature_bound"] = False
         st.session_state.latest_mechanistic_results = result
@@ -181,7 +192,11 @@ def _configure_kinetic_demo(experiment):
 
 def _load_mcam_kinetic_demo(experiment):
     demo = KINETIC_DEMOS[experiment]
-    loader = load_bundled_mcam_lm411_kinetics_datasets if demo["dataset"]=="LM411" else load_bundled_mcam_lama4g123_kinetics_datasets
+    loader = {
+        "LM411": load_bundled_mcam_lm411_kinetics_datasets,
+        "LM421": load_bundled_mcam_lm421_kinetics_datasets,
+        "LamA4G123": load_bundled_mcam_lama4g123_kinetics_datasets,
+    }[demo["dataset"]]
     try:
         incoming = loader()
         if not incoming:
@@ -194,7 +209,7 @@ def _load_mcam_kinetic_demo(experiment):
         st.session_state.data_list = prepared
         st.session_state.preprocessing_table = provenance
         st.session_state.include_map = {
-            d["filename"]: {c for c in d["concentrations"] if (0<c<=125. if demo["dataset"]=="LM411" else c>=15.)}
+            d["filename"]: {c for c in d["concentrations"] if (0<c<=125. if demo["dataset"] in {"LM411", "LM421"} else c>=15.)}
             for d in prepared
         }
         st.session_state.prepared_signature = analysis_fingerprint(incoming, design, experiment, align_phases=False)
@@ -218,6 +233,10 @@ def _load_mcam_lm411_kinetics():
 
 def _load_mcam_lama4g123_kinetics():
     _load_mcam_kinetic_demo("MCAM-Fc + LamA4G123 (α4 LG1–LG3)")
+
+
+def _load_mcam_lm421_kinetics():
+    _load_mcam_kinetic_demo("MCAM-Fc + LM421 (tE421)")
 
 
 def _load_mcam_itga6b1_competition_demo():
@@ -252,13 +271,16 @@ def _load_mcam_itga6b1_competition_demo():
 
 def _load_complete_mcam_study():
     _load_mcam_lm411_kinetics()
-    # Also append the bundled MCAM-Fc + LamA4G123 (isolated alpha4 LG1-LG3) datasets as a second selectable experiment
-    g123_sets = load_bundled_mcam_lama4g123_kinetics_datasets()
-    if g123_sets:
-        g123_exp = "MCAM-Fc + LamA4G123 (α4 LG1–LG3)"
-        g123_design = smart_predict_design(g123_sets, experiment_name=g123_exp)
-        st.session_state.raw_datasets = st.session_state.raw_datasets + g123_sets
-        st.session_state.dataset_design = pd.concat([st.session_state.dataset_design, g123_design], ignore_index=True)
+    for experiment, loader in (
+        ("MCAM-Fc + LM421 (tE421)", load_bundled_mcam_lm421_kinetics_datasets),
+        ("MCAM-Fc + LamA4G123 (α4 LG1–LG3)", load_bundled_mcam_lama4g123_kinetics_datasets),
+    ):
+        incoming = loader()
+        if incoming:
+            design = smart_predict_design(incoming, experiment_name=experiment)
+            st.session_state.raw_datasets = st.session_state.raw_datasets + incoming
+            st.session_state.dataset_design = pd.concat([st.session_state.dataset_design, design], ignore_index=True)
+    if len(st.session_state.raw_datasets)>3:
         st.session_state.dataset_draft = st.session_state.dataset_design.copy()
         st.session_state.prepared_signature = analysis_fingerprint(
             st.session_state.raw_datasets,
@@ -287,7 +309,7 @@ def _load_complete_mcam_study():
         st.session_state.comp_surface_coop_mode = "1-Site Langmuir surface (m = 1.0)"
         st.session_state.comp_lock_lit_kd = False
     st.session_state.import_notice = (
-        "Loaded the complete MCAM study: LM411 kinetics, isolated α4 LG1–3 kinetics and α6β1 competition, "
+        "Loaded the complete MCAM study: LM411 and LM421 kinetics, isolated α4 LG1–3 kinetics and α6β1 competition, "
         "with three existing repeats per dataset. Choose the kinetic experiment using the selector or quick-switch buttons. "
         "Model assumptions and fitted values are displayed with each saved analysis."
     )
@@ -745,17 +767,18 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
     if active_section == "Data Input":
         st.markdown("### 1. Add datasets")
         demo_tab, upload_tab = st.tabs(
-            ["Demonstration Datasets (MCAM–LM411 Kinetics & α6β1 Inhibition)", "Upload SPR / BLI files"]
+            ["Demonstration Datasets (MCAM–Laminin Kinetics & α6β1 Inhibition)", "Upload SPR / BLI files"]
         )
         with demo_tab:
             st.caption(
                 "Bundled BLI data: MCAM-Fc binding to intact laminin-411 (α4β1γ1; three repeats, 7.81–125 nM), "
-                "binding to isolated α4 LG1–3 (three repeats, 15.63–500 nM), and α6β1 competition "
+                "binding to laminin-421 (α4β2γ1; three series, 7.81–125 nM), isolated α4 LG1–3 "
+                "(three repeats, 15.63–500 nM), and α6β1 competition "
                 "for 20 nM laminin-411 (three repeats, 0–40 nM integrin)."
             )
-            dc1, dc2, dc3, dc4 = st.columns(4)
+            dc1, dc2, dc3, dc4, dc5 = st.columns(5)
             dc1.button(
-                "Load Complete MCAM Study (All 3 Datasets)",
+                "Load Complete MCAM Study (All 4 Datasets)",
                 on_click=_load_complete_mcam_study,
                 key="load_complete_mcam_study_btn",
                 type="primary",
@@ -774,6 +797,12 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
                 use_container_width=True,
             )
             dc4.button(
+                "Load MCAM + LM421 Trimer Kinetics (3 reps)",
+                on_click=_load_mcam_lm421_kinetics,
+                key="load_mcam_lm421_kinetics_btn",
+                use_container_width=True,
+            )
+            dc5.button(
                 "Load α6β1 Integrin Competition Only (3 reps)",
                 on_click=_load_mcam_itga6b1_competition_demo,
                 key="load_mcam_itga6b1_comp_btn",
@@ -878,7 +907,7 @@ def render_dataset_workspace(active_section, show_preview=True, show_summary=Tru
         previous = st.session_state.include_map
         st.session_state.data_list = prepared
         st.session_state.preprocessing_table = provenance
-        if experiment == "MCAM-Fc + LM411 (tE411)":
+        if experiment in {"MCAM-Fc + LM411 (tE411)", "MCAM-Fc + LM421 (tE421)"}:
             st.session_state.include_map = {
                 d["filename"]: {c for c in d["concentrations"] if 0 < c <= 125.0}
                 for d in prepared
