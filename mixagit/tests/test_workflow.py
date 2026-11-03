@@ -11,6 +11,49 @@ from mixa_data import SAMPLE_FILES
 
 
 class WorkflowTests(unittest.TestCase):
+    def test_cached_pre_upgrade_model_labels_reload_without_losing_data(self):
+        import mixa_mechanisms
+        import mixa_mechanistic_ui
+        import mixa_assistant_ui
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "mixa_app.py", default_timeout=120).run()
+        next(b for b in app.button if b.label == "Load synthetic demonstration").click().run()
+        next(b for b in app.button if b.label == "Apply dataset assignments").click().run()
+        files = [d["filename"] for d in app.session_state["data_list"]]
+        mixa_mechanisms.MODEL_LABELS.pop("contact_closure_transport_limit")
+        app.run()
+        self.assertEqual([e.value for e in app.exception], [])
+        self.assertEqual([d["filename"] for d in app.session_state["data_list"]], files)
+        self.assertIn("contact_closure_transport_limit", mixa_mechanisms.MODEL_LABELS)
+        self.assertIs(mixa_mechanistic_ui.MODEL_LABELS, mixa_mechanisms.MODEL_LABELS)
+        self.assertIs(mixa_assistant_ui.MODEL_LABELS, mixa_mechanisms.MODEL_LABELS)
+
+    def test_equilibrium_fixed_capacity_controls_run_and_persist(self):
+        app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
+        next(b for b in app.button if b.label == "Load synthetic demonstration").click().run()
+        next(b for b in app.button if b.label == "Apply dataset assignments").click().run()
+        app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
+        app.button(key="kin_quick_switch_g123").click().run()
+        app.radio(key="workflow_nav").set_value("Equilibrium Analysis").run()
+        app.checkbox(key="equilibrium_fix_rmax").check().run()
+        app.number_input(key="equilibrium_fixed_rmax_value").set_value(.8).run()
+        self.assertTrue(app.checkbox(key="equilibrium_normalize_percent_bmax").disabled)
+        next(b for b in app.button if b.label == "⚖️ Run Equilibrium Analysis").click().run()
+        self.assertEqual([e.value for e in app.exception], [])
+        fit = app.session_state["latest_equilibrium_results"]
+        self.assertEqual(fit["Rmax"], .8)
+        self.assertTrue(fit["Rmax_fixed"])
+        self.assertEqual(fit["fit_settings"]["fixed_Rmax"], .8)
+        self.assertEqual(fit["n_parameters"], 1)
+        self.assertTrue(np.isfinite(fit["KD"]))
+        app.number_input(key="equilibrium_fixed_rmax_value").set_value(.9).run()
+        self.assertTrue(any("Settings have changed" in w.value for w in app.warning))
+        self.assertEqual(app.session_state["latest_equilibrium_results"]["Rmax"], .8)
+        app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
+        app.radio(key="workflow_nav").set_value("Equilibrium Analysis").run()
+        self.assertTrue(app.checkbox(key="equilibrium_fix_rmax").value)
+        self.assertEqual(app.number_input(key="equilibrium_fixed_rmax_value").value, .9)
+        self.assertFalse(any("default value" in w.value and "Session State" in w.value for w in app.warning))
+
     def test_automatic_full_phases_with_optional_slider_adjustments(self):
         app = AppTest.from_file(Path(__file__).resolve().parents[1] / "app.py", default_timeout=120).run()
 

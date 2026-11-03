@@ -217,6 +217,19 @@ def test_equilibrium_common_stock_error_does_not_shrink_across_repeats_and_profi
     assert fit["KD_profile_ci95"][1]-fit["KD_profile_ci95"][0] < .001
 
 
+def test_fixed_capacity_equilibrium_input_budget_uses_only_free_parameters():
+    data, included, _ = project(dict(stock_cv=.1), shared=False)
+    for d in data:
+        for concentration in d["concentrations"]:
+            d["responses"][concentration] = np.full(len(d["time"]), .8*concentration/(33+concentration))
+    fit = app.fit_equilibrium_advanced(data, 95., included, aggregate_repeats=True, t_assoc_start=20., fixed_rmax=.8)
+    assert fit["input_uncertainty"]["applied"]
+    assert fit["input_uncertainty"]["parameter_order"] == ["KD"]
+    assert fit["KD"] == pytest.approx(33., rel=1e-5)
+    assert fit["KD_err"] == pytest.approx(3.3, rel=1e-4)
+    assert np.isnan(fit["Rmax_err"])
+
+
 @pytest.mark.parametrize("changes", [dict(stock_cv=-1.), dict(level_cv=np.nan), dict(draws=12), dict(propagate_measurement=1), dict(unknown=2)])
 def test_invalid_input_budgets_are_rejected(changes):
     with pytest.raises(ValueError):

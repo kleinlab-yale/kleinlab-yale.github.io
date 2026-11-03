@@ -265,6 +265,16 @@ Analytical Biochemistry](https://doi.org/10.1006/abio.1996.0167).
 
 ## 6. Equilibrium and Fixed-Time Isotherms
 
+Use **Fix Rmax before fitting** to supply a saturation capacity before running
+an equilibrium fit. Enter the value in the raw input response units (for BLI
+data in nm, for example 0.80 nm). The supplied value is held constant across all
+included concentrations and repeats, including independent-repeat refits.
+Observed-maximum normalization is turned off while this option is selected.
+The results and exports mark Rmax as fixed, exclude it from the free-parameter
+count, and report KD uncertainty conditional on the supplied capacity. This
+does not establish that a sampled sensorgram has reached equilibrium; the
+sampling-time and flatness checks still apply.
+
 Responses are averaged over the five seconds ending at the selected sampling
 time, within the association phase. Simple fitting uses `Rmax*C/(KD+C)`;
 Hill fitting uses `Rmax*C^nH/(C_half^nH+C^nH)`. MIXA profiles capacity and

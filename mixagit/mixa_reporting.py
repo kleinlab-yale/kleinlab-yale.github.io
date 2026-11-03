@@ -235,14 +235,14 @@ def analyze_repeats(data_list, include_map, results_by_method, engines, progress
                         files, settings["equilibrium_sampling_time_s"], include_map,
                         model=settings["equilibrium_model_code"], aggregate_repeats=settings["aggregate_repeats"],
                         normalize_percent_bmax=settings["normalize_percent_bmax"],
-                        t_assoc_start=settings["phase_assoc_start_s"])
+                        t_assoc_start=settings["phase_assoc_start_s"], fixed_rmax=settings.get("fixed_Rmax"))
                     if fit:
                         status = "Complete"
                         if fit.get("boundary_parameters"):
                             status = "Boundary estimate"
                         elif not fit.get("identifiable", True):
                             status = "Unresolved affinity"
-                        elif not fit.get("saturation_coverage", True):
+                        elif not fit.get("saturation_coverage", True) and not fit.get("Rmax_fixed", False):
                             status = "Insufficient saturation"
                         row.update(KD_nM=fit["KD"], status=status,
                                    detail="; ".join(fit.get("scientific_warnings", [])) or settings["equilibrium_model_code"])

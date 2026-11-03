@@ -20,6 +20,17 @@ import streamlit as st
 from scipy import stats
 from scipy.optimize import curve_fit, least_squares, lsq_linear
 
+import mixa_science
+import mixa_input_uncertainty
+import mixa_reporting
+
+# Hot deployments must refresh the optional fixed-capacity API as one group.
+if ("fixed_rmax" not in inspect.signature(mixa_science.fit_profile_isotherm).parameters
+        or "fixed_rmax" not in inspect.signature(mixa_input_uncertainty.isotherm_propagation).parameters):
+    reload(mixa_science)
+    reload(mixa_input_uncertainty)
+    reload(mixa_reporting)
+
 from mixa_data import APP_VERSION, parse_concentration_nM
 from mixa_selection import detect_binding_phases, observation_masks, selection_summary, validate_windows
 from mixa_science import (CONDITIONAL_ERROR, boundary_flags, conditional_covariance,
@@ -38,12 +49,21 @@ import mixa_mechanistic_ui
 import mixa_diagnostics
 
 # Upgrade cached helper APIs on rerun without discarding the loaded session.
-if "linear_nonspecific" not in inspect.signature(mixa_mechanisms.parameter_defaults).parameters:
+# Streamlit keeps imported modules across source updates, including MODEL_LABELS.
+_mechanisms_reloaded = (
+    "linear_nonspecific" not in inspect.signature(mixa_mechanisms.parameter_defaults).parameters
+    or "contact_closure_transport_limit" not in getattr(mixa_mechanisms, "MODEL_LABELS", {})
+)
+if _mechanisms_reloaded:
     reload(mixa_mechanisms)
-if ("linear_nonspecific" not in inspect.signature(mixa_mechanistic_ui.render_mechanistic_workspace).parameters
+if (_mechanisms_reloaded
+        or "linear_nonspecific" not in inspect.signature(mixa_mechanistic_ui.render_mechanistic_workspace).parameters
         or getattr(mixa_mechanistic_ui, "DIAGNOSTICS_REVISION", 0) < 5):
     reload(mixa_diagnostics)
     reload(mixa_mechanistic_ui)
+if _mechanisms_reloaded:
+    import mixa_assistant_ui
+    reload(mixa_assistant_ui)
 from mixa_diagnostics import render_saved_fit_diagnostics, saved_fit_curves, write_diagnostic_tables
 from mixa_mechanistic_ui import render_mechanistic_workspace
 from mixa_mechanisms import (MODEL_LABELS, TRANSPORT_LABELS, fit_mechanism,
@@ -3926,7 +3946,10 @@ def fit_equilibrium_advanced(
     aggregate_repeats=False,
     normalize_percent_bmax=False,
     t_assoc_start=None,
+    fixed_rmax=None,
 ):
+    if fixed_rmax is not None and normalize_percent_bmax:
+        raise ValueError("Fixed Rmax uses raw input response units; turn off observed-maximum normalization.")
     records = []
     dataset_norm_info = []
     input_curves, raw_file_means = [], []
@@ -4028,7 +4051,7 @@ def fit_equilibrium_advanced(
         sigma = None
 
     try:
-        inference = fit_profile_isotherm(concentrations, responses, sigma=sigma, model=model)
+        inference = fit_profile_isotherm(concentrations, responses, sigma=sigma, model=model, fixed_rmax=fixed_rmax)
         Rmax, KD, n_hill = inference["Rmax"], inference["KD"], inference["n_hill"]
         if normalize_percent_bmax:
             inference["scientific_warnings"].append("Observed-maximum normalization is not measured Bmax. Conditional model uncertainty does not propagate the estimated normalization factor.")
@@ -4059,7 +4082,7 @@ def fit_equilibrium_advanced(
         ss_res = np.sum(residuals**2)
         ss_tot = np.sum((responses - responses.mean()) ** 2)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0.0
-        information = gaussian_information(residuals, 3 if model == "hill" else 2, sigma=sigma)
+        information = gaussian_information(residuals, inference["n_parameters"], sigma=sigma)
         aic, bic = information["aic"], information["bic"]
         input_uncertainty = dict(applied=False)
         if requested(common_options(input_curves)):
@@ -4080,14 +4103,18 @@ def fit_equilibrium_advanced(
                 jac = np.column_stack([occupancy, -Rmax*occupancy*(1-occupancy)*n_hill/KD])
                 if model == "hill":
                     jac = np.column_stack([jac, Rmax*occupancy*(1-occupancy)*(np.log(concentrations)-np.log(KD))])
+                if fixed_rmax is not None:
+                    jac = jac[:, 1:]
                 conditional = conditional_covariance(jac*weights[:, None], residuals*weights)["covariance"]
                 parameters = [Rmax, KD] + ([n_hill] if model == "hill" else [])
                 covariance, input_uncertainty = isotherm_propagation(input_curves, raw_file_means, aggregation,
-                    concentrations, weights, parameters, conditional, normalize_percent_bmax)
+                    concentrations, weights, parameters, conditional, normalize_percent_bmax, fixed_rmax=fixed_rmax)
                 inference["conditional_parameter_se"] = {key: inference[key] for key in ["Rmax_err", "KD_err", "n_hill_err"]}
                 errors = np.sqrt(np.maximum(np.diag(covariance), 0.))
-                inference.update(Rmax_err=float(errors[0]), KD_err=float(errors[1]),
-                                 n_hill_err=float(errors[2]) if model == "hill" else np.nan, uncertainty_method=INPUT_ERROR)
+                offset = 0 if fixed_rmax is None else -1
+                inference.update(Rmax_err=float(errors[0]) if fixed_rmax is None else np.nan,
+                                 KD_err=float(errors[1+offset]),
+                                 n_hill_err=float(errors[2+offset]) if model == "hill" else np.nan, uncertainty_method=INPUT_ERROR)
                 inference["scientific_warnings"].append("Displayed standard uncertainties include the saved raw-input/calibration budget. The separate profile interval remains conditional on concentrations and referencing.")
             except (ValueError, np.linalg.LinAlgError) as exc:
                 input_uncertainty = dict(applied=False, error=str(exc), settings=common_options(input_curves))
@@ -5592,6 +5619,9 @@ def _write_equilibrium_exports(zipf, base_path, eq_results):
         "KD_err_nM": eq_results.get("KD_err", np.nan),
         "Rmax": eq_results.get("Rmax", np.nan),
         "Rmax_err": eq_results.get("Rmax_err", np.nan),
+        "Rmax_fixed": eq_results.get("Rmax_fixed", False),
+        "fixed_Rmax": eq_results.get("fixed_Rmax"),
+        "n_fitted_parameters": eq_results.get("n_parameters"),
         "hill_n": eq_results.get("n_hill", np.nan),
         "r_squared": eq_results.get("r_squared", np.nan),
         "aic": eq_results.get("aic", np.nan),
@@ -5784,7 +5814,8 @@ def legacy_main():
     # Keep settings when Streamlit removes widgets from an inactive workflow page.
     persistent_settings = (
         "binding_model_select", "equilibrium_model_select", "equilibrium_aggregate_repeats",
-        "equilibrium_normalize_percent_bmax", "kinetic_workflow", "rmax_group_mode",
+        "equilibrium_normalize_percent_bmax", "equilibrium_fix_rmax", "equilibrium_fixed_rmax_value",
+        "kinetic_workflow", "rmax_group_mode",
         "normalize_baseline", "correct_drift", "include_nonspecific", "ci_method", "bootstrap_n",
         "export_format", "export_dpi", "multi_day", "kinetic_pub_style", "kinetic_pub_title_mode",
         "kinetic_pub_title_text", "equilibrium_pub_style", "equilibrium_pub_title_mode",
@@ -7138,10 +7169,23 @@ def legacy_main():
                 key="equilibrium_aggregate_repeats",
             )
         with eq_settings_col2:
+            fix_equilibrium_rmax = st.checkbox(
+                "Fix Rmax before fitting", key="equilibrium_fix_rmax",
+                help="Hold one supplied saturation capacity constant across all included concentrations and repeats.",
+            )
+            if fix_equilibrium_rmax:
+                st.session_state["equilibrium_normalize_percent_bmax"] = False
+            supplied_rmax = st.number_input(
+                "Fixed Rmax (input response units)", min_value=1e-9, value=0.8, step=0.05,
+                format="%.4g", key="equilibrium_fixed_rmax_value", disabled=not fix_equilibrium_rmax,
+                help="For BLI responses in nm, enter the capacity in nm, for example 0.80. Use an independently justified capacity; the observed maximum may be below saturation.",
+            )
             st.checkbox(
                 "Normalize to each dataset's observed maximum",
                 key="equilibrium_normalize_percent_bmax",
+                disabled=fix_equilibrium_rmax,
             )
+        equilibrium_fixed_rmax = float(supplied_rmax) if fix_equilibrium_rmax else None
         equilibrium_model = st.session_state.get("equilibrium_model_select", "Simple")
         equilibrium_aggregate_repeats = bool(st.session_state.get("equilibrium_aggregate_repeats", True))
         equilibrium_normalize_percent_bmax = bool(st.session_state.get("equilibrium_normalize_percent_bmax", False))
@@ -7165,6 +7209,7 @@ def legacy_main():
             requested = {"equilibrium_model_ui": equilibrium_model,
                          "aggregate_repeats": equilibrium_aggregate_repeats,
                          "normalize_percent_bmax": equilibrium_normalize_percent_bmax,
+                         "fixed_Rmax": equilibrium_fixed_rmax,
                          "equilibrium_sampling_time_s": float(equilibrium_t_measure)}
             saved = cached_eq_results.get("fit_settings", {})
             if any(saved.get(key) != value for key, value in requested.items()):
@@ -7192,6 +7237,7 @@ def legacy_main():
                             aggregate_repeats=equilibrium_aggregate_repeats,
                             normalize_percent_bmax=equilibrium_normalize_percent_bmax,
                             t_assoc_start=t_assoc_start,
+                            fixed_rmax=equilibrium_fixed_rmax,
                         )
                         if not eq_results and equilibrium_aggregate_repeats:
                             st.warning(
@@ -7205,6 +7251,7 @@ def legacy_main():
                                 aggregate_repeats=False,
                                 normalize_percent_bmax=equilibrium_normalize_percent_bmax,
                                 t_assoc_start=t_assoc_start,
+                                fixed_rmax=equilibrium_fixed_rmax,
                             )
             else:
                 eq_results = cached_eq_results
@@ -7233,6 +7280,8 @@ def legacy_main():
                         "equilibrium_model_code": eq_model_map[equilibrium_model],
                         "aggregate_repeats": bool(eq_results["aggregate_repeats"]),
                         "normalize_percent_bmax": bool(equilibrium_normalize_percent_bmax),
+                        "fixed_Rmax": equilibrium_fixed_rmax,
+                        "Rmax_fixed": equilibrium_fixed_rmax is not None,
                         "equilibrium_sampling_time_s": float(t_measure),
                         "phase_assoc_start_s": float(t_assoc_start),
                         "phase_dissoc_start_s": float(t_dissoc_start),
@@ -7287,7 +7336,7 @@ def legacy_main():
                             <div class="metric-card">
                                 <div class="metric-label">{rmax_label}</div>
                                 <div class="metric-value">{eq_results['Rmax']:.3f}</div>
-                                <div class="metric-ci">{f"± {eq_results['Rmax_err']:.3f} {rmax_unit}" if np.isfinite(eq_results['Rmax_err']) else 'Model SE unavailable'}</div>
+                                <div class="metric-ci">{'Fixed before fitting' if eq_results.get('Rmax_fixed', False) else f"± {eq_results['Rmax_err']:.3f} {rmax_unit}" if np.isfinite(eq_results['Rmax_err']) else 'Model SE unavailable'}</div>
                             </div>
                             """,
                             unsafe_allow_html=True,

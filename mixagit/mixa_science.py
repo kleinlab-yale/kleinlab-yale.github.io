@@ -31,7 +31,8 @@ def scientific_metadata(result):
             "affinity_interpretation", "uncertainty_method", "scientific_warnings", "weighting",
             "covariance_status", "degrees_of_freedom", "n_fit_observations", "n_parameters",
             "jacobian_rank", "scaled_jacobian_condition", "KD_profile_ci95", "profile_interval_method",
-            "bootstrap_diagnostics", "rmax_se_by_group", "residual_dependence", "information_criteria", "baseline_uncertainty", "input_uncertainty", "covariance_rates", "precision_screen"]
+            "bootstrap_diagnostics", "rmax_se_by_group", "residual_dependence", "information_criteria", "baseline_uncertainty", "input_uncertainty", "covariance_rates", "precision_screen",
+            "Rmax_fixed", "fixed_Rmax", "free_parameter_names"]
     metadata = {key: result[key] for key in keys if key in result}
     interval = result.get("KD_profile_ci95")
     if interval is not None:
@@ -261,7 +262,7 @@ def two_state_affinity(parameters, covariance):
     return float(affinity), error
 
 
-def fit_profile_isotherm(concentrations, responses, sigma=None, model="simple"):
+def fit_profile_isotherm(concentrations, responses, sigma=None, model="simple", fixed_rmax=None):
     """Positive isotherm with analytically profiled capacity, not an observed-max cap.
 
     Intervals use the approximate nonlinear extra-sum-of-squares F criterion.
@@ -271,7 +272,10 @@ def fit_profile_isotherm(concentrations, responses, sigma=None, model="simple"):
     c, y = np.asarray(concentrations, float), np.asarray(responses, float)
     if model not in {"simple", "hill"} or np.any(c <= 0) or not np.isfinite(y).all():
         raise ValueError("Positive concentrations and a recognized isotherm model are required.")
-    p = 3 if model == "hill" else 2
+    if fixed_rmax is not None and (not np.isfinite(fixed_rmax) or fixed_rmax <= 0):
+        raise ValueError("Fixed Rmax must be finite and positive.")
+    fixed = fixed_rmax is not None
+    p = (3 if model == "hill" else 2) - int(fixed)
     weights = np.ones(len(y)) if sigma is None else 1 / np.asarray(sigma, float)
     if not np.all(np.isfinite(weights) & (weights > 0)):
         raise ValueError("Fitting errors must be finite and positive; missing errors cannot be replaced by zero.")
@@ -282,7 +286,7 @@ def fit_profile_isotherm(concentrations, responses, sigma=None, model="simple"):
     def evaluate(logkd, hill=1.):
         occupancy = expit(hill * (logc - logkd))
         q = occupancy * weights
-        capacity = max(float(q @ (y * weights) / (q @ q)), 0.)
+        capacity = float(fixed_rmax) if fixed else max(float(q @ (y * weights) / (q @ q)), 0.)
         residual = (y - capacity * occupancy) * weights
         return float(residual @ residual), capacity, hill
 
@@ -310,6 +314,8 @@ def fit_profile_isotherm(concentrations, responses, sigma=None, model="simple"):
     jac = np.column_stack([occupancy, -rmax * occupancy * (1 - occupancy) * hill / kd])
     if model == "hill":
         jac = np.column_stack([jac, rmax * occupancy * (1 - occupancy) * (logc - logkd)])
+    if fixed:
+        jac = jac[:, 1:]
     covariance = conditional_covariance(jac * weights[:, None], (y - fitted) * weights)
     cov = covariance.pop("covariance")
     errors = np.sqrt(np.diag(cov)) if cov is not None else np.full(p, np.nan)
@@ -341,17 +347,23 @@ def fit_profile_isotherm(concentrations, responses, sigma=None, model="simple"):
     if model == "hill" and (hill <= .10001 or hill >= 9.9999):
         flags.append("Hill coefficient")
     warnings = []
+    if fixed:
+        warnings.append("Rmax was fixed before fitting; KD uncertainty is conditional on this supplied capacity and does not include uncertainty in that value.")
     identifiable = bool(dof > 0 and interval[0] > 0 and np.isfinite(interval[1]) and not flags and cov is not None)
     covered = bool(c.min() <= kd and c.max() >= 2 * kd)
     if not identifiable:
         warnings.append("Affinity is not resolved by a finite two-sided profile interval; the curve is retained but excluded from routine parameter summaries.")
     if not covered:
-        warnings.append("Concentrations do not bracket the fitted half-saturation value and extend to at least twice it; saturation coverage is insufficient for routine affinity reporting.")
-    return {"Rmax": rmax, "KD": kd, "n_hill": hill, "Rmax_err": float(errors[0]), "KD_err": float(errors[1]),
-            "n_hill_err": float(errors[2]) if model == "hill" else np.nan,
+        warnings.append("Concentrations do not bracket the fitted half-saturation value and extend to at least twice it; " +
+                        ("the affinity estimate depends on the supplied fixed capacity." if fixed else "saturation coverage is insufficient for routine affinity reporting."))
+    offset = -1 if fixed else 0
+    return {"Rmax": rmax, "KD": kd, "n_hill": hill, "Rmax_err": np.nan if fixed else float(errors[0]),
+            "KD_err": float(errors[1+offset]), "n_hill_err": float(errors[2+offset]) if model == "hill" else np.nan,
+            "Rmax_fixed": fixed, "fixed_Rmax": float(fixed_rmax) if fixed else None,
+            "n_parameters": p, "free_parameter_names": ([] if fixed else ["Rmax"])+["KD"]+(["n_hill"] if model == "hill" else []),
             "fitted_responses": fitted, "KD_profile_ci95": interval,
             "profile_interval_method": "Approximate profile-RSS F interval; independent residuals, fixed relative weights",
             "boundary_parameters": flags, "identifiable": identifiable, "saturation_coverage": covered,
-            "summary_eligible": identifiable and covered, "scientific_warnings": warnings,
+            "summary_eligible": identifiable and (covered or fixed), "scientific_warnings": warnings,
             "affinity_interpretation": "Hill half-saturation concentration (apparent affinity)" if model == "hill" else "1:1 equilibrium dissociation constant",
             "uncertainty_method": CONDITIONAL_ERROR, **covariance}

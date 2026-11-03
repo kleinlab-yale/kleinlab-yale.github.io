@@ -114,6 +114,51 @@ def test_noisy_near_linear_isotherm_has_open_upper_profile_limit():
 
 
 @pytest.mark.parametrize("model,hill", [("simple", 1.), ("hill", 1.8)])
+def test_supplied_equilibrium_capacity_is_fixed_and_counted_correctly(model, hill):
+    c = np.array([15.63, 31.25, 62.5, 125., 250., 500.])
+    y = .8 * c**hill / (420.**hill + c**hill) + np.array([.001, -.001, .001, -.001, .001, -.001])
+    fit = fit_profile_isotherm(c, y, model=model, fixed_rmax=.8)
+    assert fit["Rmax"] == .8 and fit["Rmax_fixed"]
+    assert fit["KD"] == pytest.approx(420., rel=.03)
+    assert fit["n_hill"] == pytest.approx(hill, rel=.03)
+    assert fit["n_parameters"] == (2 if model == "hill" else 1)
+    assert fit["degrees_of_freedom"] == len(c)-fit["n_parameters"]
+    assert "Rmax" not in fit["free_parameter_names"]
+    assert np.isnan(fit["Rmax_err"]) and np.isfinite(fit["KD_err"])
+    assert fit["KD_profile_ci95"][0] < 420 < fit["KD_profile_ci95"][1]
+    assert not fit["saturation_coverage"] and fit["summary_eligible"]
+
+
+@pytest.mark.parametrize("value", [0., -1., np.nan, np.inf])
+def test_invalid_supplied_equilibrium_capacity_is_rejected(value):
+    with pytest.raises(ValueError, match="finite and positive"):
+        fit_profile_isotherm([1., 2., 3.], [.1, .2, .3], fixed_rmax=value)
+
+
+def test_fixed_equilibrium_capacity_reaches_repeat_refits_and_exports():
+    c = np.array([15.63, 31.25, 62.5, 125., 250., 500.])
+    data = [dataset({v: np.where(np.arange(181.) >= 20, .8*v/(kd+v), 0.) for v in c}, name=f"fixed_repeat{i}")
+            for i,kd in enumerate([380., 420., 460.])]
+    included = {d["filename"]: set(c) for d in data}
+    fit = app.fit_equilibrium_advanced(data, 90., included, aggregate_repeats=True, t_assoc_start=20., fixed_rmax=.8)
+    assert fit["Rmax"] == .8 and fit["information_criteria"]["k"] == 2
+    fit["fit_settings"] = dict(equilibrium_sampling_time_s=90., equilibrium_model_code="simple", aggregate_repeats=True,
+                               normalize_percent_bmax=False, phase_assoc_start_s=20., fixed_Rmax=.8)
+    with patch("mixa_reporting.project_context", return_value={}):
+        report = analyze_repeats(data, included, {"Equilibrium": fit}, {"equilibrium": app.fit_equilibrium_advanced})
+    assert set(report["repeat_estimates"].status) == {"Complete"}
+    assert report["summary"].n_independent.tolist() == [3]
+    assert report["summary"]["mean"].iloc[0] == pytest.approx(420., rel=1e-5)
+    assert scientific_metadata(fit)["fixed_Rmax"] == .8
+    import io,zipfile
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive,"w") as z:app._write_equilibrium_exports(z,"eq",fit)
+    with zipfile.ZipFile(archive) as z:
+        summary = list(__import__('csv').DictReader(io.StringIO(z.read("eq/equilibrium_summary.csv").decode())))[0]
+        assert summary["Rmax_fixed"] == "True" and float(summary["fixed_Rmax"]) == .8
+
+
+@pytest.mark.parametrize("model,hill", [("simple", 1.), ("hill", 1.8)])
 def test_saturated_isotherm_recovery_and_interval(model, hill):
     c = np.array([1., 3., 10., 33., 100., 330., 1000.])
     y = 100 * c**hill / (33**hill + c**hill) + np.array([.1, -.1, .1, -.1, .1, -.1, 0.])

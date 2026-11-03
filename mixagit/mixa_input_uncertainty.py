@@ -326,9 +326,11 @@ def kobs_propagation(curves, concentrations_nM, means, weights, coefficients):
 
 
 def isotherm_propagation(curves, raw_means, aggregation, concentrations, weights, parameters,
-                         conditional_covariance, normalize_max=False):
+                         conditional_covariance, normalize_max=False, fixed_rmax=None):
     options = common_options(curves)
     metadata = dict(applied=False, settings=options, parameter_order=["Rmax", "KD"]+(["n_hill"] if len(parameters) == 3 else []))
+    if fixed_rmax is not None:
+        metadata.update(parameter_order=metadata["parameter_order"][1:], fixed_Rmax=float(fixed_rmax))
     if not requested(options):
         return conditional_covariance, metadata
     if conditional_covariance is None:
@@ -341,6 +343,8 @@ def isotherm_propagation(curves, raw_means, aggregation, concentrations, weights
     jac = np.column_stack([f, -rmax*f*(1-f)*hill/kd])
     if len(parameters) == 3:
         jac = np.column_stack([jac, rmax*f*(1-f)*(np.log(c)-np.log(kd))])
+    if fixed_rmax is not None:
+        jac = jac[:, 1:]
     w = np.asarray(weights, float)
     influence = -estimator_sensitivity(jac*w[:, None])
     measurement = np.asarray(conditional_covariance)
