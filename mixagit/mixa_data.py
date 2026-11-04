@@ -13,7 +13,7 @@ import pandas as pd
 
 from mixa_input_uncertainty import source_id
 
-APP_VERSION = "0.5.13-preview"
+APP_VERSION = "0.5.14-preview"
 
 ROLES = ["Sample", "Negative control", "Exclude"]
 BACKGROUND_MODES = ["None", "Matched concentrations", "Control 0 nM", "Same-file 0 nM"]

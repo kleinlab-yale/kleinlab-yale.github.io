@@ -98,10 +98,13 @@ def test_saved_fit_quality_scores_the_saved_selection_without_refitting_or_trust
     fit["response"][~fit["fit_mask"]] *= 1e6
     assert saved_fit_quality(result)["overall_score"] == exact["overall_score"]
     result["boundary_parameters"] = ["Rmax::A.csv"]
-    assert saved_fit_quality(result)["overall_label"] == "Caution"
+    constrained = saved_fit_quality(result)
+    assert constrained["overall_score"] == exact["overall_score"]
+    assert constrained["overall_label"] == "Good"
+    assert next(c for c in constrained["checks"] if c["check"] == "Parameter interpretation")["status"] == "Review"
     result["boundary_parameters"] = []
     result["optimizer_converged"] = False
-    assert saved_fit_quality(result)["overall_label"] == "Poor"
+    assert saved_fit_quality(result)["overall_label"] == "Incomplete"
     result["optimizer_converged"] = True
     fit["fitted"][fit["fit_mask"]] += 20.
     fit["whitened_residuals"][:] = -20.
@@ -120,12 +123,75 @@ def test_saved_fit_quality_separates_high_curve_agreement_from_serial_residuals(
     quality = saved_fit_quality(dict(curves=[fit]))
     assert quality["mean_r2"] > .99
     assert quality["flagged_serial_correlation"] == 1
-    assert quality["overall_label"] == "Caution"
+    assert quality["overall_label"] == "Good"
+    assert next(c for c in quality["checks"] if c["check"] == "Residual structure")["status"] == "Review"
+    shuffled = deepcopy(fit)
+    shuffled_residual = np.random.default_rng(4).permutation(residual)
+    shuffled.update(fitted=observed-shuffled_residual, whitened_residuals=shuffled_residual)
+    shuffled_quality = saved_fit_quality(dict(curves=[shuffled]))
+    assert shuffled_quality["overall_score"] == pytest.approx(quality["overall_score"])
+    assert shuffled_quality["flagged_serial_correlation"] == 0
     constant = deepcopy(fit)
     constant["response"][:] = 1.
     quality = saved_fit_quality(dict(curves=[constant]))
     assert quality["overall_label"] == "Unavailable"
     assert not np.isfinite(quality["overall_score"])
+
+
+def agreement_curve(filename, observed, residual):
+    observed, residual = np.asarray(observed), np.asarray(residual)
+    return dict(filename=filename, repeat_id="R1", concentration_nM=50.,
+                time=np.arange(len(observed),dtype=float), response=observed,
+                fitted=observed-residual, fit_mask=np.ones(len(observed),dtype=bool),
+                whitened_residuals=residual, on=0., off=len(observed)/2)
+
+
+def test_weak_nearly_flat_trace_does_not_dominate_agreement_but_keeps_every_error():
+    signal = np.linspace(0.,1.,120)
+    strong = agreement_curve("strong.csv",signal,np.full(120,.005))
+    weak = agreement_curve("weak.csv",signal*1e-6,np.full(120,.005))
+    result = dict(curves=[strong,weak],optimizer_converged=True)
+    quality = saved_fit_quality(result)
+    assert quality["mean_r2"] < -1e6
+    assert quality["overall_label"] == "Good"
+    assert quality["overall_score"] > 99.
+    assert quality["n_curves"] == 2 and quality["n_selected"] == 240
+    assert quality["rss_response2"] == pytest.approx(240*.005**2)
+    assert quality["curve_metrics"][1]["r2"] < -1e6
+    # A mismatch in the weak curve still lowers agreement; it is never excluded.
+    weak["fitted"] -= .01
+    weak["whitened_residuals"] += .01
+    assert saved_fit_quality(result)["overall_score"] < quality["overall_score"]
+    # Changing response units cannot change the score or its color.
+    scaled = deepcopy(result)
+    for c in scaled["curves"]:
+        for key in ("response","fitted","whitened_residuals"):
+            c[key] *= 1000.
+    assert saved_fit_quality(scaled)["overall_score"] == pytest.approx(saved_fit_quality(result)["overall_score"])
+
+
+def test_between_trace_offsets_cannot_create_a_good_agreement_score():
+    signal=np.linspace(0.,1.,120)
+    one=agreement_curve("one.csv",signal,np.ones(120))
+    two=agreement_curve("two.csv",signal+10000.,np.ones(120))
+    quality=saved_fit_quality(dict(curves=[one,two]))
+    assert quality["r2_within_trace"] < 0.
+    assert quality["overall_score"] == 0.
+    assert quality["overall_label"] == "Poor"
+    for c in (one,two):
+        c["response"][:]=c["response"][0]
+        c["fitted"]=c["response"]-1.
+    assert saved_fit_quality(dict(curves=[one,two]))["overall_label"] == "Unavailable"
+
+
+def test_constant_trace_mismatch_contributes_to_rss_when_other_traces_vary():
+    signal=np.linspace(0.,1.,120)
+    exact=agreement_curve("exact.csv",signal,np.zeros(120))
+    flat=agreement_curve("flat.csv",np.ones(120),np.ones(120))
+    quality=saved_fit_quality(dict(curves=[exact,flat]))
+    assert quality["rss_response2"] == 120.
+    assert quality["n_r2_curves"] == 1
+    assert quality["overall_label"] == "Poor"
 
 
 def test_diagnostic_rss_shares_reconcile_without_claiming_parameter_influence():

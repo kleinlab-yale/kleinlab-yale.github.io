@@ -26,7 +26,7 @@ import mixa_data
 # Streamlit can retain all imported helpers after a hot source deployment. Refresh
 # an older release in dependency order before binding its functions below. This
 # preserves session data while keeping the version, intake UI and fit APIs aligned.
-if getattr(mixa_data, "APP_VERSION", None) != "0.5.13-preview":
+if getattr(mixa_data, "APP_VERSION", None) != "0.5.14-preview":
     for _helper in (
         "mixa_input_uncertainty", "mixa_uncertainty", "mixa_selection",
         "mixa_science", "mixa_plotting", "mixa_figures", "mixa_data",
@@ -77,7 +77,7 @@ if _mechanisms_reloaded:
     reload(mixa_mechanisms)
 if (_mechanisms_reloaded
         or "linear_nonspecific" not in inspect.signature(mixa_mechanistic_ui.render_mechanistic_workspace).parameters
-        or getattr(mixa_mechanistic_ui, "DIAGNOSTICS_REVISION", 0) < 6):
+        or getattr(mixa_mechanistic_ui, "DIAGNOSTICS_REVISION", 0) < 7):
     reload(mixa_diagnostics)
     reload(mixa_mechanistic_ui)
 if _mechanisms_reloaded:
@@ -5253,6 +5253,8 @@ def build_compare_report(kin_results, eq_results, kobs_results=None):
         "max_pairwise_fold": max_fold,
         "pairwise_folds": pairwise_folds,
         "kinetic_score": kin_score,
+        "kinetic_score_label": "Kinetic fit agreement" if diag_summary.get("method") == "saved_fit_screen_v2" else "Kinetic diagnostics",
+        "kinetic_score_color": diag_summary.get("color") if diag_summary.get("method") == "saved_fit_screen_v2" else None,
         "equilibrium_score": eq_score,
         "kobs_score": float(kobs_score) if np.isfinite(kobs_score) else np.nan,
         "agreement_score": agreement_score,
@@ -5277,7 +5279,7 @@ def report_to_text(report):
         ),
         f"Kinetic vs equilibrium fold: {report['fold_difference']:.2f}x",
         f"Max pairwise fold: {report.get('max_pairwise_fold', np.nan):.2f}x",
-        f"Kinetic diagnostic score: {report['kinetic_score']:.1f}",
+        f"{report.get('kinetic_score_label', 'Kinetic diagnostic score')}: {report['kinetic_score']:.1f}",
         f"Equilibrium diagnostic score: {report['equilibrium_score']:.1f}",
         (
             f"kobs-linearization score: {report['kobs_score']:.1f}"
@@ -5295,12 +5297,13 @@ def report_to_text(report):
     return "\n".join(lines)
 
 
-def compare_score_html(label, score):
+def compare_score_html(label, score, color_override=None):
     if not np.isfinite(score):
         color = "#64748b"
         text = "NA"
     else:
-        color = score_color(score)
+        allowed_colors = {COLORS["success"], COLORS["warning"], COLORS["error"], "#64748b"}
+        color = color_override if color_override in allowed_colors else score_color(score)
         text = f"{score:.1f}"
     return (
         f'<div style="padding:0.45rem 0.7rem;margin:0.22rem 0;border-radius:10px;'
@@ -7638,7 +7641,7 @@ def legacy_main():
 
             st.markdown("#### Cross-Method Diagnostic Summary")
             summary_cards = [
-                compare_score_html("Kinetic diagnostics", report.get("kinetic_score", np.nan)),
+                compare_score_html(report.get("kinetic_score_label", "Kinetic diagnostics"), report.get("kinetic_score", np.nan), report.get("kinetic_score_color")),
                 compare_score_html("Equilibrium diagnostics", report.get("equilibrium_score", np.nan)),
                 compare_score_html("Agreement score", report.get("agreement_score", np.nan)),
                 compare_score_html("Combined confidence", report.get("combined_score", np.nan)),

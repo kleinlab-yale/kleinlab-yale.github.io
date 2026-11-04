@@ -1,6 +1,6 @@
 # MIXA — mixagit upload folder
 
-This `mixagit` folder contains **99 ordinary files in total**, counting all subfolders and the hidden `.streamlit/config.toml` file. There are no ZIP archives or archive launchers in this folder. Version: **0.5.13-preview**.
+This `mixagit` folder contains **99 ordinary files in total**, counting all subfolders and the hidden `.streamlit/config.toml` file. There are no ZIP archives or archive launchers in this folder. Version: **0.5.14-preview**.
 
 ## Upload to GitHub and run on Streamlit
 
@@ -23,7 +23,7 @@ Streamlit installs the dependencies listed in `requirements.txt`. For a deployme
 - The existing combined and individual schematic panels in PDF, SVG, and PNG format.
 - The contact/transport regression test, validation runner, and reference results.
 
-This deployment subset contains the verified MIXA 0.5.13-preview source, including LM421, the saved-fit traffic-light score, the Streamlit hot-reload repair and fixed-capacity equilibrium analysis. The larger development checkout retains the full test suite, offline audit runners, historical publication exports, and changelogs. Duplicate native fit caches and unused instrument summary tables are omitted. The app uses the same existing portable `.b64.txt` fit caches directly.
+This deployment subset contains the verified MIXA 0.5.14-preview source, including LM421, a within-trace agreement traffic light with separate residual and parameter checks, the Streamlit hot-reload repair and fixed-capacity equilibrium analysis. The larger development checkout retains the full test suite, offline audit runners, historical publication exports, and changelogs. Duplicate native fit caches and unused instrument summary tables are omitted. The app uses the same existing portable `.b64.txt` fit caches directly.
 
 The source download lists any omitted optional development or historical files in its release manifest. No archive extraction is needed to start this app.
 

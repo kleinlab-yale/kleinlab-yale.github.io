@@ -1,6 +1,6 @@
 # MIXA User Guide
 
-Version: 0.5.13-preview
+Version: 0.5.14-preview
 
 MIXA analyzes SPR/BLI binding responses with explicit reaction models, selected
 observation intervals, reproducible preprocessing and separately defined
@@ -57,13 +57,33 @@ silently disable background subtraction.
 ## Saved-Fit Robustness and Nonlinear Intervals
 
 **Saved-Fit Quality** appears above the result tabs for every advanced kinetic
-fit, including the preloaded MCAM examples. Its green/amber/red score, curve
-R², RMSE, serial-residual flags and parameter-bound count are calculated from
-the displayed saved model and selected observations. Open **Quality score
-details and definitions** for the exact heuristic and score contributions.
-The same score is included in the advanced analysis export and used by Model
-Comparison for that saved fit. This summary does not refit the data or alter
-the estimated parameters; parameter resolution and repeat SD remain separate.
+fit, including the preloaded MCAM examples. The main green/amber/red score now
+describes **sensorgram agreement**. It uses `100 × (1 − RSS / SST_within)`,
+displayed on 0–100, where RSS sums every selected saved-model squared residual
+and SST_within sums squared deviations from each selected trace's own mean.
+This pools sums of squares before dividing rather than averaging unstable
+R² values from nearly flat low-response traces. Every selected residual,
+including errors on constant traces, contributes. Between-dose offsets do not
+inflate the score. The unclipped R² and individual-curve errors remain available.
+
+**Residual structure**, **Parameter interpretation** and **Optimization** have
+separate review indicators. Correlation and active bounds do not subtract
+arbitrary points from curve agreement. An incomplete run cannot receive a
+Good label. Green ≥95, amber 80–<95 and red <80 are descriptive display
+thresholds, not probabilities or publication criteria. A good agreement score
+does not establish noise independence, parameter identifiability or a unique
+binding mechanism. Use the residual plots, prediction comparisons and intervals.
+
+Open **Quality score details and definitions** for the exact formula and
+individual-curve metrics. The same definition is included in advanced exports
+and labeled **Kinetic fit agreement** in Model Comparison. Previously prepared
+exports are invalidated when this reporting definition changes. No data,
+predictions, kinetic parameters or independent-repeat SDs are changed.
+
+The [R² documentation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.r2_score.html)
+explains negative/constant-response scores and variance-weighted aggregation.
+The [NIST model-validation guide](https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd44.htm)
+explains why residual review remains necessary alongside numerical agreement.
 
 After a shared, advanced or assisted kinetic fit, open **Robustness & intervals**.
 Adaptive parameter profiles refit nuisance parameters and locate likelihood

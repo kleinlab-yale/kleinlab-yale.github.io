@@ -31,7 +31,7 @@ from mixa_science import json_safe
 from mixa_workspace import write_project_exports
 
 
-DIAGNOSTICS_REVISION = 6
+DIAGNOSTICS_REVISION = 7
 
 
 def _initial_value(key, default):
@@ -1028,7 +1028,8 @@ def render_mechanistic_results(result, data_list, *, signature, runtime=120., st
         result["preloaded_signature_bound"] = True
     result.setdefault("created_utc", "Pre-computed")
     result.setdefault("recipe", {})
-    if st.session_state.get("advanced_export_signature") != result["signature"]:
+    if (st.session_state.get("advanced_export_signature") != result["signature"]
+            or st.session_state.get("advanced_export_revision") != DIAGNOSTICS_REVISION):
         st.session_state.pop("advanced_export", None)
     if result["signature"] != signature:
         st.warning("Controls have changed. Results and exports below still use the saved completed run.")
@@ -1139,6 +1140,7 @@ def render_mechanistic_results(result, data_list, *, signature, runtime=120., st
             with st.spinner("Rendering figures and packaging measured data, parameters and diagnostics..."):
                 st.session_state.advanced_export = build_mechanistic_bundle(result, data_list)
                 st.session_state.advanced_export_signature = result["signature"]
+                st.session_state.advanced_export_revision = DIAGNOSTICS_REVISION
         if st.session_state.get("advanced_export"):
             st.download_button("Download advanced analysis package", st.session_state.advanced_export, "MIXA_mechanistic_analysis.zip", "application/zip", on_click="ignore")
         with st.expander("Conditional capacity / stoichiometry calculation"):
