@@ -17,7 +17,7 @@ import streamlit as st
 from mixa_plotting import show_figure
 
 from mixa_data import APP_VERSION
-from mixa_diagnostics import (overview_figure, render_saved_fit_diagnostics, saved_fit_curves,
+from mixa_diagnostics import (overview_figure, render_saved_fit_diagnostics, render_saved_fit_quality, saved_fit_curves, saved_fit_quality,
                               write_diagnostic_tables)
 from mixa_figures import figure_style, independent_summary, kinetic_repeat_points, _kinetic_panel
 from mixa_mechanisms import (MODEL_LABELS, MODEL_NOTES, SCOPES, Parameter,
@@ -31,7 +31,7 @@ from mixa_science import json_safe
 from mixa_workspace import write_project_exports
 
 
-DIAGNOSTICS_REVISION = 5
+DIAGNOSTICS_REVISION = 6
 
 
 def _initial_value(key, default):
@@ -749,6 +749,7 @@ def build_mechanistic_bundle(result, data_list, dpi=300):
             metadata["baseline_uncertainty"] = result.get("baseline_uncertainty", {})
             metadata["input_uncertainty"] = result.get("input_uncertainty", {})
             metadata["precision_screen"] = result.get("precision_screen", {})
+            metadata["quality_screen"] = saved_fit_quality(result)
             if "qualification" in result:
                 metadata["qualification"] = result["qualification"]
             metadata["software"] = {"MIXA": APP_VERSION, "Python": platform.python_version(),
@@ -1036,6 +1037,7 @@ def render_mechanistic_results(result, data_list, *, signature, runtime=120., st
     for column, label, value in zip(st.columns(4), ["Selected observations", "Free parameters", "Residual degrees of freedom", "Objective RSS"],
                                     [result["n_observations"], result["n_parameters"], result["degrees_of_freedom"], f"{result['rss']:.4g}"]):
         column.metric(label, value)
+    render_saved_fit_quality(result, data_list)
     for message in result["scientific_warnings"]:
         st.warning(message)
     tabs = st.tabs(["Curves", "Parameters", "Components", "Diagnostics", "Identifiability", "Robustness & intervals", "Independent repeats", "Export"])

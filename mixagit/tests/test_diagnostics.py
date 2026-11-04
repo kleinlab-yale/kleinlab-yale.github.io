@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from mixa_diagnostics import (correlation_figure, curve_figure, diagnostic_tables, overview_figure,
-                              saved_fit_curves, serial_correlations, write_diagnostic_tables)
+                              saved_fit_curves, saved_fit_quality, serial_correlations, write_diagnostic_tables)
 from mixa_mechanisms import binding_prediction, fit_mechanism, parameter_defaults, _whiten
 
 
@@ -81,6 +81,51 @@ def test_numerically_exact_fit_has_no_fabricated_serial_correlations():
     assert np.isnan(row.raw_lag1)
     assert not row.serial_structure_flag
     assert np.isnan(row.objective_rss_share_percent)
+
+
+def test_saved_fit_quality_scores_the_saved_selection_without_refitting_or_trusting_a_cache():
+    fit = saved_curve()
+    fit["fitted"][fit["fit_mask"]] = fit["response"][fit["fit_mask"]]
+    fit["whitened_residuals"][:] = 0.
+    result = dict(curves=[fit], optimizer_converged=True, quality_screen={"overall_score": 0.})
+    before = deepcopy(fit)
+    exact = saved_fit_quality(result)
+    assert exact["overall_label"] == "Good"
+    assert exact["overall_score"] == 100.
+    assert exact["n_selected"] == 8
+    assert exact["rmse_response"] == 0.
+    # Excluded extremes must not improve the score by inflating the signal span.
+    fit["response"][~fit["fit_mask"]] *= 1e6
+    assert saved_fit_quality(result)["overall_score"] == exact["overall_score"]
+    result["boundary_parameters"] = ["Rmax::A.csv"]
+    assert saved_fit_quality(result)["overall_label"] == "Caution"
+    result["boundary_parameters"] = []
+    result["optimizer_converged"] = False
+    assert saved_fit_quality(result)["overall_label"] == "Poor"
+    result["optimizer_converged"] = True
+    fit["fitted"][fit["fit_mask"]] += 20.
+    fit["whitened_residuals"][:] = -20.
+    assert saved_fit_quality(result)["overall_score"] < exact["overall_score"]
+    np.testing.assert_array_equal(fit["fit_mask"], before["fit_mask"])
+    assert result["quality_screen"] == {"overall_score": 0.}
+
+
+def test_saved_fit_quality_separates_high_curve_agreement_from_serial_residuals():
+    time = np.arange(120.)
+    observed = 1. - np.exp(-time / 30.)
+    residual = .001 * np.sin(time / 5.)
+    fit = dict(filename="smooth.csv", repeat_id="R1", concentration_nM=50., time=time,
+               response=observed, fitted=observed-residual, fit_mask=np.ones(120,dtype=bool),
+               whitened_residuals=residual, on=0., off=60.)
+    quality = saved_fit_quality(dict(curves=[fit]))
+    assert quality["mean_r2"] > .99
+    assert quality["flagged_serial_correlation"] == 1
+    assert quality["overall_label"] == "Caution"
+    constant = deepcopy(fit)
+    constant["response"][:] = 1.
+    quality = saved_fit_quality(dict(curves=[constant]))
+    assert quality["overall_label"] == "Unavailable"
+    assert not np.isfinite(quality["overall_score"])
 
 
 def test_diagnostic_rss_shares_reconcile_without_claiming_parameter_influence():

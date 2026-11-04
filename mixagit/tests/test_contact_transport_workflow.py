@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
+from mixa_diagnostics import saved_fit_quality
 
 
 APP = Path(__file__).resolve().parents[1]/"app.py"
@@ -12,6 +13,7 @@ def load_contact_example():
     app.button(key="load_mcam_lm411_kinetics_btn").click().run()
     app.radio(key="workflow_nav").set_value("Kinetic Analysis").run()
     assert not app.exception
+    assert any("Saved-fit quality:" in m.value for m in app.markdown)
     return app
 
 
@@ -37,6 +39,7 @@ def test_mcam_preset_runs_the_visible_controls_and_keeps_shared_rmax():
     assert fit["n_parameters"] == 15
     assert fit["n_profiled_parameters"] == 3
     assert not fit.get("preloaded_demo")
+    assert any("Saved-fit quality:" in m.value for m in app.markdown)
     for filename in {c["filename"] for c in fit["curves"]}:
         assert len({c["parameters"]["Rmax"] for c in fit["curves"] if c["filename"]==filename}) == 1
     app.button(key="advanced_prepare_export").click().run()
@@ -78,6 +81,7 @@ def test_complete_study_and_experiment_switch_preserve_the_declared_phases():
     assert not app.exception
     fit = app.session_state["latest_mechanistic_results"]
     assert fit and all("LamA4G123" in c["filename"] for c in fit["curves"])
+    assert any("Saved-fit quality:" in m.value for m in app.markdown)
     assert app.session_state["fit_windows"]["phase_assoc_start_s"] == 100.028
     assert app.session_state["fit_windows"]["phase_dissoc_start_s"] == 220.04199
 
@@ -97,6 +101,8 @@ def test_lm421_is_preloaded_and_uses_the_matched_shared_capacity_preset():
     assert app.session_state["fit_windows"]["phase_dissoc_start_s"] == 220.046997
     fit = app.session_state["latest_mechanistic_results"]
     assert fit and fit["preloaded_demo"]
+    quality = saved_fit_quality(fit)
+    assert any(f"Saved-fit quality: {quality['overall_label']}" in m.value for m in app.markdown)
     assert fit["n_parameters"] == 15
     for filename in {c["filename"] for c in fit["curves"]}:
         assert "LM421" in filename
@@ -108,3 +114,7 @@ def test_lm421_is_preloaded_and_uses_the_matched_shared_capacity_preset():
     app.button(key="advanced_prepare_export").click().run()
     assert not app.exception
     assert app.session_state["advanced_export"]
+    import io, json, zipfile
+    with zipfile.ZipFile(io.BytesIO(app.session_state["advanced_export"])) as archive:
+        exported = json.loads(archive.read("scientific_diagnostics.json"))["quality_screen"]
+        assert exported["overall_score"] == quality["overall_score"]

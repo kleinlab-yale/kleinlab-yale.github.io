@@ -1,6 +1,6 @@
 # MIXA User Guide
 
-Version: 0.5.12-preview
+Version: 0.5.13-preview
 
 MIXA analyzes SPR/BLI binding responses with explicit reaction models, selected
 observation intervals, reproducible preprocessing and separately defined
@@ -55,6 +55,15 @@ than kept attached to a changed dataset. Removing a required control does not
 silently disable background subtraction.
 
 ## Saved-Fit Robustness and Nonlinear Intervals
+
+**Saved-Fit Quality** appears above the result tabs for every advanced kinetic
+fit, including the preloaded MCAM examples. Its green/amber/red score, curve
+R², RMSE, serial-residual flags and parameter-bound count are calculated from
+the displayed saved model and selected observations. Open **Quality score
+details and definitions** for the exact heuristic and score contributions.
+The same score is included in the advanced analysis export and used by Model
+Comparison for that saved fit. This summary does not refit the data or alter
+the estimated parameters; parameter resolution and repeat SD remain separate.
 
 After a shared, advanced or assisted kinetic fit, open **Robustness & intervals**.
 Adaptive parameter profiles refit nuisance parameters and locate likelihood

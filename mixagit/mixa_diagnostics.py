@@ -23,6 +23,15 @@ DIAGNOSTIC_NOTES = (
     "are descriptive screens, not evidence for a specific binding mechanism."
 )
 PHASES = ("Baseline", "Association", "Dissociation")
+QUALITY_NOTES = (
+    "Heuristic saved-fit screen, not a confidence level or a model-selection test. "
+    "Score = 100 × mean curve R², minus 15 when within-phase objective residuals "
+    "show serial structure, minus 25 when a fitted parameter is at a bound; clipped "
+    "to 0–100. An incomplete or unconverged run is capped below 70. Green ≥85, "
+    "amber 70–<85, red <70. Only selected observations from the saved model are used. "
+    "Constant-response curves have no defined R². Parameter resolution and independent-repeat "
+    "variation are reported separately."
+)
 
 
 def saved_fit_curves(result, data_list=()):
@@ -133,6 +142,84 @@ def diagnostic_tables(curves):
                            "mean_residual_response": float(np.mean(residual)) if used.any() else np.nan,
                            "rmse_response": float(np.sqrt(np.mean(residual**2))) if used.any() else np.nan})
     return dict(curves=pd.DataFrame(summary), phases=pd.DataFrame(phases), serial_correlation=pd.DataFrame(correlation))
+
+
+def saved_fit_quality(result, data_list=(), *, curves=None, tables=None):
+    """Expose the existing shared-model score for cached and newly fitted models.
+
+    Use the saved prediction and selection, never a new 1:1 fit or cached score.
+    The R²/serial/bound weights match the shared-model comparison screen.
+    """
+    curves = saved_fit_curves(result, data_list) if curves is None else curves
+    tables = diagnostic_tables(curves) if tables is None else tables
+    r2_values, rss, n_selected = [], 0., 0
+    for curve in curves:
+        selected = curve["fit_mask"]
+        observed, residual = curve["response"][selected], curve["residuals"][selected]
+        curve_rss = float(residual @ residual)
+        rss += curve_rss
+        n_selected += len(observed)
+        if len(observed) >= 2:
+            centered = observed - np.mean(observed)
+            sst = float(centered @ centered)
+            if sst > 0:
+                r2_values.append(1. - curve_rss / sst)
+    mean_r2 = float(np.mean(r2_values)) if r2_values else np.nan
+    rows = tables["curves"]
+    serial_count = int(rows.serial_structure_flag.sum()) if not rows.empty else 0
+    bounds = list(result.get("boundary_parameters", []))
+    incomplete = bool(result.get("timed_out", False) or result.get("optimizer_converged") is False)
+    components = [
+        dict(check="Saved-model curve fit", contribution=100 * mean_r2,
+             detail=f"Mean R² across {len(r2_values)} nonconstant selected curves"),
+        dict(check="Serial residual structure", contribution=-15. if serial_count else 0.,
+             detail=f"{serial_count}/{len(curves)} curves flagged within physical phases and selected runs"),
+        dict(check="Parameter bounds", contribution=-25. if bounds else 0.,
+             detail=f"{len(bounds)} fitted parameters at bounds"),
+    ]
+    score = float(np.clip(sum(row["contribution"] for row in components), 0., 100.)) if r2_values else np.nan
+    if incomplete and np.isfinite(score):
+        score = min(score, 69.)
+    label = "Unavailable" if not np.isfinite(score) else ("Good" if score >= 85 else "Caution" if score >= 70 else "Poor")
+    color = {"Good": "#1F8A62", "Caution": "#B29200", "Poor": "#C55335", "Unavailable": "#64748b"}[label]
+    return dict(method="saved_fit_screen_v1", overall_score=score, overall_label=label, color=color,
+                mean_r2=mean_r2, rmse_response=float(np.sqrt(rss / n_selected)) if n_selected else np.nan,
+                n_curves=len(curves), n_selected=n_selected, n_r2_curves=len(r2_values),
+                flagged_serial_correlation=serial_count, boundary_parameters=bounds,
+                incomplete_run=incomplete, components=components, interpretation=QUALITY_NOTES)
+
+
+def render_saved_fit_quality(result, data_list=()):
+    import streamlit as st
+
+    quality = saved_fit_quality(result, data_list)
+    st.markdown("#### Saved-Fit Quality")
+    ring, metrics = st.columns([1, 4])
+    score, color, label = quality["overall_score"], quality["color"], quality["overall_label"]
+    display_score = str(int(round(score))) if np.isfinite(score) else "NA"
+    with ring:
+        st.markdown(
+            f'<svg role="img" aria-label="Saved-fit quality score {display_score}, {label}" width="170" height="170" viewBox="0 0 170 170">'
+            f'<circle cx="85" cy="85" r="68" fill="{color}"/>'
+            '<circle cx="85" cy="85" r="54" fill="white" fill-opacity="0.14"/>'
+            f'<text x="85" y="88" text-anchor="middle" font-size="34" font-weight="bold" fill="white">{display_score}</text>'
+            f'<text x="85" y="111" text-anchor="middle" font-size="14" fill="white">{label}</text></svg>',
+            unsafe_allow_html=True,
+        )
+    with metrics:
+        st.markdown(f"**Saved-fit quality: {label} — {display_score}/100**")
+        a, b, c, d = st.columns(4)
+        a.metric("Mean curve R²", f"{quality['mean_r2']:.4f}" if np.isfinite(quality["mean_r2"]) else "NA")
+        b.metric("RMSE (response)", f"{quality['rmse_response']:.4g}" if np.isfinite(quality["rmse_response"]) else "NA")
+        c.metric("Curves with serial structure", f"{quality['flagged_serial_correlation']}/{quality['n_curves']}")
+        d.metric("Parameters at bounds", len(quality["boundary_parameters"]))
+        st.caption("Heuristic screen of the displayed saved model. Parameter uncertainty and repeat SD are separate results.")
+    with st.expander("Quality score details and definitions"):
+        st.caption(QUALITY_NOTES)
+        st.dataframe(pd.DataFrame(quality["components"]), hide_index=True)
+        if quality["incomplete_run"]:
+            st.warning("The saved optimization was incomplete or unconverged; the score is capped below 70.")
+    return quality
 
 
 def overview_figure(curves, tables=None):

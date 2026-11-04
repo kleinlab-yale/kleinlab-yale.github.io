@@ -26,7 +26,7 @@ import mixa_data
 # Streamlit can retain all imported helpers after a hot source deployment. Refresh
 # an older release in dependency order before binding its functions below. This
 # preserves session data while keeping the version, intake UI and fit APIs aligned.
-if getattr(mixa_data, "APP_VERSION", None) != "0.5.12-preview":
+if getattr(mixa_data, "APP_VERSION", None) != "0.5.13-preview":
     for _helper in (
         "mixa_input_uncertainty", "mixa_uncertainty", "mixa_selection",
         "mixa_science", "mixa_plotting", "mixa_figures", "mixa_data",
@@ -77,13 +77,13 @@ if _mechanisms_reloaded:
     reload(mixa_mechanisms)
 if (_mechanisms_reloaded
         or "linear_nonspecific" not in inspect.signature(mixa_mechanistic_ui.render_mechanistic_workspace).parameters
-        or getattr(mixa_mechanistic_ui, "DIAGNOSTICS_REVISION", 0) < 5):
+        or getattr(mixa_mechanistic_ui, "DIAGNOSTICS_REVISION", 0) < 6):
     reload(mixa_diagnostics)
     reload(mixa_mechanistic_ui)
 if _mechanisms_reloaded:
     import mixa_assistant_ui
     reload(mixa_assistant_ui)
-from mixa_diagnostics import render_saved_fit_diagnostics, saved_fit_curves, write_diagnostic_tables
+from mixa_diagnostics import render_saved_fit_diagnostics, saved_fit_curves, saved_fit_quality, write_diagnostic_tables
 from mixa_mechanistic_ui import render_mechanistic_workspace
 from mixa_mechanisms import (MODEL_LABELS, TRANSPORT_LABELS, fit_mechanism,
                              mechanistic_to_kinetic_summary, parameter_defaults, prepare_curves)
@@ -7586,12 +7586,16 @@ def legacy_main():
         kin_source_label = "Global shared / legacy kinetic fit"
         if kin is None and st.session_state.get("latest_mechanistic_results") is not None:
             kin = mechanistic_to_kinetic_summary(st.session_state["latest_mechanistic_results"])
+            if kin:
+                kin["diagnostic_summary"].update(saved_fit_quality(st.session_state["latest_mechanistic_results"]))
             kin_source_label = f"Manual mechanistic fit ({kin.get('shared_model', '')})" if kin else ""
         if kin is None and st.session_state.get("assisted_review") is not None:
             rev = st.session_state["assisted_review"]
             idx = rev.get("recommended_index") if rev.get("recommended_index") is not None else rev.get("display_index")
             if idx is not None and idx < len(rev.get("attempts", [])) and "result" in rev["attempts"][idx]:
                 kin = mechanistic_to_kinetic_summary(rev["attempts"][idx]["result"])
+                if kin:
+                    kin["diagnostic_summary"].update(saved_fit_quality(rev["attempts"][idx]["result"]))
                 kin_source_label = f"Assisted kinetic fit ({kin.get('shared_model', '')})" if kin else ""
         if kin is None and kinetic_results:
             kin = kinetic_results[-1]["results"]
