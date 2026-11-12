@@ -394,6 +394,9 @@ input{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
 .hbrush svg{width:34px;height:34px}
 .mefig.hfig{width:440px;height:340px}
 .mefig.hfig svg{width:400px;height:300px;display:block}
+.mfr{position:absolute;transform:translateX(-50%);background:#8fd3ff;border:3px solid #35252d;border-radius:18px;padding:2px 12px 2px 8px;font-size:20px;font-weight:700;white-space:nowrap;pointer-events:none;display:flex;align-items:center;gap:5px;box-shadow:0 4px 0 rgba(53,37,45,.25);animation:mfr 1.6s ease-in-out infinite;z-index:2}
+@keyframes mfr{50%{transform:translate(-50%,-7px)}}
+.mfr svg{width:26px;height:26px}
 
 </style>
 </head>
@@ -500,7 +503,7 @@ let G=null;
 function fresh(){return{v:1,nid:1,cur:'map',sc:{},pack:[],st:{},minis:{},daily:{last:0,streak:0,capDay:0,cap:3,eggDay:0},flags:{},set:{sfx:true,music:true},got:0}}
 function loadG(){try{const s=localStorage.getItem(KEY);if(s){const g=JSON.parse(s);if(g&&g.v===1){const f=fresh();return Object.assign(f,g,{daily:Object.assign(f.daily,g.daily),set:Object.assign(f.set,g.set)})}}}catch(e){}return fresh()}
 function saveG(){try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}}
-let _svT;const dirty=()=>{clearTimeout(_svT);_svT=setTimeout(saveG,500)};
+let _svT;const dirty=()=>{NET.ld=1;clearTimeout(_svT);_svT=setTimeout(saveG,500)};
 const dayN=()=>{const d=new Date();return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)};
 const stars=()=>Object.keys(G.st).length;
 
@@ -875,7 +878,8 @@ const petO=sp=>({s:{sp},c:{a:PETS[sp].a,b:PETS[sp].b}});
 function countChars(){let n=0;for(const k in G.sc)n+=G.sc[k].ents.filter(e=>e.t==='char').length;for(const p of G.pack)n+=p.filter(e=>e.t==='char').length;return n}
 function hatch(egg,nest){const r=egg.s.r||0,pool=EGGSP[r]||EGGSP[0],fr=pool.filter(s=>!G.st['pet_'+s]),sp=egg.s.sp||(fr.length&&Math.random()<.8?pick(fr):pick(pool));
  const a=absXY(egg);rm(egg);if(nest&&byId(nest.id))redraw(nest);sfx.hatch();confetti(a.x,a.y-40,26);
- const p=popOut('pet',a.x,a.y-30,petO(sp),rnd(-110,110));star('hatch');star('pet_'+sp);setTimeout(()=>{if(byId(p.id)){say(p,'Hi! I\'m a '+PETS[sp].n+'!');hearts(p,3);sfx[PETS[sp].snd]()}},650)}
+ const p=popOut('pet',a.x,a.y-30,petO(sp),rnd(-110,110));if(egg.ow){p.ow=egg.ow;delete p.fre} // my egg, my pet
+ star('hatch');star('pet_'+sp);setTimeout(()=>{if(byId(p.id)){say(p,'Hi! I\'m a '+PETS[sp].n+'!');hearts(p,3);sfx[PETS[sp].snd]()}},650)}
 
 /* ---------- café ---------- */
 D('bar','Café Counter',760,204,'fix',{a:'#ffb3c7',b:'#ffffff'},(e,c)=>sh(760,204,.48)+R(8,22,744,178,14,c.a,'a')+[0,1,2,3,4,5,6,7,8,9].map(i=>R(38+i*72,30,36,170,0,lt(c.a,.35),'a',NO)).join('')+R(-4,0,768,30,13,c.b,'b')+R(10,7,740,6,3,dk(c.b,.07),'b'),{fx:1,surf:[[-372,372,-200]]});
@@ -906,7 +910,7 @@ D('bowl','Pet Bowl',88,48,'item',{a:'#ff5c7a',b:'#ffffff'},(e,c)=>sh(88,48,.44)+
 /* ---------- style studio ---------- */
 D('stage','Makeover Stage',280,100,'fix',{a:'#ff7aa8',b:'#ffd23f'},(e,c)=>sh(280,100,.47)+E(140,64,138,32,dk(c.a,.22),'a')+R(2,34,276,30,0,dk(c.a,.22),'a')+E(140,34,138,32,c.a,'a')+E(140,34,96,20,lt(c.a,.3),'a')+P(star5(140,34,17,8),c.b,'b')+[18,52,96,140,184,228,262].map(x=>C(x,60+Math.sqrt(Math.max(0,1-((x-140)/138)**2))*30,5.500,'#fff')).join(''),{fx:1,
  accept(e,it){if(TD(it).k!=='char'||kidIn(e,'stand'))return false;attach(it,e,'stand',0,-60,'fall');sfx.magic();const who=ACTOR;setTimeout(()=>{if(it.par===e.id&&S&&byId(it.id))asActor(who,()=>openStyle(it))},350);return true},
- lost(){closeStyle()},tap(e){const k=kidIn(e,'stand');if(k)openStyle(k);else say(e,'Drop a friend here for a makeover!')}});
+ lost(){closeStyle()},tap(e){const k=kidIn(e,'stand');if(k&&NET.peer&&k.me&&k.me!==actNo())say(k,'Only I can change my look!');else if(k)openStyle(k);else say(e,'Drop a friend here for a makeover!')}});
 D('fmaker','Friend Maker',214,284,'fix',{a:'#7ad3ff',b:'#ffd23f'},(e,c)=>sh(214,284,.45)+R(6,22,202,258,28,c.a,'a')+R(26,0,162,46,20,c.b,'b')+P(heartP(107,22,11),'#ff5c7a')+R(34,62,146,150,20,'#2f2f48')+C(107,112,30,'#5a5f80')+R(74,146,66,66,26,'#5a5f80')+`<text x="107" y="132" font-size="46" font-weight="700" text-anchor="middle" fill="#ffd23f" class="np">?</text><circle cx="107" cy="246" r="23" fill="#ff5c7a" data-b="go"/>`+C(100,238,6,'#fff',0,' opacity=".6" class="np"'),{fx:1,
  tap(e){if(tr(e).busy)return;if(countChars()>=16){say(e,'The bay is full of friends!');sfx.nope();return}tr(e).busy=1;sfx.magic();anim(e,'shake',500);
   setTimeout(()=>{tr(e).busy=0;if(!byId(e.id))return;const a=absXY(e),ch=popOut('char',a.x,a.y-120,randChar(),pick([-1,1])*rnd(150,230));star('newfriend');confetti(a.x,a.y-170,18);setTimeout(()=>byId(ch.id)&&say(ch,pick(['Hello!','Hi there!','Hiya!'])),500)},520)}});
@@ -1044,7 +1048,7 @@ D('shell','Seashell',54,48,'item',{a:'#ffb3c7'},(e,c)=>sh(54,48)+P('M27 44 Q0 36
 D('flower','Flower',56,98,'item',{},(e,c)=>hit(56,98)+L('M28 94 L28 34','#2bb7a3',5)+E(18,66,10,5,'#56d39a',0,rot(-30,18,66))+E(38,56,10,5,'#56d39a',0,rot(30,38,56))+`<g transform="translate(28 26) scale(1.600)">${flowerHead(0,0,e.s.v||0)}</g>`,{init(e){if(e.s.v==null)e.s.v=ri(0,5)}});
 D('capsule','Capsule',60,60,'toy',{a:'#ff8fb1'},(e,c)=>sh(60,60)+C(30,30,27,c.a,'a')+P('M3 30 A27 27 0 0 1 57 30Z','#fff',0,' opacity=".8"')+R(3,27,54,6,3,dk(c.a,.15),'a')+C(20,18,5,'#fff'),{bouncy:1,tap(e){const a=absXY(e);sfx.pop();confetti(a.x,a.y-30,12);rm(e);star('capsule');
   if(Math.random()<.1){popOut('hat',a.x,a.y-30,{s:{v:pick([5,8,11,13,16,17,18])}},rnd(-60,60));return}
-  const miss=MININ.map((_,i)=>i).filter(i=>!G.minis[i]),i=miss.length&&Math.random()<.7?pick(miss):ri(0,MININ.length-1),isNew=!G.minis[i];G.minis[i]=1;NET.send({t:'mini',i});dirty();const m=popOut('mini',a.x,a.y-30,{s:{i}},rnd(-60,60)),sid=SID;
+  const miss=MININ.map((_,i)=>i).filter(i=>!G.minis[i]),i=miss.length&&Math.random()<.7?pick(miss):ri(0,MININ.length-1),isNew=!G.minis[i];G.minis[i]=1;if(NET.feed)NET.send({t:'mini',i});dirty();const m=popOut('mini',a.x,a.y-30,{s:{i}},rnd(-60,60)),sid=SID;
   setTimeout(()=>byId(m.id)&&say(m,(isNew?'NEW! ':'')+MININ[i]),400);if(isNew&&Object.keys(G.minis).length>=MININ.length){star('minis');setTimeout(()=>{if(SID===sid){popOut('trophy',a.x,a.y-120,null,0);sfx.star()}},900)}}});
 D('mini','Mini',56,66,'toy',{},(e,c)=>hit(56,66)+miniSVG(e.s.i||0),{nm:e=>'Mini '+MININ[e.s.i||0],tap(e){anim(e,'hop',420);sfx.squeak();say(e,MININ[e.s.i||0])}});
 D('bottle','Message in a Bottle',48,88,'item',{a:'#b8f0d0'},(e,c)=>sh(48,88,.32)+R(17,0,14,10,3,WOOD)+P('M16 8 L32 8 L32 24 Q44 30 44 46 L44 76 Q44 84 36 84 L12 84 Q4 84 4 76 L4 46 Q4 30 16 24Z',c.a,'a',' opacity=".85"')+R(14,40,20,30,3,'#fff6e0')+L('M18 48 L30 48 M18 55 L30 55 M18 62 L26 62','#c9a27a',2)+R(9,34,4,36,2,'#fff',0,' opacity=".6"'),{tap(e){sfx.pop();anim(e,'wig',300);showHint()}});
@@ -1059,6 +1063,7 @@ D('char','Friend',130,230,'char',{},e=>charSVG(e),{nm:e=>e.me?(e.me===myNo()?'Me
   if(d.k==='char'&&ch.me&&it.me&&ch.me!==it.me){highFive(ch,it);return true} // two avatars meet
   if(d.k==='char'||d.k==='furn'||d.k==='fix')return false;
   if((d.k==='food'||d.k==='drink')&&head){eat(ch,it);return true}
+  if(ch.me&&NET.peer&&(d.hat&&head||!(d.w>170||d.h>190))){it.ow=ch.me;delete it.fre} // put something in an avatar's hands (or on their head) and it is theirs
   if(d.hat&&head){wear(ch,it);return true}
   if(d.w>170||d.h>190)return false;
   hold(ch,it,p.x<a.x?'handL':'handR');return true},
@@ -1245,7 +1250,7 @@ SC.pets={n:'Pet Shop',in:1,floor:[650,872],bg:{wall:'#e4f3d6',floor:'#ecd3ba',tr
   a.put('petbed',940,850);a.put('petbed',1180,856,{c:{a:'#ff8fb1',b:'#ffffff'}});a.put('tub',1300,790,{c:{a:'#ffffff',b:'#2bb7a3'}});
   a.put('pet',940,800,petO('dog'));a.put('pet',1120,790,petO('bunny'));a.put('pet',560,862,petO('hamster'));
   a.put('char',820,790,CH.petk);a.put('fish',1040,864);a.put('carrot',1240,790)},
- enter(){const d=G.daily;if(d.eggDay!==dayN()&&S.ents.filter(e=>e.t==='egg').length<3){d.eggDay=dayN();const r=Math.random(),e=spawn('egg',430,300,{s:{r:r<.68?0:r<.95?1:2}});place(e);setTimeout(()=>SID==='pets'&&toastAll('A new mystery egg arrived today!'),700);dirty()}}};
+ enter(){const d=G.daily;if(d.eggDay!==dayN()&&S.ents.filter(e=>e.t==='egg').length<3){d.eggDay=dayN();const r=Math.random(),e=spawn('egg',430,300,{s:{r:r<.68?0:r<.95?1:2}});if(NET.peer){e.ow=myNo();delete e.fre}place(e);setTimeout(()=>SID==='pets'&&toastAll('A new mystery egg arrived today!'),700);dirty()}}};
 SC.salon={n:'Style Studio',in:1,floor:[650,872],bg:{wall:'#fbdfea',floor:'#e3d6f7',trim:'#fffaf3'},pat:{wall:3,floor:4},
  init(a){a.put('mirror',700,400,{c:{a:'#ff7aa8'}});a.put('lights',900,150,{s:{m:2}});a.put('pic',1330,260,{s:{v:4}});
   a.put('stage',700,826);a.put('fmaker',1390,792);
@@ -1374,7 +1379,8 @@ function posE(e){const el=EL.get(e.id);if(!el)return;const d=TD(e);let x,y,z;con
  if(p){const pd=TD(p);x=pd.w/2+e.dx-d.w/2;y=pd.h+e.dy-d.h;z=SLZ[(e.slot||'').replace(/\d/g,'')]||2}
  else{x=e.x-d.w/2;y=e.y-d.h;z=tr(e).drag?9000:zOf(e)}
  el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;el.style.zIndex=z}
-function spawn(t,x,y,o){const e=mk(t,x,y,o);S.ents.push(e);IDX.set(e.id,e);mountE(e);dirty();return e}
+function spawn(t,x,y,o){const e=mk(t,x,y,o);if(NET.peer)e.fre=1;S.ents.push(e); // new things that appear while friends play are for whoever grabs them
+ IDX.set(e.id,e);mountE(e);dirty();return e}
 function popOut(t,x,y,o,vx){const e=spawn(t,clamp(x,40,W-40),y,o),sid=SID;anim(e,'pop',300);
  setTimeout(()=>{if(SID!==sid||!byId(e.id)||e.par||tr(e).drag)return;e.x=clamp(e.x+(vx||0),50,W-50);place(e)},170);return e}
 function rm(e){for(const k of kidsOf(e))rm(k);const p=e.par&&byId(e.par),el=EL.get(e.id);if(el)el.remove();EL.delete(e.id);TRN.delete(e.id);IDX.delete(e.id);
@@ -1476,16 +1482,16 @@ const over=(el,P)=>{if(!el||el.offsetParent===null)return false;const r=el.getBo
 function onDown(ev){if(ev.button>0)return;ac();if(!S||ev.target.closest('.ui'))return;
  const el=ev.target.closest('.ent'),e=el?byId(+el.dataset.id):null,p=spt(ev);
  PTR.set(ev.pointerId,{e,p0:p,p,tg:ev.target,bg:!!ev.target.closest('#bg'),drag:false,cx:ev.clientX,cy:ev.clientY});try{$stage.setPointerCapture(ev.pointerId)}catch(_){}ev.preventDefault()}
-function onMove(ev){const P=PTR.get(ev.pointerId);if(!P)return;P.p=spt(ev);P.cx=ev.clientX;P.cy=ev.clientY;if(P.dead)return;const g=NET.role==='guest';
+function onMove(ev){const P=PTR.get(ev.pointerId);if(!P)return;P.p=spt(ev);P.cx=ev.clientX;P.cy=ev.clientY;if(P.dead)return;const g=NET.mir;
  if(!P.drag){if(Math.hypot(P.p.x-P.p0.x,P.p.y-P.p0.y)<10)return;if(MODE==='paint'||!P.e||!(g?gGrab(P):startDrag(P))){P.dead=true;return}}
  if(g)gMove(P);else dragMove(P)}
 function onUp(ev){const P=PTR.get(ev.pointerId);if(!P)return;PTR.delete(ev.pointerId);P.p=spt(ev);P.cx=ev.clientX;P.cy=ev.clientY;
  if(!S)return;const cancel=ev.type==='pointercancel';
- if(NET.role==='guest'){ // a visiting friend: tell the host what our hands did
+ if(NET.mir){ // I am watching my friend's copy of this place: tell them what my hands did
   if(P.drag)gDrop(P,cancel);else if(!P.dead&&!cancel){const r=resolveTap(P);if(MODE==='paint')NET.send({t:'tap',r,col:paintCol()});else if(r.id!=null)NET.send({t:'tap',r})}return}
  if(P.drag)endDrag(P,cancel);else if(!P.dead&&!cancel)tapAt(P)}
 function startDrag(P){let e=P.e;if(!byId(e.id))return false;const d=TD(e);if(tr(e).busy||tr(e).drag)return false;
- let o=P.p0;if(isFix(e)){if(!d.disp)return false;const n=dispense(e,P.p);if(!n)return false;e=P.e=n;o=P.p}else if(!canMove(e,1)){shy(e);return false}
+ let o=P.p0;if(isFix(e)){if(!d.disp)return false;const n=dispense(e,P.p);if(!n)return false;e=P.e=n;o=P.p}else if(!mayMove(e,myNo())){shy(e);return false}
  if(e.par)unpar(e);P.off={x:e.x-o.x,y:e.y-o.y};beginDrag(P);return true}
 function beginDrag(P){const e=P.e,el=EL.get(e.id);P.drag=true;tr(e).drag=1;el.classList.add('drag');el.style.transition='';posE(e);sfx.pick();dragUI(true)}
 function dragMove(P){const e=P.e;if(!byId(e.id)){P.dead=true;dragUI(false);return}e.x=clamp(P.p.x+P.off.x,10,W-10);e.y=clamp(P.p.y+P.off.y,30,H+60);posE(e);
@@ -1524,8 +1530,8 @@ function dispense(e,pt){const d=TD(e),g=d.disp(e);if(!g)return null;if(S.ents.le
  if(d.after)d.after(e);return n}
 
 /* ---------- backpack & bin ---------- */
-function stash(e){const d=TD(e),g=ACTOR==='guest',no=g?2:1,back=()=>{e.x=clamp(e.x,120,W-300);e.y=Math.min(e.y,740);place(e)};$pack.classList.remove('open');
- if(!canKeep(e,no)){back();if(e.me)say(e,'I\'m staying with my friend!');else shy(e,'That belongs in your friend\'s home. Things you bring along are yours to take back.');return}
+function stash(e){const d=TD(e),g=!!ACTOR,no=actNo(),back=()=>{e.x=clamp(e.x,120,W-300);e.y=Math.min(e.y,740);place(e)};$pack.classList.remove('open');
+ if(!mayKeep(e,no)){back();shy(e);return}
  if(!g&&G.pack.length>=packCap()){toast('Your backpack is full! It has '+packCap()+' pockets.');usfx('nope');back();return}
  const keep=[],rel=[];(function rec(x){keep.push(x);for(const k of kidsOf(x)){if(['head','handL','handR'].includes(k.slot))rec(k);else rel.push(k)}})(e);
  for(const k of rel){unpar(k);k.y=Math.min(k.y,720);k.x=clamp(k.x,120,W-300)}
@@ -1534,19 +1540,20 @@ function stash(e){const d=TD(e),g=ACTOR==='guest',no=g?2:1,back=()=>{e.x=clamp(e
  for(const k of rel)place(k);
  if(d.k==='char')e.s.pose='stand';e.from=SID;e.par=null;e.slot=null;delete e.ow;
  if(g)NET.send({t:'pk',a:keep});else{G.pack.push(keep);sfx.zip();updPack(true)}dirty()} // a friend's things go into the friend's own backpack
-function unpack(i,p){const arr=G.pack.splice(i,1)[0],root=arr[0];root.par=null;root.slot=null;root.x=p.x;root.y=p.y+TD(root).h/2;
+function unpack(i,p){const arr=G.pack.splice(i,1)[0],root=arr[0];if(arr.some(k=>IDX.has(k.id)))reid(arr);root.par=null;root.slot=null;root.x=p.x;root.y=p.y+TD(root).h/2;
  for(const k of arr){S.ents.push(k);IDX.set(k.id,k)}for(const k of arr)mountE(k);
- if(root.from&&root.from!==SID)star('pack');delete root.from;if(NET.peer)root.ow=1;updPack();dirty();return root}
+ if(root.from&&root.from!==SID)star('pack');delete root.from;if(NET.peer)for(const k of arr){k.ow=myNo();delete k.fre} // what I bring along stays mine
+ updPack();dirty();return root}
 function trashE(e){const k=TD(e).k,no=actNo();$trash.classList.remove('open');
- if(k!=='char'&&k!=='pet'&&!canDeco(no)&&e.ow!==no){e.x=clamp(e.x,320,W-120);e.y=Math.min(e.y,720);place(e);shy(e,'Only your friend can throw things away in their home.');return}
+ if(k!=='char'&&k!=='pet'&&!mayKeep(e,no)){e.x=clamp(e.x,320,W-120);e.y=Math.min(e.y,720);place(e);shy(e);return}
  if(k==='char'||k==='pet'){e.x=clamp(e.x,320,W-120);e.y=Math.min(e.y,720);place(e);say(e,pick(['No way!','Hey! Not me!','Nope nope nope!']));sfx.nope();return}
  const rel=kidsOf(e);for(const c of rel){unpar(c);c.x=clamp(c.x,320,W-120);c.y=Math.min(c.y,720)}
  const a=absXY(e);puff(a.x,a.y-TD(e).h/2,'#b7c0d3',6);sfx.whoosh();rm(e);for(const c of rel)place(c)}
 
 /* ---------- paint ---------- */
 const paintCol=()=>PCOL==='rand'?pick(PAL.slice(0,15)):PCOL;
-function paintCore(r,col){if(!canDeco(actNo())){shy(null,'Only your friend can paint in their home.');return}
- if(r.id!=null){const e=byId(r.id);if(!e)return;const k=r.part||(e.c.a?'a':null);if(!k)return;e.c[k]=col;redraw(e);splat(r.p.x,r.p.y,col);sfx.splat();star('paint');dirty();return}
+function paintCore(r,col){if(!canDeco(actNo())){shy(null);return}
+ if(r.id!=null){const e=byId(r.id);if(!e)return;if(!mayMove(e,actNo())&&!isDeco(e)){shy(e);return}const k=r.part||(e.c.a?'a':null);if(!k)return;e.c[k]=col;redraw(e);splat(r.p.x,r.p.y,col);sfx.splat();star('paint');dirty();return}
  if(r.part&&r.bg&&S.bg[r.part]!=null){S.bg[r.part]=col;drawBg();splat(r.p.x,r.p.y,col);sfx.splat();star('paint');dirty()}}
 
 /* ---------- scenes ---------- */
@@ -1559,24 +1566,26 @@ function initScene(id){const sc=SC[id],st={ents:[],bg:Object.assign({},sc.bg),pa
  sc.init(a);return st}
 function clearScene(){$ents.innerHTML='';$fx.innerHTML='';$lights.innerHTML='';EL.clear();TRN.clear();PTR.clear();NET.rp=null;NET.drag=null;dragUI(false)}
 function drawBg(){const sc=SC[SID];$bg.innerHTML=sc.draw?sc.draw(S):roomBg(S,sc)}
-function go(id,quiet){if(NET.role==='guest'&&!NET.applying){NET.send({t:'go',id});return} // the host decides where we both are
- const guest=NET.role==='guest';closeTrays();closeStyle();setMode('play');
- if(S&&!guest){ // anything still being carried is put down, and our avatars come along
-  for(const P of PTR.values())if(P.drag&&P.e&&byId(P.e.id)&&tr(P.e).drag){tr(P.e).drag=0;place(P.e)}
-  if(NET.rp){const e=NET.rp.e;NET.rp=null;if(byId(e.id)){tr(e).drag=0;place(e)}}
-  avTake()}
- const sc=id!=='map'&&SC.hasOwnProperty(id)?SC[id]:null,st=!sc?null:guest?NET.mirror:sc.own===2?(NET.gsc&&NET.gsc[sc.base]):(G.sc[id]||(G.sc[id]=initScene(id)));
- if(!st){clearScene();S=null;SID=null;if(!guest)G.cur='map';IDX=new Map();$stage.classList.remove('night','party');showMap();dirty();return}
- hideMap();clearScene();SID=id;S=st;if(!guest)G.cur=sc.own===2?'map':id;S.ents=S.ents.filter(e=>T[e.t]);if(!guest)avArrive();IDX=new Map(S.ents.map(e=>[e.id,e]));
+function scClose(){ // leaving a place that I am running: whatever is being carried is put down, and I (my avatar) come along
+ for(const P of PTR.values())if(P.drag&&P.e&&byId(P.e.id)&&tr(P.e).drag){tr(P.e).drag=0;place(P.e)}
+ if(NET.rp){const e=NET.rp.e;NET.rp=null;if(byId(e.id)){tr(e).drag=0;place(e)}}
+ avTake()}
+function toMap(){clearScene();S=null;SID=null;IDX=new Map();$stage.classList.remove('night','party');showMap();dirty()}
+function scOpen(id,st,o){o=o||{};const sc=SC[id],arrive=!o.mir&&!o.keep; // put a place on the screen. o.mir: I only watch my friend's copy · o.keep: everybody is inside already
+ hideMap();clearScene();SID=id;S=st;S.ents=S.ents.filter(e=>T[e.t]);if(arrive)avArrive();IDX=new Map(S.ents.map(e=>[e.id,e]));
  for(const e of S.ents)if(e.par&&!IDX.has(e.par)){e.par=null;e.slot=null;if(e.x==null){e.x=800;e.y=760}}
- drawBg();mountAll();setNight(true);setParty(true);updHud();if(!quiet){$stage.classList.remove('enter');void $stage.offsetWidth;$stage.classList.add('enter');hushed(()=>sfx.whoosh())}
- if(!guest){avHello();if(sc.enter)sc.enter();if(NET.peer&&ownerOf(id))star('visit')}dirty()}
+ drawBg();mountAll();setNight(true);setParty(true);updHud();if(!o.quiet){$stage.classList.remove('enter');void $stage.offsetWidth;$stage.classList.add('enter');hushed(()=>sfx.whoosh())}
+ if(arrive){avHello();if(sc.enter)sc.enter()}dirty()}
+function go(id,quiet){if(NET.peer){netGo(id,quiet);return} // with a friend, each of us walks around on our own (see PLAY TOGETHER)
+ closeTrays();closeStyle();setMode('play');if(S)scClose();
+ const sc=id!=='map'&&SC.hasOwnProperty(id)&&!SC[id].own?SC[id]:null;if(!sc){G.cur='map';toMap();return}
+ G.cur=id;scOpen(id,G.sc[id]||(G.sc[id]=initScene(id)),{quiet})}
 function setNight(q){$stage.classList.toggle('night',!!(S&&S.night));if(!S)return;if(SC[SID].draw)drawBg();for(const e of S.ents)if(TD(e).nd)redraw(e);updLights();if(!q)dirty()}
 function updLights(){$lights.innerHTML='';if(!S||!S.night)return;for(const e of S.ents){const d=TD(e);if(!d.light)continue;const l=d.light(e);if(!l)continue;const a=absXY(e),g=h('div','glow');
   g.style.cssText=`left:${a.x+l.dx-l.r}px;top:${a.y+l.dy-l.r}px;width:${l.r*2}px;height:${l.r*2}px`;$lights.appendChild(g)}}
 function setParty(q){$stage.classList.toggle('party',!!(S&&S.party));if(!q)dirty()}
 function tick(){if(!S||document.hidden)return;
- if(NET.role==='guest'){tickN++;if(tickN%120===0)for(const e of S.ents)if(T[e.t].clock)redraw(e);return} // the host runs the world
+ if(NET.mir){tickN++;if(tickN%120===0)for(const e of S.ents)if(T[e.t].clock)redraw(e);return} // my friend is running this place
  for(const e of S.ents.slice()){const d=T[e.t];if(d.tick&&byId(e.id))d.tick(e,.25)}
  tickN++;if(tickN%4===0)wander();if(tickN%120===0)for(const e of S.ents)if(T[e.t].clock)redraw(e)}
 function wander(){const[ft,fb]=SC[SID].floor;for(const e of S.ents){if(e.t!=='pet'||e.par||e.s.zz||e.y<ft)continue;const t=tr(e);if(t.drag||t.busy||Math.random()>.1)continue;
@@ -1601,8 +1610,8 @@ function splat(x,y,col){burst(x,y,6,()=>dot(col,rnd(8,18)),50,10,500)}
 function fireBreath(w){const t=absXY(w),y=t.y-(TD(w).k==='char'?(w.s.pose==='sit'?92:134):46),sid=SID;for(let i=0;i<12;i++)setTimeout(()=>{if(SID===sid)fxEl('pt',dot(pick(['#ff5a36','#ffb74d','#ffd23f']),rnd(16,34)),t.x+16,y,700,`--dx:${rnd(90,230).toFixed(0)}px;--dy:${rnd(-44,44).toFixed(0)}px;animation-duration:700ms`)},i*90)}
 
 /* ---------- stickers / stars ---------- */
-function star(id){if(NET.role==='host'&&NET.peer&&!NET.sent.has(id)){NET.sent.add(id);NET.send({t:'star',id})} // friends earn stickers together
- if(G.st[id])return;const before=stars();G.st[id]=Date.now();const def=STK.find(s=>s[0]===id),name=def?def[1]:(id.startsWith('pet_')?'You met '+PETS[id.slice(4)].n+'!':id);
+function star(id){if(NET.feed&&!NET.sent.has(id)){NET.sent.add(id);NET.send({t:'star',id})} // friends in the same place earn stickers together
+ if(G.st[id])return;const before=stars();G.st[id]=Date.now();if(NET.peer)netAt();const def=STK.find(s=>s[0]===id),name=def?def[1]:(id.startsWith('pet_')?'You met '+PETS[id.slice(4)].n+'!':id);
  hushed(()=>{sfx.star();stickerToast(name)});updHud();dirty();const n=stars();
  for(const u of UNL)if(before<u[0]&&n>=u[0])setTimeout(()=>{toast('⭐ '+u[0]+' stars!  '+u[1],5600);usfx('chest');if(u[0]===40){G.pack.push([mk('egg',0,0,{s:{r:2}})]);dirty()}updPack(true);updHud()},1500)}
 
@@ -1612,8 +1621,8 @@ function star(id){if(NET.role==='host'&&NET.peer&&!NET.sent.has(id)){NET.sent.ad
    In a two-player game avatar 1 is the host and avatar 2 is the friend;
    each player keeps their own home, and Buddy Island opens up.
    ===================================================================== */
-const myNo=()=>NET.role==='guest'?2:1;          // which avatar is mine on this screen
-const actNo=()=>ACTOR==='guest'?2:1;            // who is doing the thing that is happening right now (host side)
+const myNo=()=>NET.role==='guest'?2:1;          // which avatar is mine (1 = whoever started the room, 2 = the friend who joined)
+const actNo=()=>ACTOR?3-myNo():myNo();          // who is doing the thing that is happening right now
 const isAv=e=>e.t==='char'&&(e.me===1||e.me===2);
 const clone=o=>JSON.parse(JSON.stringify(o));
 /* an entity plus everything it wears / holds, inside a list of entities */
@@ -1624,35 +1633,34 @@ function reid(arr){const m=new Map();for(const e of arr){m.set(e.id,G.nid);e.id=
  for(const e of arr)if(e.par!=null){if(m.has(e.par))e.par=m.get(e.par);else{e.par=null;e.slot=null;delete e.dx;delete e.dy;if(!e.x){e.x=800;e.y=760}}}return arr}
 
 /* ---------- my avatar ---------- */
-function avMake(){const e=mk('char',0,0,Object.assign({me:1},CH.me)),hat=mk('hat',0,0,{s:{v:2}}),sl=chSlot(e,'head',hat);hat.par=e.id;hat.slot='head';hat.dx=sl.dx;hat.dy=sl.dy;return[e,hat]}
-function avFind(no){no=no||1;
- if(no===1&&G.trav&&G.trav.length&&T[G.trav[0].t])return{e:G.trav[0],ents:G.trav,at:'trav'};
- if(no===2&&NET.gav&&NET.gav.length)return{e:NET.gav[0],ents:NET.gav,at:'trav'};
- if(S&&NET.role!=='guest'){const e=S.ents.find(x=>isAv(x)&&x.me===no);if(e)return{e,ents:S.ents,at:'here'}}
- if(no===1){for(const id in G.sc){const sc=G.sc[id];if(!sc||sc===S||!sc.ents)continue;const e=sc.ents.find(x=>isAv(x)&&x.me===1);if(e)return{e,ents:sc.ents,at:'away'}}
-  for(const a of G.pack)if(a[0]&&isAv(a[0])&&a[0].me===1)return{e:a[0],ents:a,at:'pack'}}
+function avMake(){const e=mk('char',0,0,Object.assign({},CH.me,{me:myNo()})),hat=mk('hat',0,0,{s:{v:2}}),sl=chSlot(e,'head',hat);hat.par=e.id;hat.slot='head';hat.dx=sl.dx;hat.dy=sl.dy;return[e,hat]}
+function avFind(){const no=myNo(); // where is my own avatar right now?
+ if(G.trav&&G.trav.length&&T[G.trav[0].t])return{e:G.trav[0],ents:G.trav,at:'trav'};
+ if(S&&!NET.mir){const e=S.ents.find(x=>isAv(x)&&x.me===no);if(e)return{e,ents:S.ents,at:'here'}}
+ for(const id in G.sc){const sc=G.sc[id];if(!sc||sc===S||!sc.ents)continue;const e=sc.ents.find(x=>isAv(x)&&x.me===no);if(e)return{e,ents:sc.ents,at:'away'}}
+ for(const a of G.pack)if(a[0]&&isAv(a[0])&&a[0].me===no)return{e:a[0],ents:a,at:'pack'};
  return null}
-function avEnsure(){if(avFind(1))return; // older saved games: the girl in the living room becomes "me"; new games: make one
- if(G.avb&&G.avb.length&&T[G.avb[0].t]){G.trav=reid(clone(G.avb));G.trav[0].me=1;G.trav[0].par=null}
+function avEnsure(){if(avFind()||NET.mir)return; // older saved games: the girl in the living room becomes "me"; new games: make one
+ if(G.avb&&G.avb.length&&T[G.avb[0].t]){G.trav=reid(clone(G.avb));G.trav[0].me=myNo();G.trav[0].par=null;G.trav[0].slot=null}
  else{const hm=G.sc.home&&G.sc.home.ents,like=(e,k)=>e.s.hs===CH[k].s.hs&&e.s.of===CH[k].s.of&&e.c.b===CH[k].c.b,
    sc=e=>(like(e,'me')?4:0)+(hm.some(k=>k.par===e.id&&k.t==='hat'&&k.s.v===2)?2:0)+(like(e,'bro')?0:1), // the girl with the bow, however she has been restyled
-   c=hm&&hm.filter(e=>e.t==='char').sort((x,y)=>sc(y)-sc(x))[0];if(c)c.me=1;else G.trav=avMake()}
+   c=hm&&hm.filter(e=>e.t==='char'&&!e.me).sort((x,y)=>sc(y)-sc(x))[0];if(c)c.me=myNo();else G.trav=avMake()}
  delete G.avb;dirty()}
-function avPurge(no){ // forget avatar `no` (or every avatar) in the saved places and the backpack — not the place we are standing in
- for(const id in G.sc){const sc=G.sc[id];if(!sc||!sc.ents||sc===S)continue;for(const e of sc.ents.filter(x=>isAv(x)&&(!no||x.me===no)))grpPull(e,sc.ents)}
- G.pack=G.pack.filter(a=>!(a[0]&&isAv(a[0])&&(!no||a[0].me===no)));if(G.trav&&(!no||no===1))G.trav=null}
-function avTake(){if(!S)return;for(const e of S.ents.filter(isAv)){const g=grpPull(e,S.ents);for(const k of g)delete k._t;if(e.me===2)NET.gav=g;else G.trav=g}}
+function avTidy(mine){ // my saved game keeps only my own avatar (a visiting friend never stays), and forgets who brought what
+ const fix=ents=>{for(const e of ents.filter(x=>isAv(x)&&x.me!==mine))grpPull(e,ents);for(const e of ents){if(isAv(e))e.me=1;delete e.ow;delete e.fre;delete e._t}};
+ for(const id in G.sc){const sc=G.sc[id];if(sc&&sc.ents)fix(sc.ents)}
+ G.pack=G.pack.filter(a=>!(a[0]&&isAv(a[0])&&a[0].me!==mine));for(const a of G.pack)fix(a);
+ if(G.trav){if(G.trav[0]&&isAv(G.trav[0])&&G.trav[0].me!==mine)G.trav=null;else fix(G.trav)}
+ if(G.avb&&G.avb[0])G.avb[0].me=1;G.meNo=1}
+function avTake(){if(!S)return;const e=S.ents.find(x=>isAv(x)&&x.me===myNo());if(e){const g=grpPull(e,S.ents);for(const k of g)delete k._t;G.trav=g}} // leaving a place: I come along
 function avSpot(x0,y){ // somewhere to stand that hides as little as possible
  const bx=S.ents.filter(e=>!e.par&&!TD(e).mt).map(e=>{const d=TD(e);return[e.x-d.w/2,e.x+d.w/2,e.y-d.h,e.y]});let best=x0,bs=1e9;
  for(let x=160;x<=W-160;x+=40){let s=Math.abs(x-x0)*18;for(const b of bx){const ox=Math.min(x+56,b[1])-Math.max(x-56,b[0]),oy=Math.min(y,b[3])-Math.max(y-225,b[2]);if(ox>0&&oy>0)s+=ox*oy*(b[3]<=y?1:.8)}if(s<bs){bs=s;best=x}}return best}
-function avPut(g,x){const sc=SC[SID],[ft,fb]=sc.floor,r=g[0];r.y=Math.min(fb-36,ft+(sc.land||56)+110);r.x=avSpot(x,r.y);r.par=null;r.slot=null;for(const k of g)if(!S.ents.includes(k))S.ents.push(k);(NET.hop=NET.hop||[]).push(r);return r}
-function avArrive(){ // called while a place is being opened: whoever is travelling hops in
- let f=avFind(1);if(f&&f.at==='away')f={e:f.e,ents:grpPull(f.e,f.ents),at:'trav'};
- if(f&&f.at==='trav'){G.trav=null;avPut(f.ents,NET.peer?720:800)}
- if(NET.gav&&NET.role==='host'){const g=NET.gav;NET.gav=null;avPut(g,880)}}
+function avPut(g,x){const sc=SC[SID],[ft,fb]=sc.floor,r=g[0];if(g.some(k=>S.ents.some(z=>z.id===k.id)))reid(g);r.y=Math.min(fb-36,ft+(sc.land||56)+110);r.x=avSpot(x,r.y);r.par=null;r.slot=null;for(const k of g)if(!S.ents.includes(k))S.ents.push(k);(NET.hop=NET.hop||[]).push(r);return r}
+function avArrive(){let f=avFind();if(f&&f.at==='away')f={e:f.e,ents:grpPull(f.e,f.ents),at:'trav'};if(f&&f.at==='trav'){G.trav=null;avPut(f.ents,800)}} // arriving somewhere: I hop in
 function avHello(){for(const e of NET.hop||[]){if(!byId(e.id))continue;anim(e,'pop',320);const a=absXY(e);sparkle(a.x,a.y-130,6)}NET.hop=null}
 function styleHTML(ch){return`<div class="srow"><button data-a="hs-">${IC.left}</button><span>Hair ${ch.s.hs+1}</span><button data-a="hs+">${IC.right}</button></div><div class="srow"><button data-a="of-">${IC.left}</button><span>Outfit ${ch.s.of+1}</span><button data-a="of+">${IC.right}</button></div><div class="lbl">Skin</div><div class="sws">`+SKIN.map(c=>`<button class="swt${ch.c.a===c?' on':''}" data-k="a" data-c="${c}" style="background:${c}"></button>`).join('')+`</div><div class="lbl">Hair colour</div><div class="sws">`+HAIRC.map(c=>`<button class="swt${ch.c.b===c?' on':''}" data-k="b" data-c="${c}" style="background:${c}"></button>`).join('')+`</div><div class="lbl">Clothes</div><div class="sws">`+['#ffd23f','#ff7aa8','#7ad3ff','#56d39a','#9b6bff','#ff8552'].map(c=>`<button class="swt${ch.c.c===c?' on':''}" data-k="c" data-c="${c}" style="background:${c}"></button>`).join('')+`</div><div class="srow2"><button class="btn sm${ch.s.lash?' on':''}" data-a="lash">Lashes</button><button class="btn sm${ch.s.fr?' on':''}" data-a="fr">Freckles</button><button class="btn sm${ch.s.lid!==0?' on':''}" data-a="lid">Sleepy</button><button class="btn sm dice" data-a="rand">${IC.dice}</button></div>`}
-function openMe(first,then){avEnsure();const f=avFind(1);if(!f){then&&then();return}const c=f.e;
+function openMe(first,then){avEnsure();const f=avFind();if(!f){then&&then();return}const c=f.e;
  showModal(`<h2>${first?'Who are you?':'This is you!'}</h2><div class="mepick"><div class="mefig"><div id="mefig"></div><span class="avtag me">ME</span></div><div class="mectl" id="mectl"></div></div><p class="sub sm">This is YOU in Boba Bay! You come along everywhere you go — just look for the <b>ME</b> tag.</p><button class="btn" id="meok">That's me!</button>`,'mewin');
  const ren=()=>{$('#mefig').innerHTML=thumb(c);$('#mectl').innerHTML=styleHTML(c)};ren();
  $('#mectl').onclick=ev=>{const b=ev.target.closest('button');if(!b)return;hushed(()=>styleApply(c,b.dataset.a,b.dataset.k,b.dataset.c,true));ren()};
@@ -1661,13 +1669,17 @@ function openMe(first,then){avEnsure();const f=avFind(1);if(!f){then&&then();ret
 /* ---------- whose home is it? (only matters while two people play) ---------- */
 const HOMES=['home','kitchen','bedroom','bath'];
 for(const id of HOMES){const b=SC[id],nv={};for(const k in b.nav||{})nv[k]=b.nav[k]+'2';SC[id+'2']=Object.assign(Object.create(b),{own:2,base:id,nav:nv})} // the friend's rooms
-const ownerOf=id=>!id||!SC[id]?0:SC[id].own===2?2:HOMES.includes(id)?1:0;      // 0 = a place that belongs to everyone
-const canDeco=no=>{const o=NET.peer?ownerOf(SID):0;return!o||o===no};          // may this player redecorate here?
+const ownerOf=id=>!id||!SC[id]?0:SC[id].own===2?2:1;                           // the town and house 1 belong to whoever started the room; house 2 to the friend
+const isHome=id=>!!SC[id]&&HOMES.includes(SC[id].base||id);
+const canDeco=no=>!NET.peer||ownerOf(SID)===no;                                 // may this player redecorate here?
 const isDeco=e=>{const d=TD(e);return d.k==='furn'||!!d.mt};
-const canMove=(e,no)=>canDeco(no)||!isDeco(e);
-const canKeep=(e,no)=>!(e.me&&e.me!==no)&&(canDeco(no)||e.ow===no||e.me===no); // may this player pack it / bin it?
-const scName=id=>{const sc=SC[id],o=NET.peer?ownerOf(id):0;return o&&o!==myNo()?'Friend\'s '+sc.n:sc.n};
-let _shyT=0;function shy(e,msg){if(e&&byId(e.id))anim(e,'wig',320);usfx('nope');const n=Date.now();if(n-_shyT>5000){_shyT=n;toast(msg||'This is your friend\'s home — you can play with everything, but only they can redecorate.',4200)}}
+function holder(e){for(let x=e;x;x=x.par?byId(x.par):null)if(isAv(x))return x.me;return 0} // the avatar that this is, or that wears / holds this
+/* Playing together is for sharing, not for fighting: you cannot move your friend, take what they wear, hold or brought along, or redecorate their places. */
+function mayMove(e,no){if(!NET.peer)return true;const hd=holder(e);if(hd&&hd!==no)return false;if(e.ow&&e.ow!==no)return false;return canDeco(no)||!isDeco(e)}
+function mayKeep(e,no){if(!NET.peer)return true;if(!mayMove(e,no))return false;return holder(e)===no||e.ow===no||!!e.fre||canDeco(no)} // pack it or bin it?
+function whyNot(e){const hd=holder(e);if(hd&&hd!==actNo())return isAv(e)?'That\'s your friend — only they can move themselves!':'That belongs to your friend.';if(e.ow&&e.ow!==actNo())return'Your friend brought that. If they put it in your hands, it\'s yours!';return'Only the owner can redecorate or take things here. In your own house, you can!'}
+const scName=id=>{const sc=SC[id];return NET.peer&&isHome(id)&&ownerOf(id)!==myNo()?'Friend\'s '+sc.n:sc.n};
+let _shyT=0;function shy(e,msg){if(e&&byId(e.id))anim(e,'wig',320);if(!ACTOR)usfx('nope');const n=Date.now();if(n-_shyT>4000||ACTOR){_shyT=n;toast(msg||(e?whyNot(e):'Only the owner can redecorate here. In your own house, you can!'),4200)}}
 
 /* ---------- things two friends do together ---------- */
 STKG.duo=['Together','#ff5c7a'];STK.push(['housepaint','Home Sweet Home','On the map, give the outside of your house a new colour.','home']);
@@ -1688,7 +1700,7 @@ function duoOpen(ch){const a=absXY(ch),first=!G.flags.twin,v=pick([1,3,5,6,10,15
  ch.s.open=1;ch.s.day=dayN();G.flags.twin=1;redraw(ch);sfx.chest();confetti(a.x,a.y-120,36);say(ch,'TWIN TREASURE!');star('twin');
  if(first)loot.push(['egg',{s:{r:2}}],['egg',{s:{r:2}}]);else if(Math.random()<.4)loot.push(['egg',{s:{r:1}}]);
  const sid=SID;loot.forEach(([t,o],i)=>setTimeout(()=>{if(SID!==sid||!byId(ch.id))return;const e=spawn(t,a.x,a.y-110,o);anim(e,'pop',300);sfx.pop();
-  setTimeout(()=>{if(SID===sid&&byId(e.id)&&!e.par&&!tr(e).drag){e.x=clamp(a.x+(i-(loot.length-1)/2)*112,70,W-70);e.y=a.y+34+(i%2)*34;place(e)}},180)},200+i*220));dirty()} // the loot lands in front of the chest, where little hands can reach it
+  setTimeout(()=>{if(SID===sid&&byId(e.id)&&!e.par&&!tr(e).drag){e.x=clamp(a.x+(i-(loot.length-1)/2)*112,70,W-70);e.y=a.y+72+(i%2)*30;place(e)}},180)},200+i*220));dirty()} // the loot lands in front of the chest, where little hands can reach it
 function rockUpd(e){const el=EL.get(e.id),a=kidIn(e,'seat0'),b=kidIn(e,'seat1');if(el)el.classList.toggle('rocking',!!(a&&b));if(a&&b){sfx.boing();if(a.me&&b.me&&a.me!==b.me)star('rock')}}
 D('rocker','Rainbow Rocker',330,150,'furn',{a:'#ff5c7a',b:'#ffd23f'},(e,c)=>sh(330,150,.5)+P('M8 62 Q165 196 322 62 L296 44 Q165 152 34 44Z',c.a,'a')+P('M42 50 Q165 150 288 50 L270 40 Q165 124 60 40Z',c.b,'b')+P('M66 42 Q165 124 264 42 L250 34 Q165 102 80 34Z','#56d39a')+R(0,34,52,22,11,c.a,'a')+R(278,34,52,22,11,c.a,'a')+P(heartP(165,150,9),'#fff',0,NO),{mag:1,seats:[[-118,-112],[118,-112]],
  sat(e){rockUpd(e)},lost(e){rockUpd(e)},cl(e,el){el.classList.toggle('rocking',!!(S&&kidIn(e,'seat0')&&kidIn(e,'seat1')))}});
@@ -1698,26 +1710,39 @@ SC.duo={n:'Buddy Island',floor:[610,872],land:96,bg:{sky:'#a8e6ff',sea:'#4ab8f0'
   +`<rect data-p="sea" y="352" width="1600" height="280" fill="${b.sea}"/>`+R(0,352,1600,32,0,lt(b.sea,.25),'sea')+[[90,420],[400,460],[800,420],[1200,470],[1470,420],[240,520],[1040,530]].map(([x,y])=>L(`M${x} ${y} q14 -9 28 0 q14 9 28 0`,'#fff',4,0,' opacity=".7" class="np"')).join('')
   +P('M0 620 Q260 548 520 590 Q800 634 1080 590 Q1340 548 1600 620 L1600 900 L0 900Z',b.ground,'ground')+P('M0 620 Q260 548 520 590 Q800 634 1080 590 Q1340 548 1600 620 L1600 638 Q1340 566 1080 608 Q800 652 520 608 Q260 566 0 638Z','#fff',0,' opacity=".75" class="np"')
   +[[140,720],[500,790],[930,884],[1300,720],[1500,850],[700,676]].map(([x,y])=>C(x,y,4,dk(b.ground,.12),0,NP)+C(x+16,y+8,2.500,dk(b.ground,.12),0,NP)).join('')+P(heartP(800,812,34),dk(b.ground,.06),0,NP)+'</svg>'},
- init(a){a.put('palm',140,668);a.put('duobtn',340,770);a.put('duobtn',1260,770,{c:{a:'#7ad3ff',b:'#ffd23f'}});a.put('duochest',800,742);
-  a.put('rocker',800,868);a.put('ball',520,860,{c:{a:'#ff7aa8',b:'#ffd23f'}});a.put('balloon',1050,300);a.put('balloon',1120,300,{c:{a:'#7ad3ff'}});a.put('lounger',1180,862);a.put('shell',600,800,{c:{a:'#d58bff'}})},
+ init(a){a.put('palm',120,668);a.put('duobtn',250,770);a.put('duobtn',1350,770,{c:{a:'#7ad3ff',b:'#ffd23f'}});a.put('duochest',800,742);
+  a.put('rocker',556,772);a.put('lounger',1120,786);a.put('ball',420,864,{c:{a:'#ff7aa8',b:'#ffd23f'}});a.put('balloon',1050,300);a.put('balloon',1120,300,{c:{a:'#7ad3ff'}});a.put('shell',1470,846,{c:{a:'#d58bff'}})},
  enter(){const ch=S.ents.find(e=>e.t==='duochest');if(ch&&ch.s.open&&ch.s.day!==dayN()){ch.s.open=0;redraw(ch)}}};
 SPOTS.push({id:'duo',n:'Buddy Island',x:218,y:304,duo:1});
 
 /* =====================================================================
    PLAY TOGETHER — two players, joined by a room code. No sign-in, no chat.
-   The two browsers talk directly to each other. The player who starts the
-   room is the "host": the town is theirs, and their browser runs the world.
-   The friend ("guest") sees a live copy and sends what their hands do.
-   Each player keeps their OWN home, backpack, stars and avatar:
-   the friend's home is lent to the host for the visit and saved back on
-   the friend's own device.
+   The two browsers talk directly to each other.
+
+   Each player walks around the town ON THEIR OWN. You only see your friend
+   when you are both in the same place.
+     · The town belongs to whoever started the room (player 1). Each player
+       has their own house, backpack, stars and avatar.
+     · A place is always "run" by one player: whoever got there first.
+       If your friend is already there, you watch their copy of it and send
+       what your hands do; when they leave, you carry on running it.
+     · If the place lives in your friend's saved game and they are somewhere
+       else, they lend it to you and you hand it back when you leave.
    ===================================================================== */
-const NETV=3;
-const NET={role:null,want:null,code:'',peer:null,tr:null,last:new Map(),lastMeta:'',lastSid:undefined,rp:null,drag:null,applying:false,fxo:{},msg:'',inFx:0,slow:0,
- gsc:null,gav:null,frStars:0,frFlags:{},mirror:null,wg:null,myAv:null,avJ:'',hello:null,homeDirty:0,sent:new Set(),hop:null};
-let ACTOR=null; // 'guest' while the host is carrying out something its friend asked for
+const NETV=4;
+const NET={role:null,want:null,code:'',peer:null,tr:null,last:new Map(),lastMeta:'',rp:null,drag:null,fxo:{},msg:'',inFx:0,slow:0,
+ here:null,there:null,   // where I am / where my friend is (null = looking at the map)
+ mir:false,              // I am watching my friend's copy of this place (they run it)
+ feed:false,             // my friend is watching my copy of this place (I run it)
+ pend:null,queue:null,seq:0,lent:null,ld:0,
+ frStars:0,frFlags:{},frHouse:null,mirror:null,wg:null,myAv:null,avJ:'',mirDirty:0,sent:new Set(),hop:null};
+let ACTOR=null; // set while I carry out something my friend's hands did in a place I am running
 NET.send=(m,to)=>{if(NET.tr&&(to||NET.peer))try{NET.tr.send(m,to||NET.peer)}catch(e){}};
-const WG=()=>NET.role==='guest'&&NET.wg?NET.wg:G;  // the town's own state (the host's) — used when drawing things like the capsule machine
+const WG=()=>NET.mir&&NET.wg?NET.wg:G;                              // whose daily capsules etc. a drawing should show: the player running the place
+const iOwn=id=>!!SC[id]&&(SC[id].own===2)===(NET.role==='guest');   // does this place live in MY saved game?
+const myKey=id=>SC[id].own===2?SC[id].base:id;                      // …and under which name
+const myScene=id=>G.sc[myKey(id)]||(G.sc[myKey(id)]=initScene(myKey(id)));
+const netSpot=id=>isHome(id)?(SC[id].own===2?'home2':'home'):id;    // the spot on the map that a room belongs to
 const netCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ';let s='';for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
 const hexOk=c=>typeof c==='string'&&/^#[0-9a-fA-F]{6}$/.test(c);
 const ptOk=o=>o&&typeof o==='object'&&isFinite(o.x)&&isFinite(o.y)?{x:clamp(+o.x,-200,W+200),y:clamp(+o.y,-200,H+200)}:null;
@@ -1733,11 +1758,14 @@ function cleanE(u){if(typeof u==='string')try{u=JSON.parse(u)}catch(e){return nu
  if(!u||typeof u!=='object'||typeof u.t!=='string'||!T.hasOwnProperty(u.t)||!Number.isInteger(u.id))return null;const e={id:u.id,t:u.t,x:+u.x||0,y:+u.y||0,c:{},s:cleanV(u.s||{},0)||{}};
  if(u.c&&typeof u.c==='object')for(const k in u.c)if(/^[a-z]$/.test(k)&&typeof u.c[k]==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(u.c[k]))e.c[k]=u.c[k];
  if(Number.isInteger(u.par)){e.par=u.par;e.slot=typeof u.slot==='string'&&/^[a-zA-Z]{1,8}\d{0,2}$/.test(u.slot)?u.slot:'surf';e.dx=+u.dx||0;e.dy=+u.dy||0}
- if(u.flip)e.flip=true;if(u.fx)e.fx=1;if(u.zz)e.zz=+u.zz||0;if(typeof u.from==='string'&&SC.hasOwnProperty(u.from))e.from=u.from;if(u.me===1||u.me===2)e.me=u.me;if(u.ow===1||u.ow===2)e.ow=u.ow;
+ if(u.flip)e.flip=true;if(u.fx)e.fx=1;if(u.zz)e.zz=+u.zz||0;if(u.fre)e.fre=1;if(typeof u.from==='string'&&SC.hasOwnProperty(u.from))e.from=u.from;if(u.me===1||u.me===2)e.me=u.me;if(u.ow===1||u.ow===2)e.ow=u.ow;
  if(u._t&&typeof u._t==='object')e._t=cleanV(u._t,1);return e}
 const cleanBg=(bg,def)=>{const o={};for(const k in def)o[k]=bg&&hexOk(bg[k])?bg[k]:def[k];return o};
 const cleanHouse=h=>h&&typeof h==='object'&&hexOk(h.w)&&hexOk(h.r)?{w:h.w,r:h.r}:null;
 const cleanPat=p=>({wall:clamp(+(p&&p.wall)|0,0,WPAT.length-1),floor:clamp(+(p&&p.floor)|0,0,FPAT.length-1)});
+/* a whole place, as it travels between the two players (never with avatars inside) */
+function scSer(st){const ents=clone(st.ents);for(const e of ents.filter(isAv))grpPull(e,ents);for(const e of ents)delete e._t;return{ents,bg:st.bg,pat:st.pat,night:st.night||0,party:st.party||0}}
+function cleanState(st,id){st=st&&typeof st==='object'?st:{};return{ents:reid((Array.isArray(st.ents)?st.ents:[]).slice(0,230).map(cleanE).filter(e=>e&&!e.me)),bg:cleanBg(st.bg,SC[id].bg),pat:cleanPat(st.pat),night:st.night?1:0,party:st.party?1:0}}
 
 /* ---------- finding each other ---------- */
 function netTransport(code,on){const q=new URLSearchParams(location.search);
@@ -1757,115 +1785,173 @@ function netStart(want,code){netStop(true);NET.want=want;NET.code=code;NET.peer=
  clearTimeout(NET.slow);NET.slow=setTimeout(()=>{if(NET.tr&&!NET.peer&&!NET.msg&&NET.want==='guest'){NET.msg='Still looking… check the code, and that your friend\'s room is open.';netUI()}},15000);netUI()}
 function netErr(code){if(!NET.tr||NET.peer)return;
  NET.msg=code==='relay-failed'?'Can\'t reach the internet meeting point. Check your connection and try again.':code==='peer-connect-failed'?'Found your friend, but this network won\'t let you connect. Try a different Wi-Fi.':code==='room-full'?'That room already has two players.':NET.msg;netUI()}
-function netStop(quiet){const was=NET.role,tr0=NET.tr,had=NET.peer;NET.tr=null;clearTimeout(NET.slow);if(tr0)tr0.close();
- NET.want=null;NET.peer=null;NET.drag=null;NET.hello=null;NET.last.clear();NET.lastSid=undefined;NET.lastMeta='';NET.sent.clear();const c=$('#rcur');if(c)c.style.display='none';
- if(was==='guest'){netHomeSave(true);NET.role=null;NET.frHouse=null;PTR.clear();closeModal();closeTrays();closeStyle();S=null;SID=null;NET.mirror=null;NET.wg=null;avBack();go('map',true);updHud();if(!quiet)toast('You are back in your own Boba Bay.')}
- else{NET.role=null;if(had)netGuestGone()}
- netUI()}
-function netPeerJoin(id){if(NET.want==='guest'&&!NET.peer&&NET.role!=='guest')NET.send(netHello(),id)}
+function netStop(quiet){const tr0=NET.tr,had=NET.peer,guest=NET.role==='guest';
+ if(had&&tr0&&S&&guest){if(NET.mir)NET.send({t:'leave'});else if(NET.feed){scClose();netFlush();NET.send({t:'promote',id:SID})}else if(!iOwn(SID)){scClose();NET.send({t:'back',id:SID,st:scSer(S)})}} // the friend who leaves hands things over politely
+ NET.tr=null;clearTimeout(NET.slow);if(tr0)tr0.close();NET.want=null;
+ if(had)netApart();NET.role=null;NET.peer=null;
+ if(had&&guest&&!quiet)toast('You are back in your own Boba Bay.');netUI()}
+function netPeerJoin(id){if(NET.want==='guest'&&!NET.peer)NET.send({t:'hello',v:NETV,house:G.house||null},id)}
 function netPeerLeave(id){if(id!==NET.peer)return;
- if(NET.role==='host'){NET.peer=null;const c=$('#rcur');if(c)c.style.display='none';netGuestGone();toast('Your friend left the room.');netUI()}
+ if(NET.role==='host'){netApart();toast('Your friend left the room.');netUI()}
  else{netStop(true);toast('The room closed. You are back in your own Boba Bay.',4200)}}
+
+/* ---------- starting and ending a visit ---------- */
+function netAccept(id,m){if(m.v!==NETV){NET.send({t:'ver'},id);return}if(NET.peer&&NET.peer!==id){NET.send({t:'busy'},id);return}
+ if(NET.peer===id)netApart(); // the same friend coming back: start clean
+ NET.peer=id;NET.msg='';NET.frHouse=cleanHouse(m.house);NET.there=null;NET.here=S?SID:null;NET.mir=false;NET.feed=false;NET.sent.clear();
+ NET.send({t:'welcome',v:NETV,house:G.house||null});netAt();toast('Your friend joined! Look for them on the map.',4200);usfx('star');star('duo');updHud();mapPing();netUI()}
+function netWelcome(id,m){avEnsure();if(S)go('map',true); // step out of my own town…
+ const f=avFind();NET.peer=id;NET.role='guest';if(f)f.e.me=2;G.meNo=2; // …and into my friend's, as player 2
+ NET.frHouse=cleanHouse(m.house);NET.here=null;NET.there=null;NET.mir=false;NET.feed=false;NET.sent.clear();
+ closeModal();const t=$('#title');if(t){t.className='ui';t.innerHTML=''}
+ netAt();toast('You joined your friend\'s town! Your own house is here too.',4600);usfx('star');star('duo');showMap();updHud();netUI();saveG()}
+function netApart(){ // we are no longer connected: sort out where I am, and who and what stays in my game
+ const guest=NET.role==='guest';if(NET.pend)clearTimeout(NET.pend.t);NET.pend=null;NET.queue=null;NET.drag=null;closeTrays();closeStyle();
+ if(S){
+  if(NET.mir){netMirSave(true);
+   if(!guest&&iOwn(SID)){netPromote();const fr=S.ents.find(x=>isAv(x)&&x.me!==myNo());if(fr)rm(fr)} // my own place: I simply carry on running it
+   else{netAvHome();clearScene();S=null;SID=null}}
+  else{const fr=S.ents.find(x=>isAv(x)&&x.me!==myNo());if(fr)rm(fr);if(NET.rp){const e=NET.rp.e;NET.rp=null;if(byId(e.id)){tr(e).drag=0;const el=EL.get(e.id);el&&el.classList.remove('drag');place(e)}}
+   if(guest||!iOwn(SID)){scClose();clearScene();S=null;SID=null}}} // a borrowed place goes back with its owner
+ NET.mir=false;NET.feed=false;NET.lent=null;NET.mirror=null;NET.wg=null;NET.myAv=null;NET.avJ='';delete G.avb;NET.there=null;NET.frHouse=null;NET.frStars=0;NET.frFlags={};NET.peer=null;NET.sent.clear();NET.last.clear();
+ const c=$('#rcur');if(c)c.style.display='none';dragUI(false);
+ if(guest){NET.role=null;avTidy(2);G.cur='map';toMap()}else{avTidy(1);NET.here=S?SID:null;if(!S)toMap()}
+ updHud();saveG()}
+
+/* ---------- walking around ---------- */
+function netAt(){NET.send({t:'at',id:NET.here,stars:stars(),flags:{tree:G.flags.tree?1:0}})}
+function myAvSnap(){ // a copy of my avatar (and what it wears and holds), to send ahead to where I am going
+ if(NET.mir)return NET.myAv?clone(NET.myAv):null;const f=avFind();if(!f||f.at==='pack')return null;
+ const g=clone(f.at==='trav'?f.ents:grpOf(f.e,f.ents));for(const k of g)delete k._t;g[0].par=null;g[0].slot=null;return g}
+function netAvHome(){if(NET.myAv&&NET.myAv.length&&T[NET.myAv[0].t]){const a=reid(clone(NET.myAv));a.forEach((k,i)=>{delete k._t;if(i)delete k.me;else k.me=myNo()});a[0].par=null;a[0].slot=null;delete a[0].dx;delete a[0].dy;a[0].s.pose='stand';delete a[0].s.lie;G.trav=a}
+ NET.myAv=null;NET.avJ='';delete G.avb} // my avatar steps out of my friend's copy and back to me
+function netLeave(){ // I walk out of the place I am in (the room code stays)
+ if(!S)return;
+ if(NET.mir){netMirSave(true);NET.send({t:'leave'});netAvHome();NET.mir=false;NET.mirror=null;NET.wg=null;NET.drag=null}
+ else{scClose();
+  if(NET.feed){netFlush();NET.send({t:'promote',id:SID});NET.feed=false;const fr=S.ents.find(x=>isAv(x)&&x.me!==myNo());if(fr)grpPull(fr,S.ents)} // my friend stays: they run it from now on
+  else if(!iOwn(SID))NET.send({t:'back',id:SID,st:scSer(S)}); // a borrowed place goes back to its owner
+  NET.lent=null}
+ clearScene();S=null;SID=null}
+function netGo(id,quiet){if(NET.pend)return; // already on my way somewhere
+ const sc=id!=='map'&&SC.hasOwnProperty(id)?SC[id]:null;if(sc&&S&&id===SID)return;closeTrays();closeStyle();setMode('play');
+ if(!sc){netLeave();NET.here=null;toMap();netAt();return}
+ if(NET.there!==id&&iOwn(id)){netLeave();NET.here=id;scOpen(id,myScene(id),{quiet});netAt();return} // my own place and my friend is not in it: just walk in
+ const n=++NET.seq,av=myAvSnap();NET.pend={id,quiet,n,av,t:setTimeout(()=>{if(NET.pend&&NET.pend.n===n){NET.pend=null;toast('Couldn\'t get there — try again.')}},6000)};
+ NET.send({t:'enter',id,n,av})} // ask my friend: are you in there? may I have the place?
+function netReply(m){const P=NET.pend;
+ if(!P||m.n!==P.n){if(m.t==='join')NET.send({t:'leave'});netAt();return} // an answer that came too late: I am not coming after all
+ clearTimeout(P.t);NET.pend=null;if(m.t==='no'||(m.t==='own'&&!iOwn(P.id))){usfx('nope');return}
+ netLeave();NET.here=P.id;
+ if(m.t==='join'){if(P.av){G.trav=null;NET.myAv=P.av;G.avb=P.av}NET.avJ='';NET.mir=true;netFull(m,P.quiet)} // my friend is in there: I watch their copy
+ else if(m.t==='lend'){NET.lent=P.id;scOpen(P.id,cleanState(m.st,P.id),{quiet:P.quiet})}                    // it is theirs but they are elsewhere: I borrow it
+ else scOpen(P.id,myScene(P.id),{quiet:P.quiet});                                                           // it is mine
+ netAt();const q=NET.queue;NET.queue=null;if(q)netAnswer(q)}
+function netAnswer(m){const id=m.id;NET.there=id; // my friend wants to walk into a place
+ if(S&&SID===id&&!NET.mir){ // I am in there, running it: they join me
+  let av=(Array.isArray(m.av)?m.av:[]).slice(0,12).map(cleanE).filter(Boolean);
+  if(av.length&&av[0].t==='char'){av=reid(av);av.forEach((k,i)=>{if(i)delete k.me;else k.me=3-myNo()});av[0].par=null;av[0].slot=null;av[0].s.pose='stand';NET.hop=null;avPut(av,880);for(const k of av){IDX.set(k.id,k);mountE(k)}avHello()}
+  NET.feed=true;NET.send(Object.assign(netWhole(),{n:m.n}));usfx('pop');toast('Your friend is here!',2400);if(isHome(id))star('visit')}
+ else if(iOwn(id))NET.send({t:'lend',id,n:m.n,st:scSer(myScene(id))});
+ else NET.send({t:'own',id,n:m.n});
+ mapPing();netUI()}
+function netLeft(){if(!NET.feed)return;NET.feed=false;NET.there=null; // my friend walked out of the place I am running
+ if(NET.rp){const e=NET.rp.e;NET.rp=null;if(S&&byId(e.id)){tr(e).drag=0;const el=EL.get(e.id);el&&el.classList.remove('drag');place(e)}}
+ const fr=S&&S.ents.find(x=>isAv(x)&&x.me!==myNo());if(fr){const a=absXY(fr);puff(a.x,a.y-110,'#fff',5);rm(fr)}const c=$('#rcur');if(c)c.style.display='none'}
+function netPromote(){ // my friend, who was running this place, walked out: from now on I run it
+ NET.mir=false;NET.feed=false;NET.drag=null;NET.mirror=null;NET.wg=null;dragUI(false);let mx=0;const air=[];
+ for(const e of S.ents){mx=Math.max(mx,e.id);const t=TRN.get(e.id)||{},el=EL.get(e.id);if(t.drag)air.push(e);delete e._t;t.drag=0;TRN.set(e.id,t);if(el){el.classList.remove('drag');el.style.transition=''}}
+ G.nid=Math.max(G.nid,mx+1);if(iOwn(SID))G.sc[myKey(SID)]=S;else NET.lent=SID;
+ for(const e of S.ents.slice())if(byId(e.id)&&e.slot==='mouth'){if(TD(e).k==='drink'){unpar(e);place(e)}else rm(e)} // a snack someone was in the middle of
+ for(const e of air)if(byId(e.id)&&!e.par)place(e);
+ const sid=SID;setTimeout(()=>{if(SID!==sid||NET.mir||!S)return;for(const e of S.ents){const t=TRN.get(e.id);if(t&&(t.face||t.rb||t.sz||t.cream||t.dn)){t.face=null;t.rb=0;t.sz=0;t.cream=0;t.dn=0;redraw(e)}}},9000);
+ NET.myAv=null;NET.avJ='';delete G.avb;const c=$('#rcur');if(c)c.style.display='none';updHud();dirty()}
+
+/* ---------- messages ---------- */
 function netMsg(m,id){if(!m||typeof m!=='object')return;
- if(NET.want==='host'){if(m.t==='hello')netAccept(id,m);else if(id===NET.peer)netHost(m);return}
- if(NET.want!=='guest')return;
- if(m.t==='busy'||m.t==='ver'){if(!NET.peer){NET.msg=m.t==='ver'?'You two have different versions of Boba Bay. Both refresh the page, then try again.':'That room already has two players.';netUI()}return}
- if(m.t==='full'){if(!NET.peer)NET.peer=id;if(id===NET.peer)netFull(m);return}
- if(id!==NET.peer||NET.role!=='guest')return;
+ if(m.t==='hello'){if(NET.want==='host')netAccept(id,m);return}
+ if(m.t==='busy'||m.t==='ver'){if(NET.want==='guest'&&!NET.peer){NET.msg=m.t==='ver'?'You two have different versions of Boba Bay. Both refresh the page, then try again.':'That room already has two players.';netUI()}return}
+ if(m.t==='welcome'){if(NET.want==='guest'&&!NET.peer){if(m.v!==NETV){NET.msg='You two have different versions of Boba Bay. Both refresh the page, then try again.';netUI()}else netWelcome(id,m)}return}
+ if(id!==NET.peer)return;
  switch(m.t){
+  // where each of us is
+  case'at':NET.there=typeof m.id==='string'&&SC.hasOwnProperty(m.id)?m.id:null;NET.frStars=+m.stars|0;NET.frFlags=cleanV(m.flags||{},2)||{};mapPing();netUI();break;
+  case'house':NET.frHouse=cleanHouse(m.h);mapPing();break;
+  case'enter':if(typeof m.id!=='string'||!SC.hasOwnProperty(m.id)){NET.send({t:'no',n:m.n});break}if(NET.pend&&NET.pend.id===m.id&&NET.role==='host'){NET.queue=m;break}netAnswer(m);break; // both heading for the same place: player 1 goes first
+  case'join':if(m.re){if(NET.mir&&SID===m.id)netFull(m,true)}else netReply(m);break;
+  case'lend':case'own':case'no':netReply(m);break;
+  case'leave':netLeft();break;
+  case'promote':if(NET.mir&&S&&SID===m.id)netPromote();break;
+  case'back':if(typeof m.id==='string'&&SC.hasOwnProperty(m.id)&&iOwn(m.id)&&!(S&&SID===m.id)){G.sc[myKey(m.id)]=cleanState(m.st,m.id);dirty()}break;
+  case'c':netCur(m.x,m.y);break;
+  // things for me, wherever I am
+  case'pk':{let a=(Array.isArray(m.a)?m.a:[]).slice(0,40).map(cleanE).filter(Boolean);if(!a.length)break;a=reid(a);const r=a[0];r.par=null;r.slot=null;if(r.t==='char')r.s.pose='stand';
+   for(const k of a){delete k._t;delete k.ow;delete k.fre;if(k===r&&isAv(k)&&k.me===myNo()){NET.myAv=null;NET.avJ='';delete G.avb}else delete k.me}G.pack.push(a);sfx.zip();updPack(true);dirty();break}
+  default:if(NET.mir)netWatch(m);else if(NET.feed)netHands(m)}}
+/* I am watching my friend's copy of this place */
+function netWatch(m){switch(m.t){
   case'd':netApply(m);break;
   case'fx':{const f=NET.fxo[m.k];if(!f||!Array.isArray(m.a))break;let ok=true;const a=m.a.slice(0,8).map(x=>{if(x&&typeof x==='object'){const e=x.$!=null&&S&&byId(x.$);if(!e)ok=false;return e}return typeof x==='string'?esc(x).slice(0,300):typeof x==='number'?clamp(x,-3000,6000):x});if(ok)try{f.apply(null,a)}catch(e){}break}
   case's':{const f=typeof m.k==='string'&&NET.fxo['sfx:'+m.k];if(f)f(+m.a||0);break}
-  case'c':netCur(m.x,m.y);break;
   case'star':if(typeof m.id==='string'&&(STK.some(s=>s[0]===m.id)||(m.id.startsWith('pet_')&&PETS.hasOwnProperty(m.id.slice(4)))))star(m.id);break; // we found it together
   case'mini':if(Number.isInteger(m.i)&&m.i>=0&&m.i<MININ.length){G.minis[m.i]=1;dirty()}break;
-  case'pk':{let a=(Array.isArray(m.a)?m.a:[]).slice(0,40).map(cleanE).filter(Boolean);if(!a.length)break;a=reid(a);const r=a[0];r.par=null;r.slot=null;if(r.t==='char')r.s.pose='stand';
-   for(const k of a){delete k._t;delete k.ow;if(k===r&&isAv(k)&&k.me===2)k.me=1;else delete k.me}G.pack.push(a);sfx.zip();updPack(true);dirty();break}
   case'ui':if(m.k==='sight')NET.fxo.showSight(esc(m.a&&m.a[0]),String(m.a&&m.a[1]));else if(m.k==='hint')NET.fxo.showHint();else if(m.k==='style'){const c=S&&byId(m.id);if(c)NET.fxo.openStyle(c)}
    else if(m.k==='toast')NET.fxo.toast(esc(m.a&&m.a[0]).slice(0,300),+(m.a&&m.a[1])||undefined);break;
   case'grabbed':{const D=NET.drag;if(m.id==null){if(D){const e=D.id!=null&&S&&byId(D.id);if(e){tr(e).drag=0;const el=EL.get(e.id);el&&el.classList.remove('drag');NET.send({t:'re',id:e.id})}D.P.dead=true;D.P.drag=false;NET.drag=null;dragUI(false)}}else if(D&&D.id==null){D.id=m.id;D.off=ptOk(m.off)||{x:0,y:0}}break}}}
-
-/* ---------- joining: the friend brings their home and their avatar ---------- */
-function netHello(){avEnsure();const homes={};for(const k of HOMES){const c=clone(G.sc[k]||(G.sc[k]=initScene(k)));for(const e of c.ents.filter(isAv))grpPull(e,c.ents);homes[k]=c}
- const f=avFind(1),av=clone(f.at==='trav'||f.at==='pack'?f.ents:grpOf(f.e,f.ents));av[0].par=null;av[0].slot=null;NET.hello=av;
- return{t:'hello',v:NETV,av,homes,house:G.house||null,stars:stars(),flags:{tree:G.flags.tree?1:0}}}
-function netAccept(id,m){if(m.v!==NETV){NET.send({t:'ver'},id);return}if(NET.peer&&NET.peer!==id){NET.send({t:'busy'},id);return}
- const gs={};for(const k of HOMES){const hm=m.homes&&m.homes[k];if(!hm||!Array.isArray(hm.ents)){NET.send({t:'busy'},id);return}
-  gs[k]={ents:reid(hm.ents.slice(0,230).map(cleanE).filter(e=>e&&!e.me)),bg:cleanBg(hm.bg,SC[k].bg),pat:cleanPat(hm.pat),night:hm.night?1:0,party:hm.party?1:0}}
- if(NET.peer===id)netGuestGone(); // the same friend coming back: start clean
- let av=(Array.isArray(m.av)?m.av:[]).slice(0,12).map(cleanE).filter(Boolean);if(!av.length||av[0].t!=='char')av=avMake();av=reid(av);av.forEach((k,i)=>{if(i)delete k.me;else k.me=2});av[0].par=null;av[0].slot=null;av[0].s.pose='stand';
- NET.gsc=gs;NET.gav=av;NET.frHouse=cleanHouse(m.house);NET.frStars=+m.stars|0;NET.frFlags=cleanV(m.flags||{},2)||{};NET.peer=id;NET.msg='';NET.lastSid=undefined;NET.last.clear();NET.sent.clear();
- if(S){const g=NET.gav;NET.gav=null;NET.hop=null;avPut(g,880);for(const k of g){IDX.set(k.id,k);mountE(k)}avHello()}
- netFlush();toast('Your friend joined! You can both play now.');usfx('star');star('duo');if(S&&ownerOf(SID))star('visit');updHud();if(!SID)showMap();netUI()}
-function netGuestGone(){ // host: the friend has gone — their avatar and their home go with them
- if(NET.rp){const e=NET.rp.e;NET.rp=null;if(S&&byId(e.id)){tr(e).drag=0;const el=EL.get(e.id);el&&el.classList.remove('drag');place(e)}}
- if(SID&&SC[SID].own===2)go('map',true);
- if(S){const e=S.ents.find(x=>isAv(x)&&x.me===2);if(e)rm(e)}
- NET.gav=null;NET.gsc=null;NET.frHouse=null;avPurge(2);closeTrays();updHud();if(!SID)showMap()}
-function avBack(){const g=NET.myAv;NET.myAv=null;NET.avJ='';avPurge();if(g&&g.length&&T[g[0].t]){const a=reid(clone(g));a.forEach((k,i)=>{delete k._t;delete k.ow;if(i)delete k.me;else k.me=1});a[0].par=null;a[0].slot=null;delete a[0].dx;delete a[0].dy;a[0].s.pose='stand';delete a[0].s.lie;G.trav=a}
- delete G.avb;avEnsure();saveG()}
-
-/* ---------- host: carry out what the friend's hands do ---------- */
+/* my friend's hands, in a place I am running */
 function catHas(id){for(const c of CAT)for(const it of c[1])if((it.pop?it[0]:it)===id)return true;return false}
-function netHost(m){ACTOR='guest';try{switch(m.t){
- case'c':netCur(m.x,m.y);break;
+function netHands(m){if(!S)return;const fno=3-myNo();ACTOR='peer';try{switch(m.t){
  case're':NET.last.delete(m.id);break;
- case'go':if(m.id==='map')go('map');else if(typeof m.id==='string'&&SC.hasOwnProperty(m.id)&&(SC[m.id].own!==2||NET.gsc)){const sp=SPOTS.find(s=>s.id===m.id);if(!sp||spotOpen(sp))go(m.id)}break;
- case'tap':{const q=m.r,p=q&&ptOk(q.p);if(!S||!p)break;const r={id:Number.isInteger(q.id)?q.id:null,b:typeof q.b==='string'&&q.b.length<16?q.b:null,part:typeof q.part==='string'&&/^[a-z]{1,8}$/.test(q.part)?q.part:null,bg:!!q.bg,p};
+ case'tap':{const q=m.r,p=q&&ptOk(q.p);if(!p)break;const r={id:Number.isInteger(q.id)?q.id:null,b:typeof q.b==='string'&&q.b.length<16?q.b:null,part:typeof q.part==='string'&&/^[a-z]{1,8}$/.test(q.part)?q.part:null,bg:!!q.bg,p};
    if(m.col){if(hexOk(m.col))paintCore(r,m.col)}else tapCore(r);break}
- case'grab':{let id=null;const p0=ptOk(m.p0),p=ptOk(m.p);if(NET.rp&&!(S&&byId(NET.rp.e.id)))NET.rp=null;
-   if(S&&!NET.rp&&p0&&p){const e=byId(m.id);if(e&&!tr(e).busy&&!tr(e).drag){let x=e,off=null;
-    if(isFix(e)){x=TD(e).disp?dispense(e,p):null;if(x)off={x:0,y:TD(x).h/2}}else if(!canMove(e,2))x=null;else{if(e.par)unpar(e);off={x:e.x-p0.x,y:e.y-p0.y}}
+ case'grab':{let id=null;const p0=ptOk(m.p0),p=ptOk(m.p);if(NET.rp&&!byId(NET.rp.e.id))NET.rp=null;
+   if(!NET.rp&&p0&&p){const e=byId(m.id);if(e&&!tr(e).busy&&!tr(e).drag){let x=e,off=null;
+    if(isFix(e)){x=TD(e).disp?dispense(e,p):null;if(x)off={x:0,y:TD(x).h/2}}else if(!mayMove(e,fno))x=null;else{if(e.par)unpar(e);off={x:e.x-p0.x,y:e.y-p0.y}}
     if(x){tr(x).drag=1;const el=EL.get(x.id);el.classList.add('drag');el.style.transition='';posE(x);NET.rp={e:x,off};id=x.id}}}
    netFlush();NET.send({t:'grabbed',id,off:id!=null?NET.rp.off:null});break}
- case'unpack':{const p=ptOk(m.p);let a=(Array.isArray(m.a)?m.a:[]).slice(0,40).map(cleanE).filter(Boolean);if(!a.length)break;if(NET.rp&&!(S&&byId(NET.rp.e.id)))NET.rp=null;
-   if(!S||NET.rp||!p||S.ents.length>190){NET.send({t:'pk',a:m.a});NET.send({t:'grabbed',id:null});break} // can't right now: hand it straight back
-   a=reid(a);const x=a[0],from=x.from;delete x.from;a.forEach((k,i)=>{if(!i&&k.t==='char'&&k.me)k.me=2;else delete k.me});x.par=null;x.slot=null;x.x=p.x;x.y=p.y+TD(x).h/2;x.ow=2;
+ case'unpack':{const p=ptOk(m.p);let a=(Array.isArray(m.a)?m.a:[]).slice(0,40).map(cleanE).filter(Boolean);if(!a.length)break;if(NET.rp&&!byId(NET.rp.e.id))NET.rp=null;
+   if(NET.rp||!p||S.ents.length>190){NET.send({t:'pk',a:m.a});NET.send({t:'grabbed',id:null});break} // can't right now: hand it straight back
+   a=reid(a);const x=a[0],from=x.from;delete x.from;a.forEach((k,i)=>{if(!i&&k.t==='char'&&k.me)k.me=fno;else delete k.me;k.ow=fno;delete k.fre});x.par=null;x.slot=null;x.x=p.x;x.y=p.y+TD(x).h/2;
    for(const k of a){S.ents.push(k);IDX.set(k.id,k)}for(const k of a)mountE(k);if(from&&from!==SID)star('pack');dirty();
    tr(x).drag=1;EL.get(x.id).classList.add('drag');posE(x);NET.rp={e:x,off:{x:0,y:TD(x).h/2}};netFlush();NET.send({t:'grabbed',id:x.id,off:NET.rp.off});break}
- case'mv':if(NET.rp&&S&&byId(NET.rp.e.id)&&isFinite(m.x)&&isFinite(m.y)){const e=NET.rp.e,el=EL.get(e.id);e.x=clamp(m.x+NET.rp.off.x,10,W-10);e.y=clamp(m.y+NET.rp.off.y,30,H+60);if(el)el.style.transition='transform .07s linear';posE(e);if(S.night&&TD(e).light)updLights()}break;
- case'drop':if(NET.rp){const e=NET.rp.e,off=NET.rp.off,p=ptOk(m.p);NET.rp=null;if(S&&byId(e.id)){const el=EL.get(e.id);if(el)el.style.transition='';if(p){e.x=clamp(p.x+off.x,10,W-10);e.y=clamp(p.y+off.y,30,H+60)}
+ case'mv':if(NET.rp&&byId(NET.rp.e.id)&&isFinite(m.x)&&isFinite(m.y)){const e=NET.rp.e,el=EL.get(e.id);e.x=clamp(m.x+NET.rp.off.x,10,W-10);e.y=clamp(m.y+NET.rp.off.y,30,H+60);if(el)el.style.transition='transform .07s linear';posE(e);if(S.night&&TD(e).light)updLights()}break;
+ case'drop':if(NET.rp){const e=NET.rp.e,off=NET.rp.off,p=ptOk(m.p);NET.rp=null;if(byId(e.id)){const el=EL.get(e.id);if(el)el.style.transition='';if(p){e.x=clamp(p.x+off.x,10,W-10);e.y=clamp(p.y+off.y,30,H+60)}
     const r=m.res&&typeof m.res==='object'?m.res:null;dropCore(e,p||{x:e.x,y:e.y},r&&{pack:!!r.pack,trash:!!r.trash,ids:(Array.isArray(r.ids)?r.ids:[]).filter(Number.isInteger).slice(0,40)},!r)}}break;
- case'cat':if(S&&SC[SID].home&&typeof m.id==='string'&&T.hasOwnProperty(m.id)&&catHas(m.id))addFromCat(m.id);break;
- case'house':NET.frHouse=cleanHouse(m.h);if(!SID)showMap();break;
- case'pat':if(S&&SC[SID].in&&(m.k==='wall'||m.k==='floor'))setPat(m.k,m.i);break;
- case'style':if(S){const c=byId(m.id);if(c&&c.t==='char'&&(!m.k||((m.k==='a'||m.k==='b'||m.k==='c')&&hexOk(m.c)))){styleApply(c,m.a,m.k,m.c);if(STY===c)renderStyle()}}break}}
+ case'cat':if(SC[SID].home&&typeof m.id==='string'&&T.hasOwnProperty(m.id)&&catHas(m.id))addFromCat(m.id);break;
+ case'pat':if(SC[SID].in&&(m.k==='wall'||m.k==='floor'))setPat(m.k,m.i);break;
+ case'style':{const c=byId(m.id);if(c&&c.t==='char'&&!(c.me&&c.me!==fno)&&(!m.k||((m.k==='a'||m.k==='b'||m.k==='c')&&hexOk(m.c)))){styleApply(c,m.a,m.k,m.c);if(STY===c)renderStyle()}break}}}
  catch(err){console.error(err)}finally{ACTOR=null}}
 
-/* ---------- host: send the world (only what changed) ---------- */
+/* ---------- I run the place: send what changed to my friend who is watching ---------- */
 const TKEYS=['face','rb','sz','cream','pour','o','sn','peek','drag','dn'];
 function netSer(e){const t=TRN.get(e.id);let tt;if(t)for(const k of TKEYS)if(t[k])(tt=tt||{})[k]=t[k];return JSON.stringify(tt?Object.assign({},e,{_t:tt}):e)}
-function netMeta(){return{hs:stars(),house:G.house||null,w:{flags:{tree:G.flags.tree?1:0},daily:{cap:G.daily.cap,capDay:G.daily.capDay}},sc:S?{bg:S.bg,pat:S.pat,night:S.night||0,party:S.party||0}:null}}
-function netFlush(){if(NET.role!=='host'||!NET.peer)return;const mj=JSON.stringify(netMeta());
- if(SID!==NET.lastSid){NET.lastSid=SID;NET.last.clear();NET.lastMeta=mj;const ents=[];if(S)for(const e of S.ents){const j=netSer(e);NET.last.set(e.id,j);ents.push(j)}NET.send({t:'full',sid:SID,ents,meta:JSON.parse(mj)});return}
- const up=[],rm=[];if(S){const seen=new Set();for(const e of S.ents){seen.add(e.id);const j=netSer(e);if(NET.last.get(e.id)!==j){NET.last.set(e.id,j);up.push(j)}}for(const id of NET.last.keys())if(!seen.has(id)){rm.push(id);NET.last.delete(id)}}
+function netMeta(){return{w:{flags:{tree:G.flags.tree?1:0},daily:{cap:G.daily.cap,capDay:G.daily.capDay}},sc:{bg:S.bg,pat:S.pat,night:S.night||0,party:S.party||0}}}
+function netWhole(){NET.last.clear();const ents=[];for(const e of S.ents){const j=netSer(e);NET.last.set(e.id,j);ents.push(j)}NET.lastMeta=JSON.stringify(netMeta());return{t:'join',id:SID,ents,meta:JSON.parse(NET.lastMeta)}}
+function netResync(){if(NET.feed&&S)NET.send(Object.assign(netWhole(),{re:1}))}
+function netFlush(){if(!NET.feed||!S)return;const mj=JSON.stringify(netMeta()),up=[],rm=[],seen=new Set();
+ for(const e of S.ents){seen.add(e.id);const j=netSer(e);if(NET.last.get(e.id)!==j){NET.last.set(e.id,j);up.push(j)}}for(const id of NET.last.keys())if(!seen.has(id)){rm.push(id);NET.last.delete(id)}
  const meta=mj!==NET.lastMeta?(NET.lastMeta=mj,JSON.parse(mj)):null;if(up.length||rm.length||meta)NET.send({t:'d',up,rm,meta})}
 setInterval(netFlush,90);
 
-/* ---------- guest: show the host's world ---------- */
-function netSetMeta(meta,quiet){if(!meta||typeof meta!=='object')return;const w=meta.w||{},d=w.daily||{};NET.wg={flags:cleanV(w.flags||{},2)||{},daily:{cap:+d.cap||0,capDay:+d.capDay||0}};NET.frStars=+meta.hs|0;NET.frFlags=NET.wg.flags;NET.frHouse=cleanHouse(meta.house);
- if(quiet)return;
- if(S&&SID&&meta.sc){const sc=meta.sc,n=(S.night||0)!==(sc.night?1:0),p=(S.party||0)!==(sc.party?1:0);S.bg=cleanBg(sc.bg,SC[SID].bg);S.pat=cleanPat(sc.pat);S.night=sc.night?1:0;S.party=sc.party?1:0;drawBg();if(n)setNight(true);if(p)setParty(true);
-  for(const e of S.ents)if(e.t==='capsule_m'||e.t==='tree'||e.t==='disco')redraw(e);if(ownerOf(SID)===2)NET.homeDirty=1}
- updHud();if(!SID)showMap();if(TRAY)renderTray()}
-function netFull(m){
- if(NET.role!=='guest'){if(!NET.hello)return;go('map',true);avPurge();NET.myAv=NET.hello;NET.avJ='';G.avb=NET.myAv;saveG();NET.role='guest';closeModal();toast('You joined! This is your friend\'s town — and your own house is here too.',4600);usfx('star');const t=$('#title');if(t){t.className='ui';t.innerHTML=''}}
- netHomeSave(true);NET.drag=null;netSetMeta(m.meta,true);NET.applying=true;
- try{const sc=m.meta&&m.meta.sc;if(typeof m.sid==='string'&&SC.hasOwnProperty(m.sid)&&sc){
-   NET.mirror={ents:(Array.isArray(m.ents)?m.ents:[]).slice(0,400).map(cleanE).filter(Boolean),bg:cleanBg(sc.bg,SC[m.sid].bg),pat:cleanPat(sc.pat),night:sc.night?1:0,party:sc.party?1:0};go(m.sid);
-   for(const e of S.ents)if(e._t){TRN.set(e.id,Object.assign({},e._t));redraw(e);const el=EL.get(e.id);el&&el.classList.toggle('drag',!!e._t.drag);posE(e)}if(S.night)updLights()}
-  else{NET.mirror=null;go('map')}}finally{NET.applying=false}
- NET.homeDirty=0;netAvSnap();updHud();netUI()}
+/* ---------- I watch the place: show my friend's copy ---------- */
+function netSetMeta(meta,quiet){if(!meta||typeof meta!=='object')return;const w=meta.w||{},d=w.daily||{};NET.wg={flags:cleanV(w.flags||{},2)||{},daily:{cap:+d.cap||0,capDay:+d.capDay||0}};
+ if(quiet||!S||!SID||!meta.sc)return;
+ const sc=meta.sc,n=(S.night||0)!==(sc.night?1:0),p=(S.party||0)!==(sc.party?1:0);S.bg=cleanBg(sc.bg,SC[SID].bg);S.pat=cleanPat(sc.pat);S.night=sc.night?1:0;S.party=sc.party?1:0;drawBg();if(n)setNight(true);if(p)setParty(true);
+ for(const e of S.ents)if(e.t==='capsule_m'||e.t==='tree'||e.t==='disco')redraw(e);NET.mirDirty=1;if(TRAY)renderTray()}
+function netFull(m,quiet){const id=m.id,sc=m.meta&&m.meta.sc;NET.drag=null;netSetMeta(m.meta,true);
+ NET.mirror={ents:(Array.isArray(m.ents)?m.ents:[]).slice(0,400).map(cleanE).filter(Boolean),bg:cleanBg(sc&&sc.bg,SC[id].bg),pat:cleanPat(sc&&sc.pat),night:sc&&sc.night?1:0,party:sc&&sc.party?1:0};
+ scOpen(id,NET.mirror,{mir:true,quiet});
+ for(const e of S.ents)if(e._t){TRN.set(e.id,Object.assign({},e._t));redraw(e);const el=EL.get(e.id);el&&el.classList.toggle('drag',!!e._t.drag);posE(e)}if(S.night)updLights();
+ NET.mirDirty=0;netAvSnap();updHud()}
 const netVis=e=>JSON.stringify([e.t,e.c,e.s,e.flip,e._t,e.me]);
-function netApply(m){if(!S){if(m.meta)netSetMeta(m.meta);return} // on the map there are no things to move, only news about the town
- const red=new Set();let mine=NET.drag&&NET.drag.id;const ch=[];
+function netApply(m){if(!S||!NET.mir)return;const red=new Set();let mine=NET.drag&&NET.drag.id;const ch=[];
  for(const id of Array.isArray(m.rm)?m.rm:[]){const e=byId(id);if(!e)continue;if(e.par)red.add(e.par);const el=EL.get(id);if(el)el.remove();EL.delete(id);TRN.delete(id);IDX.delete(id);const i=S.ents.indexOf(e);if(i>=0)S.ents.splice(i,1);if(mine===id){NET.drag.P.dead=true;NET.drag=null;mine=null;dragUI(false);NET.send({t:'drop',p:null,res:null})}}
  for(const j of Array.isArray(m.up)?m.up:[]){const u=cleanE(j);if(!u)continue;const e=byId(u.id);
   if(!e){if(S.ents.length>400)continue;S.ents.push(u);IDX.set(u.id,u);ch.push([u,null])}
   else{const old={par:e.par,slot:e.slot,vis:netVis(e)};if(mine===u.id){u.par=null;u.slot=null;u.x=e.x;u.y=e.y;delete u.dx;delete u.dy}for(const k in e)delete e[k];Object.assign(e,u);ch.push([e,old])}}
  const setT=e=>{const t=Object.assign({},e._t||{});if(mine===e.id)t.drag=1;TRN.set(e.id,t)};
  let pend=ch.filter(c=>!c[1]).map(c=>c[0]),g=0;
- while(pend.length&&g++<10){const nx=[];for(const e of pend){if(!e.par||EL.has(e.par)){setT(e);const el=mountE(e);el.classList.toggle('drag',!!(e._t&&e._t.drag));if(e.par)red.add(e.par)}else nx.push(e)}pend=nx}
+ while(pend.length&&g++<10){const nx=[];for(const e of pend){if(!e.par||EL.has(e.par)){setT(e);const el=mountE(e);el.classList.toggle('drag',!!(e._t&&e._t.drag));if(e.par)red.add(e.par);if(isAv(e)&&!e.par){anim(e,'pop',320);const a=absXY(e);sparkle(a.x,a.y-130,6)}}else nx.push(e)}pend=nx}
  for(const[e,old]of ch){if(!old)continue;setT(e);const el=EL.get(e.id);if(!el)continue;
   if(old.par!==e.par||old.slot!==e.slot){if(old.par)red.add(old.par);if(e.par)red.add(e.par);const p=e.par&&byId(e.par);
    if(p&&EL.get(p.id)){kbox(p,e.slot).appendChild(el);el.classList.toggle('sm',isSm(p,e.slot));el.classList.toggle('hd',isHd(p,e.slot));el.classList.toggle('bob',!!TD(p).water&&e.slot==='surf')}else{$ents.appendChild(el);el.classList.remove('sm','hd','bob')}}
@@ -1876,16 +1962,17 @@ function netApply(m){if(!S){if(m.meta)netSetMeta(m.meta);return} // on the map t
  for(const id of red){const p=byId(id);if(p)redraw(p)}
  if(m.meta)netSetMeta(m.meta);
  if(STY){if(!byId(STY.id)||STY.slot!=='stand')closeStyle();else if(ch.some(c=>c[0]===STY))renderStyle()}
- if(S.night)updLights();if(ownerOf(SID)===2)NET.homeDirty=1;netAvSnap()}
-/* the friend's own things are saved on the friend's own device: their avatar, and their home whenever they are in it */
-function netAvSnap(){if(NET.role!=='guest'||!S)return;const e=S.ents.find(x=>isAv(x)&&x.me===2);if(!e)return;const g=grpOf(e,S.ents).map(k=>{const c=clone(k);delete c._t;return c}),j=JSON.stringify(g);if(j!==NET.avJ){NET.avJ=j;NET.myAv=g;G.avb=g;dirty()}}
-function netHomeSave(force){if(NET.role!=='guest'||!S||!SID||ownerOf(SID)!==2||!(NET.homeDirty||force))return;NET.homeDirty=0;
- const ents=clone(S.ents);for(const e of ents.filter(isAv))grpPull(e,ents);for(const e of ents){delete e._t;delete e.ow;delete e.me}
- G.sc[SC[SID].base]={ents:reid(ents),bg:clone(S.bg),pat:clone(S.pat),night:S.night||0,party:S.party||0};dirty()}
-setInterval(()=>netHomeSave(),4000);
+ if(S.night)updLights();NET.mirDirty=1;netAvSnap()}
+/* what is mine is saved on my own device, even while my friend is the one running the place */
+function netAvSnap(){if(!NET.mir||!S)return;const e=S.ents.find(x=>isAv(x)&&x.me===myNo());if(!e)return;const g=grpOf(e,S.ents).map(k=>{const c=clone(k);delete c._t;return c}),j=JSON.stringify(g);if(j!==NET.avJ){NET.avJ=j;NET.myAv=g;G.avb=g;dirty()}}
+function netMirSave(force){if(!NET.mir||!S||!SID||!iOwn(SID)||!(NET.mirDirty||force))return;NET.mirDirty=0; // my own place, run by my friend: keep my saved copy up to date
+ const ents=clone(S.ents);for(const e of ents.filter(isAv))grpPull(e,ents);for(const e of ents)delete e._t;
+ G.sc[myKey(SID)]={ents:reid(ents),bg:clone(S.bg),pat:clone(S.pat),night:S.night||0,party:S.party||0};dirty()}
+setInterval(()=>netMirSave(),4000);
+setInterval(()=>{if(NET.peer&&S&&!NET.mir&&!NET.feed&&!iOwn(SID)&&NET.ld){NET.ld=0;NET.send({t:'back',id:SID,st:scSer(S)})}},5000); // a place I borrowed: its owner gets a fresh copy now and then
 
-/* ---------- guest: hands ---------- */
-function gGrab(P){const e=P.e;if(!byId(e.id))return false;const d=TD(e);if(NET.drag||tr(e).drag)return false;if(isFix(e)){if(!d.disp)return false}else if(!canMove(e,2)){shy(e);return false}
+/* ---------- my hands, while I watch my friend's copy ---------- */
+function gGrab(P){const e=P.e;if(!byId(e.id))return false;const d=TD(e);if(NET.drag||tr(e).drag)return false;if(isFix(e)){if(!d.disp)return false}else if(!mayMove(e,myNo())){shy(e);return false}
  NET.send({t:'grab',id:e.id,p0:P.p0,p:P.p});P.drag=true;NET.drag={id:null,P,off:null};
  if(!isFix(e)){const a=absXY(e),el=EL.get(e.id);e.par=null;e.slot=null;e.x=a.x;e.y=a.y;$ents.appendChild(el);el.classList.remove('sm','bob','hd');el.classList.add('drag');el.style.transition='';tr(e).drag=1;NET.drag.id=e.id;NET.drag.off={x:a.x-P.p0.x,y:a.y-P.p0.y};posE(e)}
  sfx.pick();dragUI(true);return true}
@@ -1899,33 +1986,33 @@ function gDrop(P,cancel){const D=NET.drag;if(!D||D.P!==P)return;NET.drag=null;dr
 function gUnpack(i,ev){if(NET.drag||!G.pack[i])return;const p=spt(ev),P={e:null,p0:p,p,tg:$stage,drag:true,cx:ev.clientX,cy:ev.clientY},a=G.pack.splice(i,1)[0];PTR.set(ev.pointerId,P);NET.drag={id:null,P,off:null};
  NET.send({t:'unpack',a,p});updPack();dirty();sfx.pick();dragUI(true)}
 
-/* ---------- both: the other player's hand ---------- */
-function netCur(x,y){if(!isFinite(x)||!isFinite(y))return;let c=$('#rcur');if(!c){c=h('div','',IC.hand);c.id='rcur';$stage.appendChild(c)}c.style.transform=`translate(${x|0}px,${y|0}px)`;c.style.display='block';clearTimeout(c._t);c._t=setTimeout(()=>{c.style.display='none'},5000)}
-let _curT=0;window.addEventListener('pointermove',ev=>{if(!NET.peer||!NET.role||!$stage)return;const n=performance.now();if(n-_curT<70)return;_curT=n;const p=spt(ev);NET.send({t:'c',x:Math.round(p.x),y:Math.round(p.y)})});
-window.addEventListener('pagehide',()=>{if(NET.role==='guest'){netHomeSave(true);saveG()}if(NET.tr)NET.tr.close()});
+/* ---------- when we are in the same place: the other player's hand ---------- */
+function netCur(x,y){if(!isFinite(x)||!isFinite(y)||!(NET.mir||NET.feed))return;let c=$('#rcur');if(!c){c=h('div','',IC.hand);c.id='rcur';$stage.appendChild(c)}c.style.transform=`translate(${x|0}px,${y|0}px)`;c.style.display='block';clearTimeout(c._t);c._t=setTimeout(()=>{c.style.display='none'},5000)}
+let _curT=0;window.addEventListener('pointermove',ev=>{if(!(NET.mir||NET.feed)||!$stage)return;const n=performance.now();if(n-_curT<70)return;_curT=n;const p=spt(ev);NET.send({t:'c',x:Math.round(p.x),y:Math.round(p.y)})});
+window.addEventListener('pagehide',()=>{if(NET.peer){netMirSave(true);saveG()}if(NET.tr)NET.tr.close()});
 
-/* ---------- effects & sounds are echoed to the friend ---------- */
+/* ---------- effects & sounds are echoed to a friend who is watching ---------- */
 const NETFX=['say','hearts','notes','puff','crumbs','confetti','sparkle','bubbles','leaves','drops','splat','fireBreath','anim','toastAll','bite'];
 function netWrap(){
  for(const k of NETFX){const f=window[k];if(typeof f!=='function')throw new Error('missing effect '+k);NET.fxo[k]=f;
-  window[k]=function(...a){if(NET.role==='host'&&NET.peer&&!NET.inFx){netFlush();NET.send({t:'fx',k,a:a.map(x=>x&&typeof x==='object'&&x.id!=null&&x.t?{$:x.id}:x)})}NET.inFx++;try{return f.apply(this,a)}finally{NET.inFx--}}}
+  window[k]=function(...a){if(NET.feed&&!NET.inFx){netFlush();NET.send({t:'fx',k,a:a.map(x=>x&&typeof x==='object'&&x.id!=null&&x.t?{$:x.id}:x)})}NET.inFx++;try{return f.apply(this,a)}finally{NET.inFx--}}}
  for(const k in sfx){const f=sfx[k];NET.fxo['sfx:'+k]=f;if(k==='click'||k==='pick'||k==='zip')continue;
-  sfx[k]=function(a){if(NET.role==='host'&&NET.peer&&!NET.inFx)NET.send({t:'s',k,a});return f(a)}}
+  sfx[k]=function(a){if(NET.feed&&!NET.inFx)NET.send({t:'s',k,a});return f(a)}}
  // pop-ups and messages that belong to whoever caused them
  NET.fxo.showSight=showSight;NET.fxo.showHint=showHint;NET.fxo.openStyle=openStyle;NET.fxo.toast=toast;
- window.toast=function(a,b){if(ACTOR==='guest'){NET.send({t:'ui',k:'toast',a:[a,b]});return}return NET.fxo.toast(a,b)};
- window.showSight=function(a,b){if(ACTOR==='guest'){NET.send({t:'ui',k:'sight',a:[a,b]});return}return NET.fxo.showSight(a,b)};
- window.showHint=function(){if(ACTOR==='guest'){NET.send({t:'ui',k:'hint'});return}return NET.fxo.showHint()};
- window.openStyle=function(c){if(ACTOR==='guest'){NET.send({t:'ui',k:'style',id:c.id});return}return NET.fxo.openStyle(c)}}
+ window.toast=function(a,b){if(ACTOR){NET.send({t:'ui',k:'toast',a:[a,b]});return}return NET.fxo.toast(a,b)};
+ window.showSight=function(a,b){if(ACTOR){NET.send({t:'ui',k:'sight',a:[a,b]});return}return NET.fxo.showSight(a,b)};
+ window.showHint=function(){if(ACTOR){NET.send({t:'ui',k:'hint'});return}return NET.fxo.showHint()};
+ window.openStyle=function(c){if(ACTOR){NET.send({t:'ui',k:'style',id:c.id});return}return NET.fxo.openStyle(c)}}
 
 /* ---------- the "Play together" window ---------- */
 function netUI(){const b=$('#b-net');if(b){b.classList.toggle('act',!!NET.peer);b.classList.toggle('wait',!!NET.tr&&!NET.peer)}const m=$('#modal');if(m&&m.classList.contains('net'))openNet(true)}
 function openNet(quiet){
- if(NET.tr){const host=NET.want==='host';
+ if(NET.tr){const host=NET.want==='host',wh=NET.there?(NET.there===NET.here?'right here with you!':'at: '+scName(NET.there)):'looking at the map';
   showModal(`<h2>Play together</h2><p class="sub">${NET.peer?'You are playing together in room':host?'Tell your friend this room code:':'Looking for room'}</p><div class="rcode">${NET.code.split('').map(c=>`<i>${c}</i>`).join('')}</div>`+
-   (NET.peer?`<p class="sub sm">You each have your own house on the map, and <b>Buddy Island</b> is open!<br>You go everywhere together — whoever taps a place takes you both there.</p>`:`<p class="sub sm wait">${NET.msg||(host?'Waiting for your friend to join…':'Connecting… make sure your friend has started the room.')}</p>`)+
+   (NET.peer?`<p class="sub">Your friend is <b>${wh}</b></p><p class="sub sm">You each walk around on your own. Go where your friend is to play together —<br>the map shows where they are. <b>Buddy Island</b> is open!</p>`:`<p class="sub sm wait">${NET.msg||(host?'Waiting for your friend to join…':'Connecting… make sure your friend has started the room.')}</p>`)+
    `<button class="btn warn" id="n-leave">${host?'Close the room':'Leave the room'}</button>`,'net',quiet);$('#n-leave').onclick=()=>{netStop();closeModal()};return}
- showModal(`<h2>Play together</h2><p class="sub">Two players, one town! One of you starts a room, the other joins with the code.</p><div class="nbtns"><button class="btn" id="n-host">Start a room</button><div class="njoin"><input id="n-code" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="CODE"><button class="btn tog" id="n-join">Join</button></div></div><p class="sub sm">${NET.msg||'You each bring your own house and your own avatar. No sign-in and no chat —<br>only someone who knows your code can join.'}</p>`,'net',quiet);
+ showModal(`<h2>Play together</h2><p class="sub">Two players, one town! One of you starts a room, the other joins with the code.</p><div class="nbtns"><button class="btn" id="n-host">Start a room</button><div class="njoin"><input id="n-code" maxlength="5" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="CODE"><button class="btn tog" id="n-join">Join</button></div></div><p class="sub sm">${NET.msg||'You each keep your own house, backpack and avatar, and walk around on your own.<br>No sign-in and no chat — only someone who knows your code can join.'}</p>`,'net',quiet);
  $('#n-host').onclick=()=>{ac();netStart('host',netCode());openNet(true)};
  const join=()=>{ac();const c=$('#n-code').value.toUpperCase().replace(/[^A-Z]/g,'');if(c.length<5){usfx('nope');$('#n-code').focus();return}netStart('guest',c);openNet(true)};
  $('#n-join').onclick=join;$('#n-code').onkeydown=ev=>{ev.stopPropagation();if(ev.key==='Enter')join()};$('#n-code').oninput=ev=>{ev.target.value=ev.target.value.toUpperCase().replace(/[^A-Z]/g,'')}}
@@ -1950,18 +2037,18 @@ function renderTray(){const t=$('#tray');t.className='ui'+(TRAY?' on '+TRAY:'');
  if(TRAY==='pack'){
   t.innerHTML=`<div class="tt">My Backpack <small>${G.pack.length} of ${packCap()} pockets</small></div><div class="row scroll">`+(G.pack.length?G.pack.map((a,i)=>`<div class="slot" data-i="${i}">${thumb(a[0])}<em>${nameOf(a[0])}</em></div>`).join(''):`<div class="empty">Drag anything onto your backpack to take it with you — then pull it out anywhere!</div>`)+`</div>`;
   t.querySelectorAll('.slot').forEach(sl=>sl.addEventListener('pointerdown',ev=>{if(ev.button>0)return;ev.preventDefault();ev.stopPropagation();ac();try{$stage.setPointerCapture(ev.pointerId)}catch(_){}
-   if(NET.role==='guest'){gUnpack(+sl.dataset.i,ev);return}
+   if(NET.mir){gUnpack(+sl.dataset.i,ev);return}
    const p=spt(ev),e=unpack(+sl.dataset.i,p),P={e,p0:p,p,tg:$stage,drag:false,off:{x:0,y:TD(e).h/2},cx:ev.clientX,cy:ev.clientY};PTR.set(ev.pointerId,P);beginDrag(P)}))}
  else if(TRAY==='cat'){const n=stars();
   t.innerHTML=`<div class="tabs">`+CAT.map((c,i)=>`<button class="tab${i===CTAB?' on':''}" data-tab="${i}">${c[0]}</button>`).join('')+`</div><div class="row scroll">`+CAT[CTAB][1].map(it=>{const id=it.pop?it[0]:it,need=it.pop?it[1]:0,lk=need>n;return`<div class="slot${lk?' lock':''}" data-t="${id}" data-need="${need}">${thumb(mk(id,0,0,null,true))}${lk?`<span class="lk">${IC.lock}<b>${need}</b></span>`:''}<em>${T[id].n}</em></div>`}).join('')+`</div>`;
   t.onclick=ev=>{const tb=ev.target.closest('.tab');if(tb){CTAB=+tb.dataset.tab;sfx.click();renderTray();return}const sl=ev.target.closest('.slot');if(!sl||TRAY!=='cat')return;const need=+sl.dataset.need;
    if(need>stars()){usfx('nope');toast(`Earn ${need} stars to unlock the ${T[sl.dataset.t].n}! You have ${stars()}.`);return}
-   if(NET.role==='guest'){NET.send({t:'cat',id:sl.dataset.t});sfx.pop();return}addFromCat(sl.dataset.t)}}
+   if(NET.mir){NET.send({t:'cat',id:sl.dataset.t});sfx.pop();return}addFromCat(sl.dataset.t)}}
  else{const sc=SC[SID];
   t.innerHTML=`<div class="tt">Pick a colour, then tap anything to paint it!</div><div class="row sw">`+PAL.map(c=>`<button class="swt${PCOL===c?' on':''}" data-c="${c}" style="background:${c}"></button>`).join('')+`<button class="swt rnd${PCOL==='rand'?' on':''}" data-c="rand">${IC.dice}</button></div>`+
   (sc.in?`<div class="row pats"><span>Wall</span>`+WPAT.map((nm,i)=>`<button class="patb${(S.pat.wall||0)===i?' on':''}" data-w="${i}">${patIcon(i,0,S.bg.wall)}</button>`).join('')+`<span>Floor</span>`+FPAT.map((nm,i)=>`<button class="patb${(S.pat.floor||0)===i?' on':''}" data-f="${i}">${patIcon(i,1,S.bg.floor)}</button>`).join('')+`</div>`:'');
   t.onclick=ev=>{if(TRAY!=='paint')return;const b=ev.target.closest('button');if(!b)return;sfx.click();if(b.dataset.c){PCOL=b.dataset.c}else{const k=b.dataset.w!=null?'wall':b.dataset.f!=null?'floor':null,i=+(k==='wall'?b.dataset.w:b.dataset.f);if(!k)return;
-    if(NET.role==='guest'){NET.send({t:'pat',k,i});return}setPat(k,i)}renderTray()}}
+    if(NET.mir){NET.send({t:'pat',k,i});return}setPat(k,i)}renderTray()}}
  const row=t.querySelector('.scroll');if(row)row.addEventListener('wheel',ev=>{row.scrollLeft+=ev.deltaY+ev.deltaX;ev.preventDefault()},{passive:false})}
 function setPat(k,i){if(!canDeco(actNo())){shy(null);return}S.pat[k]=clamp(i|0,0,(k==='wall'?WPAT:FPAT).length-1);drawBg();star('wallp');dirty();if(TRAY==='paint')renderTray()}
 function addFromCat(id){if(!canDeco(actNo())){shy(null);return}if(S.ents.length>170){toast('So much stuff! Tidy up a bit first.');return}const d=T[id],ft=SC[SID].floor[0],e=spawn(id,rnd(480,1120),d.mt==='wall'?rnd(240,400):d.mt==='rug'?ft+150:260);
@@ -1974,16 +2061,16 @@ function stickerToast(name){const d=h('div','toast stk',IC.star+`<span><small>Ne
 function showModal(html,cls,quiet){const m=$('#modal');m.className='ui on '+(cls||'');m.innerHTML=`<div class="card${quiet?' still':''}">${html}<button class="close">${IC.x}</button></div>`;m.querySelector('.close').onclick=closeModal;m.onclick=ev=>{if(ev.target===m)closeModal()};if(!quiet)usfx('pop')}
 function closeModal(){const m=$('#modal');m.className='ui';m.innerHTML='';m.onclick=null}
 function openHelp(){showModal(`<h2>Welcome to Boba Bay!</h2><ul class="tips"><li><b>Drag</b> anything — friends, pets, food, furniture. Really, anything!</li><li><b>Tap</b> things to see what they do.</li><li>Drop <b>food on a face</b> to eat it, or a <b>hat on a head</b> to wear it.</li><li>Drag things onto your <b>backpack</b> to carry them to other places.</li><li>Use the <b>paint brush</b> to recolour… everything.</li><li>Discover secrets to earn <b>stars</b> and unlock new places!</li><li>The friend with the <b>ME</b> tag is you — you come along wherever you go.</li><li>Tap the <b>two friends</b> button to play together with a friend!</li></ul><button class="btn" id="hok">Let's go!</button>`,'help');$('#hok').onclick=closeModal}
-function openSettings(){const guest=NET.role==='guest';showModal(`<h2>Settings</h2><div class="opts"><button class="btn tog" id="o-sfx"></button><button class="btn tog" id="o-mus"></button><button class="btn" id="o-help">How to play</button><button class="btn" id="o-net">Play together</button>`+(guest?'':`<button class="btn" id="o-me">Change my look</button>`+(SID&&SC[SID].own!==2?`<button class="btn warn" id="o-tidy">Tidy up this room</button>`:'')+`<button class="btn warn" id="o-new">Start a brand new game</button>`)+`</div><p class="sub sm">${guest?'You are visiting a friend. Your own Boba Bay is safe and waiting for you.':'Boba Bay saves by itself on this device.'}</p>`,'set');
+function openSettings(){const guest=!!NET.peer;showModal(`<h2>Settings</h2><div class="opts"><button class="btn tog" id="o-sfx"></button><button class="btn tog" id="o-mus"></button><button class="btn" id="o-help">How to play</button><button class="btn" id="o-net">Play together</button>`+(NET.mir?'':`<button class="btn" id="o-me">Change my look</button>`)+(SID&&!NET.mir&&canDeco(myNo())?`<button class="btn warn" id="o-tidy">Tidy up this room</button>`:'')+(guest?'':`<button class="btn warn" id="o-new">Start a brand new game</button>`)+`</div><p class="sub sm">${guest?'You are playing together. Everything of yours still saves on this device.':'Boba Bay saves by itself on this device.'}</p>`,'set');
  const lab=()=>{$('#o-sfx').textContent='Sounds: '+(G.set.sfx?'ON':'OFF');$('#o-mus').textContent='Music: '+(G.set.music?'ON':'OFF')};lab();
  $('#o-sfx').onclick=()=>{G.set.sfx=!G.set.sfx;lab();usfx('pop');dirty()};$('#o-net').onclick=()=>openNet();$('#o-mus').onclick=()=>{G.set.music=!G.set.music;musicOn();lab();dirty();if(S)for(const e of S.ents)if(e.t==='radio')redraw(e)};$('#o-help').onclick=openHelp;
  const sure=(b,fn)=>{b.onclick=()=>{if(b.dataset.ok){fn()}else{b.dataset.ok=1;b.textContent='Tap again if you\'re sure!'}}};
- if(guest)return;$('#o-me').onclick=()=>openMe(false);
+ if($('#o-me'))$('#o-me').onclick=()=>openMe(false);
  if($('#o-tidy'))sure($('#o-tidy'),()=>{resetRoom();closeModal()});
- sure($('#o-new'),()=>{netStop(true);try{localStorage.removeItem(KEY)}catch(e){}G=fresh();saveG();closeModal();go('map');updHud();showTitle()})}
+ if($('#o-new'))sure($('#o-new'),()=>{netStop(true);try{localStorage.removeItem(KEY)}catch(e){}G=fresh();saveG();closeModal();go('map');updHud();showTitle()})}
 function resetRoom(){const id=SID,keep=[];for(const e of S.ents){if((e.t==='char'||e.t==='pet')){unparQuiet(e);keep.push(e);(function rec(x){for(const k of S.ents)if(k.par===x.id&&['head','handL','handR'].includes(k.slot)){keep.push(k);rec(k)}})(e)}}
  const st=initScene(id),drop=new Set();for(const e of st.ents)if(e.t==='char'||e.t==='pet')drop.add(e.id);let grew=true;while(grew){grew=false;for(const e of st.ents)if(e.par&&drop.has(e.par)&&!drop.has(e.id)){drop.add(e.id);grew=true}}
- st.ents=st.ents.filter(e=>!drop.has(e.id)).concat(keep);G.sc[id]=st;go(id,true);toast('All tidy!');sfx.magic()}
+ st.ents=st.ents.filter(e=>!drop.has(e.id)).concat(keep);G.sc[NET.peer?myKey(id):id]=st;scOpen(id,st,{quiet:true,keep:true});if(NET.feed)netResync();toast('All tidy!');sfx.magic()}
 function unparQuiet(e){if(e.par){const a=absXY(e);e.x=a.x;e.y=a.y}e.par=null;e.slot=null;if(e.t==='char'){e.s.pose='stand';delete e.s.lie}e.s.zz=0;const fl=SC[SID].floor;e.x=clamp(e.x||800,120,W-120);e.y=clamp(e.y||780,fl[0]+60,fl[1])}
 
 /* ---------- sticker book ---------- */
@@ -2017,7 +2104,7 @@ function closeStyle(){STY=null;const p=$('#stylep');if(p){p.className='ui';p.inn
 function renderStyle(){const ch=STY,p=$('#stylep');if(!ch||!S||!byId(ch.id)){closeStyle();return}
  p.innerHTML=`<h3>Makeover!</h3>`+styleHTML(ch)+`<p class="sub sm">Tip: the paint brush can colour clothes and shoes too!</p>`;
  p.onclick=ev=>{const b=ev.target.closest('button'),c=STY;if(!b||!c||!byId(c.id))return;
-  if(NET.role==='guest'){NET.send({t:'style',id:c.id,a:b.dataset.a,k:b.dataset.k,c:b.dataset.c});return}
+  if(NET.mir){NET.send({t:'style',id:c.id,a:b.dataset.a,k:b.dataset.k,c:b.dataset.c});return}
   styleApply(c,b.dataset.a,b.dataset.k,b.dataset.c);renderStyle()}}
 function styleApply(c,a,k,col,q){ // q = quietly (the "this is you" window)
  if(k)c.c[k]=col;
@@ -2043,8 +2130,8 @@ const BALLOON=`<svg viewBox="0 0 120 190"><path d="M60 4 Q112 4 112 60 Q112 100 
 function showMap(){const m=$('#map');m.className='ui on';$stage.classList.add('onmap');let html=mapSVG();
  for(const s of mapSpots()){const open=spotOpen(s);if(s.secret&&!open)continue;html+=`<div class="mlabel${open?'':' lk'}${s.art==='home'&&NET.peer?' mine':''}" style="left:${s.x}px;top:${s.y+12}px">${open?'':IC.lock}<span>${s.n}</span>${!open&&s.need?`<b>${s.need}</b>${IC.star}`:!open&&s.duo?IC.duo:''}</div>`;
   if(s.art==='home')html+=`<button class="hbrush" id="hpaint" style="left:${s.x+72}px;top:${s.y-4}px" aria-label="Paint my house">${IC.brush}</button>`}
- const ready=G.daily.last!==dayN();html+=`<button class="gbal${ready?' ready':''}" id="gbal">${outline(BALLOON,5)}<span>${ready?'Gift!':'Tomorrow'}</span></button><div class="mtitle">Boba Bay</div>`;
- m.innerHTML=html;updHud();
+ const ready=G.daily.last!==dayN();html+=`<button class="gbal${ready?' ready':''}" id="gbal">${outline(BALLOON,5)}<span>${ready?'Gift!':'Tomorrow'}</span></button><div class="mtitle">Boba Bay</div><div class="mfr" id="mfr" style="display:none">${IC.duo}<span>Friend is here!</span></div>`;
+ m.innerHTML=html;showMap.sig=mapSig();netMark();updHud();
  m.onclick=ev=>{if(ev.target.closest('#hpaint')){openHouse();return}const sp=ev.target.closest('[data-go]');if(sp){const s=mapSpots().find(x=>x.id===sp.dataset.go);if(!s)return;if(!spotOpen(s)){usfx('nope');toast(s.duo?'Buddy Island opens when two friends play together! Tap the two-friends button to start.':s.need?`${s.n} opens when you have ${s.need} stars. You have ${stars()} so far!`:'Just a very tall tree… I wonder what\'s up there? Maybe the park has a clue.');return}usfx('pop');go(s.id);return}
   if(ev.target.closest('[data-whale]')){usfx('splash');const w=m.querySelector('.whale');w.classList.remove('hi');void w.getBoundingClientRect();w.classList.add('hi');if(!G.st.whale){star('whale');setTimeout(()=>!SID&&showMap(),900)}return}
   if(ev.target.closest('#gbal'))openGift()}}
@@ -2052,18 +2139,22 @@ const HWALL=['#ffe3ea','#fff3c4','#ffe2c8','#dcf6c9','#d3f3ee','#e3f0ff','#f0def
 function openHouse(){const hs=Object.assign({},HOUSE0,G.house),row=(k,list)=>list.map(c=>`<button class="swt${hs[k]===c?' on':''}" data-k="${k}" data-c="${c}" style="background:${c}"></button>`).join('');
  const ren=()=>{$('#hfig').innerHTML=`<svg viewBox="-70 -246 366 276">${outline(houseCol(mapSVG.home,hs),5)}</svg>`;$('#hctl').innerHTML=`<div class="lbl">Walls</div><div class="sws">${row('w',HWALL)}</div><div class="lbl">Roof</div><div class="sws">${row('r',HROOF)}</div>`};
  showModal(`<h2>Paint my house</h2><div class="mepick"><div class="mefig hfig" id="hfig"></div><div class="mectl" id="hctl"></div></div><button class="btn" id="hok">Done</button>`,'mewin');ren();
- $('#hctl').onclick=ev=>{const b=ev.target.closest('button');if(!b)return;hs[b.dataset.k]=b.dataset.c;G.house={w:hs.w,r:hs.r};usfx('splat');star('housepaint');dirty();ren();if(NET.role==='guest')NET.send({t:'house',h:G.house});if(!SID)showMap()};
+ $('#hctl').onclick=ev=>{const b=ev.target.closest('button');if(!b)return;hs[b.dataset.k]=b.dataset.c;G.house={w:hs.w,r:hs.r};usfx('splat');star('housepaint');dirty();ren();if(NET.peer)NET.send({t:'house',h:G.house});if(!SID)showMap()};
  $('#hok').onclick=closeModal}
+/* the map is only redrawn when something on it really changed — otherwise a tap could get lost while a friend's news arrives */
+function mapSig(){return JSON.stringify([G.house,NET.frHouse,!!NET.peer,NET.role,mapSpots().map(s=>s.id+(spotOpen(s)?1:0)),!!G.st.whale,G.daily.last===dayN()])}
+function netMark(){const el=$('#mfr');if(!el)return;const s=NET.peer&&NET.there?mapSpots().find(x=>x.id===netSpot(NET.there)):null;if(!s){el.style.display='none';return}el.style.display='';el.style.left=s.x+'px';el.style.top=(s.y+50)+'px'}
+function mapPing(){if(SID||!$('#map').classList.contains('on'))return;if(showMap.sig!==mapSig())showMap();else netMark()}
 function hideMap(){const m=$('#map');m.className='ui';m.innerHTML='';m.onclick=null;$stage.classList.remove('onmap')}
 function showTitle(){const t=$('#title'),cols=['#ff5c7a','#ff8552','#ffd23f','#56d39a','','#7ad3ff','#6c63ff','#d58bff'];t.className='ui on';
- const me=G.flags.av?avFind(1):null,fig=(e,cls)=>`<div class="tf ${cls||''}">${thumb(e)}${/me/.test(cls||'')&&me?'<span class="avtag me">ME</span>':''}</div>`;
+ const me=G.flags.av?avFind():null,fig=(e,cls)=>`<div class="tf ${cls||''}">${thumb(e)}${/me/.test(cls||'')&&me?'<span class="avtag me">ME</span>':''}</div>`;
  t.innerHTML=`<svg class="tsky" viewBox="0 0 1600 900">${cloud(120,170,1.600)}${cloud(1180,120,1.300)}${cloud(700,60,.9)}</svg><div class="logo">`+'Boba Bay'.split('').map((c,i)=>c===' '?'<i class="sp"></i>':`<i style="animation-delay:${(i*.09).toFixed(2)}s;color:${cols[i]}">${c}</i>`).join('')+`</div><p class="tag">a cozy little world to explore, decorate &amp; discover</p><div class="tchars">`+fig(mk('pet',0,0,petO('bunny'),true),'p')+fig(mk('char',0,0,CH.bro,true))+fig(me?me.e:mk('char',0,0,CH.me,true),'big me')+fig(mk('char',0,0,CH.kid,true))+fig(mk('pet',0,0,petO('cat'),true),'p')+fig(mk('pet',0,0,petO('axo'),true),'p')+`</div><button class="btn play" id="play">Play!</button>`;
  $('#play').onclick=()=>{ac();musicOn();sfx.star();t.classList.add('out');setTimeout(()=>{t.className='ui';t.innerHTML=''},450);go('map');avEnsure();
   const tut=()=>{if(!G.flags.tut){G.flags.tut=1;dirty();setTimeout(openHelp,300)}};if(!G.flags.av)setTimeout(()=>openMe(!G.flags.tut,tut),500);else tut()}}
 
 /* ---------- start-up ---------- */
 function fit(){const w=innerWidth,hh=innerHeight;SCALE=Math.min(w/W,hh/H);$stage.style.transform=`translate(${((w-W*SCALE)/2).toFixed(1)}px,${((hh-H*SCALE)/2).toFixed(1)}px) scale(${SCALE.toFixed(4)})`}
-function boot(){G=loadG();G.pack=G.pack.filter(a=>a&&a.length&&a.every(e=>T[e.t]));avPurge(2); // a visiting friend never stays in the save
+function boot(){G=loadG();G.pack=G.pack.filter(a=>a&&a.length&&a.every(e=>T[e.t]));avTidy(G.meNo||1); // only my own avatar lives in my saved game
  $stage=$('#stage');$bg=$('#bg');$ents=$('#ents');$fx=$('#fx');$lights=$('#lights');$pack=$('#pack');$trash=$('#trash');
  $('#b-map').innerHTML=IC.map;$('#b-set').innerHTML=IC.gear;$('#b-paint').innerHTML=IC.brush;$('#b-cat').innerHTML=IC.sofa;$('#b-stars').innerHTML=IC.star+'<b>0</b>';$pack.innerHTML=outline(IC.bag,3.4)+'<span class="badge"></span>';$trash.innerHTML=IC.trash;
  $('#b-net').innerHTML=IC.duo;$('#b-net').onclick=()=>openNet();netWrap();
