@@ -7,8 +7,14 @@
       "linkLabel": "Play Chessmate"
     },
     {
+      "title": "Boba Bay",
+      "description": "A cozy 2D town game: explore Boba Bay and enjoy life around town.",
+      "url": "https://kleinlab-yale.github.io/bobabay/",
+      "linkLabel": "Play Boba Bay"
+    },
+    {
       "title": "Town Lyfe",
-      "description": "Explore the town or save the universe.",
+      "description": "A 3D town game: explore the town or save the universe.",
       "url": "https://kleinlab-yale.github.io/TownLyfe/",
       "linkLabel": "Play Town Lyfe"
     },
