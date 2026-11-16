@@ -464,11 +464,33 @@ input{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
 .fbar{height:22px;border-radius:11px;background:#efe9fb;margin:14px auto 0;max-width:720px;overflow:hidden;border:3px solid #35252d}.fbar i{display:block;height:100%;background:#2bb673}
 #modal.froadw .card{width:880px}
 
+/* ---------- Coral Cove: the world under the sea ---------- */
+#seafx{position:absolute;left:0;top:0;width:100%;height:100%;z-index:3;pointer-events:none;display:none;overflow:hidden;background:linear-gradient(180deg,rgba(150,235,255,.07),rgba(20,90,170,.15))}
+.sea #seafx{display:block}
+#seafx i{position:absolute;bottom:-50px;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:rgba(215,246,255,.2);animation:seab linear infinite}
+@keyframes seab{to{transform:translate(40px,-1000px)}}
+.tailfin{animation:tailwag 1.7s ease-in-out infinite}
+@keyframes tailwag{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.sway{animation:sway 3.6s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-3.500deg)}50%{transform:rotate(3.500deg)}}
+.wsw.sea{background:#8fe6ff}
+.fbar.sbar i{background:#1fa6c4}
+.manta{animation:manta 48s linear infinite;animation-delay:-8s;cursor:pointer}
+@keyframes manta{from{transform:translateX(-340px)}to{transform:translateX(1700px)}}
+.manta.wave .bobm{animation:hop .5s 2}
+.mfish{animation:mfish 34s linear infinite}.mfish.m2{animation-duration:47s;animation-delay:-20s}
+@keyframes mfish{from{transform:translateX(1700px)}to{transform:translateX(-400px)}}
+.mbub{animation:mbub 7s linear infinite}
+@keyframes mbub{0%{transform:translateY(0);opacity:0}12%{opacity:.9}100%{transform:translateY(-330px);opacity:0}}
+.spot.locked.mys .sp-in{filter:none}
+.sea .ent>.in>.avtag{bottom:-52px}
+.sea #snow,.seamap #snow{display:none!important}
+
 </style>
 </head>
 <body>
 <div id="stage">
- <div id="bg"></div><div id="ents"></div><div id="night"></div><div id="party"></div><div id="lights"></div>
+ <div id="bg"></div><div id="ents"></div><div id="night"></div><div id="party"></div><div id="seafx"></div><div id="lights"></div>
  <div id="map" class="ui"></div>
  <div id="hud">
   <button id="b-map" class="ui rb" aria-label="Map"></button><div id="topbar"><button id="nav-l" class="ui nav"></button><div id="sname"></div><button id="nav-r" class="ui nav"></button></div>
@@ -668,10 +690,17 @@ function faceSVG(f,s,t,id,c){let o='';const skin=c.a,lid=dk(skin,.08),brow=mix(c
  if(t.cream)o+=P('M47 95 Q56 87 65 94 Q74 87 83 95 Q74 101 65 97 Q56 101 47 95Z','#fff');
  return o}
 const HEADP='M65 19 C103 19 127 38 127 72 C127 104 101 119 65 119 C29 119 3 104 3 72 C3 38 27 19 65 19Z';
-function bodySVG(c,s,sit){const of=(s.of||0)%OUTN,skin=c.a,top=c.c,bot=c.d,dT=dk(top,.2),lT=lt(top,.5),dB=dk(bot,.22),lB=lt(bot,.4),ln=(d,col,w=2.6)=>L(d,col,w);
+function bodySVG(c,s,sit,mer){const of=(s.of||0)%OUTN,skin=c.a,top=c.c,bot=c.d,dT=dk(top,.2),lT=lt(top,.5),dB=dk(bot,.22),lB=lt(bot,.4),ln=(d,col,w=2.6)=>L(d,col,w);
  const O=[{sl:0,leg:0},{sl:0,leg:1},{sl:0,leg:0},{sl:1,leg:0},{sl:1,leg:1},{sl:1,leg:1},{sl:1,leg:0},{sl:0,leg:1}][of],ly=sit?214:176,lh=sit?32:38,sy=sit?34:0;
  const TOR='M41 116 Q65 109 89 116 L97 150 Q99 172 96 180 L34 180 Q31 172 33 150Z',HIP='M33 170 L97 170 L98 186 Q98 193 90 193 L40 193 Q32 193 32 186Z';
  let o='';
+ if(mer){ // under the sea everybody has a tail instead of legs
+  const fin=lt(mer,.3);o+=`<g${sit?' transform="translate(0 42)"':''}>`+P('M32 172 L98 172 Q101 194 90 210 Q82 220 76 230 L54 230 Q48 220 40 210 Q29 194 32 172Z',mer,'t')+L('M46 190 q6 5 12 0 M60 190 q6 5 12 0 M74 190 q6 5 12 0 M53 202 q6 5 12 0 M67 202 q6 5 12 0 M60 214 q5 4 10 0',fin,2.400,0,NO)
+   +`<g class="tailfin" style="transform-origin:65px 224px">`+P('M65 220 Q52 220 38 232 Q26 244 10 238 Q18 258 44 253 Q58 250 65 238 Q72 250 86 253 Q112 258 120 238 Q104 244 92 232 Q78 220 65 220Z',fin,'t')+L('M50 234 L34 244 M80 234 L96 244',mer,2.400,0,NO)+`</g></g>`;
+  if(of===1)o+=P('M36 150 L94 150 L111 200 Q65 213 19 200Z',top,'c')+ln('M26 192 Q65 204 104 192',lT,3)+ln('M48 160 L42 198 M82 160 L88 198',dT);
+  else if(of===4)o+=P('M34 168 L96 168 L107 199 Q65 210 23 199Z',bot,'d')+ln('M46 172 L40 202 M65 172 L65 206 M84 172 L90 202',dB)+ln('M27 190 Q65 201 103 190',lB);
+  else o+=P('M32 170 L98 170 L98 180 Q89.500 189 81.500 180 Q73 189 65 180 Q57 189 48.500 180 Q40 189 32 180Z',fin,'t');
+ }else{
  // legs, socks, sneakers
  for(const x of[41,69])o+=O.leg?R(x,ly,20,lh,8,skin,'a')+R(x,ly+lh-17,20,17,5,'#fff')+(of===7?R(x,ly+lh-13,20,3.500,0,'#ff5c7a',0,NO)+R(x,ly+lh-7,20,3.500,0,'#ff5c7a',0,NO):''):R(x,ly,20,lh,8,bot,'d')+(of===6?R(x+(x<60?1:15),ly+4,4,lh-8,2,'#fff',0,NO):'');
  const shoe=`<g transform="translate(0 ${sy})">`+P('M29 229 L29 219 Q29 206 44 206 L57 206 Q64 206 64 214 L64 229Z',c.e,'e')+R(28,221,37,9,4.500,'#fff')+ln('M38 211 l9 0 M39 215.500 l8 0','#fff',2.400)+`</g>`;
@@ -681,6 +710,7 @@ function bodySVG(c,s,sit){const of=(s.of||0)%OUTN,skin=c.a,top=c.c,bot=c.d,dT=dk
  else if(of===4)o+=P('M34 168 L96 168 L107 199 Q65 210 23 199Z',bot,'d')+ln('M46 172 L40 202 M65 172 L65 206 M84 172 L90 202',dB)+ln('M27 190 Q65 201 103 190',lB);
  else if(of===5||of===7)o+=P('M33 170 L97 170 L99 200 L69 200 L65 190 L61 200 L31 200Z',bot,'d')+ln('M65 176 L65 190',dB)+(of===5?ln('M36 194 L58 194 M72 194 L94 194',lB):'');
  else o+=P(HIP,bot,'d')+ln('M65 180 L65 192',dB);
+ }
  // arms
  const arm=(O.sl?'':L('M28 144 L21 166',skin,13,'a'))+P(O.sl?'M43 117 C28 116 21 132 13 160 Q19 169 29 166 L43 134Z':'M43 117 C30 116 24 128 22 142 Q29 149 38 146 L43 132Z',top,'c')+(O.sl&&(of===5||of===6)?ln('M15 152 L30 158',of===5?dT:'#fff',3):'')+(of===4?ln('M22 134 L38 140',lT,3.500):'')+C(27,170,5.200,skin,'a')+C(19,173,10,skin,'a');
  o+=arm+`<g transform="translate(130 0) scale(-1 1)">${arm}</g>`;
@@ -696,6 +726,7 @@ function bodySVG(c,s,sit){const of=(s.of||0)%OUTN,skin=c.a,top=c.c,bot=c.d,dT=dk
   if(of===4)o+=R(34,134,62,7,0,lT,'c',NO)+R(33,152,64,7,0,lT,'c',NO)+P('M53 112 Q65 121 77 112 L77 117 Q65 127 53 117Z',dT,'c');
   if(of===6)o+=ln('M65 116 L65 180','#fff',3)+P('M52 112 L65 124 L78 112 L78 118 L65 131 L52 118Z',dT,'c')+R(33,172,64,9,4,dT,'c')+ln('M36 140 L44 140','#fff',3)+C(65,150,2.600,'#fff');
   if(of===7)o+=P(star5(65,147,15,7),'#ffd23f')}
+ if(mer)o=o.split(P(HIP,bot,'d')).join('').replace(ln('M40 184 q7 6 13 0 M77 184 q7 6 13 0',dB),'');
  return o}
 function charSVG(e){const c=e.c,s=e.s,t=tr(e),f=t.face||(s.pose==='sleep'?'sleep':'smile'),sit=s.pose==='sit',h=hairSVG(s.hs||0,c.b);
  let up=R(56,108,18,14,5,dk(c.a,.1),'a',NO)+C(4,79,10.500,c.a,'a')+C(126,79,10.500,c.a,'a')+L('M1.500 75 q4.500 4 1 9 M128.500 75 q-4.500 4 -1 9',dk(c.a,.3),2.400)+P(HEADP,c.a,'a')+faceSVG(f,s,t,e.id,c)+h.front+(h.top||'');
@@ -703,10 +734,11 @@ function charSVG(e){const c=e.c,s=e.s,t=tr(e),f=t.face||(s.pose==='sleep'?'sleep
  if(s.beard)up+=P('M20 90 Q16 136 65 142 Q114 136 110 90 Q98 110 65 110 Q32 110 20 90Z','#ffffff')+P('M65 98 Q52 92 44 102 Q56 110 65 103 Q74 110 86 102 Q78 92 65 98Z','#f1f1f6')+E(65,108,6,4,'#7a2540',0,NO);
  if(s.tie)up+=P('M65 127 L47 117 Q44 127 47 138Z','#ff5c7a')+P('M65 127 L83 117 Q86 127 83 138Z','#ff5c7a')+C(65,127,5.500,'#ffd23f'); // a bow tie
  if(s.gl)up+=`<g class="np">`+C(40,80,16.500,'rgba(255,255,255,.28)',0,` stroke="${INK}" stroke-width="3.400"${NO}`)+C(90,80,16.500,'rgba(255,255,255,.28)',0,` stroke="${INK}" stroke-width="3.400"${NO}`)+L('M56.500 79 Q65 73 73.500 79',INK,3.400)+L('M30 72 l6 -4 M80 72 l6 -4','#fff',2.600)+`</g>`; // round glasses
+ if(s.nk)up+=neckSVG(s); // a necklace made at the jewellery bench
  if(s.mud)up+=`<g class="np">`+C(30,62,9,'#7a5236')+C(98,104,7,'#7a5236')+C(50,150,10,'#7a5236')+C(84,170,8,'#7a5236')+C(72,50,5,'#7a5236')+`</g>`;
- const tx=sit?' transform="translate(0 42)"':'',b=bodySVG(c,s,sit),cut=b.indexOf('<path d="M43 117')<0?0:0;
+ const tx=sit?' transform="translate(0 42)"':'',b=bodySVG(c,s,sit,merOn()?tailCol(e):'');
  // legs & shoes stay put when sitting; everything above the hips slides down onto the seat
- const k=b.indexOf('</g></g>')+8,legs=s.pose==='sleep'?'':b.slice(0,k),rest=b.slice(k);
+ const k=b.indexOf('</g></g>')+8,par=e.par&&S&&byId(e.par),legs=s.pose==='sleep'||(par&&TD(par).tuck)?'':b.slice(0,k),rest=b.slice(k); // tucked away inside a cannon or a submarine: no legs showing
  return(sit||s.pose==='sleep'?'':E(65,227,48,7,'rgba(30,10,60,.14)',0,NP))+`<g${tx}>${h.back}</g>`+legs+`<g${tx}>${rest}${up}</g>`}
 function randChar(){const s={hs:ri(0,HAIRN-1),of:ri(0,OUTN-1),lash:Math.random()<.5?1:0,fr:Math.random()<.3?1:0,lid:Math.random()<.7?1:0,pose:'stand'};
  return{s,c:{a:pick(SKIN.slice(0,6)),b:pick(HAIRC),c:pick(PAL.slice(0,15)),d:pick(['#4a90e2','#6c63ff','#ff8fb1','#2bb7a3','#4a4e69','#ffb74d','#9b6bff','#e9e4f5']),e:pick(['#ff5c7a','#ffd23f','#4a4e69','#56d39a','#7ad3ff','#9b6bff'])}}}
@@ -1135,7 +1167,7 @@ D('char','Friend',130,230,'char',{},e=>charSVG(e),{nm:e=>e.s.npc===2?'Santa':e.s
   if(d.k==='char'&&ch.me&&it.me&&ch.me!==it.me){highFive(ch,it);return true}
   if(d.wear){d.wear(ch,it);return true} // clothes you can put on // two avatars meet
   if(d.k==='char'||d.k==='furn'||d.k==='fix')return false;
-  if((d.k==='food'||d.k==='drink')&&head){if(ch.s.npc&&it.t==='apple'){star('teacher');const sid=SID;setTimeout(()=>SID===sid&&byId(ch.id)&&say(ch,'An apple for ME? Gold star for you!',2400),1900)}eat(ch,it);return true}
+  if((d.k==='food'||d.k==='drink')&&head){if(ch.s.npc===1&&it.t==='apple'){star('teacher');const sid=SID;setTimeout(()=>SID===sid&&byId(ch.id)&&say(ch,'An apple for ME? Gold star for you!',2400),1900)}eat(ch,it);return true}
   if(ch.me&&NET.peer&&(d.hat&&head||!(d.w>170||d.h>190))){it.ow=ch.me;delete it.fre} // put something in an avatar's hands (or on their head) and it is theirs
   if(d.hat&&head){wear(ch,it);return true}
   if(d.w>170||d.h>190)return false;
@@ -1355,13 +1387,14 @@ const SPOTS=[
  {id:'cafe',n:'Boba Café',x:470,y:418},{id:'toys',n:'Toy Shop',x:1050,y:436},{id:'home',n:'My House',x:790,y:618},{id:'salon',n:'Style Studio',x:232,y:604},
  {id:'pets',n:'Pet Shop',x:1356,y:540},{id:'park',n:'Sunny Park',x:700,y:836},{id:'beach',n:'Shell Beach',x:150,y:826,need:6},
  {id:'tree',n:'Treehouse',x:1420,y:800,secret:'tree'},{id:'castle',n:'Cloud Castle',x:1216,y:150,need:22}];
-const spotOpen=s=>s.fneed?farmStars()>=s.fneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.fst|0)>=s.fneed):s.duo?!!NET.peer:s.need?Math.max(stars(),NET.peer?NET.frStars:0)>=s.need:s.secret?!!(G.flags[s.secret]||(NET.peer&&NET.frFlags[s.secret])):true; // with a friend, a place opens if either of you has unlocked it
+const spotOpen=s=>s.sneed?seaStars()>=s.sneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.sst|0)>=s.sneed):s.fneed?farmStars()>=s.fneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.fst|0)>=s.fneed):s.duo?!!NET.peer:s.need?Math.max(stars(),NET.peer?NET.frStars:0)>=s.need:s.secret?!!(G.flags[s.secret]||(NET.peer&&NET.frFlags[s.secret])):true; // with a friend, a place opens if either of you has unlocked it
 function mapSpots(){const two=!!NET.peer,mine=NET.role==='guest'?'home2':'home',fr=NET.role==='guest'?'home':'home2',out=[];
- for(const s of SPOTS){if(s.id!=='home'){out.push(s);continue}out.push(Object.assign({},s,{id:mine,art:'home',x:two?690:s.x}));if(two)out.push({id:fr,n:'Friend\'s House',art:'home2',x:962,y:628})}return out.filter(s=>(s.w||0)===(G.world||0))} // only the places of the world whose map is showing
+ for(const s of SPOTS){if(s.hm){const g=NET.role==='guest';out.push(Object.assign({},s,{id:g?s.id+'2':s.id,art:s.id,mine:1,x:s.x+(two?s.dx||0:0)}));if(two)out.push(Object.assign({},s,{id:g?s.id:s.id+'2',n:s.n2,art:s.id+'f',x:s.x+(s.dx2||150)}));continue} // a second home (the pineapple): mine, and my friend's next to it
+  if(s.id!=='home'){out.push(s);continue}out.push(Object.assign({},s,{id:mine,art:'home',x:two?690:s.x}));if(two)out.push({id:fr,n:'Friend\'s House',art:'home2',x:962,y:628})}return out.filter(s=>(s.w||0)===(G.world||0))} // only the places of the world whose map is showing
 const HOUSE0={w:'#ffe3ea',r:'#ff7d9a'},HOUSE2={w:'#e3f0ff',r:'#5b9bf0'};
 function houseCol(art,h){h=h||HOUSE0;const w=hexOk(h.w)?h.w:HOUSE0.w,r=hexOk(h.r)?h.r:HOUSE0.r; // walls, side wall, roof and trim all follow the two chosen colours
  return art.replace(/#ffe3ea/g,'~w').replace(/#f4b6c6/g,'~s').replace(/#ff7d9a/g,'~r').replace(/#ff9cb2/g,'~t').replace(/~w/g,w).replace(/~s/g,mix(w,r,.3)).replace(/~r/g,r).replace(/~t/g,lt(r,.25))}
-function mapSVG(){if((G.world||0)===1)return farmMap();
+function mapSVG(){if((G.world||0)===1)return farmMap();if((G.world||0)===2)return seaMap();
  const box=(w,h,d,f,sd,r)=>P(`M0 0 L${w} 0 L${w} ${-h} L0 ${-h}Z`,f)+P(`M${w} 0 L${w+d} ${-d/2} L${w+d} ${-h-d/2} L${w} ${-h}Z`,sd)+(r?P(`M0 ${-h} L${d} ${-h-d/2} L${w+d} ${-h-d/2} L${w} ${-h}Z`,r):'');
  const slab=(w,d)=>P(`M-20 14 L${w+24} 14 L${w+d+36} ${-d/2-2} L${d-8} ${-d/2-2}Z`,'#f7efe4')+P(`M-20 14 L${w+24} 14 L${w+24} 22 L-20 22Z`,'#dccfbe',0,NO);
  const win=(x,y,w,h,k='#cfeeff')=>R(x,y,w,h,Math.min(w,h)/3.2,k)+L(`M${x+w/2} ${y+2} L${x+w/2} ${y+h-2} M${x+2} ${y+h/2} L${x+w-2} ${y+h/2}`,'#fff',3);
@@ -1738,7 +1771,7 @@ function avPut(g,x){const sc=SC[SID],[ft,fb]=sc.floor,r=g[0];if(g.some(k=>S.ents
  r.par=null;r.slot=null;for(const k of g)if(!S.ents.includes(k))S.ents.push(k);(NET.hop=NET.hop||[]).push(r);return r}
 function avArrive(){let f=avFind();if(f&&f.at==='away')f={e:f.e,ents:grpPull(f.e,f.ents),at:'trav'};if(f&&f.at==='trav'){G.trav=null;avPut(f.ents,800)}} // arriving somewhere: I hop in
 function avHello(){for(const e of NET.hop||[]){if(!byId(e.id))continue;anim(e,'pop',320);const a=absXY(e);sparkle(a.x,a.y-130,6)}NET.hop=null}
-function styleHTML(ch){return`<div class="srow"><button data-a="hs-">${IC.left}</button><span>Hair ${ch.s.hs+1}</span><button data-a="hs+">${IC.right}</button></div><div class="srow"><button data-a="of-">${IC.left}</button><span>Outfit ${ch.s.of+1}</span><button data-a="of+">${IC.right}</button></div><div class="lbl">Skin</div><div class="sws">`+SKIN.map(c=>`<button class="swt${ch.c.a===c?' on':''}" data-k="a" data-c="${c}" style="background:${c}"></button>`).join('')+`</div><div class="lbl">Hair colour</div><div class="sws">`+HAIRC.map(c=>`<button class="swt${ch.c.b===c?' on':''}" data-k="b" data-c="${c}" style="background:${c}"></button>`).join('')+`</div><div class="lbl">Clothes</div><div class="sws">`+['#ffd23f','#ff7aa8','#7ad3ff','#56d39a','#9b6bff','#ff8552'].map(c=>`<button class="swt${ch.c.c===c?' on':''}" data-k="c" data-c="${c}" style="background:${c}"></button>`).join('')+`</div>`+xFitRow(ch)+`<div class="srow2"><button class="btn sm${ch.s.lash?' on':''}" data-a="lash">Lashes</button><button class="btn sm${ch.s.fr?' on':''}" data-a="fr">Freckles</button><button class="btn sm${ch.s.lid!==0?' on':''}" data-a="lid">Sleepy</button><button class="btn sm dice" data-a="rand">${IC.dice}</button></div>`}
+function styleHTML(ch){return`<div class="srow"><button data-a="hs-">${IC.left}</button><span>Hair ${ch.s.hs+1}</span><button data-a="hs+">${IC.right}</button></div><div class="srow"><button data-a="of-">${IC.left}</button><span>Outfit ${ch.s.of+1}</span><button data-a="of+">${IC.right}</button></div><div class="lbl">Skin</div><div class="sws">`+SKIN.map(c=>`<button class="swt${ch.c.a===c?' on':''}" data-k="a" data-c="${c}" style="background:${c}"></button>`).join('')+`</div><div class="lbl">Hair colour</div><div class="sws">`+HAIRC.map(c=>`<button class="swt${ch.c.b===c?' on':''}" data-k="b" data-c="${c}" style="background:${c}"></button>`).join('')+`</div><div class="lbl">Clothes</div><div class="sws">`+['#ffd23f','#ff7aa8','#7ad3ff','#56d39a','#9b6bff','#ff8552'].map(c=>`<button class="swt${ch.c.c===c?' on':''}" data-k="c" data-c="${c}" style="background:${c}"></button>`).join('')+`</div>`+seaRow(ch)+xFitRow(ch)+`<div class="srow2"><button class="btn sm${ch.s.lash?' on':''}" data-a="lash">Lashes</button><button class="btn sm${ch.s.fr?' on':''}" data-a="fr">Freckles</button><button class="btn sm${ch.s.lid!==0?' on':''}" data-a="lid">Sleepy</button><button class="btn sm dice" data-a="rand">${IC.dice}</button></div>`}
 function openMe(first,then){avEnsure();const f=avFind();if(!f){then&&then();return}const c=f.e;
  showModal(`<h2>${first?'Who are you?':'This is you!'}</h2><div class="mepick"><div class="mefig"><div id="mefig"></div><span class="avtag me">ME</span></div><div class="mectl" id="mectl"></div></div><p class="sub sm">This is YOU in Boba Bay! You come along everywhere you go — just look for the <b>ME</b> tag.</p><button class="btn" id="meok">That's me!</button>`,'mewin');
  const ren=()=>{$('#mefig').innerHTML=thumb(c);$('#mectl').innerHTML=styleHTML(c)};ren();
@@ -1887,10 +1920,19 @@ const farmSelf=()=>!!G.flags.farm2||farmReady();
 const farmOpen=()=>farmSelf()||!!(NET.peer&&NET.frFlags&&NET.frFlags.farm);   // a friend who has it can take you along
 const farmStars=()=>STK.filter(s=>s[3]==='farm'&&G.st[s[0]]).length;
 function farmMigrate(){if(!G.flags.fv2){for(const k of['field','barn','fyard','orchard'])delete G.sc[k];G.flags.fv2=1;dirty()} // the first, simpler farm is rebuilt
- if((G.world||0)===1&&!farmOpen())G.world=0}
-function wswHTML(){const w=G.world||0,ok=farmOpen(),d=FARMREQ.filter(r=>r[0]()).length;return w?`<button class="wsw back" id="wsw" style="left:60px;top:794px">${IC.left}<span>Boba Bay</span></button>`:`<button class="wsw${ok?'':' lk'}" id="wsw" style="left:930px;top:840px">${ok?'':IC.lock}<span>Clover Farm</span>${ok?IC.right:`<b>${d}/${FARMREQ.length}</b>`}</button>`}
-function worldSwitch(){if(!(G.world||0)&&!farmOpen()){openFarmRoad();return}
- G.world=(G.world||0)?0:1;usfx('whoosh');dirty();showMap();const m=$('#map');m.classList.remove('wfade');void m.offsetWidth;m.classList.add('wfade')}
+ if(!G.st.fgrow&&G.flags.crops&&Object.keys(G.flags.crops).length){G.st.fgrow=Date.now();dirty()} // this sticker used to share its name with the 'grow' potion sticker
+ if((G.world||0)===2&&!seaOpen())G.world=1;if((G.world||0)===1&&!farmOpen())G.world=0}
+/* the signposts on the maps: Boba Bay ⇄ Clover Farm ⇄ Coral Cove */
+function wswHTML(){const w=G.world||0,fd=FARMREQ.filter(r=>r[0]()).length,sd=SEAREQ.filter(r=>r[0]()).length;
+ const back=(id,to,x,y,nm)=>`<button class="wsw back" id="${id}" data-w="${to}" style="left:${x}px;top:${y}px">${IC.left}<span>${nm}</span></button>`;
+ const fwd=(id,to,x,y,nm,ok,d,n,cls)=>`<button class="wsw${ok?'':' lk'}${cls||''}" id="${id}" data-w="${to}" style="left:${x}px;top:${y}px">${ok?'':IC.lock}<span>${nm}</span>${ok?IC.right:`<b>${d}/${n}</b>`}</button>`;
+ if(w===0)return fwd('wsw',1,930,840,'Clover Farm',farmOpen(),fd,FARMREQ.length);
+ if(w===1)return back('wsw',0,60,794,'Boba Bay')+fwd('wsw2',2,1290,246,'Coral Cove',seaOpen(),sd,SEAREQ.length,' sea');
+ return back('wsw',1,60,794,'Clover Farm')+back('wsw0',0,356,794,'Boba Bay')}
+function worldSwitch(to){const w=G.world||0;if(to==null||isNaN(to))to=w?0:1;
+ if(to===1&&!farmOpen()){openFarmRoad();return}
+ if(to===2&&!seaOpen()){openSeaRoad();return}
+ G.world=to;usfx(to===2||w===2?'splash':'whoosh');dirty();showMap();const m=$('#map');m.classList.remove('wfade');void m.offsetWidth;m.classList.add('wfade')}
 function openFarmRoad(){const n=FARMREQ.filter(r=>r[0]()).length;usfx('pop');
  showModal(`<h2>The road to Clover Farm</h2><p class="sub">A whole new world is waiting over the hill! Finish these to open the gate:</p><div class="froad">`+FARMREQ.map(r=>{const ok=r[0]();return`<div class="fr${ok?' ok':''}"><i>${ok?'✓':''}</i><span>${r[1]}</span>${r[2]?`<b>${r[2]()}</b>`:''}</div>`}).join('')+`</div><div class="bar fbar"><i style="width:${(n/FARMREQ.length*100).toFixed(0)}%"></i></div><p class="sub sm">${n} of ${FARMREQ.length} done. Earn stars by finding secrets — the sticker book has clues!</p>`,'froadw')}
 function farmCheck(){if(G.flags.farm2||!farmReady())return;G.flags.farm2=1;dirty();
@@ -1898,11 +1940,12 @@ function farmCheck(){if(G.flags.farm2||!farmReady())return;G.flags.farm2=1;dirty
 {const s0=star;window.star=function(id){const had=!!G.st[id];s0(id);if(had)return;farmCheck();
   const def=STK.find(s=>s[0]===id);if(def&&def[3]==='farm'){const n=farmStars();for(const sp of SPOTS)if(sp.fneed===n)setTimeout(()=>{toast('New on Clover Farm: '+sp.n+' is open!',5200);usfx('chest')},2200)}}}
 {const ce=SC.castle.enter;SC.castle.enter=function(){G.flags.cc=1;farmCheck();if(ce)return ce.apply(this,arguments)}}
-function farmBookLine(){if(farmSelf())return`<div class="nx"><span>Clover Farm is open — ${farmStars()} farm stickers so far!</span></div>`;const n=FARMREQ.filter(r=>r[0]()).length;
+function farmBookLine(){if(seaSelf())return`<div class="nx"><span>Coral Cove is open — ${seaStars()} sea stickers so far!</span></div>`;
+ if(farmSelf()){const n=SEAREQ.filter(r=>r[0]()).length;return`<div class="nx"><div class="bar"><i style="width:${(n/SEAREQ.length*100).toFixed(0)}%"></i></div><span><b>Next:</b> a world under the sea! ${n} of ${SEAREQ.length} goals done — tap the Coral Cove sign on the Clover Farm map.</span></div>`}const n=FARMREQ.filter(r=>r[0]()).length;
  return`<div class="nx"><div class="bar"><i style="width:${(n/FARMREQ.length*100).toFixed(0)}%"></i></div><span><b>Next:</b> a whole new world! ${n} of ${FARMREQ.length} goals done — tap the Clover Farm sign on the map.</span></div>`}
 
 STKG.farm=['Clover Farm','#2bb673'];
-STK.push(['grow','Green Thumb','Plant a seed, water it, and pick what grows.','farm'],['farmer','Five-a-Day','Grow all five kinds of seeds from the seed stand.','farm'],['rain','Make It Rain','Tap the rain cloud over thirsty plants.','farm'],
+STK.push(['fgrow','Green Thumb','Plant a seed, water it, and pick what grows.','farm'],['farmer','Five-a-Day','Grow all five kinds of seeds from the seed stand.','farm'],['rain','Make It Rain','Tap the rain cloud over thirsty plants.','farm'],
  ['milk','Moo Juice','A hungry cow gives something back.','farm'],['wool','Baa Baa','Give the sheep a haircut — tap, tap, tap.','farm'],['eggs','Egg-cellent','Ask a hen nicely for an egg.','farm'],
  ['piggy','Mud Bath','Help the pig get properly dirty.','farm'],['groom','Brush Brush','Brush an animal with a brush from the tool rack.','farm'],['chick','Peep Peep!','Keep a farm egg warm in the incubator.','farm'],['grownup','All Grown Up','Look after a chick until it grows into a hen.','farm'],
  ['butter','Butter Up','Churn some milk.','farm'],['jam','Jam Session','Cook fruit in the jam pot.','farm'],['yarn','Spin Me Round','Spin wool on the spinning wheel.','farm'],['knit','Knit Wit','Knit something cozy from yarn.','farm'],
@@ -1937,7 +1980,7 @@ D('plot','Veggie Plot',230,150,'fix',{a:'#a8683f'},(e,c)=>{const g=e.s.g||0,k=CR
   return false},
  tap(e){const a=absXY(e),k=e.s.c;if(!k){say(e,'Plant some seeds here!');anim(e,'wig',300);return}
   if((e.s.g||0)>=3){if(k==='pumpkin'){const kg=Math.round(120+(e.s.care||0)*90+rnd(0,180));popTo('gpump',e,0,{s:{kg}});star('pumpkin');sfx.chest();confetti(a.x,a.y-80,20);later(e,600,()=>say(e,'Wow! About '+kg+' lb! Take it to the Pumpkin Patch scale!',3200));e.s.care=0}
-   else{const t=CROPS[k][0];for(let i=0;i<3;i++)popTo(t,e,(i-1)*80);sfx.yum();const f=G.flags.crops=G.flags.crops||{};f[k]=1;star('grow');if(CROPK.every(x=>f[x]))star('farmer')}
+   else{const t=CROPS[k][0];for(let i=0;i<3;i++)popTo(t,e,(i-1)*80);sfx.yum();const f=G.flags.crops=G.flags.crops||{};f[k]=1;star('fgrow');if(CROPK.every(x=>f[x]))star('farmer')}
    e.s.c=null;e.s.g=0;delete e.s.wt;redraw(e);dirty();return}
   if(!water(e)&&!careUp(e))say(e,pick(k==='pumpkin'?['Magic takes time…','Growing BIG…']:['Growing… growing…','Almost there!']))},
  tick(e){if(!e.s.c||!e.s.wt)return;const g=stageOf(e);if(g===(e.s.g||0))return;e.s.g=g;redraw(e);anim(e,'land',240);dirty();if(g>=3){const a=absXY(e);sparkle(a.x,a.y-90,6);sfx.ding()}else sfx.pop()}});
@@ -2311,6 +2354,502 @@ function xTitleSky(){return`<svg class="tsky" viewBox="0 0 1600 900" preserveAsp
 (function(){if(!XMAS())return;try{document.title='Boba Bay — Christmas Update!';const l=document.querySelector('link[rel=icon]');if(l&&window.XICON)l.href=window.XICON}catch(e){}})(); // the browser tab gets the Christmas icon too
 
 /* =====================================================================
+   CORAL COVE — the third world, deep under the sea. It opens when a
+   player has finished Clover Farm (see SEAREQ). Down here everybody
+   swims with a mer-tail. Like the farm it has its own ladder: new
+   places open as sea stickers are earned, and things found or made in
+   one place are needed in another (pearls + shells → jewellery,
+   sea garden → sea rolls and fizz, map pieces → a key → sunken treasure
+   → an invitation to the Pearl Palace).
+   ===================================================================== */
+WORLDS.push('Coral Cove');
+/* ---------- the way down to Coral Cove ---------- */
+const SEAREQ=[
+ [()=>farmStars()>=24,'Earn 24 Clover Farm stickers',()=>Math.min(farmStars(),24)+' / 24'],
+ [()=>!!G.st.cozy,'Knit a cozy sweater and wear it'],
+ [()=>!!G.st.pumpkin,'Grow a giant pumpkin'],
+ [()=>!!G.st.champion,'Win a GOLD ribbon at the Farmers Market'],
+ [()=>!!G.st.hayride,'Take a hay ride']];
+const seaReady=()=>farmSelf()&&SEAREQ.every(r=>r[0]());
+const seaSelf=()=>!!G.flags.sea||seaReady();
+const seaOpen=()=>seaSelf()||!!(NET.peer&&NET.frFlags&&NET.frFlags.sea);   // a friend who has it can take you along
+const seaStars=()=>STK.filter(s=>s[3]==='sea'&&G.st[s[0]]).length;
+const merOn=()=>!!(SID&&SC[SID]&&SC[SID].sea);                              // under the sea, everybody has a tail
+function openSeaRoad(){const n=SEAREQ.filter(r=>r[0]()).length;usfx('pop');
+ showModal(`<h2>The way down to Coral Cove</h2><p class="sub">Something sparkles deep under the water… Finish Clover Farm to dive in:</p><div class="froad">`+SEAREQ.map(r=>{const ok=r[0]();return`<div class="fr${ok?' ok':''}"><i>${ok?'✓':''}</i><span>${r[1]}</span>${r[2]?`<b>${r[2]()}</b>`:''}</div>`}).join('')+`</div><div class="bar fbar sbar"><i style="width:${(n/SEAREQ.length*100).toFixed(0)}%"></i></div><p class="sub sm">${n} of ${SEAREQ.length} done. The sticker book has clues for every farm sticker!</p>`,'froadw')}
+function seaCheck(){if(G.flags.sea||!seaReady())return;G.flags.sea=1;dirty();
+ setTimeout(()=>{toast('SPLASH! You finished Clover Farm — a new world is open under the sea: CORAL COVE! Follow the signpost on the Clover Farm map.',8000);usfx('chest');hushed(()=>confetti(800,360,40));if(!SID)showMap()},3600)}
+{const s0=star;window.star=function(id){const had=!!G.st[id];s0(id);if(id==='treasure'&&!G.flags.palace){G.flags.palace=1;dirty();if(NET.peer)netAt()}if(had)return;seaCheck();
+  const def=STK.find(s=>s[0]===id);if(def&&def[3]==='sea'){const n=seaStars();for(const sp of SPOTS)if(sp.sneed===n)setTimeout(()=>{toast('New in Coral Cove: '+sp.n+' is open!',5200);usfx('chest')},2200)}}}
+
+STKG.sea=['Coral Cove','#1fa6c4'];
+STK.push(['manta','Gentle Giant','Say hello to someone gliding over the Coral Cove map.','sea'],['tailcol','Tail Style','Give someone a new tail colour in the makeover window.','sea'],
+ ['bubbles','Pop, Pop, Pop!','Pop 10 big bubbles from the bubble fountain.','sea'],['bubride','Bubble Ride','Float a friend up in a big bubble.','sea'],['pearl','Pearl Diver','Wait for the giant clam\'s pearl to grow, then take it.','sea'],
+ ['sdig','Sand Sifter','Dig in the soft sand — tap, tap, tap.','sea'],['crab','Sideways Shuffle','Make a crab dance.','sea'],['puff','Puff!','Surprise a pufferfish.','sea'],['clownf','Peekaboo','Who is giggling inside the anemone?','sea'],
+ ['sgrow','Sea Gardener','Plant sea seeds, pat the sand, and pick what grows.','sea'],['sgarden','Three of a Kind','Grow kelp, sea grapes and bubble berries.','sea'],['swirl','Fresh Current','Send a swirl of fresh water over the sand beds.','sea']);
+Object.assign(sfx,{toot(){tone(330,.5,{to:392,type:'sawtooth',vol:.08});tone(494,.4,{type:'triangle',vol:.08,at:.1})},boom(){noise(.35,{f:300,vol:.3});tone(90,.35,{to:50,type:'sine',vol:.25})},
+ snip(){tone(1500,.04,{type:'square',vol:.06});tone(1700,.04,{type:'square',vol:.06,at:.09})},sonar(){tone(1200,.5,{vol:.1});tone(1200,.5,{vol:.05,at:.5})},chirp(){tone(1400,.1,{to:2400,vol:.09});tone(1800,.12,{to:2800,vol:.09,at:.13});tone(1500,.1,{to:2500,vol:.08,at:.3})}});
+
+/* ---------- tails, necklaces and bubbles in the water ---------- */
+const TAILC=['#2bb7a3','#ff8fb1','#9b6bff','#4a90e2','#ffb74d','#56d39a','#ff5c7a','#7ad3ff'];
+const tailCol=e=>hexOk(e.c&&e.c.t)?e.c.t:TAILC[((e.s.hs||0)+(e.s.of||0))%TAILC.length];
+function tailRow(ch){if(!merOn())return'';const cur=tailCol(ch);return`<div class="lbl">Tail</div><div class="sws">`+TAILC.map(c=>`<button class="swt${cur===c?' on':''}" data-k="t" data-c="${c}" style="background:${c}"></button>`).join('')+`</div>`}
+{const a0=styleApply;window.styleApply=function(c,a,k,col,q){a0(c,a,k,col,q);if(k==='t'&&!q)star('tailcol')}}
+function neckSVG(s){const k=[s.nc,s.nc2,s.nc3].map(c=>hexOk(c)?c:'#fff6ee'),pts=[[45,116],[49,123],[56,129],[65,132],[74,129],[81,123],[85,116]];
+ return L('M45 116 Q65 140 85 116','#fff',1.600,0,NO)+pts.map(([x,y],i)=>C(x,y,i===3?5.500:4,k[i===3?0:i%2?1:2],0,i===3?'':` stroke="${INK}" stroke-width="2"`+NO)).join('')}
+let $seafx=null;
+function seaHud(){if(!$seafx){$seafx=$('#seafx');if($seafx)$seafx.innerHTML=Array.from({length:14},(_,i)=>{const s=10+(i*7)%24;return`<i style="left:${(i*113+40)%1560}px;width:${s}px;height:${s}px;animation-duration:${9+(i*5)%9}s;animation-delay:-${(i*2.300).toFixed(1)}s"></i>`}).join('')}
+ if($stage){$stage.classList.toggle('sea',merOn());$stage.classList.toggle('seamap',!SID&&(G.world||0)===2)}seaCat()} // seamap: no snow falls under water
+{const x0=xHud;window.xHud=function(){x0();seaHud()}}
+/* is this thing anywhere at all — here, in another place, or in the backpack? */
+function seaFind(pred){if(S&&S.ents.some(pred))return true;for(const id in G.sc)if(id!==SID&&G.sc[id]&&Array.isArray(G.sc[id].ents)&&G.sc[id].ents.some(pred))return true;return G.pack.some(a=>a.some(pred))}
+const mapNeed=k=>!G.flags.smap&&!seaFind(e=>(e.t==='mappiece'&&(e.s.k|0)===k)||(e.t==='maptable'&&(e.s.got||[]).includes(k)));
+const sway=(x,y)=>` class="sway" style="transform-origin:${x}px ${y}px"`;
+
+/* ---------- open water: the background of the outdoor sea places ---------- */
+function seaBg(st,deco){const b=st.bg,n=st.night,top=n?'#0a1c3d':lt(b.sky,.45),bot=n?'#123a66':dk(b.sky,.1),far=mix(b.sky,'#1b4f8a',n?.7:.3);
+ let o=SVGO+skyG(top,bot)+`<rect data-p="sky" width="1600" height="640" fill="url(#sky)"/>`;
+ if(!n)o+=[[200,170],[560,120],[940,190],[1330,140]].map(([x,w])=>`<path d="M${x} 0 L${x+w} 0 L${x+w-150} 620 L${x-210} 620Z" fill="#fff" opacity=".11" class="np"/>`).join('');
+ o+=P('M0 560 Q110 430 250 500 Q370 400 520 510 Q690 420 860 506 Q1030 410 1200 496 Q1370 420 1600 516 L1600 640 L0 640Z',far,0,NP+NO)
+  +[[70,520,90],[330,500,120],[700,516,80],[1110,500,110],[1480,512,100]].map(([x,y,h],i)=>`<path d="M${x} ${y+60} q${i%2?14:-14} ${-h/3} 0 ${-h*.66} q${i%2?-14:14} ${-h/3} 0 ${-h}" fill="none" stroke="${mix(far,'#0f6b5a',.35)}" stroke-width="14" stroke-linecap="round" class="np"/>`).join('');
+ o+=P('M0 590 Q260 556 520 584 Q800 612 1080 580 Q1340 554 1600 590 L1600 900 L0 900Z',b.ground,'ground')
+  +P('M0 590 Q260 556 520 584 Q800 612 1080 580 Q1340 554 1600 590 L1600 604 Q1340 570 1080 596 Q800 628 520 600 Q260 572 0 606Z',lt(b.ground,.5),0,' opacity=".7" class="np"'+NO)
+  +[[120,700],[420,660],[640,790],[880,690],[1130,860],[1290,680],[1500,790],[300,860],[980,800]].map(([x,y])=>L(`M${x} ${y} q16 -8 32 0 q16 8 32 0`,dk(b.ground,.1),4,0,NP)).join('')
+  +[[220,760],[760,880],[1210,740],[1420,872],[560,720]].map(([x,y])=>C(x,y,5,dk(b.ground,.16),0,NP)+C(x+15,y+7,3,dk(b.ground,.16),0,NP)).join('');
+ return o+(deco?deco(st):'')+'</svg>'}
+const coralArt=(x,y,k,sc=1)=>`<g transform="translate(${x} ${y}) scale(${sc})" class="np">`+U(R(-9,-70,18,72,9,k)+R(-44,-52,16,40,8,k)+R(-44,-28,44,14,7,k)+R(28,-64,16,46,8,k)+R(0,-36,44,14,7,k)+C(-36,-56,10,k)+C(36,-68,10,k)+C(0,-74,12,k),5)+`</g>`;
+const SEAB={sky:'#49bdea',ground:'#ffe7b0'};
+
+/* ---------- Coral Plaza: bubbles, a giant clam, little creatures, Inky's swap shop ---------- */
+D('bfount','Bubble Fountain',300,330,'fix',{a:'#ff9fb6',b:'#ffd27a'},(e,c)=>sh(300,330,.46)+P('M20 296 Q20 248 150 248 Q280 248 280 296 L268 320 Q150 334 32 320Z',c.a,'a')+E(150,262,112,18,'#9eeaff')+L('M60 300 L70 322 M110 306 L114 326 M150 308 L150 328 M190 306 L186 326 M240 300 L230 322',dk(c.a,.16),3,0,NO)
+  +R(132,150,36,106,12,dk(c.a,.1),'a')+P('M64 146 Q64 190 150 190 Q236 190 236 146Z',c.b,'b')+E(150,146,86,14,'#9eeaff')+R(140,74,20,70,8,dk(c.b,.12),'b')+P('M104 78 Q104 104 150 104 Q196 104 196 78Z',c.a,'a')+E(150,78,46,9,'#9eeaff')
+  +`<g class="np bub">`+C(150,44,13,'#effcff',0,' opacity=".9"')+C(128,22,8,'#effcff',0,' opacity=".9"')+C(172,14,10,'#effcff',0,' opacity=".9"')+`</g>`+C(96,160,5,'#fff',0,' opacity=".7" class="np"')+C(204,270,6,'#fff',0,' opacity=".7" class="np"'),
+ {fx:1,tap(e){const a=absXY(e);sfx.bubble();anim(e,'land',260);bubbles(a.x,a.y-300,6);
+   if(S.ents.filter(k=>k.t==='bigbub').length>=4){say(e,'Pop some bubbles first!');return}
+   const b=spawn('bigbub',a.x+rnd(-40,40),a.y-250);b.x=clamp(a.x+pick([-1,1])*rnd(160,520),150,W-150);place(b);say(e,pick(['Bloop!','Bubble time!','Blub blub!']))}});
+D('bigbub','Big Bubble',230,230,'toy',{a:'#d8f6ff'},(e,c)=>`<circle cx="115" cy="115" r="106" fill="${c.a}" fill-opacity=".3" data-p="a" data-o="1"/>`,
+ {float:1,under:['seat0'],seats:[[0,-48]],
+  front:(e,c)=>`<circle cx="115" cy="115" r="106" fill="${c.a}" fill-opacity=".16" stroke="#ffffff" stroke-width="6" data-o="1" class="np"/>`+L('M44 92 Q52 50 92 34','#fff',9,0,' opacity=".85"'+NO)+C(60,128,7,'#fff',0,' opacity=".8"'+NO)+L('M176 170 Q168 186 150 194','#fff',5,0,' opacity=".5"'+NO),
+  sat(b,ch){star('bubride');sfx.bubble();setFace(ch,'laugh',1800);say(ch,pick(['Wheee!','I\'m floating!','Look at me!']))},
+  tap(e){const a=absXY(e),y=a.y-115,rd=kidIn(e,'seat0');if(NET.peer&&rd&&rd.me&&rd.me!==actNo()){shy(e,'Your friend is riding that bubble — only they can pop it!');return}
+   sfx.pop();drops(a.x,y,10);bubbles(a.x,y,5);const had=kidsOf(e).length;dropAll(e);rm(e);
+   const n=G.flags.bpop=(G.flags.bpop|0)+1;if(n>=10)star('bubbles');
+   if(mapNeed(0)&&n>=3){popOut('mappiece',a.x,y,{s:{k:0}},0);toast('A piece of an old map was hiding in that bubble!',4200);return}
+   if(!had){const r=Math.random();if(r<.2)popOut('shell',a.x,y,{c:{a:pick(['#ffb3c7','#ffd23f','#d58bff','#7ad3ff'])}},0);else if(r<.32)popOut('seastar',a.x,y,{c:{a:pick(SSTARC)}},0)}}});
+const PEARLC=['#fff6ee','#fff6ee','#fff6ee','#ffc9de','#ffc9de','#cfe8ff','#ffe08a'],PEARLMS=75000;
+const pearlG=e=>!e.s.pt?3:NET.mir?(e.s.pg|0):Math.min(3,Math.floor((Date.now()-e.s.pt)/(PEARLMS/3)));
+D('clam','Giant Clam',240,196,'fix',{a:'#ff9fc0'},(e,c)=>{const g=pearlG(e),pc=hexOk(e.s.pc)?e.s.pc:'#fff6ee',r=[0,9,15,22][g];
+  return sh(240,196,.46)+P('M26 100 Q20 8 120 6 Q220 8 214 100 Q120 72 26 100Z',lt(c.a,.2),'a')+L('M120 92 L120 12 M120 92 L80 16 M120 92 L160 16 M120 92 L48 30 M120 92 L192 30',dk(c.a,.1),3,0,NO)
+   +E(120,106,90,28,'#ffe3ee')+E(120,114,66,15,'#ffb3cf',0,NO)+(g?C(120,112-r,r,pc)+C(120-r*.35,112-r*1.35,r*.28,'#fff',0,' opacity=".85"'+NO):'')+(g>=3?P(star5(150,74,9,4),'#fff',0,' class="np tw"'+NO):'')
+   +P('M18 108 Q20 186 120 190 Q220 186 222 108 Q120 146 18 108Z',c.a,'a')+L('M120 186 L60 132 M120 186 L90 140 M120 186 L120 142 M120 186 L150 140 M120 186 L180 132',dk(c.a,.14),3,0,NO)+C(96,160,5,INK)+C(144,160,5,INK)+L('M110 170 Q120 178 130 170',INK,3)},
+ {fx:1,accept(e,it){if(!['kelp','sgrape','bberry'].includes(it.t)||!e.s.pt||pearlG(e)>=3)return false;rm(it);sfx.chomp();anim(e,'chomp',220);hearts(e,2);e.s.pt-=PEARLMS/3;say(e,'Mmm! That helps my pearl grow!');dirty();return true},
+  tap(e){const g=pearlG(e),a=absXY(e);if(g<3){anim(e,'chomp',220);sfx.snip();say(e,['My next pearl has only just started… a sea snack would help!','Growing, growing… not shiny yet.','Almost ready! Just a little longer.'][g]);return}
+   const pc=hexOk(e.s.pc)?e.s.pc:'#fff6ee';e.s.pt=Date.now();e.s.pg=0;e.s.pc=pick(PEARLC);redraw(e);anim(e,'land',260);sfx.ding();sparkle(a.x,a.y-110,7);popTo('pearl',e,165,{c:{a:pc}});say(e,'A pearl for you! I\'ll grow another.');star('pearl');dirty()},
+  tick(e){if(!e.s.pt)return;const g=pearlG(e);if(g>=3){e.s.pt=0;e.s.pg=0;redraw(e);const a=absXY(e);sparkle(a.x,a.y-110,6);sfx.ding();dirty();return}if(g!==(e.s.pg|0)){e.s.pg=g;redraw(e);anim(e,'land',240);dirty()}}});
+D('pearl','Pearl',52,52,'item',{a:'#fff6ee'},(e,c)=>sh(52,52,.32)+(e.s.glow?C(26,26,25,'#9dfbe6',0,' opacity=".45" class="np"'+NO):'')+C(26,27,19,c.a,'a')+C(19,20,6,'#fff',0,' opacity=".9"'+NO)+(e.s.sh?P(star5(40,12,7,3),'#fff',0,NO):''),
+ {nm:e=>(e.s.sh?'Shiny ':'')+(e.s.glow?'Glow Pearl':'Pearl'),nd:1,light:e=>e.s.glow?{dx:0,dy:-26,r:110}:null,tap(e){const a=absXY(e);sparkle(a.x,a.y-26,4);sfx.magic();anim(e,'wig',300)}});
+const SSTARC=['#ff8552','#ff7aa8','#ffd23f','#9b6bff','#56d39a'];
+D('seastar','Sea Star',78,76,'toy',{a:'#ff8552'},(e,c)=>sh(78,76,.34)+P(star5(39,40,35,17),c.a,'a',' stroke-linejoin="round"')+[[39,16],[18,33],[60,33],[26,58],[52,58]].map(([x,y])=>C(x,y,3,lt(c.a,.45),0,NO)).join('')+C(32,38,3.200,INK)+C(46,38,3.200,INK)+L('M33 46 Q39 51 45 46',INK,2.400)+(e.s.sh?P(star5(62,14,7,3),'#fff',0,NO):''),
+ {tap(e){anim(e,'spin',600);sfx.squeak();say(e,pick(['High five! …I have five!','Star power!','Wheee!']))}});
+D('anemone','Anemone',220,210,'fix',{a:'#ff7aa8',b:'#ff8a3d'},(e,c)=>{const out=tr(e).out,t=(d,w=22)=>L(d,c.a,w,'a'),tip=(x,y,r=12)=>C(x,y,r,lt(c.a,.4),'a');
+  return sh(220,210,.44)+U(t('M110 128 Q76 96 52 46')+t('M110 128 Q110 80 110 26')+t('M110 128 Q144 96 168 46')+t('M110 128 Q60 112 26 84')+t('M110 128 Q160 112 194 84'))+tip(52,46)+tip(110,26)+tip(168,46)+tip(26,84)+tip(194,84)
+   +(out?`<g class="np">`+outline(P('M150 66 L178 46 L174 86Z',c.b)+E(110,68,44,27,c.b)+P('M94 43 Q102 68 94 93 L106 94 Q114 68 106 42Z','#fff')+P('M126 46 Q132 68 126 90 L136 87 Q141 68 136 49Z','#fff'),4)+C(82,62,6,'#fff')+C(81,63,3,INK)+L('M72 76 Q78 81 84 76',INK,2.400)+`</g>`:`<g class="np">`+C(98,104,6,'#fff')+C(98,105,3,INK)+C(122,104,6,'#fff')+C(122,105,3,INK)+`</g>`)
+   +P('M58 200 Q52 122 110 118 Q168 122 162 200Z',dk(c.a,.12),'a')+U(t('M92 132 Q66 122 44 124',20)+t('M128 132 Q154 122 176 124',20)+t('M100 128 Q88 104 78 88',18)+t('M120 128 Q132 104 142 88',18))+tip(44,124,11)+tip(176,124,11)+tip(78,88,10)+tip(142,88,10)
+   +L('M84 150 Q88 176 84 196 M136 150 Q132 176 136 196',dk(c.a,.24),3,0,NO)+E(110,200,70,11,dk(c.a,.24),'a')},
+ {fx:1,accept(e,it){if(!['kelp','sgrape','bberry','sburger'].includes(it.t))return false;const t=tr(e),now=Date.now();rm(it);sfx.chomp();t.out=1;redraw(e);hearts(e,3);
+   if(now-(t.cd||0)<20000){say(e,'Yum! Thank you!');later(e,1600,()=>{tr(e).out=0;redraw(e)});return true}t.cd=now;say(e,'Yum! Look what I found in the sand — an egg! Keep it warm in the Lagoon nursery.',3600);
+   later(e,900,()=>{popTo('roe',e,-150);sfx.pop()});later(e,3200,()=>{tr(e).out=0;redraw(e)});return true},
+  tap(e){const t=tr(e);if(t.out)return;t.k=(t.k||0)+1;anim(e,'wig',400);if(t.k<2){sfx.squeak();say(e,'…hee hee hee!');return}t.k=0;t.out=1;redraw(e);sfx.squeak();setTimeout(()=>sfx.squeak(),160);say(e,pick(['Peekaboo!','You found me!','Got any sea snacks?']));star('clownf');later(e,1900,()=>{tr(e).out=0;redraw(e)})}});
+D('crab','Crab',136,100,'toy',{a:'#ff6b5e'},(e,c)=>sh(136,100,.42)+L('M40 70 L18 84 M44 78 L26 94 M96 70 L118 84 M92 78 L110 94',dk(c.a,.12),7,'a')+L('M34 52 Q20 46 18 34 M102 52 Q116 46 118 34',c.a,9,'a')+C(16,28,15,c.a,'a')+P('M8 16 L18 28 L26 14Z','#fff8f0',0,NO)+C(120,28,15,c.a,'a')+P('M110 14 L118 28 L128 16Z','#fff8f0',0,NO)
+  +E(68,62,44,28,c.a,'a')+E(68,70,30,12,lt(c.a,.3),'a',NO)+L('M54 40 L52 24 M82 40 L84 24',c.a,5,'a')+C(52,20,8,'#fff')+C(84,20,8,'#fff')+C(53,21,3.500,INK)+C(83,21,3.500,INK)+L('M58 62 Q68 70 78 62',INK,3)
+  +(e.s.chef?R(46,-2,44,16,5,'#fff')+U(C(52,-8,13,'#fff')+C(68,-14,15,'#fff')+C(84,-8,13,'#fff'),5):'')+(e.s.cap?P('M36 14 Q68 -22 100 14 Q68 6 36 14Z','#2f2f48')+R(34,10,68,9,4,'#2f2f48')+C(68,1,5,'#fff',0,NO)+L('M60 6 L76 -4 M60 -4 L76 6','#fff',2.400,0,NO):''),
+ {nm:e=>e.s.cap?'Captain Pinch':e.s.chef?'Chef Clawdia':'Crab',
+  tap(e){const t=tr(e);if(t.busy||e.par)return;const dir=e.x<W/2?1:-1,sid=SID;t.busy=1;sfx.snip();setTimeout(()=>sfx.snip(),200);anim(e,'dance',900);star('crab');
+   say(e,e.s.cap?pick(['Arr! The treasure map was torn in THREE pieces!','Arr! Bubbles, sand and a swap — that\'s where map pieces hide.','X marks the spot, matey! Put the map together on the table.','A key in the sand opens the chest. Arr!']):e.s.chef?pick(['Kelp goes in the patty press — squish!','Grill the patty, then build: bun first!','Cheese is in the bun basket, dearie.','Serve the customers and they leave a tip!','Four fillings make a SKY-HIGH burger!']):pick(['Click clack!','Sideways is the best way!','Shuffle shuffle!']),e.s.cap||e.s.chef?3400:1800);
+   glide(e,clamp(e.x+dir*rnd(120,200),90,W-90),e.y,800,()=>{tr(e).busy=0});setTimeout(()=>{if(SID===sid&&byId(e.id))tr(e).busy=0},1000)}});
+D('puffer','Pufferfish',130,120,'toy',{a:'#ffd23f'},(e,c)=>{const big=tr(e).big;return sh(130,120,.36)+(big?[0,36,72,108,144,180,216,252,288,324].map(a=>{const r=a*Math.PI/180,x=65+54*Math.cos(r),y=62+54*Math.sin(r);return P(`M${(65+44*Math.cos(r-.16)).toFixed(0)} ${(62+44*Math.sin(r-.16)).toFixed(0)} L${x.toFixed(0)} ${y.toFixed(0)} L${(65+44*Math.cos(r+.16)).toFixed(0)} ${(62+44*Math.sin(r+.16)).toFixed(0)}Z`,dk(c.a,.14),'a')}).join('')+C(65,62,46,c.a,'a')+E(65,80,32,18,'#fff8e0',0,NO)+C(50,50,9,'#fff')+C(80,50,9,'#fff')+C(50,50,4,INK)+C(80,50,4,INK)+C(65,70,6,INK)
+   :P('M100 64 L124 48 L122 82Z',dk(c.a,.14),'a')+E(62,66,42,30,c.a,'a')+E(58,78,28,13,'#fff8e0',0,NO)+P('M62 40 Q74 26 84 42Z',dk(c.a,.14),'a')+C(42,58,7,'#fff')+C(41,59,3.200,INK)+C(26,70,3.500,INK)+[[58,54],[74,60],[66,48]].map(([x,y])=>C(x,y,2.200,dk(c.a,.25),0,NO)).join(''))},
+ {tap(e){const t=tr(e);if(t.big)return;t.big=1;redraw(e);anim(e,'pop',300);sfx.boing();say(e,pick(['PUFF!','Whoa! You startled me!','Poof!']));star('puff');later(e,2200,()=>{tr(e).big=0;redraw(e);anim(e,'land',240);sfx.squeak()})}});
+D('octo','Inky\'s Swap Shop',330,310,'fix',{a:'#9b6bff',b:'#ffb3c7'},(e,c)=>{const arm=(d)=>L(d,c.a,20,'a'),cup=(x,y)=>C(x,y,3.500,lt(c.a,.5),0,NO);
+  return sh(330,310,.48)+U(arm('M110 150 Q60 130 46 84')+arm('M220 150 Q270 130 284 84'))+C(46,74,17,'#fff6ee')+C(40,68,5,'#fff',0,NO)+P('M284 80 Q262 70 266 54 Q276 44 284 48 Q292 44 302 54 Q306 70 284 80Z','#ffd23f')
+   +P('M92 190 Q84 60 165 56 Q246 60 238 190Z',c.a,'a')+C(136,118,15,'#fff')+C(194,118,15,'#fff')+C(138,120,7,INK)+C(192,120,7,INK)+L('M148 148 Q165 162 182 148',INK,4)+E(112,142,10,6,'#ff9fc0',0,NO)+E(218,142,10,6,'#ff9fc0',0,NO)
+   +R(20,196,290,104,18,c.b,'b')+R(10,184,310,26,13,lt(c.b,.3),'b')+U(arm('M70 196 Q50 220 76 240')+arm('M260 196 Q280 220 254 240'))+cup(62,214)+cup(70,230)+cup(268,214)+cup(260,230)
+   +R(92,224,146,54,12,'#fff8ec')+`<text x="165" y="263" font-size="34" font-weight="700" text-anchor="middle" fill="${c.a}" class="np">SWAP</text>`},
+ {fx:1,accept(e,it){const t=it.t,a=absXY(e),give=(g,o,msg)=>{rm(it);sfx.kaching();anim(e,'wig',400);later(e,600,()=>{popTo(g,e,pick([-1,1])*210,o);say(e,msg,3200)})};
+   if(t==='pearl'){if(mapNeed(2))give('mappiece',{s:{k:2}},'A pearl! For that, you get my SECRET: a piece of an old treasure map.');else give('gem',{c:{a:pick(['#7ad3ff','#ff7aa8','#b8e986','#ffd23f'])}},'A pearl! Here, a sparkly gem for you.');return true}
+   if(t==='shell'||t==='seastar'){give('sseed',{s:{c:pick(SCROPK)}},'Ooh, pretty! Take some sea seeds.');return true}
+   if(['kelp','sgrape','bberry','sburger','fizz'].includes(t)){give('seastar',{c:{a:pick(SSTARC)}},'Yum! A sea star for you.');return true}
+   return false},
+  tap(e){anim(e,'wig',420);sfx.bubble();say(e,mapNeed(2)?'Psst… bring me a PEARL and I\'ll swap you something very special.':pick(['Swap you a shell for some seeds!','Eight arms, eight swaps!','Bring me pearls, shells or snacks!']),2800)}});
+D('coralseat','Coral Bench',300,150,'furn',{a:'#ff8fb1'},(e,c)=>sh(300,150,.48)+U(C(62,58,32,lt(c.a,.2),'a')+C(122,46,38,lt(c.a,.2),'a')+C(188,48,36,lt(c.a,.2),'a')+C(242,60,30,lt(c.a,.2),'a')+R(40,50,220,34,10,lt(c.a,.2),'a'))+R(50,104,28,44,12,dk(c.a,.12),'a')+R(222,104,28,44,12,dk(c.a,.12),'a')+R(16,72,268,40,20,c.a,'a')+[70,130,190,240].map(x=>C(x,90,4,lt(c.a,.5),0,NO)).join(''),{seats:[[-64,-76],[64,-76]]});
+const SANDMS=50000,sandUp=e=>!e.s.dt||(NET.mir?!e.s.dug:Date.now()-e.s.dt>=SANDMS);
+D('sandspot','Soft Sand',190,90,'fix',{a:'#ffdf9c'},(e,c)=>hit(190,90)+(sandUp(e)?E(95,64,88,22,dk(c.a,.1),'a')+P('M14 64 Q40 14 95 14 Q150 14 176 64Z',c.a,'a')+C(70,44,4,dk(c.a,.14),0,NO)+C(112,36,3,dk(c.a,.14),0,NO)+C(128,52,4,dk(c.a,.14),0,NO)+P(star5(120,20,9,4),'#fff',0,' class="np tw"'+NO)
+   :E(95,62,88,24,c.a,'a')+E(95,62,56,13,dk(c.a,.32),'a',NO)+C(30,50,7,c.a,'a')+C(162,54,8,c.a,'a')),
+ {fx:1,z:5,tap(e,tg,p){const t=tr(e),a=absXY(e);if(!sandUp(e)){say(e,'Just a hole… the sand will drift back soon.');return}t.k=(t.k||0)+1;sfx.crack();puff(a.x,a.y-30,'#ffe7b0',5);anim(e,'land',220);if(t.k<3)return;
+   t.k=0;e.s.dt=Date.now();e.s.dug=1;redraw(e);star('sdig');const n=G.flags.sdigs=(G.flags.sdigs|0)+1,r=Math.random(),o=x=>popTo(x.t,e,pick([-1,1])*rnd(120,170),x.o);
+   if(mapNeed(1)&&n>=2){o({t:'mappiece',o:{s:{k:1}}});toast('A piece of an old map was buried in the sand!',4200)}
+   else if(r<.36)o({t:'shell',o:{c:{a:pick(['#ffb3c7','#ffd23f','#d58bff','#7ad3ff','#b8e986'])}}});else if(r<.56)o({t:'roe'});else if(r<.7)o({t:'seastar',o:{c:{a:pick(SSTARC)}}});else if(r<.82)o({t:'pearl',o:{c:{a:pick(PEARLC)}}});else if(r<.9)o({t:'gem',o:{c:{a:pick(['#7ad3ff','#ff7aa8','#b8e986'])}}});else{o({t:'boot'});say(e,'A soggy old boot!')}
+   sfx.pop();dirty()},
+  tick(e){if(e.s.dug&&e.s.dt&&Date.now()-e.s.dt>=SANDMS){e.s.dug=0;e.s.dt=0;redraw(e);dirty()}}});
+D('mappiece','Map Piece',78,72,'item',{a:'#f3deb0'},(e,c)=>{const k=(e.s.k|0)%3;return sh(78,72,.3)+P(['M6 10 L40 6 L70 12 L66 40 L72 64 L36 60 L8 66 L12 38Z','M8 8 L44 12 L72 6 L68 36 L70 66 L40 62 L6 64 L10 34Z','M10 6 L38 10 L72 8 L70 38 L66 66 L34 64 L8 62 L6 30Z'][k],c.a,'a')
+   +(k===0?C(26,26,9,'none','',` stroke="#8a5a44" stroke-width="2.400"`+NO)+L('M26 14 L26 38 M14 26 L38 26','#8a5a44',2)+L('M44 48 q8 -8 16 0','#4a90e2',2.400):k===1?`<path d="M14 50 Q30 20 46 40 T68 22" fill="none" stroke="#8a5a44" stroke-width="2.400" stroke-dasharray="5 5" class="np"/>`+P('M50 50 l8 -12 l8 12Z','#56d39a',0,NO)
+    :`<path d="M10 22 Q30 44 46 34" fill="none" stroke="#8a5a44" stroke-width="2.400" stroke-dasharray="5 5" class="np"/>`+L('M44 40 L60 56 M60 40 L44 56','#e63946',4))},
+ {nm:e=>'Map Piece '+(((e.s.k|0)%3)+1)+' of 3',tap(e){anim(e,'wig',300);sfx.pop();say(e,'Part of a treasure map! The Sunken Ship has a map table…',2600)}});
+
+/* ---------- Kelp Garden: sea seeds grow in sand beds ---------- */
+const SCROP={kelp:['kelp','#3fae6a','Kelp'],sgrape:['sgrape','#9b6bff','Sea Grape'],bberry:['bberry','#ff7aa8','Bubble Berry']},SCROPK=Object.keys(SCROP),SGROW=8000;
+const sStage=e=>!SCROP[e.s.c]||!e.s.wt?0:NET.mir?(e.s.g|0):Math.min(3,Math.floor((Date.now()-e.s.wt)/SGROW));
+D('sseed','Sea Seeds',54,62,'item',{a:'#fff3c4'},(e,c)=>hit(54,62)+sh(54,62,.3)+P('M27 58 Q0 50 4 24 Q12 4 27 6 Q42 4 50 24 Q54 50 27 58Z',c.a,'a')+L('M27 54 L27 12 M27 54 L13 18 M27 54 L41 18',dk(c.a,.14),2.400,0,NO)+C(27,32,11,SCROP[e.s.c||'kelp'][1])+C(23,28,3.500,'#fff',0,' opacity=".6"'+NO),
+ {init(e){if(!e.s.c||!SCROP[e.s.c])e.s.c=pick(SCROPK)},nm:e=>SCROP[e.s.c||'kelp'][2]+' seeds'});
+D('sseedbox','Seed Shell',250,220,'fix',{a:'#ffb3c7',b:'#2bb7a3'},(e,c)=>sh(250,220,.46)+P('M20 150 Q10 30 125 20 Q240 30 230 150Z',lt(c.a,.25),'a')+L('M125 150 L125 28 M125 150 L70 36 M125 150 L180 36 M125 150 L34 66 M125 150 L216 66',dk(c.a,.1),3,0,NO)
+  +SCROPK.map((k,i)=>R(52+i*52,96,42,52,10,'#fff3c4')+C(73+i*52,124,11,SCROP[k][1])).join('')+P('M10 150 Q14 214 125 216 Q236 214 240 150 Q125 176 10 150Z',c.a,'a')+R(54,168,142,38,12,c.b,'b')+`<text x="125" y="196" font-size="23" font-weight="700" text-anchor="middle" fill="#fff" class="np">SEA SEEDS</text>`,
+ {fx:1,tap(e){if(S.ents.filter(k=>k.t==='sseed'&&!k.par).length>=8){say(e,'Plant those seeds first!');sfx.nope();return}anim(e,'land',240);sfx.pop();popTo('sseed',e,pick([-1,1])*rnd(20,100),{s:{c:pick(SCROPK)}})}}); // seeds land in front, where a finger can reach them
+function sGo(e){if(!e.s.c||e.s.wt)return false;e.s.wt=Date.now();e.s.g=0;redraw(e);const a=absXY(e);puff(a.x,a.y-40,'#ffe7b0',5);sfx.drop();dirty();return true}
+D('sbed','Sand Bed',230,150,'fix',{a:'#f6d28e'},(e,c)=>{const g=sStage(e),k=SCROP[e.s.c]?e.s.c:null,X=[62,115,168];
+  let o=`<rect x="0" y="30" width="230" height="118" fill="transparent" class="hit"/>`+E(115,126,110,22,dk(c.a,.16),'a')+E(115,118,110,22,c.a,'a')+[18,56,96,134,174,212].map((x,i)=>C(x,132+(i%2)*4,8,i%2?'#ffb3c7':'#fff6ee')).join('');
+  if(k&&!e.s.wt)o+=`<g class="np">`+X.map(x=>C(x,114,5,SCROP[k][1])).join('')+`</g>`;
+  if(k&&e.s.wt){o+=`<g class="np">`+X.map((x,i)=>{const h=[16,40,66,92][g];
+    if(k==='kelp')return`<g${sway(x,116)}>`+outline(`<path d="M${x} 116 q-12 ${-h/4} 0 ${-h/2} q12 ${-h/4} 0 ${-h/2}" fill="none" stroke="#3fae6a" stroke-width="13" stroke-linecap="round"/>`,4)+(g>=3?`<path d="M${x} 110 q-10 ${-h/4} 0 ${-h/2}" fill="none" stroke="#7fe0a0" stroke-width="4" stroke-linecap="round"/>`:'')+`</g>`;
+    if(k==='sgrape')return outline(L(`M${x} 116 L${x} ${116-h*.6}`,'#3fae6a',6),4)+(g>=1?outline([[0,0],[-11,9],[11,9],[0,18]].slice(0,g+1).map(([dx,dy])=>C(x+dx,96-h*.5+dy,9,'#9b6bff')).join(''),4):'')+(g>=3?C(x-3,93-h*.5,3,'#fff',0,' opacity=".7"'):'');
+    return outline(L(`M${x} 116 L${x} ${116-h*.7} M${x} ${116-h*.4} l-12 -10 M${x} ${116-h*.55} l12 -10`,'#ff9fb6',7),4)+(g>=2?outline(C(x-14,104-h*.4,g>=3?9:5,'#ff7aa8')+C(x+14,100-h*.55,g>=3?9:5,'#ff7aa8')+(g>=3?C(x,112-h*.72,10,'#ff7aa8'):''),4):'')}).join('')+`</g>`}
+  return o},{fx:1,
+ accept(e,it){if(it.t!=='sseed'||e.s.c)return false;e.s.c=it.s.c;e.s.g=0;delete e.s.wt;rm(it);redraw(e);sfx.pop();say(e,'Planted! Now tap me to pat the sand down.',2600);dirty();return true},
+ tap(e){const k=e.s.c;if(!k){say(e,'Plant some sea seeds here!');anim(e,'wig',300);return}
+  if(sStage(e)>=3){const t=SCROP[k][0];for(let i=0;i<3;i++)popTo(t,e,(i-1)*80);sfx.yum();const f=G.flags.scrops=G.flags.scrops||{};f[k]=1;star('sgrow');if(SCROPK.every(x=>f[x]))star('sgarden');e.s.c=null;e.s.g=0;delete e.s.wt;redraw(e);dirty();return}
+  if(!sGo(e))say(e,pick(['Growing… growing…','The sea is feeding me!','Almost there!']))},
+ tick(e){if(!e.s.c||!e.s.wt)return;const g=sStage(e);if(g===(e.s.g||0))return;e.s.g=g;redraw(e);anim(e,'land',240);dirty();if(g>=3){const a=absXY(e);sparkle(a.x,a.y-90,6);sfx.ding()}else sfx.pop()}});
+F('kelp','Kelp',50,84,{a:'#3fae6a'},(e,c)=>sh(50,84,.3)+`<path d="M25 80 q-16 -18 0 -38 q16 -18 0 -36" fill="none" stroke="${c.a}" stroke-width="15" stroke-linecap="round" data-p="a"/>`+`<path d="M25 74 q-10 -16 0 -32" fill="none" stroke="${lt(c.a,.4)}" stroke-width="4" stroke-linecap="round" class="np"/>`,{r:'yuck'});
+F('sgrape','Sea Grapes',62,60,{a:'#9b6bff'},(e,c)=>sh(62,60,.36)+L('M31 12 L31 2','#3fae6a',5)+[[20,22],[42,22],[12,38],[31,36],[50,38],[22,50],[40,50]].map(([x,y])=>C(x,y,10,c.a,'a')).join('')+[[17,19],[39,19],[28,33]].map(([x,y])=>C(x,y,3,'#fff',0,' opacity=".7"'+NO)).join(''),{r:'yum'});
+F('bberry','Bubble Berries',60,56,{a:'#ff7aa8'},(e,c)=>sh(60,56,.36)+L('M30 20 Q30 8 38 4','#ff9fb6',4)+C(18,34,15,c.a,'a')+C(42,34,15,c.a,'a')+C(30,22,13,c.a,'a')+[[12,28],[36,28],[25,16]].map(([x,y])=>C(x,y,4,'#fff',0,' opacity=".75"'+NO)).join(''),{r:'yum'});
+D('swirl','Swirly Current',200,160,'toy',{a:'#d6f6ff'},(e,c)=>hit(200,160)+`<g class="np${tr(e).fast?' spinfast':''}" style="transform-origin:100px 80px">`+outline(`<path d="M100 10 A70 70 0 1 1 30 80" fill="none" stroke="${c.a}" stroke-width="13" stroke-linecap="round"/><path d="M100 150 A70 70 0 0 1 148 30" fill="none" stroke="${lt(c.a,.4)}" stroke-width="9" stroke-linecap="round"/><path d="M100 34 A46 46 0 1 1 54 80" fill="none" stroke="${c.a}" stroke-width="11" stroke-linecap="round"/>`,4)+`</g>`+C(100,80,27,c.a,'a')+C(91,76,4,INK)+C(109,76,4,INK)+L('M93 87 Q100 93 107 87',INK,3)+E(82,84,6,3.500,'#ffb3c7',0,NO)+E(118,84,6,3.500,'#ffb3c7',0,NO),
+ {float:1,tap(e){const t=tr(e),a=absXY(e);if(t.fast)return;t.fast=1;redraw(e);sfx.whoosh();bubbles(a.x,a.y,8);say(e,'Whoooosh!');let n=0;for(const p of S.ents)if(p.t==='sbed'&&p.s.c&&p.s.wt&&sStage(p)<3){p.s.wt-=SGROW;n++;const b=absXY(p);bubbles(b.x,b.y-60,3)}
+   if(n)star('swirl');later(e,1500,()=>{tr(e).fast=0;redraw(e)})}});
+D('coral','Coral',170,180,'furn',{a:'#ff7aa8'},(e,c)=>sh(170,180,.4)+U(R(74,40,22,136,11,c.a,'a')+R(22,70,20,74,10,c.a,'a')+R(22,120,70,20,10,c.a,'a')+R(128,54,20,82,10,c.a,'a')+R(82,112,66,20,10,c.a,'a')+C(32,66,15,c.a,'a')+C(138,50,15,c.a,'a')+C(85,34,17,c.a,'a')+R(48,20,16,50,8,c.a,'a')+C(56,18,11,c.a,'a')+R(50,56,36,14,7,c.a,'a'))+[[85,60],[32,96],[138,84],[85,120],[56,36]].map(([x,y])=>C(x,y,4,lt(c.a,.5),0,NO)).join(''));
+D('kelpp','Kelp Plant',120,290,'furn',{a:'#2bb7a3'},(e,c)=>sh(120,290,.3)+[[40,250,-1],[66,280,1],[88,220,-1]].map(([x,h,d])=>`<g${sway(x,286)}>`+`<path d="M${x} 286 q${d*22} ${-h/4} 0 ${-h/2} q${-d*22} ${-h/4} 0 ${-h/2}" fill="none" stroke="${d>0?c.a:dk(c.a,.14)}" stroke-width="20" stroke-linecap="round" data-p="a"/>`+`</g>`).join(''));
+CH.merk={c:{a:SKIN[1],b:'#7ad3ff',c:'#ff7aa8',d:'#ffd23f',e:'#ff5c7a',t:'#9b6bff'},s:{hs:6,of:3,lash:1}};
+CH.merb={c:{a:SKIN[4],b:'#2f2f48',c:'#ffd23f',d:'#4a90e2',e:'#ff5c7a',t:'#2bb7a3'},s:{hs:4,of:0,fr:1}};
+
+SC.reef={n:'Coral Plaza',w:2,sea:1,floor:[610,872],land:90,bg:Object.assign({},SEAB),pat:{},nav:{r:'kelpg'},arrive:[950,858],
+ draw:st=>seaBg(st,()=>coralArt(90,612,'#ff8fb1',1.300)+coralArt(1530,606,'#ffb74d',1.200)+coralArt(980,596,'#d58bff',.9)),
+ init(a){a.put('bboard',170,716);a.put('bblaster',440,770);a.put('bfount',800,716);a.put('clam',1140,770);a.put('anemone',1410,750);a.put('char',620,842,CH.merk);
+  a.put('seastar',300,884);a.put('crab',700,888);a.put('shell',1040,888,{c:{a:'#d58bff'}});a.put('sandspot',1250,886);a.put('puffer',1400,884);a.put('kelpp',1576,690)}};
+SC.kelpg={n:'Kelp Garden',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#3fc7c9',ground:'#ffe7b0'},pat:{},nav:{l:'reef',r:'shack'},arrive:[1165,866],
+ draw:st=>seaBg(st,()=>coralArt(1560,610,'#ff8fb1',1.200)+coralArt(700,598,'#ffd23f',.8)+coralArt(60,606,'#d58bff',1)),
+ init(a){a.put('swirl',1000,270);a.put('sseedbox',170,770);a.put('sbed',470,742);a.put('sbed',750,742);a.put('sbed',1030,742);a.put('sbed',610,866);a.put('sbed',890,866);a.put('octo',1420,770);a.put('kelpp',36,690,{c:{a:'#3fae6a'}});
+  a.put('sseed',300,866,{s:{c:'kelp'}});a.put('sseed',360,872,{s:{c:'bberry'}});a.put('seastar',1060,884,{c:{a:'#ff7aa8'}})}};
+SPOTS.push({id:'reef',n:'Coral Plaza',x:800,y:620,w:2},{id:'kelpg',n:'Kelp Garden',x:270,y:640,w:2});
+IC.shellic='<svg viewBox="0 0 24 24"><path d="M12 21 Q1 17 3 8 Q7 2 12 3 Q17 2 21 8 Q23 17 12 21Z" fill="#ff8fb1" stroke="#35252d" stroke-width="1.600"/><path d="M12 20 L12 5 M12 20 L7 6 M12 20 L17 6" stroke="#35252d" stroke-width="1.200" fill="none"/></svg>';
+
+/* ---------- Coral Cove's own map ---------- */
+function seaMapTap(el){if(el.dataset.sea==='manta'){usfx('splash');el.classList.remove('wave');void el.getBoundingClientRect();el.classList.add('wave');if(!G.st.manta){star('manta');setTimeout(()=>!SID&&showMap(),1200)}}}
+function seaMap(){let o=SVGO+`<defs><linearGradient id="msea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#93ebff"/><stop offset=".5" stop-color="#49bcef"/><stop offset="1" stop-color="#2f8fd6"/></linearGradient></defs><rect width="1600" height="900" fill="url(#msea)"/>`;
+ o+=[[150,190],[540,130],[930,210],[1320,150]].map(([x,w])=>`<path d="M${x} 0 L${x+w} 0 L${x+w-170} 640 L${x-250} 640Z" fill="#fff" opacity=".1"/>`).join('');
+ o+=`<path d="M-40 330 Q90 200 230 270 Q340 170 470 260 Q640 180 790 262 Q960 170 1110 256 Q1280 180 1420 250 Q1540 210 1640 270 L1640 500 L-40 500Z" fill="#3c9fdd" opacity=".6"/>`;
+ // someone big glides by
+ o+=`<g class="manta" data-sea="manta"><g transform="translate(0 158)"><g class="bobm">`+outline(L('M150 36 Q158 84 196 100','#5b7fd6',7)+P('M0 0 Q44 -48 98 -30 Q130 -58 150 -22 Q170 -58 202 -30 Q256 -48 300 0 Q250 -6 206 22 Q172 44 150 40 Q128 44 94 22 Q50 -6 0 0Z','#5b7fd6'),5)+E(150,12,38,15,'#dfe9ff',0,NO)+C(131,-8,4.500,INK)+C(169,-8,4.500,INK)+L('M140 6 Q150 14 160 6',INK,3)+(G.st.manta?P(heartP(150,-58,10),'#ff7aa8'):'')+`</g><circle cx="150" cy="10" r="120" fill="transparent"/></g></g>`;
+ // the sandy sea floor and the shell path across it
+ o+=`<path d="M-40 400 Q200 300 460 350 Q720 280 1000 350 Q1260 290 1640 360 L1640 940 L-40 940Z" fill="#f4dfa6" stroke="#b99c62" stroke-width="5"/><path d="M-40 700 Q360 620 800 690 Q1220 750 1640 660 L1640 940 L-40 940Z" fill="#ffefc4" stroke="#c9ad74" stroke-width="5"/>`;
+ const RD='M-40 790 C230 760 330 690 560 700 C800 712 900 560 1140 580 C1340 596 1460 500 1640 480';o+=L(RD,'#e6cb8e',62)+L(RD,'#fff9e0',50);
+ const kelp=(x,y,h,k)=>`<g class="sway" style="transform-origin:${x}px ${y}px">`+outline(`<path d="M${x} ${y} q-16 ${-h/4} 0 ${-h/2} q16 ${-h/4} 0 ${-h/2}" fill="none" stroke="${k}" stroke-width="15" stroke-linecap="round"/>`,4.500)+`</g>`;
+ [[60,580,120,'#2bb7a3'],[100,600,90,'#3fae6a'],[730,440,100,'#3fae6a'],[1570,740,110,'#2bb7a3'],[910,430,80,'#2bb7a3'],[40,900,120,'#3fae6a'],[1250,900,90,'#2bb7a3']].forEach(([x,y,h,k])=>o+=kelp(x,y,h,k));
+ [[440,570,'#ff8fb1',.8],[1560,600,'#ffb74d',.7],[640,860,'#ff7aa8',.9],[870,420,'#d58bff',.6],[1220,860,'#56d39a',.7],[60,440,'#ff8fb1',.7],[100,760,'#ffb74d',.6]].forEach(([x,y,k,s])=>o+=coralArt(x,y,k,s));
+ [[330,790,'#ff8552'],[820,800,'#ffd23f'],[700,560,'#ff7aa8'],[620,540,'#9b6bff'],[1160,700,'#ff8552']].forEach(([x,y,k])=>o+=outline(P(star5(x,y,15,7),k),4));
+ [[500,760],[1000,640],[400,470],[760,470],[1560,780]].forEach(([x,y])=>o+=outline(P(`M${x} ${y} Q${x-20} ${y-6} ${x-16} ${y-20} Q${x-8} ${y-30} ${x} ${y-28} Q${x+8} ${y-30} ${x+16} ${y-20} Q${x+20} ${y-6} ${x} ${y}Z`,'#fff6ee'),4));
+ // fish going by, and bubbles
+ const fish=(x,y,k,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})">`+outline(P('M0 0 Q18 -16 40 0 Q18 16 0 0Z',k)+P('M40 0 L56 -12 L56 12Z',k),4)+C(10,-3,2.500,INK)+`</g>`;
+ o+=`<g class="mfish">`+fish(0,500,'#ff8552')+fish(70,470,'#ffd23f',.8)+fish(90,530,'#ff8552',.9)+fish(160,496,'#ffd23f')+`</g><g class="mfish m2">`+fish(0,250,'#ff7aa8',.8)+fish(60,280,'#9b6bff',.7)+fish(110,236,'#ff7aa8',.7)+`</g>`;
+ o+=[[380,420],[720,380],[1180,400],[1480,470],[130,360],[960,330]].map(([x,y],i)=>`<circle class="mbub" cx="${x}" cy="${y}" r="${7+i%3*3}" fill="#effcff" fill-opacity=".5" stroke="#fff" stroke-width="3" style="animation-delay:-${i*1.300}s"/>`).join('');
+ const A={};
+ A.reef=P('M-74 -18 Q-74 8 0 8 Q74 8 74 -18Z','#ff9fb6')+E(0,-20,74,13,'#9eeaff')+R(-9,-74,18,54,7,'#f58aa6')+P('M-42 -74 Q-42 -52 0 -52 Q42 -52 42 -74Z','#ffd27a')+E(0,-74,42,8,'#9eeaff')+R(-6,-106,12,32,5,'#f0b85a')+C(0,-112,13,'#ff9fb6')+C(0,-142,10,'#effcff')+C(-18,-160,7,'#effcff')+C(14,-174,8,'#effcff')
+  +R(-116,-56,12,58,6,'#d58bff')+R(-134,-36,30,10,5,'#d58bff')+C(-110,-60,8,'#d58bff')+C(-134,-40,7,'#d58bff')+R(104,-66,12,68,6,'#ffb74d')+R(104,-40,32,10,5,'#ffb74d')+C(110,-70,8,'#ffb74d')+C(134,-44,7,'#ffb74d');
+ A.kelpg=E(0,0,116,16,'#f6d28e')+[[-84,'#2bb7a3',110],[-36,'#3fae6a',140],[30,'#2bb7a3',120],[84,'#3fae6a',96]].map(([x,k,h])=>`<path d="M${x} 0 q-15 ${-h/4} 0 ${-h/2} q15 ${-h/4} 0 ${-h/2}" fill="none" stroke="${k}" stroke-width="17" stroke-linecap="round"/>`).join('')+C(-58,-8,10,'#ff7aa8')+C(4,-6,10,'#9b6bff')+C(58,-8,10,'#ff7aa8');
+ A.shome=P('M-12 -150 L-56 -196 L-26 -150Z','#56c596')+P('M12 -150 L56 -196 L26 -150Z','#56c596')+P('M-18 -150 L-20 -214 L0 -176 L20 -214 L18 -150Z','#3fae6a')+P('M-80 0 Q-100 -84 -62 -132 Q0 -172 62 -132 Q100 -84 80 0Z','#ffc233')
+  +L('M-84 -40 L-10 -152 M-60 -4 L44 -146 M-12 0 L82 -112 M84 -40 L10 -152 M60 -4 L-44 -146 M12 0 L-82 -112','#e89a1c',4)+P('M-24 0 L-24 -44 Q-24 -70 0 -70 Q24 -70 24 -44 L24 0Z','#ff7aa8')+C(12,-30,3.500,'#fff6ee')+P(heartP(-50,-84,13),'#bfefff')+C(50,-78,15,'#bfefff')+P(star5(0,-92,10,4.500),'#ff8552');
+ A.shomef=A.shome.replace(/#ffc233/g,'#ffb0c8').replace(/#e89a1c/g,'#f07a9c').replace(/#ff7aa8/g,'#7ad3ff');
+ A.shack=R(-96,-96,192,96,8,'#ffd9a8')+L('M-96 -64 L96 -64 M-96 -32 L96 -32','#e9b97c',4)+[0,1,2,3,4,5].map(i=>P(`M${-108+i*36} -112 L${-72+i*36} -112 L${-72+i*36} -92 Q${-90+i*36} -80 ${-108+i*36} -92Z`,i%2?'#fff6ee':'#e0524d')).join('')+R(-112,-124,224,16,7,'#e0524d')
+  +R(-74,-58,60,40,6,'#bfefff')+R(26,-62,44,62,6,'#8a5a44')+C(60,-30,3.500,'#ffd23f')+R(-60,-176,120,46,12,'#fff6ee')+L('M-36 -148 Q-50 -156 -52 -168 M36 -148 Q50 -156 52 -168','#ff6b5e',7)+C(-54,-172,9,'#ff6b5e')+C(54,-172,9,'#ff6b5e')+E(0,-150,30,19,'#ff6b5e')+C(-9,-154,3.500,INK)+C(9,-154,3.500,INK)+L('M-8 -144 Q0 -138 8 -144',INK,2.600);
+ A.lagoon=P('M-112 0 Q-118 -152 0 -152 Q118 -152 112 0 L64 0 Q64 -94 0 -94 Q-64 -94 -64 0Z','#9fb0cf')+C(-84,-104,9,'#c3cfe6')+C(70,-126,11,'#c3cfe6')+C(-40,-138,7,'#c3cfe6')+P('M10 -46 L30 -56 L24 -34Z','#ff8552')+L('M12 -4 Q-20 -14 -6 -42 Q8 -62 0 -76','#ffc233',17)+C(0,-84,15,'#ffc233')+R(-30,-90,24,10,5,'#ffc233')+C(-4,-88,3,INK);
+ A.wreck=`<g transform="rotate(-9)">`+R(-6,-196,12,130,4,'#7a4e33')+P('M6 -190 L72 -170 L6 -146Z','#2f2f48')+C(30,-169,6,'#fff')+P('M-132 -62 L132 -62 Q122 -8 70 0 L-82 0 Q-126 -10 -132 -62Z','#9a6a4a')+L('M-122 -42 L124 -42 M-108 -22 L106 -22','#7a4e33',4)+R(-138,-74,276,14,6,'#7a4e33')+C(-70,-34,10,'#cfeeff')+C(-20,-34,10,'#cfeeff')+P('M44 -44 L78 -30 L60 -8 L36 -22Z','#3a2a22')+`</g>`;
+ A.theatre=P('M-102 -32 Q-112 -152 0 -162 Q112 -152 102 -32 Q0 -66 -102 -32Z','#d58bff')+L('M0 -60 L0 -156 M-34 -56 L-56 -140 M34 -56 L56 -140 M-66 -46 L-96 -96 M66 -46 L96 -96','#b06be0',5)+E(0,-28,104,26,'#ffe3f1')+C(0,-52,20,'#fff6ee')+C(-6,-58,6,'#fff')+P('M-106 -26 Q-102 14 0 16 Q102 14 106 -26 Q0 2 -106 -26Z','#b98cf0');
+ A.trench=P('M-122 0 Q-134 -122 -44 -152 Q28 -178 92 -142 Q142 -102 126 0Z','#6a7aa6')+P('M-66 0 Q-72 -86 -8 -102 Q62 -106 68 0Z','#1f2547')+C(-30,-50,6,'#7dffe0')+C(10,-72,5,'#b388ff')+C(36,-34,6,'#7dffe0')+C(-4,-22,4,'#ffe66d')+L('M96 -142 Q110 -172 92 -186','#6a7aa6',6)+C(90,-190,9,'#ffe66d');
+ A.palace=R(-112,-72,44,72,6,'#ffe9f4')+P('M-122 -68 Q-90 -128 -58 -68Z','#b98cf0')+R(68,-72,44,72,6,'#ffe9f4')+P('M58 -68 Q90 -128 122 -68Z','#b98cf0')+R(-72,-104,144,104,8,'#fff3fb')+P('M-86 -98 Q0 -196 86 -98Z','#ff9fc0')+P('M-22 0 L-22 -42 Q-22 -64 0 -64 Q22 -64 22 -42 L22 0Z','#ffd23f')+C(0,-116,13,'#fff6ee')+C(-90,-132,7,'#fff6ee')+C(90,-132,7,'#fff6ee')+C(0,-200,9,'#ffd23f');
+ A.palace0=P('M-84 0 L-84 -92 Q-84 -154 0 -154 Q84 -154 84 -92 L84 0Z','#9aa7c2')+P('M-52 0 L-52 -82 Q-52 -120 0 -120 Q52 -120 52 -82 L52 0Z','#5a6b8a')+L('M0 -118 L0 0','#3d4a66',5)+C(0,-58,9,'#ffd23f')+L('M-66 -150 q-16 36 0 72 q16 36 0 72 M58 -146 q16 34 0 68 q-16 34 0 68 M-24 -154 q-10 24 0 48','#3fae6a',13);
+ for(const sp of mapSpots().sort((a,b)=>a.y-b.y)){const open=spotOpen(sp),ak=sp.art||sp.id,art=!open&&A[ak+'0']?A[ak+'0']:A[ak];o+=`<g class="spot${open?'':' locked'}${!open&&sp.secret?' mys':''}" data-go="${sp.id}" transform="translate(${sp.x} ${sp.y})"><g class="sp-in">${outline(art||'',5)}</g><circle r="100" cy="-70" fill="transparent"/></g>`}
+ return o+'</svg>'}
+D('roe','Sea Egg',56,64,'item',{a:'#bfefff',b:'#7ad3ff'},(e,c)=>sh(56,64,.34)+P('M28 4 Q50 6 50 38 Q50 60 28 60 Q6 60 6 38 Q6 6 28 4Z',c.a,'a')+C(20,30,5,c.b,'b')+C(36,22,4,c.b,'b')+C(34,44,6,c.b,'b')+E(18,18,4,7,'#fff',0,' opacity=".7" class="np"'+rot(20,18,18)),{tap(e){anim(e,'wig',300);sfx.pop();say(e,'A sea egg! The Lagoon nursery keeps eggs warm.',2600)}});
+
+/* ---------- the Pineapple House: a home under the sea to live in and decorate (each player has their own) ---------- */
+STK.push(['polish','Shiny!','Polish a shell, a pearl or a sea star on the polishing sponge.','sea'],['neck','String of Pearls','Make a necklace at the jewellery bench and put it on.','sea'],['tiara','Sea Royalty','Make a tiara from three pearls, shells or stars.','sea'],
+ ['fizz','Fizzy!','Brew a berry fizz on the hot vent in the Crab Shack.','sea']);
+{const d0=T.shell.draw;T.shell.draw=(e,c)=>d0(e,c)+(e.s.sh?P(star5(44,9,7,3),'#fff',0,NO):'')}
+const JEWEL=['pearl','shell','seastar','gem'];
+D('polisher','Polishing Sponge',200,190,'fix',{a:'#ffd23f',b:'#8d99ae'},(e,c)=>sh(200,190,.44)+R(86,96,28,90,8,c.b,'b')+R(46,170,108,16,8,dk(c.b,.15),'b')+`<circle cx="100" cy="76" r="74" fill="transparent" class="hit"/>`+`<g class="np${tr(e).busy?' spinfast':''}" style="transform-origin:100px 76px">`+outline(C(100,76,66,c.a),6)+[[76,50,9],[122,58,7],[92,96,8],[128,98,6],[62,84,6],[104,34,5]].map(([x,y,r])=>C(x,y,r,dk(c.a,.16))).join('')+`</g>`+C(100,76,10,c.b,'b'),
+ {fx:1,accept(e,it){if(!JEWEL.includes(it.t)||tr(e).busy)return false;if(it.s.sh){say(e,'That is already as shiny as can be!');return false}const o={c:Object.assign({},it.c),s:Object.assign({},it.s,{sh:1})},t=it.t;rm(it);sfx.whirr();say(e,'Scrub, scrub, scrub…');
+   busyMaker(e,1500,()=>{const a=absXY(e);popTo(t,e,-150,o);sparkle(a.x,a.y-110,7);sfx.ding();star('polish')});return true},
+  tap(e){anim(e,'wig',300);say(e,'Drop a shell, pearl or sea star on me to make it shine!')}});
+D('jbench','Jewellery Bench',270,210,'fix',{a:'#c98f5a',b:'#ff8fb1'},(e,c)=>{const js=(e.s.jc||[]).filter(hexOk);return sh(270,210,.46)+`<rect x="8" y="16" width="254" height="96" fill="transparent" class="hit"/>`+R(26,96,18,110,7,dk(c.a,.15),'a')+R(226,96,18,110,7,dk(c.a,.15),'a')+R(8,84,254,26,12,c.a,'a')+R(40,110,190,40,8,dk(c.a,.08),'a')+C(135,130,6,'#ffd23f')
+   +P('M176 84 L182 30 Q206 4 230 30 L236 84Z',c.b,'b')+L('M190 40 Q206 66 222 40','#fff6ee',4)+C(206,56,5,'#fff6ee')+R(30,58,120,28,10,'#fff3e0')+js.map((k,i)=>C(52+i*38,58,15,k)+C(47+i*38,53,4,'#fff',0,' opacity=".8"'+NO)).join('')+(js.length?`<text x="135" y="196" font-size="18" font-weight="700" text-anchor="middle" fill="#fff" class="np">${js.length}/3</text>`:'')},
+ {fx:1,accept(e,it){if(!JEWEL.includes(it.t)||tr(e).busy)return false;const js=e.s.jc=(e.s.jc||[]);if(js.length>=3){say(e,'Three is plenty! Tap me to make something.');return false}js.push(hexOk(it.c.a)?it.c.a:'#fff6ee');if(it.s.sh)e.s.jsh=1;rm(it);redraw(e);sfx.pop();
+   say(e,js.length<3?`${js.length} in! Tap me for a necklace — or bring ${3-js.length} more for a TIARA.`:'Three! Tap me to make a tiara!',3000);dirty();return true},
+  tap(e){const js=e.s.jc||[];if(!js.length){anim(e,'wig',300);say(e,'Bring pearls, shells or sea stars: 1 or 2 make a necklace, 3 make a tiara!',3200);return}if(tr(e).busy)return;sfx.pop();say(e,'Thread, twist, tie…');
+   const big=js.length>=3,cols=js.splice(0,3),shiny=e.s.jsh;e.s.jsh=0;redraw(e);dirty();busyMaker(e,1700,()=>{const a=absXY(e),o={c:{a:cols[0],b:cols[1]||cols[0],d:cols[2]||cols[1]||cols[0]}};
+    if(big){popTo('tiara',e,-150,o);say(e,'A tiara fit for a queen! Drop it on someone\'s head.',3000);star('tiara')}else{popTo('neck',e,-150,o);say(e,'A necklace! Drop it on a friend to put it on.',3000)}sfx.ding();if(shiny)sparkle(a.x-150,a.y-60,9)})}});
+D('neck','Necklace',92,74,'item',{a:'#fff6ee',b:'#ffc9de',d:'#cfe8ff'},(e,c)=>hit(92,74)+sh(92,74,.3)+L('M12 10 Q46 86 80 10','#e9dcc8',2.400,0,NO)+[[12,12],[18,28],[28,42],[46,50],[64,42],[74,28],[80,12]].map(([x,y],i)=>C(x,y,i===3?10:7,i===3?c.a:i%2?c.b:c.d,i===3?'a':i%2?'b':'d')).join(''),
+ {wear(ch,it){if(ch.s.nk&&S){const z=absXY(ch);popOut('neck',z.x+70,z.y-120,{c:{a:ch.s.nc||'#fff6ee',b:ch.s.nc2||'#fff6ee',d:ch.s.nc3||'#fff6ee'}},90)}ch.s.nk=1;ch.s.nc=it.c.a;ch.s.nc2=it.c.b;ch.s.nc3=it.c.d;rm(it);redraw(ch);hearts(ch,4);sfx.magic();say(ch,pick(['So pretty!','I feel fancy!','Ooh, sparkly!']));star('neck');dirty()}});
+D('tiara','Pearl Tiara',120,80,'hat',{a:'#fff6ee',b:'#ffc9de',d:'#cfe8ff'},(e,c)=>hit(120,80)+L('M20 76 Q60 54 100 76','#ffd23f',7)+P('M34 70 L43 42 L54 60 L60 32 L66 60 L77 42 L86 70Z','#ffd23f')+C(43,38,8,c.b,'b')+C(77,38,8,c.d,'d')+C(60,26,11,c.a,'a')+C(56,22,3.500,'#fff',0,' opacity=".85"'+NO),{hat:{dy:0}});
+function seaRow(ch){return tailRow(ch)+(ch.s.nk?`<div class="srow2"><button class="btn sm on" data-a="nk">Take off necklace</button></div>`:'')}
+{const a1=styleApply;window.styleApply=function(c,a,k,col,q){if(a==='nk'){if(c.s.nk){const o={c:{a:c.s.nc||'#fff6ee',b:c.s.nc2||'#fff6ee',d:c.s.nc3||'#fff6ee'}};c.s.nk=0;if(S&&byId(c.id)){const z=absXY(c);popOut('neck',z.x+70,z.y-120,o,90)}else{G.pack.push([mk('neck',0,0,o)]);updPack(true)}}if(S&&byId(c.id))redraw(c);dirty();return}a1(c,a,k,col,q)}}
+F('fizz','Berry Fizz',52,86,{a:'#ff7aa8'},(e,c)=>sh(52,86,.34)+P('M8 20 L44 20 L40 78 Q40 84 34 84 L18 84 Q12 84 12 78Z','#e8f6ff',0,' opacity=".9"')+P('M10 34 L42 34 L40 78 Q40 82 34 82 L18 82 Q12 82 12 78Z',c.a,'a')+[[20,48,4],[32,60,5],[24,70,3],[33,42,3]].map(([x,y,r])=>C(x,y,r,'#fff',0,' opacity=".7"'+NO)).join('')+L('M34 20 L42 2','#ff5c7a',4)+R(6,16,40,8,4,'#fff'),{r:'float'});
+D('kettle','Fizz Kettle',210,250,'fix',{a:'#7a6a8f',b:'#7ad3ff'},(e,c)=>{const b=tr(e).busy,col=hexOk(tr(e).col)?tr(e).col:'#cfeeff';return sh(210,250,.46)+`<rect x="40" y="10" width="140" height="140" fill="transparent" class="hit"/>`+P('M30 246 Q40 170 78 150 L132 150 Q170 170 180 246Z',c.a,'a')+E(105,152,30,9,'#ff8552')+(b?P('M86 150 Q96 126 104 144 Q112 122 124 150Z','#ffd23f',0,NO):'')+[[60,214],[150,206],[104,232]].map(([x,y])=>C(x,y,6,dk(c.a,.2),'a',NO)).join('')
+   +R(84,126,42,10,5,'#4a4e69')+P('M52 126 Q46 60 105 54 Q164 60 158 126Z',c.b,'b')+E(105,58,30,8,col)+P('M158 86 Q190 76 194 50 L184 48 Q180 68 156 74Z',c.b,'b')+L('M62 70 Q40 90 58 112',dk(c.b,.2),8,'b')+C(105,44,9,'#ffd23f')+(b?`<g class="np bub">${C(92,30,7,'#fff')+C(118,20,9,'#fff')+C(104,6,5,'#fff')}</g>`:'')},
+ {fx:1,light:e=>tr(e).busy?{dx:0,dy:-100,r:130}:null,
+  accept(e,it){const k=SCROP[it.t];if(!k||tr(e).busy)return false;rm(it);tr(e).col=k[1];sfx.bubble();say(e,'Bubble, bubble… '+k[2].toLowerCase()+' fizz!');busyMaker(e,2200,()=>{popTo('fizz',e,-150,{c:{a:k[1]}});sfx.ding();star('fizz');say(e,'Fizz is ready — it tickles all the way down!',2600)});if(S.night)updLights();return true},
+  tap(e){anim(e,'wig',300);sfx.bubble();say(e,'Drop a berry, sea grapes or kelp in me to brew a fizz!')}});
+D('porthole','Bubble Window',210,210,'furn',{a:'#ffd27a'},(e,c)=>C(105,105,100,c.a,'a')+C(105,105,82,S&&S.night?'#17406e':'#59c3ee')+noOL(P('M30 150 Q70 120 105 142 Q150 120 182 148 Q160 186 105 187 Q50 186 30 150Z','#ffe7b0')+`<path d="M62 150 q-8 -20 0 -40 q8 -20 0 -34" fill="none" stroke="#3fae6a" stroke-width="9" stroke-linecap="round"/>`)+`<g class="np fishA">`+noOL(P('M40 80 Q56 66 74 80 Q56 94 40 80Z','#ff8552')+P('M40 80 L28 70 L28 90Z','#ff8552')+C(64,77,2.400,INK))+`</g>`+C(140,70,6,'#fff',0,' opacity=".6" class="np bub"')+[0,90,180,270].map(a=>C(105+91*Math.cos((a+45)*Math.PI/180),105+91*Math.sin((a+45)*Math.PI/180),6,dk(c.a,.25),0,NO)).join('')+L('M58 62 Q80 40 110 36','#fff',6,0,' opacity=".5"'+NO),{mt:'wall',nd:1});
+D('clambed','Clam Bed',320,250,'furn',{a:'#b98cf0',b:'#8fe6d0'},(e,c)=>sh(320,250,.47)+P('M30 150 Q20 14 160 8 Q300 14 290 150Z',lt(c.a,.22),'a')+L('M160 146 L160 16 M160 146 L100 22 M160 146 L220 22 M160 146 L52 52 M160 146 L268 52',dk(c.a,.08),3,0,NO)+R(26,120,268,70,30,'#fff6fb')+R(96,104,128,56,26,'#ffffff')+L('M148 130 l8 6 l8 -6',dk('#ffffff',.2),2.600),
+ {front:(e,c)=>P('M14 160 Q160 128 306 160 L304 222 Q160 244 16 222Z',c.b,'b')+P('M14 160 Q160 128 306 160 L306 182 Q160 150 14 182Z',lt(c.b,.5),'b',NO)+L('M14 182 Q160 150 306 182',INK,3)+P('M6 206 Q20 250 160 250 Q300 250 314 206 Q160 236 6 206Z',c.a,'a'),under:['sleep0'],bed:[[0,22]]});
+D('shlamp','Shell Lamp',96,130,'furn',{a:'#ffb3c7'},(e,c)=>sh(96,130,.38)+R(42,70,12,50,6,dk(c.a,.2),'a')+E(48,120,28,8,dk(c.a,.2),'a')+P('M48 78 Q6 66 10 34 Q22 6 48 10 Q74 6 86 34 Q90 66 48 78Z',e.s.on?lt(c.a,.5):c.a,'a')+L('M48 74 L48 16 M48 74 L28 22 M48 74 L68 22',dk(c.a,.14),2.600,0,NO)+(e.s.on?C(48,44,30,'#fff3a8',0,' opacity=".4" class="np"'+NO):''),{tt:1,s:{on:0},tap(e){e.s.on=e.s.on?0:1;redraw(e);sfx.click();updLights();dirty()},light:e=>e.s.on?{dx:0,dy:-80,r:220}:null});
+SC.shome={n:'Pineapple House',w:2,sea:1,in:1,home:1,hspot:'shome',floor:[650,872],bg:{wall:'#ffe9a8',floor:'#f3c58a',trim:'#56c596'},pat:{wall:5,floor:1},arrive:[760,856],
+ init(a){a.put('porthole',300,330,{c:{a:'#56c596'}});a.put('porthole',1290,330,{c:{a:'#ff8fb1'}});a.put('clock',800,170,{c:{a:'#ffd23f'}});a.put('clambed',200,790);a.put('shlamp',420,800);a.put('rug',760,866,{c:{a:'#ff8fb1',b:'#fff6ee'}});
+  const so=a.put('sofa',700,760,{c:{a:'#2bb7a3',b:'#ffd23f'}});a.on(so,'cushion',-60,{c:{a:'#ff8fb1'}});const ws=a.put('wshelf',800,330);a.on(ws,'shell',-60,{c:{a:'#ffb3c7'}});a.on(ws,'seastar',0,{c:{a:'#ffd23f'}});a.on(ws,'shell',60,{c:{a:'#7ad3ff'}});
+  a.put('polisher',1090,790);a.put('jbench',1370,800);a.put('kelpp',1560,740,{c:{a:'#3fae6a'}});a.put('shell',930,884,{c:{a:'#ffd23f'}});a.put('seastar',520,884,{c:{a:'#9b6bff'}})}};
+HOMES.push('shome');SC.shome2=Object.assign(Object.create(SC.shome),{own:2,base:'shome'});   // with a friend, each of you has your own pineapple
+SPOTS.push({id:'shome',n:'Pineapple House',n2:'Friend\'s Pineapple',hm:1,dx:-96,dx2:168,x:560,y:440,w:2,sneed:3});
+function seaCat(){if(seaSelf()&&!CAT.some(c=>c[0]==='Sea'))CAT.push(['Sea',['clambed','coralseat','shlamp','porthole','coral','kelpp','barrel','cxylo','sthrone']])}
+
+/* ---------- the Crab Shack: a little restaurant that makes Reef Burgers (and berry fizz) ---------- */
+STK.push(['patty','Flip It','Press kelp into a patty, then cook it on the vent grill.','sea'],['burger','Order Up!','Build a Reef Burger on the burger board.','sea'],['stack','Sky-High Burger','Stack four or more fillings into one burger.','sea'],['serve','Table Service','Serve a hungry customer a burger in the Crab Shack.','sea']);
+const BLAY={sbun:'#f2b56b',patty:'#7a4a2c',cheese:'#ffd23f',kelp:'#3fae6a',bberry:'#ff7aa8',sgrape:'#9b6bff'},BLAYN={patty:'patty',cheese:'cheese',kelp:'sea lettuce',bberry:'berry sauce',sgrape:'grape jelly',sbun:'bun'};
+function burgerArt(ly,cx,by,top){ly=(ly||[]).filter(t=>BLAY[t]);const h=clamp((top?44:60)/Math.max(1,ly.length),6,13);let y=by-13,o=R(cx-34,by-13,68,13,6,BLAY.sbun);
+ for(const t of ly){const k=BLAY[t];if(t==='patty'){o+=R(cx-37,y-h,74,h,h/2,k);y-=h}else if(t==='sbun'){o+=R(cx-34,y-h,68,h,5,k);y-=h}
+  else if(t==='cheese'){o+=P(`M${cx-38} ${y} L${cx+38} ${y} L${cx+38} ${y-h*.55} L${cx-38} ${y-h*.55}Z`,k)+P(`M${cx+14} ${y-1} l10 ${h*.9} l10 ${-h*.9}Z`,k,0,NO);y-=h*.55}
+  else if(t==='kelp'){o+=`<path d="M${cx-40} ${y-h*.3} q10 ${-h*.5} 20 0 q10 ${h*.5} 20 0 q10 ${-h*.5} 20 0 q10 ${h*.5} 20 0" fill="none" stroke="${k}" stroke-width="${(h*.6).toFixed(1)}" stroke-linecap="round"/>`;y-=h*.6}
+  else{o+=R(cx-33,y-h*.55,66,h*.55,h*.27,k);y-=h*.55}}
+ if(top)o+=P(`M${cx-37} ${y} Q${cx-37} ${y-27} ${cx} ${y-27} Q${cx+37} ${y-27} ${cx+37} ${y}Z`,BLAY.sbun)+[[-16,-12],[2,-18],[18,-10],[-4,-8]].map(([dx,dy])=>E(cx+dx,y+dy,3,1.800,'#fff8e0',0,NO)).join('');
+ return o}
+F('sbun','Bun',76,48,{a:'#f2b56b'},(e,c)=>sh(76,48,.38)+R(6,30,64,14,6,c.a,'a')+P('M4 30 Q4 4 38 4 Q72 4 72 30Z',c.a,'a')+[[22,16],[38,10],[54,17],[32,22]].map(([x,y])=>E(x,y,3,1.800,'#fff8e0',0,NO)).join(''),{r:'yum'});
+F('patty','Kelp Patty',76,38,{a:'#7a4a2c'},(e,c)=>sh(76,38,.38)+R(4,10,68,24,12,e.s.done?c.a:'#6fae6a',e.s.done?'a':0)+(e.s.done?L('M18 16 L30 28 M34 16 L46 28 M50 16 L62 28',dk(c.a,.3),3,0,NO):C(24,20,3,'#3f7e4a',0,NO)+C(44,24,3,'#3f7e4a',0,NO)+C(56,18,2.500,'#3f7e4a',0,NO)),{r:'yum'},{nm:e=>e.s.done?'Grilled Patty':'Raw Kelp Patty',init(e){if(!e.s.done)e.s.fx='yuck'}});
+F('sburger','Reef Burger',92,100,{a:'#f2b56b'},(e,c)=>sh(92,100,.4)+burgerArt(e.s.ly||['patty'],46,94,1),{r:'yum'},{nm:e=>(e.s.ly||[]).length>=4?'Sky-High Burger':'Reef Burger'});
+D('bunbox','Bun Basket',190,150,'fix',{a:'#d9a36c',b:'#e0524d'},(e,c)=>sh(190,150,.46)+U(C(54,66,26,BLAY.sbun)+C(96,54,30,BLAY.sbun)+C(138,66,26,BLAY.sbun))+[[50,56],[96,42],[140,58],[80,66],[116,66]].map(([x,y])=>E(x,y,3,1.800,'#fff8e0',0,NO)).join('')+P('M12 70 L178 70 L162 144 L28 144Z',c.a,'a')+L('M24 92 L166 92 M30 116 L160 116 M60 72 L66 142 M96 72 L96 142 M130 72 L124 142',dk(c.a,.2),4,0,NO)+R(6,62,178,16,8,c.b,'b'),{fx:1,tap(e){if(S.ents.filter(k=>(k.t==='sbun'||k.t==='cheese')&&!k.par).length>=8){say(e,'Use those up first!');sfx.nope();return}anim(e,'land',240);sfx.pop();popTo(Math.random()<.3?'cheese':'sbun',e,rnd(10,110))}});
+D('pattyp','Patty Press',200,200,'fix',{a:'#e0524d',b:'#b7c0d3'},(e,c)=>{const b=tr(e).busy;return sh(200,200,.46)+`<rect x="30" y="0" width="140" height="150" fill="transparent" class="hit"/>`+R(30,150,140,44,10,dk(c.a,.14),'a')+R(20,138,160,18,9,c.b,'b')+R(86,20,28,b?104:70,8,c.b,'b')+R(46,b?112:78,108,26,10,c.a,'a')+R(40,6,120,22,11,c.a,'a')+C(160,17,9,'#ffd23f')+(b?E(100,140,44,7,'#6fae6a',0,NO):'')+`<text x="100" y="180" font-size="18" font-weight="700" text-anchor="middle" fill="#fff" class="np">PRESS</text>`},
+ {fx:1,accept(e,it){if(it.t!=='kelp'){if(TD(it).k==='food')say(e,'Patties are made from KELP — grow some in the Kelp Garden!');return false}if(tr(e).busy)return false;rm(it);sfx.splat();say(e,'Squish!');busyMaker(e,1100,()=>{popTo('patty',e,0);sfx.pop();say(e,'A kelp patty! Cook it on the vent grill.',2600)});return true},
+  tap(e){anim(e,'land',260);say(e,'Drop kelp in me to press a patty!')}});
+D('sgrill','Vent Grill',260,210,'fix',{a:'#7a6a8f',b:'#4a4e69'},(e,c)=>{const b=tr(e).busy;return sh(260,210,.46)+`<rect x="20" y="26" width="220" height="90" fill="transparent" class="hit"/>`+P('M34 206 Q46 130 86 112 L174 112 Q214 130 226 206Z',c.a,'a')+[[70,176],[190,170],[130,192]].map(([x,y])=>C(x,y,7,dk(c.a,.2),'a',NO)).join('')+E(130,114,48,10,'#ff8552')+(b?P('M96 112 Q110 78 124 104 Q134 72 150 104 Q158 86 166 112Z','#ffd23f',0,NO):'')
+   +R(20,84,220,18,9,c.b,'b')+[40,70,100,130,160,190,220].map(x=>L(`M${x} 86 L${x} 100`,'#8d99ae',4,0,NO)).join('')+(b?outline(R(96,62,68,22,11,'#7a4a2c'),5)+`<g class="np bub">${C(110,44,7,'#fff',0,' opacity=".8"')+C(144,36,9,'#fff',0,' opacity=".8"')}</g>`:'')},
+ {fx:1,light:e=>tr(e).busy?{dx:0,dy:-100,r:140}:null,
+  accept(e,it){if(it.t!=='patty'){if(TD(it).k==='food')say(e,'I grill kelp patties from the patty press.');return false}if(it.s.done){say(e,'That one is cooked already!');return false}if(tr(e).busy)return false;rm(it);sfx.sizzle();say(e,'Tssss…');
+   busyMaker(e,2400,()=>{popTo('patty',e,-170,{s:{done:1,fx:null}});sfx.ding();star('patty');say(e,'Flipped and ready! Build a burger on the burger board.',2800)});if(S.night)updLights();return true},
+  tap(e){anim(e,'wig',300);sfx.sizzle();say(e,'Put a raw kelp patty on me!')}});
+D('bplate','Burger Board',230,170,'fix',{a:'#c98f5a',b:'#fff6ee'},(e,c)=>{const ly=(e.s.ly||[]).filter(t=>BLAY[t]);return sh(230,170,.46)+`<rect x="8" y="0" width="214" height="168" fill="transparent" class="hit"/>`+R(40,110,20,56,8,dk(c.a,.15),'a')+R(170,110,20,56,8,dk(c.a,.15),'a')+R(8,92,214,26,12,c.a,'a')+E(115,92,70,12,c.b,'b')+(ly.length?`<g>`+burgerArt(ly.slice(1),115,90,0)+`</g>`:`<text x="115" y="80" font-size="17" font-weight="700" text-anchor="middle" fill="${dk(c.a,.3)}" class="np">bun first!</text>`)
+   +`<text x="115" y="150" font-size="18" font-weight="700" text-anchor="middle" fill="#fff" class="np">BURGERS</text>`},
+ {fx:1,accept(e,it){const t=it.t,ly=e.s.ly=(e.s.ly||[]);if(!BLAY[t])return false;if(!ly.length&&t!=='sbun'){say(e,'Start with a bun! The bun basket has plenty.');return false}if(t==='patty'&&!it.s.done){say(e,'Eww, raw! Cook the patty on the vent grill first.');return false}
+   if(ly.length>=8){say(e,'That burger is tall enough — tap me to finish it!');return false}ly.push(t);rm(it);redraw(e);sfx.splat();anim(e,'land',200);say(e,ly.length===1?'Bun down! Now pile things on: patty, cheese, sea lettuce, berries…':'On goes the '+BLAYN[t]+'! Tap me when it is ready.',2600);dirty();return true},
+  tap(e){const ly=e.s.ly||[];if(!ly.length){anim(e,'wig',300);say(e,'Reef Burger: a bun first, then a grilled kelp patty and toppings — then tap!',3400);return}if(ly.length<2){say(e,'Just a bun? Add a patty or some toppings!');return}if(tr(e).busy)return;
+   const fill=ly.slice(1);e.s.ly=[];redraw(e);dirty();sfx.pop();busyMaker(e,500,()=>{const a=absXY(e);popTo('sburger',e,-150,{s:{ly:fill}});sfx.ding();sparkle(a.x,a.y-110,5);star('burger');if(fill.length>=4)star('stack');say(e,fill.length>=4?'A SKY-HIGH burger! Who is hungry enough?':'One Reef Burger, coming up! Serve it to a customer.',2800)})}});
+CH.cust1={c:{a:SKIN[0],b:'#9b6bff',c:'#ff8552',d:'#4a90e2',e:'#ffd23f',t:'#ff8fb1'},s:{hs:1,of:3,fr:1,npc:4}};
+CH.cust2={c:{a:SKIN[4],b:'#56d39a',c:'#ff7aa8',d:'#ffd23f',e:'#9b6bff',t:'#ffb74d'},s:{hs:7,of:0,lash:1,npc:4}};
+SC.shack={n:'Crab Shack',w:2,sea:1,in:1,floor:[650,872],bg:{wall:'#ffd9a8',floor:'#bfe6ee',trim:'#e0524d'},pat:{wall:1,floor:2},nav:{l:'kelpg',r:'lagoon'},arrive:[1170,866],
+ deco:st=>`<g class="np">`+outline(R(565,126,470,96,22,'#fff6ee')+L('M602 178 Q590 170 590 156 M650 178 Q662 170 662 156','#ff6b5e',7)+C(588,150,11,'#ff6b5e')+C(664,150,11,'#ff6b5e')+L('M618 166 L616 152 M634 166 L636 152','#ff6b5e',5)+E(626,184,27,18,'#ff6b5e')+C(616,148,6,'#fff')+C(636,148,6,'#fff'),6)+C(616,149,2.600,INK)+C(636,149,2.600,INK)+L('M618 186 Q626 192 634 186',INK,3)+`<text x="843" y="192" font-size="48" font-weight="700" text-anchor="middle" fill="${st.bg.trim}">CRAB SHACK</text>`
+  +L('M40 250 Q300 330 565 200 M1035 200 Q1130 262 1236 250','#8a5a44',4)+[[110,272],[230,290],[350,286],[470,254],[1090,236],[1180,254]].map(([x,y],i)=>outline(C(x,y+12,12,['#ffd23f','#ff7aa8','#7ad3ff','#56d39a'][i%4]),4)).join('')+`</g>`,
+ init(a){a.put('porthole',1340,470,{c:{a:'#e0524d'}});a.put('bunbox',120,772);a.put('pattyp',320,790);a.put('sgrill',550,790);a.put('bplate',790,780);a.put('kettle',1000,776);
+  const cs=a.put('coralseat',1410,770,{c:{a:'#e0524d'}});a.sit(cs,0,CH.cust1);a.sit(cs,1,CH.cust2);a.put('ctable',1380,876,{c:{a:'#fff6ee',b:'#e0524d'}});
+  a.put('crab',112,890,{s:{chef:1},c:{a:'#ff8fb1'}});a.put('kelp',1040,888);a.put('kelp',1084,884);a.put('cheese',740,886);a.put('bberry',930,886)}};
+SPOTS.push({id:'shack',n:'Crab Shack',x:1070,y:410,w:2,sneed:6});
+
+/* ---------- Sandy Lagoon: rides, a nursery for sea eggs, bouncy jellyfish ---------- */
+STK.push(['seahorse','Giddy-Up, Seahorse!','Go for a ride on the seahorse.','sea'],['dolphin','Flipper Flip','Ride the dolphin while it leaps.','sea'],['bturtle','Tiny Flippers','Keep a sea egg warm in the nursery until it hatches.','sea'],
+ ['turtle','Shell Taxi','Look after a baby turtle until it is big enough to ride.','sea'],['jelly','Boing-fish','Bounce someone on a jellyfish.','sea']);
+function seaRide(e,star0,snd,ms,hop,right){ // right: the picture looks to the right
+const t=tr(e);if(t.busy||e.par)return false;const rider=kidIn(e,'seat0'),a=absXY(e);if(!rider){anim(e,'hop',420);sfx[snd]();return false}
+ const dir=e.x<W/2?1:-1,sid=SID,x0=e.x,face=fl=>{if(!!e.flip!==fl){e.flip=fl;redraw(e)}};t.busy=1;star(star0);sfx[snd]();setFace(rider,'laugh',ms*2);bubbles(a.x-dir*100,a.y-60,5);face(right?dir<0:dir>0);
+ for(let i=1;i<Math.floor(ms*2/420);i++)setTimeout(()=>{if(SID===sid&&byId(e.id))anim(e,hop||'hop',420)},i*420);
+ glide(e,dir>0?W-200:200,e.y,ms,()=>{face(right?dir>0:dir<0);sfx[snd]();glide(e,x0,e.y,ms,()=>{tr(e).busy=0;face(right?dir<0:dir>0)})});setTimeout(()=>{if(SID===sid&&byId(e.id))tr(e).busy=0},ms*2+400);return true}
+const seaSnack=(e,it,snd,msg)=>{if(!['kelp','sgrape','bberry'].includes(it.t))return false;rm(it);sfx.chomp();hearts(e,4);sfx[snd]();say(e,msg);return true};
+D('seahorse','Seahorse',230,270,'furn',{a:'#ffc233',b:'#ff8552'},(e,c)=>sh(230,270,.36)+L('M132 232 Q96 262 80 232 Q72 206 100 204',c.a,20,'a')+P('M150 34 L184 22 L172 58Z',c.b,'b')+P('M168 80 L202 78 L182 112Z',c.b,'b')+P('M160 136 L204 140 L172 178Z',c.b,'b')
+  +P('M92 110 Q64 170 104 226 L146 236 Q176 190 168 130 Q166 96 150 70 L104 78Z',c.a,'a')+E(112,168,22,46,lt(c.a,.4),'a',NO)+L('M96 150 L128 150 M96 172 L130 172 M100 194 L130 194',dk(c.a,.1),3,0,NO)
+  +R(34,56,70,24,12,c.a,'a')+C(36,68,13,c.a,'a')+C(126,62,40,c.a,'a')+C(112,52,9,'#fff')+C(110,53,4.500,INK)+L('M92 78 Q102 86 112 80',INK,3)+E(134,80,9,5,'#ff9fb6',0,NO)+R(140,120,44,22,9,'#ff5c7a')+R(136,138,52,8,4,'#ffd23f'),
+ {seats:[[46,-150]],mag:1,sat(){sfx.neigh()},accept(e,it){return seaSnack(e,it,'neigh','Neigh-bubble! Thank you!')},
+  tap(e){if(!kidIn(e,'seat0')&&!tr(e).busy)say(e,pick(['Hop on my back!','Got any kelp?','Neigh… blub!']));seaRide(e,'seahorse','neigh',1700)}});
+D('dolphin','Dolphin',320,200,'furn',{a:'#7ad3ff'},(e,c)=>sh(320,200,.4)+P('M276 96 L318 60 L306 104 L318 142Z',dk(c.a,.12),'a')+P('M158 60 L188 10 L210 66Z',dk(c.a,.12),'a')+P('M34 118 Q70 44 180 52 Q262 58 296 100 Q262 110 246 134 Q170 170 96 150 Q52 142 34 118Z',c.a,'a')+P('M44 126 Q110 150 220 136 Q170 166 100 150 Q60 142 44 126Z','#f0fbff',0,NO)
+  +P('M6 122 Q22 106 46 110 L44 130 Q22 134 6 122Z',c.a,'a')+P('M118 148 L140 190 L158 148Z',dk(c.a,.12),'a')+C(74,100,6,INK)+C(72,98,2,'#fff')+L('M22 124 Q36 130 50 124',INK,3)+E(92,116,9,5,'#ff9fb6',0,NO),
+ {seats:[[14,-146]],mag:1,sat(){sfx.chirp()},accept(e,it){return seaSnack(e,it,'chirp','Ee-ee-ee! Tasty!')},
+  tap(e){if(!kidIn(e,'seat0')&&!tr(e).busy)say(e,pick(['Ee-ee! Climb on!','Want to go for a leap?','Click click!']));seaRide(e,'dolphin','chirp',1500,'bounce')}});
+D('nursery','Egg Nursery',210,190,'fix',{a:'#ff9fc0',b:'#ffe08a'},(e,c)=>{const on=kidIn(e,'in0');return sh(210,190,.44)+`<rect x="20" y="36" width="170" height="130" fill="transparent" class="hit"/>`+(on?C(105,96,70,c.b,0,' opacity=".35" class="np"'+NO):'')+U([[30,150,50],[66,160,70],[105,164,84],[144,160,70],[180,150,50]].map(([x,y,h])=>L(`M${x} ${y} Q${x+(x-105)*.5} ${y-h*.6} ${x+(x-105)*.34} ${y-h}`,c.a,22,'a')).join(''))+E(105,120,62,18,'#fff6fb')+E(105,164,96,22,dk(c.a,.16),'a')+R(60,170,90,14,7,c.b,'b')},
+ {fx:1,accept(e,it){if(it.t!=='roe'||kidIn(e,'in0'))return false;attach(it,e,'in0',0,-62,'go');e.s.t=0;redraw(e);sfx.pop();say(e,'Snug and warm… it will hatch soon!');return true},
+  tick(e,dt){const egg=kidIn(e,'in0');if(!egg)return;e.s.t=(e.s.t||0)+dt;if(Math.random()<.25)anim(egg,'wig',300);if(e.s.t<7)return;e.s.t=0;const a=absXY(e);rm(egg);redraw(e);sfx.hatch();sparkle(a.x,a.y-100,8);const b=popTo('bturtle',e,-130,{s:{born:Date.now()}});star('bturtle');later(b,500,()=>say(b,'Peep! Feed me sea snacks and I will grow!',2800))},
+  tap(e){say(e,kidIn(e,'in0')?'Shh… the egg is getting warm.':'Put a sea egg in here to keep it warm. (Dig in soft sand or feed the clownfish to find one.)',3200)}});
+const TURTMS=100000;
+D('bturtle','Baby Turtle',90,66,'toy',{a:'#56d39a',b:'#3fae6a'},(e,c)=>sh(90,66,.38)+E(18,50,12,7,c.a,'a',rot(-24,18,50))+E(72,50,12,7,c.a,'a',rot(24,72,50))+C(74,30,14,c.a,'a')+C(79,27,2.800,INK)+L('M76 36 Q80 39 84 36',INK,2)+P('M12 44 Q14 12 44 12 Q70 12 70 44 Q42 56 12 44Z',c.b,'b')+L('M28 22 L34 46 M44 14 L44 50 M58 20 L54 46',lt(c.b,.3),2.400,0,NO),
+ {tap(e){anim(e,'hop',420);sfx.peep();say(e,Date.now()-(e.s.born||0)<TURTMS?pick(['Peep!','Flap flap!','Snack?']):'I feel BIG!')},
+  accept(e,it){if(!['kelp','sgrape','bberry'].includes(it.t))return false;rm(it);sfx.peep();hearts(e,3);e.s.born=(e.s.born||Date.now())-TURTMS/4;say(e,'Yum! I\'m growing!');dirty();return true},
+  tick(e){if(e.par||!e.s.born||Date.now()-e.s.born<TURTMS)return;const a=absXY(e);rm(e);const h=spawn('turtle',a.x,a.y);anim(h,'pop',320);sparkle(a.x,a.y-80,10);sfx.star();star('turtle');later(h,400,()=>say(h,'All grown up! Hop on — I\'m a shell taxi now.',2800))}});
+D('turtle','Sea Turtle',300,190,'furn',{a:'#56d39a',b:'#3fae6a'},(e,c)=>sh(300,190,.44)+E(64,158,34,14,c.a,'a',rot(-20,64,158))+E(214,160,34,14,c.a,'a',rot(20,214,160))+P('M30 118 L0 108 L8 132Z',c.a,'a')+C(254,96,34,c.a,'a')+C(266,88,5.500,INK)+C(264,86,2,'#fff')+L('M258 106 Q268 112 278 104',INK,3)+E(250,106,8,5,'#ff9fb6',0,NO)
+  +P('M26 132 Q26 44 130 40 Q232 44 236 132 Q130 166 26 132Z',c.b,'b')+L('M70 70 L96 140 M130 44 L130 150 M190 70 L166 140 M52 108 L210 108',lt(c.b,.3),4,0,NO)+P('M26 132 Q130 166 236 132 L232 146 Q130 178 30 146Z',lt(c.a,.3),'a'),
+ {seats:[[-20,-150]],mag:1,sat(){sfx.bubble()},accept(e,it){return seaSnack(e,it,'bubble','Mmm. Thank you, little one.')},
+  tap(e){if(!kidIn(e,'seat0')&&!tr(e).busy)say(e,pick(['Slow and steady… climb on.','I have swum every sea.','A snack would be lovely.']));seaRide(e,'turtle','bubble',2600,'land',1)}});
+D('jelly','Jellyfish',130,190,'toy',{a:'#d58bff'},(e,c)=>hit(130,190)+[[36,-1],[54,1],[76,-1],[94,1]].map(([x,d])=>`<g${sway(x,96)}><path d="M${x} 92 q${d*12} 20 0 40 q${-d*12} 20 0 44" fill="none" stroke="${lt(c.a,.25)}" stroke-width="9" stroke-linecap="round" data-p="a"/></g>`).join('')+P('M10 96 Q8 14 65 12 Q122 14 120 96 Q102 84 92 96 Q78 84 65 96 Q52 84 38 96 Q28 84 10 96Z',c.a,'a',' fill-opacity=".92"')+E(44,44,12,18,'#fff',0,' opacity=".45" class="np"'+rot(20,44,44)+NO)+C(50,66,5,INK)+C(80,66,5,INK)+L('M56 78 Q65 85 74 78',INK,3)+E(38,76,7,4,'#ffb3c7',0,NO)+E(92,76,7,4,'#ffb3c7',0,NO),
+ {float:1,nd:1,light:()=>({dx:0,dy:-110,r:130}),
+  accept(e,it){if(TD(it).k!=='char'||it.s.pose==='sleep')return false;const a=absXY(e),sid=SID;it.x=clamp(a.x+pick([-1,1])*rnd(40,120),90,W-90);it.y=SC[SID].floor[1]-40;place(it);anim(e,'land',300);sfx.boing();star('jelly');setTimeout(()=>{if(SID===sid&&byId(it.id)){anim(it,'bounce',600);setFace(it,'laugh',1500);say(it,pick(['BOING!','Wobbly!','Again, again!']))}},420);return true},
+  tap(e){const a=absXY(e);anim(e,'land',300);sfx.bubble();sparkle(a.x,a.y-80,4);say(e,pick(['Bloop!','Wibble wobble!','Bounce on me!']))}});
+
+/* ---------- the Bubble Pop game: how many can you pop? (friends compare their best) ---------- */
+STK.push(['pop20','Bubble Champ','Pop 20 bubbles in one Bubble Pop game.','sea'],['bbeat','Bubble Rivals','Play together and beat your friend\'s Bubble Pop score.','duo']);
+const GBC=['#ff9fc0','#ffd27a','#9eeaff','#c9a6ff','#a6f0c0'];
+function bubRecord(n){const best=G.flags.bbest|0;if(n>=20)star('pop20');
+ if(n<=best){toast(n+' bubbles! Your record is still '+best+'.',3600);return}G.flags.bbest=n;dirty();toast('NEW RECORD! You popped '+n+' bubbles!',4600);usfx('star');
+ if(NET.peer){const fb=(NET.frFlags&&NET.frFlags.bb)|0;if(fb&&n>fb)star('bbeat');NET.send({t:'bnews',n});netAt()}
+ if(S)for(const e of S.ents)if(e.t==='bboard')redraw(e)}
+D('gbub','Game Bubble',100,100,'fix',{a:'#9eeaff'},(e,c)=>`<circle cx="50" cy="50" r="44" fill="${c.a}" fill-opacity=".55" stroke="#ffffff" stroke-width="6" data-o="1"/>`+L('M24 40 Q28 22 46 16','#fff',7,0,' opacity=".9"'+NO),
+ {fx:1,z:8000,tap(e){const a=absXY(e),bl=S.ents.find(x=>x.t==='bblaster');sfx.pop();drops(a.x,a.y-50,6);if(bl&&tr(bl).busy){tr(bl).n=(tr(bl).n|0)+1;redraw(bl)}rm(e)},
+  tick(e){const bl=S.ents.find(x=>x.t==='bblaster');if(!bl||!tr(bl).busy||Date.now()-(e.s.born||0)>2600)rm(e)}});
+D('bblaster','Bubble Pop',220,260,'fix',{a:'#2bb7a3',b:'#ffd23f'},(e,c)=>{const t=tr(e),b=t.busy;return sh(220,260,.46)+R(88,150,44,100,10,dk(c.a,.14),'a')+R(50,236,120,20,10,dk(c.a,.2),'a')+P('M20 150 Q10 30 110 22 Q210 30 200 150Z',c.a,'a')+R(40,60,140,62,14,'#143a4a')
+   +`<text x="110" y="${b?104:100}" font-size="${b?40:27}" font-weight="700" text-anchor="middle" fill="#7dffe0" class="np">${b?(t.n|0)+' · '+(t.left|0)+'s':e.s.last!=null?'last: '+(e.s.last|0):'POP!'}</text>`+C(110,160,26,b?'#8d99ae':c.b,'b')+`<text x="110" y="168" font-size="19" font-weight="700" text-anchor="middle" fill="${INK}" class="np">${b?'…':'GO'}</text>`+C(40,36,9,'#effcff',0,' opacity=".8"'+NO)+C(182,44,7,'#effcff',0,' opacity=".8"'+NO)},
+ {fx:1,tap(e){const t=tr(e);if(t.busy)return;const who=actNo(),sid=SID,a=absXY(e);t.busy=1;t.n=0;t.left=20;redraw(e);sfx.beep();say(e,'Pop as many bubbles as you can! GO!',1700);
+   const add=()=>{if(S.ents.filter(x=>x.t==='gbub').length<10){const b=spawn('gbub',rnd(130,W-130),rnd(270,830),{c:{a:pick(GBC)},s:{born:Date.now()}});anim(b,'pop',260)}};add();add();
+   const iv=setInterval(()=>{if(SID!==sid||!byId(e.id)){clearInterval(iv);return}const t=tr(e);t.left--;
+    if(t.left<=0){clearInterval(iv);for(const b of S.ents.filter(x=>x.t==='gbub'))rm(b);const n=t.n|0;t.busy=0;e.s.last=n;redraw(e);sfx.ding();say(e,n+' bubbles popped!',2600);confetti(a.x,a.y-220,n>=20?30:12);dirty();if(who===myNo())bubRecord(n);else NET.send({t:'bscore',n});return}
+    redraw(e);add();add()},1000)}});
+D('bboard','Bubble Board',300,300,'fix',{a:'#8a5a44',b:'#1fa6c4'},(e,c)=>{const me=G.flags.bbest|0,fr=NET.peer?(NET.frFlags&&NET.frFlags.bb)|0:-1,lead=fr>=0&&fr>me?2:1,row=(y,name,v,crown)=>R(30,y,240,48,10,'#fff3e0')+`<text x="48" y="${y+33}" font-size="24" font-weight="700" fill="#5a3b2a" class="np">${name}</text><text x="252" y="${y+33}" font-size="24" font-weight="700" text-anchor="end" fill="${c.b}" class="np">${v?v:'—'}</text>`+(crown?P(`M18 ${y+30} L22 ${y+10} L30 ${y+20} L36 ${y+6} L42 ${y+20} L50 ${y+10} L54 ${y+30}Z`,'#ffd23f'):'');
+  return sh(300,300,.4)+R(40,170,16,128,5,c.a,'a')+R(244,170,16,128,5,c.a,'a')+R(6,6,288,190,16,c.a,'a')+R(16,16,268,46,10,c.b,'b')+`<text x="150" y="48" font-size="25" font-weight="700" text-anchor="middle" fill="#fff" class="np">BUBBLE POP BEST</text>`
+   +row(72,'Me',me,fr>=0&&lead===1&&me>0)+(fr>=0?row(128,'Friend',fr,lead===2):`<text x="150" y="158" font-size="19" font-weight="600" text-anchor="middle" fill="#fff3e0" class="np">Play together to compete!</text>`)},
+ {fx:1,tap(e){redraw(e);const me=G.flags.bbest|0,fr=NET.peer?(NET.frFlags&&NET.frFlags.bb)|0:0;say(e,!me?'Press GO on the Bubble Pop machine!':NET.peer?(me>fr?'You\'re winning!':me<fr?'Your friend is ahead — pop faster!':'It\'s a tie!'):'Your record: '+me+' bubbles')}});
+CH.merk2={c:{a:SKIN[0],b:'#ff8552',c:'#56d39a',d:'#ff8fb1',e:'#ff5c7a',t:'#4a90e2'},s:{hs:8,of:7,lash:1,fr:1}};
+SC.lagoon={n:'Sandy Lagoon',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#5fc9ee',ground:'#ffedc2'},pat:{},nav:{l:'shack',r:'wreck'},arrive:[800,866],
+ draw:st=>seaBg(st,()=>`<g class="np">`+outline(P('M1040 610 Q1030 300 1300 290 Q1570 300 1560 610 L1470 610 Q1476 400 1300 396 Q1124 400 1130 610Z',mix(st.bg.sky,'#8a96c0',.7)),6)+C(1100,420,16,'#c3cfe6')+C(1500,380,20,'#c3cfe6')+C(1220,318,12,'#c3cfe6')+`</g>`+coralArt(70,610,'#ffb74d',1.200)+coralArt(930,600,'#ff8fb1',.9)),
+ init(a){a.put('jelly',560,310);a.put('jelly',1010,330,{c:{a:'#7ad3ff'}});a.put('nursery',150,780);a.put('seahorse',470,800);a.put('dolphin',1080,800);const cs=a.put('coralseat',1400,740);a.sit(cs,1,CH.merk2);a.put('sandspot',640,888);a.put('kelp',300,884);a.put('bberry',1210,884);a.put('roe',250,880);a.put('kelpp',1580,690)}};
+SPOTS.push({id:'lagoon',n:'Sandy Lagoon',x:1230,y:604,w:2,sneed:9});
+
+/* ---------- the Sunken Ship: three map pieces → an X in the sand → a key → the treasure ---------- */
+STK.push(['map','Map Maker','Put all three pieces of the treasure map together.','sea'],['skey','X Marks the Spot','Dig where the finished map says.','sea'],['treasure','Sunken Treasure','Open the old chest in the Sunken Ship.','sea'],
+ ['cannon','Bubble Cannonball','Launch a friend out of the bubble cannon.','sea'],['wheel','Aye Aye, Captain!','Give the ship\'s wheel a few good spins.','sea']);
+function shipArt(st){const W1='#a8744f',W2='#7a4e33',g=st.bg.ground;return`<g class="np" transform="rotate(-6 800 430)">`
+ +outline(R(772,60,28,250,6,W2)+R(700,104,172,16,6,W2)+P('M800 124 L978 150 L940 196 L972 250 L800 262Z','#f3e9dc')+P('M772 124 L640 146 L672 196 L650 240 L772 250Z','#efe2cf')+R(742,40,88,26,8,W2)+P('M800 10 L870 26 L800 44Z','#2f2f48')
+  +P('M230 300 L1370 300 Q1350 520 1200 606 L450 606 Q280 540 230 300Z',W1)+R(210,276,1180,32,10,W2)+P('M1010 372 L1150 352 L1196 468 L1090 548 L986 486Z','#1f3148'),6)
+ +L('M250 366 L1010 366 M1160 366 L1356 366 M276 436 L1000 436 M1190 436 L1330 436 M330 506 L1010 506 M1150 510 L1280 506 M410 566 L1240 566',W2,5,0,NO)
+ +[440,620,800].map(x=>C(x,400,36,'#ffd27a',0,` stroke="${INK}" stroke-width="6"`)+C(x,400,24,'#2b6f9e',0,NO)+L(`M${x-14} ${392} q8 -10 18 -10`,'#fff',4,0,' opacity=".5"')).join('')
+ +C(834,24,5,'#fff',0,NO)+[[310,300],[560,300],[980,300],[1240,300]].map(([x,y])=>L(`M${x} ${y} q-10 34 0 68 q10 30 0 56`,'#3fae6a',12)).join('')+C(1090,440,7,'#ffe66d',0,NO)+C(1118,452,7,'#ffe66d',0,NO)
+ +`</g>`+`<g class="np">`+P(`M140 640 Q300 566 520 606 Q760 640 1000 604 Q1260 566 1480 640 L1480 720 L140 720Z`,g,0,NO)+`</g>`}
+const mapHave=e=>(e.s.got||[]).filter(k=>k===0||k===1||k===2);
+/* the key got lost before the chest was opened? then the X comes back */
+function seaXback(e){if(!G.flags.smap||!S||S.ents.some(x=>x.t==='seax'||(x.t==='tchest'&&x.s.open))||seaFind(x=>x.t==='skey'))return false;const a=absXY(e),x=spawn('seax',clamp(a.x+(a.x>W/2?-330:330),200,W-200),884);anim(x,'pop',320);say(e,'The X is back in the sand — dig for the key!',3000);return true}
+D('maptable','Map Table',270,200,'fix',{a:'#a8744f'},(e,c)=>{const got=mapHave(e),full=got.length>=3;return sh(270,200,.46)+`<rect x="10" y="16" width="250" height="180" fill="transparent" class="hit"/>`+P('M70 196 Q54 150 70 104 L200 104 Q216 150 200 196Z',c.a,'a')+R(62,120,146,10,5,'#8d99ae')+R(62,170,146,10,5,'#8d99ae')+R(10,84,250,24,10,dk(c.a,.14),'a')
+   +(full?`<g transform="rotate(-4 135 60)">`+outline(R(40,22,190,70,6,'#f3deb0'),5)+`<path d="M58 70 Q96 30 130 60 T196 44" fill="none" stroke="#8a5a44" stroke-width="3" stroke-dasharray="7 6" class="np"/>`+L('M190 36 L208 54 M208 36 L190 54','#e63946',5)+C(64,42,9,'none','',` stroke="#8a5a44" stroke-width="2.600"`+NO)+`</g>`
+    :[0,1,2].map(k=>got.includes(k)?`<g transform="rotate(${[-6,3,-3][k]} ${70+k*66} 60)">`+outline(R(42+k*66,30,56,54,5,'#f3deb0'),5)+L(`M${52+k*66} 64 q14 -16 34 -6`,'#8a5a44',2.400,0,NO)+`</g>`:R(44+k*66,34,52,48,8,'none','',` stroke="${lt(c.a,.35)}" stroke-width="4" stroke-dasharray="8 7" class="np"`+NO)).join(''))},
+ {fx:1,accept(e,it){if(it.t!=='mappiece')return false;const k=(it.s.k|0)%3,got=e.s.got=mapHave(e),a=absXY(e);if(got.includes(k)){say(e,'I already have that piece!');return false}got.push(k);rm(it);redraw(e);sfx.pop();dirty();
+   if(got.length<3){say(e,got.length+' of 3 pieces! Bubbles, soft sand and Inky the octopus each hide one.',3400);return true}
+   G.flags.smap=1;star('map');sfx.chest();confetti(a.x,a.y-160,24);say(e,'The map is whole! X marks the spot — look, right here in the sand!',3600);
+   if(!S.ents.some(x=>x.t==='seax'||x.t==='skey')&&!S.ents.some(x=>x.t==='tchest'&&x.s.open)){const x=spawn('seax',clamp(a.x+330,200,W-200),884);anim(x,'pop',320)}return true},
+  tap(e){const n=mapHave(e).length;anim(e,'wig',300);if(seaXback(e))return;say(e,n>=3?'The X is in the sand right by the ship. Dig, dig, dig!':n?n+' of 3 map pieces. Keep looking!':'An empty map table… the map was torn into three pieces.',3000)}});
+D('seax','X Marks the Spot',170,84,'fix',{a:'#ffdf9c'},(e,c)=>hit(170,84)+E(85,52,80,26,c.a,'a')+L('M56 34 L114 68 M114 34 L56 68','#e63946',11),
+ {fx:1,z:5,tap(e){const t=tr(e),a=absXY(e);t.k=(t.k||0)+1;sfx.crack();puff(a.x,a.y-30,'#ffe7b0',6);anim(e,'land',220);if(t.k<3){say(e,['Dig!','Keep digging!'][t.k-1]);return}
+   const k=popOut('skey',a.x,a.y-60,null,pick([-1,1])*110);sparkle(a.x,a.y-80,8);sfx.chest();star('skey');toast('An old key! Whatever could it open…?',4000);rm(e)}});
+D('skey','Old Sea Key',76,40,'item',{a:'#2bb7a3'},(e,c)=>hit(76,40)+sh(76,40,.3)+`<circle cx="17" cy="20" r="12" fill="none" stroke="${c.a}" stroke-width="8" data-p="a"/>`+R(26,16,44,8,4,c.a,'a')+R(52,22,7,13,2,c.a,'a')+R(63,22,7,10,2,c.a,'a')+C(36,14,3,'#ffd9e6',0,NO)+C(46,26,2.500,'#ffd9e6',0,NO));
+D('tchest','Sunken Chest',230,200,'fix',{a:'#8a5a44',b:'#2bb7a3'},(e,c)=>sh(230,200,.46)+(e.s.open?P('M18 80 L32 10 L198 10 L212 80Z',dk(c.a,.2),'a')+R(50,20,130,12,6,c.b,'b')+E(115,86,88,18,'#ffd23f')+C(78,76,11,'#ffe680')+C(128,70,13,'#ffe680')+C(160,78,10,'#ffe680')+C(104,62,9,'#fff6ee')+P('M140 58 L152 44 L164 58 L152 74Z','#ff7aa8')+P(star5(96,52,10,4),'#fff',0,' class="np tw"')
+   :P('M12 92 Q12 12 115 12 Q218 12 218 92Z',c.a,'a')+R(34,28,16,62,0,c.b,'b')+R(180,28,16,62,0,c.b,'b'))+R(12,86,206,108,14,c.a,'a')+R(34,86,16,108,0,c.b,'b')+R(180,86,16,108,0,c.b,'b')+R(6,80,218,16,8,c.b,'b')
+  +(e.s.open?'':R(96,72,38,46,9,c.b,'b')+C(115,92,7,INK)+R(112,94,6,14,2,INK))+C(60,150,6,'#c9d6c2',0,NO)+C(74,166,4,'#c9d6c2',0,NO)+C(168,140,5,'#c9d6c2',0,NO)+L('M196 190 q-8 -30 2 -54','#3fae6a',8),
+ {fx:1,accept(e,it){if(e.s.open)return false;if(it.t!=='skey'){if(it.t==='key')say(e,'Close… but this lock wants an old SEA key.');return false}const a=absXY(e);rm(it);e.s.open=1;redraw(e);sfx.chest();confetti(a.x,a.y-120,34);
+   const inv=!G.flags.palace;[['hat',{s:{v:1}}],['gem',{c:{a:'#ff7aa8'}}],['gem',{c:{a:'#7ad3ff'}}],['trident',null]].forEach(([t,o],i)=>setTimeout(()=>{if(byId(e.id))popOut(t,a.x+(i-1.5)*40,a.y-150,o,(i-1.5)*150)},200+i*220));star('treasure');
+   if(inv)setTimeout(()=>{toast('Under the gold is a ROYAL INVITATION! The seaweed gate on the map has opened: the Pearl Palace!',8000);if(!ACTOR)usfx('star')},1700);dirty();return true},
+  tap(e){const a=absXY(e);if(e.s.open){sparkle(a.x,a.y-110,6);sfx.magic();say(e,'Treasure! And a royal invitation to the Pearl Palace.');return}anim(e,'shake',500);sfx.nope();if(seaXback(e))return;say(e,G.flags.smap?'Locked! The key is buried where the map shows an X.':'Locked tight. Captain Pinch says a torn map leads to the key…',3200)}});
+D('trident','Trident',70,190,'toy',{a:'#ffd23f'},(e,c)=>hit(70,190)+R(31,40,8,146,4,c.a,'a')+P('M35 2 L44 30 L26 30Z',c.a,'a')+P('M8 14 L16 40 L4 40Z',c.a,'a')+P('M62 14 L66 40 L54 40Z',c.a,'a')+P('M4 38 L66 38 L60 54 L42 54 L42 60 L28 60 L28 54 L10 54Z',c.a,'a')+C(35,74,6,'#7ad3ff'),
+ {tap(e){const a=absXY(e);sfx.magic();sparkle(a.x,a.y-150,8);bubbles(a.x,a.y-120,8);anim(e,'wig',400);const p=e.par&&byId(e.par);if(p&&TD(p).k==='char'){setFace(p,'wow',1400);say(p,pick(['By the power of the sea!','Ruler of the waves!','Whoosh!']))}}});
+D('wheel','Ship\'s Wheel',200,280,'fix',{a:'#a8744f',b:'#ffd23f'},(e,c)=>sh(200,280,.36)+R(88,150,24,126,8,dk(c.a,.2),'a')+R(60,262,80,16,8,dk(c.a,.2),'a')+`<circle cx="100" cy="96" r="92" fill="transparent" class="hit"/>`+`<g class="${tr(e).busy?'spinfast':''}" style="transform-origin:100px 96px">`+[0,45,90,135].map(a=>`<rect x="92" y="2" width="16" height="188" rx="8" fill="${c.a}" data-p="a" transform="rotate(${a} 100 96)"/>`).join('')+`<circle cx="100" cy="96" r="60" fill="none" stroke="${c.a}" stroke-width="18" data-p="a"/>`+C(100,96,18,c.b,'b')+`</g>`,
+ {fx:1,tap(e){const t=tr(e),a=absXY(e);if(t.busy)return;t.busy=1;redraw(e);sfx.whirr();say(e,pick(['Hard to starboard!','Full sail ahead!','Creeeak…']));const n=G.flags.wheel=(G.flags.wheel|0)+1;
+   later(e,1100,()=>{tr(e).busy=0;redraw(e);if(n===3){star('wheel');popTo('hat',e,170,{s:{v:7}});say(e,'Something fell out of the crow\'s nest — a captain\'s hat!',3200);sfx.chest()}})}});
+D('cannon','Bubble Cannon',280,190,'furn',{a:'#4a4e69',b:'#a8744f'},(e,c)=>sh(280,190,.46)+`<g transform="rotate(-24 120 120)">`+R(70,78,200,84,30,dk(c.a,.25),'a')+`</g>`,
+ {front:(e,c)=>`<g transform="rotate(-24 120 120)">`+P('M70 84 L226 84 L226 156 L70 156 Q44 156 44 120 Q44 84 70 84Z',c.a,'a')+R(214,74,34,92,10,lt(c.a,.2),'a')+R(120,84,14,72,0,lt(c.a,.2),'a',NO)+`</g>`+P('M40 150 L210 150 L196 184 L54 184Z',c.b,'b')+C(74,170,26,'#2f2f48')+C(74,170,10,c.b,'b')+C(178,170,26,'#2f2f48')+C(178,170,10,c.b,'b'),
+  under:['seat0'],seats:[[104,-104]],mag:1,tuck:1,sat(x,ch){redraw(ch);sfx.pop();say(ch,pick(['Ready for launch!','Fire me!','Three… two… one…']))},
+  tap(e){const t=tr(e),a=absXY(e),r=kidIn(e,'seat0'),fl=e.flip?-1:1,sid=SID;if(t.busy)return;if(NET.peer&&r&&r.me&&r.me!==actNo()){shy(e,'Your friend is in the cannon — only they can fire it!');return}sfx.boom();anim(e,'land',260);bubbles(a.x+fl*130,a.y-190,10);puff(a.x+fl*130,a.y-170,'#effcff',7);
+   if(!r){say(e,'BOOM! Load a friend into the cannon first!');return}t.busy=1;star('cannon');unpar(r);r.x=clamp(a.x+fl*rnd(520,760),110,W-110);r.y=SC[SID].floor[1]-30;place(r);setFace(r,'wow',1700);
+   setTimeout(()=>{if(SID===sid&&byId(r.id)){anim(r,'bounce',650);say(r,pick(['WHEEEE!','Again! Again!','I\'m a bubble-ball!']));sfx.boing()}},520);setTimeout(()=>{if(SID===sid&&byId(e.id))tr(e).busy=0},900)}});
+D('barrel','Barrel',120,140,'furn',{a:'#a8744f'},(e,c)=>sh(120,140,.46)+P('M14 10 L106 10 Q122 70 106 134 L14 134 Q-2 70 14 10Z',c.a,'a')+R(8,34,104,10,3,'#8d99ae')+R(8,100,104,10,3,'#8d99ae')+L('M40 12 Q32 70 40 132 M80 12 Q88 70 80 132',dk(c.a,.2),3,0,NO)+E(60,12,46,9,dk(c.a,.14),'a'),{surf:[[-48,48,-130]]});
+SC.wreck={n:'Sunken Ship',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#3f9fd4',ground:'#f6dfa6'},pat:{},nav:{l:'lagoon',r:'theatre'},arrive:[1250,868],
+ draw:st=>seaBg(st,shipArt),
+ init(a){a.put('wheel',150,770);a.put('maptable',400,780);a.put('cannon',900,800);a.put('tchest',1420,770);const b=a.put('barrel',1120,760);a.on(b,'gem',0,{c:{a:'#b8e986'}});a.put('crab',1010,890,{s:{cap:1}});a.put('sandspot',260,890);a.put('char',640,856,CH.bro);a.put('shell',520,890,{c:{a:'#7ad3ff'}});a.put('kelpp',1580,700,{c:{a:'#3fae6a'}})}};
+SPOTS.push({id:'wreck',n:'Sunken Ship',x:1440,y:832,w:2,sneed:13});
+
+/* ---------- Tide Theatre: a shell band and a dance show ---------- */
+STK.push(['band','Shell Band','Play the conch, the coral xylophone and the clam drum.','sea'],['show','Showtime!','Put two or more performers on the clam stage and start the show.','sea']);
+let BAND={sid:null};
+function bandMark(k){if(BAND.sid!==SID)BAND={sid:SID};BAND[k]=1;if(BAND.conch&&BAND.xylo&&BAND.drum)star('band')}
+D('conch','Conch Horn',120,96,'toy',{a:'#ffb3c7'},(e,c)=>sh(120,96,.36)+P('M14 60 Q8 26 44 16 Q84 6 108 34 Q118 50 104 64 Q84 84 52 84 Q24 84 14 60Z',c.a,'a')+P('M70 34 Q96 30 104 50 Q96 70 72 70 Q84 52 70 34Z','#fff0f5')+L('M22 54 Q40 30 66 28 M30 68 Q46 50 66 50',dk(c.a,.16),3,0,NO)+P('M14 58 L0 50 L2 68Z',dk(c.a,.14),'a'),
+ {tap(e){sfx.toot();anim(e,'land',260);notes(e);bandMark('conch')}});
+D('cxylo','Coral Xylophone',320,160,'furn',{a:'#a8744f'},(e,c)=>sh(320,160,.46)+R(30,96,16,60,6,dk(c.a,.15),'a')+R(274,96,16,60,6,dk(c.a,.15),'a')+P('M10 96 L310 80 L310 100 L10 116Z',c.a,'a')+['#ff5c7a','#ff8552','#ffd23f','#56d39a','#2bb7a3','#7ad3ff','#6c63ff','#d58bff'].map((k,i)=>`<rect x="${22+i*35}" y="${22+i*5}" width="30" height="${84-i*8}" rx="9" fill="${k}" data-b="${i}"/>`).join('')+C(296,60,10,'#fff6ee')+L('M296 60 L270 20','#c98f5a',5),
+ {tt:1,tap(e,tg){const b=tg.closest&&tg.closest('[data-b]');if(!b){anim(e,'wig',300);return}sfx.note(+b.dataset.b);notes(e);bandMark('xylo')}});
+D('cdrum','Clam Drum',140,116,'toy',{a:'#7ad3ff'},(e,c)=>sh(140,116,.42)+P('M12 44 Q14 108 70 110 Q126 108 128 44Z',c.a,'a')+L('M30 56 L42 100 M70 58 L70 106 M110 56 L98 100',dk(c.a,.16),3,0,NO)+E(70,44,60,18,'#fff6ee')+E(70,44,44,11,'#ffe9f2',0,NO)+L('M100 20 L132 -6','#c98f5a',6)+C(134,-8,8,'#ff5c7a'),
+ {tap(e){sfx.boom();anim(e,'land',220);const a=absXY(e);drops(a.x,a.y-90,4);bandMark('drum')}});
+D('sstage','Clam Stage',660,360,'fix',{a:'#c9a6ff',b:'#ff8fb1'},(e,c)=>sh(660,360,.48)+P('M40 250 Q10 20 330 6 Q650 20 620 250Z',lt(c.a,.1),'a')+L('M330 250 L330 16 M330 250 L200 28 M330 250 L460 28 M330 250 L92 76 M330 250 L568 76 M330 250 L44 160 M330 250 L616 160',dk(c.a,.1),4,0,NO)
+  +P('M40 250 Q60 120 130 60 Q110 160 120 250Z',c.b,'b')+P('M620 250 Q600 120 530 60 Q550 160 540 250Z',c.b,'b')+[[190,44],[330,26],[470,44]].map(([x,y])=>C(x,y,13,'#fff3a8')+C(x,y,26,'#fff3a8',0,' opacity=".3" class="np"'+NO)).join('')
+  +P('M14 262 Q330 220 646 262 L636 340 Q330 366 24 340Z',dk(c.a,.14),'a')+E(330,262,318,34,'#fff0f8')+E(330,262,250,22,'#ffe0ef',0,NO)+[80,180,280,380,480,580].map((x,i)=>C(x,318+(i%2)*6,9,i%2?'#fff6ee':'#ffd27a')).join(''),
+ {fx:1,surf:[[-270,270,-98]],
+  tap(e){const t=tr(e),a=absXY(e),sid=SID;if(t.busy)return;const ps=kidsOf(e).filter(k=>TD(k).k==='char'||TD(k).k==='pet');if(!ps.length){anim(e,'wig',300);say(e,'Put some performers on the stage, then tap me to start the show!',3000);return}
+   t.busy=1;say(e,ps.length>=2?'Ladies and gentle-fish… SHOWTIME!':'A solo! Bring a friend up for a real show.',2600);if(ps.length>=2)star('show');
+   [0,2,4,5,7,4,7,9].forEach((n,i)=>setTimeout(()=>{if(SID===sid)sfx.note(n)},i*300));
+   for(let r=0;r<2;r++)setTimeout(()=>{if(SID!==sid)return;for(const p of ps)if(byId(p.id)){anim(p,'dance',1200);notes(p);if(TD(p).k==='char')setFace(p,'laugh',1300)}},r*1250);
+   setTimeout(()=>{if(SID===sid&&byId(e.id)){tr(e).busy=0;confetti(a.x,a.y-240,30);sfx.star()}},2600)}});
+CH.mers={c:{a:SKIN[5],b:'#ffd23f',c:'#9b6bff',d:'#ff5c7a',e:'#56d39a',t:'#ff8552'},s:{hs:9,of:5,lash:1}};
+SC.theatre={n:'Tide Theatre',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#6f8fe8',ground:'#ffe7c4'},pat:{},nav:{l:'wreck',r:'trench'},arrive:[1020,868],
+ draw:st=>seaBg(st,()=>coralArt(60,610,'#d58bff',1.300)+coralArt(1540,608,'#ff8fb1',1.300)),
+ init(a){a.put('jelly',420,300,{c:{a:'#ffb3c7'}});a.put('jelly',1190,300,{c:{a:'#a6f0c0'}});const s=a.put('sstage',640,770);a.on(s,'char',-90,CH.mers);a.put('cxylo',1270,770);a.put('cdrum',1180,888);a.put('conch',1370,890);
+  const cs=a.put('coralseat',240,876,{c:{a:'#7ad3ff'}});a.sit(cs,0,CH.merb);a.put('seastar',470,888,{c:{a:'#ffd23f'}})}};
+SPOTS.push({id:'theatre',n:'Tide Theatre',x:1010,y:850,w:2,sneed:17});
+
+/* ---------- Glow Trench: deep, dark, and full of lights ---------- */
+STK.push(['glow','Light the Deep','Wake up every glow coral in the trench.','sea'],['sub','Deep Diver','Take the little submarine for a spin.','sea'],['angler','Night Light','Share a sea snack with Lumi the anglerfish.','sea']);
+const GLOWC=['#7dffe0','#b388ff','#ffe66d','#ff8fd8','#7ad3ff'];
+D('gcoral','Glow Coral',150,200,'fix',{a:'#7dffe0'},(e,c)=>{const on=e.s.on,k=on?c.a:mix(c.a,'#3a4670',.72);return sh(150,200,.36)+(on?C(75,90,84,c.a,0,' opacity=".28" class="np"'+NO):'')+U(R(64,60,22,136,11,k,'a')+R(20,84,20,70,10,k,'a')+R(20,134,62,20,10,k,'a')+R(110,70,20,80,10,k,'a')+R(72,130,58,20,10,k,'a')+C(30,80,15,k,'a')+C(120,66,15,k,'a')+C(75,54,18,k,'a'))+(on?[[75,54],[30,80],[120,66],[75,110]].map(([x,y])=>C(x,y,5,'#fff',0,' opacity=".9"'+NO)).join(''):'')},
+ {fx:1,nd:1,light:e=>e.s.on?{dx:0,dy:-110,r:190}:null,
+  tap(e){e.s.on=e.s.on?0:1;redraw(e);anim(e,'land',240);sfx.note(Math.max(0,GLOWC.indexOf(e.c.a))*2);updLights();dirty();const all=S.ents.filter(x=>x.t==='gcoral');
+   if(e.s.on&&all.length>=3&&all.every(x=>x.s.on)){star('glow');const a=absXY(e);sparkle(a.x,a.y-150,10);if(!G.flags.gpearl){G.flags.gpearl=1;sfx.chest();toast('The whole trench is glowing! Something shiny rolls out of the dark — a GLOW PEARL!',6000);popTo('pearl',e,pick([-1,1])*150,{c:{a:'#b8fff0'},s:{glow:1}});later(e,400,updLights)}}}});
+D('angler','Lumi the Anglerfish',190,170,'toy',{a:'#4a5a9c'},(e,c)=>sh(190,170,.4)+C(150,26,26,'#ffe66d',0,' opacity=".35" class="np"'+NO)+L('M92 62 Q96 16 146 26',c.a,6,'a')+C(150,26,12,'#ffe66d')+P('M40 108 L6 84 L12 136Z',dk(c.a,.15),'a')+E(100,108,66,50,c.a,'a')+P('M96 62 Q110 44 124 64Z',dk(c.a,.15),'a')+E(96,130,36,16,lt(c.a,.25),'a',NO)
+  +C(128,92,13,'#fff')+C(131,94,6,INK)+L('M118 124 Q138 138 158 120',INK,3.400)+P('M126 127 l5 9 l5 -8Z','#fff',0,NO)+P('M142 127 l5 8 l5 -10Z','#fff',0,NO)+E(108,114,9,5,'#ff9fb6',0,NO),
+ {nd:1,light:()=>({dx:54,dy:-140,r:150}),
+  accept(e,it){if(!['kelp','sgrape','bberry','sburger'].includes(it.t))return false;rm(it);sfx.chomp();anim(e,'chomp',220);hearts(e,5);star('angler');say(e,'Oh! Nobody ever visits down here. Thank you, friend!',3000);return true},
+  tap(e){anim(e,'hop',420);sfx.bubble();say(e,pick(['I\'m Lumi! I light the way.','It gets lonely in the dark… got a snack?','Tap the corals to wake them up!','Blink blink!']),2600)}});
+D('sub','Little Submarine',360,240,'furn',{a:'#ffd23f',b:'#ff8552'},(e,c)=>sh(360,240,.46)+R(150,24,30,50,8,dk(c.a,.14),'a')+R(136,14,70,22,10,c.b,'b')+P('M14 120 L-6 90 L-6 170 L14 150Z',c.b,'b')+`<g class="np sunspin" style="transform-origin:-6px 130px">`+outline(R(-12,96,12,68,6,'#8d99ae'),4)+`</g>`+R(20,60,320,150,75,dk(c.a,.3),'a'),
+ {front:(e,c)=>`<path d="M95 60 L265 60 Q340 60 340 135 Q340 210 265 210 L95 210 Q20 210 20 135 Q20 60 95 60Z M150 86 A58 58 0 1 0 150.100 86Z" fill="${c.a}" fill-rule="evenodd" data-p="a"/>`+`<circle cx="150" cy="144" r="58" fill="#bfefff" fill-opacity=".28" stroke="${INK}" stroke-width="6" data-o="1" class="np"/>`+`<circle cx="150" cy="144" r="67" fill="none" stroke="${c.b}" stroke-width="10" data-p="b" data-o="1"/>`+`<circle cx="150" cy="144" r="72" fill="none" stroke="${INK}" stroke-width="4" data-o="1" class="np"/>`
+   +C(270,116,15,'#bfefff')+C(270,162,15,'#bfefff')+C(326,136,13,'#fff8d6')+R(60,204,240,12,6,c.b,'b')+L('M118 122 Q128 104 148 98','#fff',6,0,' opacity=".7"'+NO),
+  under:['seat0'],seats:[[-30,26]],mag:1,tuck:1,nd:1,light:()=>({dx:230,dy:-104,r:170}),sat(x,ch){redraw(ch);sfx.sonar()},
+  tap(e){if(!kidIn(e,'seat0')&&!tr(e).busy)say(e,'Ping! Drop a diver into the window, then tap me.');seaRide(e,'sub','sonar',2400,'land',1)}});
+D('crystal','Singing Crystals',240,190,'fix',{a:'#b388ff'},(e,c)=>sh(240,190,.42)+C(120,110,100,c.a,0,' opacity=".16" class="np"'+NO)+[[24,90,34,'#7dffe0'],[66,40,40,'#b388ff'],[112,14,44,'#ff8fd8'],[160,50,40,'#7ad3ff'],[200,96,32,'#ffe66d']].map(([x,y,w,k],i)=>`<path d="M${x} 186 L${x} ${y+26} L${x+w/2} ${y} L${x+w} ${y+26} L${x+w} 186Z" fill="${k}" data-b="${i}"/>`+L(`M${x+w*.3} ${y+34} L${x+w*.3} 170`,'#fff',3,0,' opacity=".6"'+NO)).join('')+E(120,186,116,10,'#3a4670'),
+ {fx:1,nd:1,light:()=>({dx:0,dy:-90,r:170}),tap(e,tg){const b=tg.closest&&tg.closest('[data-b]');if(!b){anim(e,'wig',300);return}const i=+b.dataset.b,a=absXY(e);sfx.note([0,2,4,7,9][i]||0);sparkle(a.x-96+i*48,a.y-150,3)}});
+const ROCK='#3a4670';
+SC.trench={n:'Glow Trench',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#2a4f8f',ground:'#7f8fb8'},pat:{},nav:{l:'theatre'},arrive:[900,868],
+ enter(){if(S&&!S.night){S.night=1;setNight(true);dirty()}},
+ draw:st=>seaBg(st,()=>`<g class="np">`+outline(P('M0 0 L300 0 Q230 150 270 300 Q200 430 250 600 L0 620Z',ROCK)+P('M1600 0 L1290 0 Q1370 160 1330 310 Q1400 440 1350 600 L1600 620Z',ROCK)+P('M560 0 L620 150 L680 0Z',ROCK)+P('M900 0 L950 110 L1010 0Z',ROCK),6)
+  +[[120,200,'#7dffe0'],[200,420,'#b388ff'],[80,520,'#ffe66d'],[1480,180,'#ff8fd8'],[1420,400,'#7dffe0'],[1540,520,'#b388ff'],[620,90,'#ffe66d'],[950,60,'#7dffe0']].map(([x,y,k])=>C(x,y,7,k,0,' class="tw"'+NO)+C(x,y,18,k,0,' opacity=".25"'+NO)).join('')+`</g>`),
+ init(a){a.put('jelly',520,310,{c:{a:'#7dffe0'}});a.put('jelly',1100,310,{c:{a:'#ff8fd8'}});GLOWC.forEach((k,i)=>a.put('gcoral',[110,330,1010,1260,1490][i],[700,760,720,770,710][i],{c:{a:k}}));
+  a.put('sub',610,790);a.put('crystal',1150,886);a.put('angler',280,888);a.put('pearl',1380,884,{c:{a:'#cfe8ff'}})}};
+SPOTS.push({id:'trench',n:'Glow Trench',x:1410,y:414,w:2,sneed:21});
+
+/* ---------- the Pearl Palace: only for guests with a royal invitation ---------- */
+STK.push(['feast','Royal Chef','Bring the Sea Queen what she is hungry for.','sea'],['royal','Your Majesty','Sit on the pearl throne wearing a tiara or a crown.','sea']);
+CH.queen={c:{a:SKIN[3],b:'#2bb7a3',c:'#9b6bff',d:'#ffd23f',e:'#ff5c7a',t:'#ff8fb1'},s:{hs:1,of:1,lash:1,npc:3,nk:1,nc:'#ffe08a',nc2:'#fff6ee',nc3:'#ffc9de'}};
+const isBurger=t=>t==='sburger'||t==='burger';
+function queenTalk(e){const f=G.flags.qf||{};anim(e,'hop',420);sfx.magic();
+ say(e,G.st.feast?pick(['My Royal Chef! Do sit on the throne — with a tiara, of course.','The palace is yours to enjoy, dear.','Try the throne! But a royal needs a tiara or a crown.']):!f.b&&!f.fizz?'Welcome to the Pearl Palace! I am SO hungry… bring me a Reef Burger and a Berry Fizz from the Crab Shack, would you?':'Lovely! Now I would adore '+(f.b?'a Berry Fizz from the hot vent.':'a Reef Burger from the Crab Shack.'),3800)}
+const custTalk=e=>{anim(e,'hop',420);sfx.pop();say(e,pick(['One Reef Burger, please!','Extra cheese on mine!','I\'m SO hungry…','Do you make sky-high burgers?','Berry sauce? Yes please!']),2400)};
+{const n1=T.char.nm;T.char.nm=e=>e.s.npc===3?'Queen Coralie':e.s.npc===4?'Hungry Customer':n1(e)}
+{const g0=goofy;window.goofy=function(e){if(e.s.npc===3){queenTalk(e);return}if(e.s.npc===4){custTalk(e);return}g0(e)}}
+{const a0=T.char.accept;T.char.accept=function(ch,it,p){const free=ch.s.pose!=='sleep'&&!tr(ch).busy,sid=SID;
+  if(free&&ch.s.npc===3&&(isBurger(it.t)||it.t==='fizz')){const f=G.flags.qf=G.flags.qf||{};f[isBurger(it.t)?'b':'fizz']=1;dirty();const done=f.b&&f.fizz&&!G.st.feast;eat(ch,it);
+   if(done)setTimeout(()=>{if(SID!==sid||!byId(ch.id))return;const a=absXY(ch);star('feast');say(ch,'A royal feast! You are my Royal Chef now — take this crown!',3800);confetti(a.x,a.y-200,30);popOut('hat',clamp(a.x+150,80,W-80),a.y-150,{s:{v:1}},60)},3300);return true}
+  if(free&&ch.s.npc===4&&isBurger(it.t)){star('serve');eat(ch,it);setTimeout(()=>{if(SID!==sid||!byId(ch.id))return;const a=absXY(ch);say(ch,pick(['Best burger under the sea! Here\'s a tip.','Mmm! Keep the change!','Five sea stars! Take this.']),2800);
+    popOut(Math.random()<.5?'pearl':'shell',clamp(a.x-150,80,W-80),a.y-170,{c:{a:pick(PEARLC)}},-60);sfx.kaching()},2700);return true}
+  return a0.call(this,ch,it,p)}}
+const isRoyalHat=h=>!!h&&(h.t==='tiara'||(h.t==='hat'&&(h.s.v===1||h.s.v===16)));
+D('sthrone','Pearl Throne',250,300,'furn',{a:'#ffc9de',b:'#ffd23f'},(e,c)=>sh(250,300,.46)+P('M26 200 Q4 30 125 10 Q246 30 224 200Z',c.a,'a')+L('M125 196 L125 22 M125 196 L72 34 M125 196 L178 34 M125 196 L34 76 M125 196 L216 76',dk(c.a,.1),3.400,0,NO)+C(125,14,17,'#fff6ee')+C(119,8,5,'#fff',0,NO)+C(38,60,10,'#fff6ee')+C(212,60,10,'#fff6ee')
+  +R(4,170,52,122,22,c.b,'b')+R(194,170,52,122,22,c.b,'b')+R(36,196,178,96,16,dk(c.a,.14),'a')+R(48,184,154,40,16,'#ff8fb1')+C(30,180,11,'#7ad3ff')+C(220,180,11,'#7ad3ff'),
+ {seats:[[0,-106]],sat(x,ch){const a=absXY(x);if(isRoyalHat(kidIn(ch,'head'))){star('royal');sfx.star();confetti(a.x,a.y-260,30);setFace(ch,'laugh',2200);say(ch,pick(['All hail ME!','I rule the waves!','Bow, little fishies!']))}else say(ch,'Comfy! But a royal needs a tiara or a crown…',2800)}});
+SC.palace={n:'Pearl Palace',w:2,sea:1,in:1,floor:[650,872],bg:{wall:'#fbe6f4',floor:'#d3f1f5',trim:'#ffd27a'},pat:{wall:3,floor:4},arrive:[560,856],
+ deco:st=>`<g class="np">`+outline(P('M560 620 Q520 250 800 220 Q1080 250 1040 620Z','#ffd9ea'),6)+L('M800 616 L800 236 M800 616 L690 250 M800 616 L910 250 M800 616 L600 330 M800 616 L1000 330','#f7b6d2',5)
+  +[150,410,1190,1450].map(x=>outline(R(x-34,60,68,560,24,'#fff8fd')+R(x-50,40,100,34,14,st.bg.trim)+R(x-50,596,100,30,12,st.bg.trim),6)+L(`M${x-12} 90 L${x-12} 580 M${x+12} 90 L${x+12} 580`,'#f3dcea',4)).join('')+`</g>`,
+ init(a){a.put('porthole',280,330,{c:{a:'#ffd27a'}});a.put('porthole',1320,330,{c:{a:'#ffd27a'}});a.put('jelly',560,240,{c:{a:'#ffc9de'}});a.put('jelly',1040,240,{c:{a:'#bfefff'}});a.put('rrug',800,866);a.put('sthrone',800,760);
+  const q=a.put('char',1030,820,CH.queen);a.give(q,'tiara','head',{c:{a:'#ffe08a',b:'#ffc9de',d:'#cfe8ff'}});const tb=a.put('table',300,800,{c:{a:'#fff6fb',b:'#ffd27a'}});a.on(tb,'cupcake',-70);a.on(tb,'bberry',10);a.on(tb,'cake',80);
+  a.put('shlamp',120,800,{c:{a:'#ffd27a'}});a.put('coral',1390,850,{c:{a:'#b98cf0'}});a.put('trident',1240,860);a.put('pearl',1150,884,{c:{a:'#ffc9de'}})}};
+SPOTS.push({id:'palace',n:'Pearl Palace',lk:'???',x:240,y:330,w:2,secret:'palace',why:'A grand gate, all covered in seaweed. It only opens for guests with a royal invitation… they say one lies in a sunken treasure chest!'});
+
+/* =====================================================================
    PLAY TOGETHER — two players, joined by a room code. No sign-in, no chat.
    The two browsers talk directly to each other.
 
@@ -2337,7 +2876,7 @@ const WG=()=>NET.mir&&NET.wg?NET.wg:G;                              // whose dai
 const iOwn=id=>!!SC[id]&&(SC[id].own===2)===(NET.role==='guest');   // does this place live in MY saved game?
 const myKey=id=>SC[id].own===2?SC[id].base:id;                      // …and under which name
 const myScene=id=>G.sc[myKey(id)]||(G.sc[myKey(id)]=initScene(myKey(id)));
-const netSpot=id=>isHome(id)?(SC[id].own===2?'home2':'home'):SC[id].spot||id;    // the spot on the map that a room belongs to
+const netSpot=id=>isHome(id)?(SC[id].hspot||'home')+(SC[id].own===2?'2':''):SC[id].spot||id;    // the spot on the map that a room belongs to
 const netCode=()=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZ';let s='';for(let i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s};
 const hexOk=c=>typeof c==='string'&&/^#[0-9a-fA-F]{6}$/.test(c);
 const ptOk=o=>o&&typeof o==='object'&&isFinite(o.x)&&isFinite(o.y)?{x:clamp(+o.x,-200,W+200),y:clamp(+o.y,-200,H+200)}:null;
@@ -2414,7 +2953,7 @@ function netApart(){ // we are no longer connected: sort out where I am, and who
  updHud();saveG()}
 
 /* ---------- walking around ---------- */
-function netAt(){NET.send({t:'at',id:NET.here,stars:stars(),flags:{tree:G.flags.tree?1:0,farm:farmSelf()?1:0,fst:farmStars(),pb:G.flags.pbest|0}})}
+function netAt(){NET.send({t:'at',id:NET.here,stars:stars(),flags:{tree:G.flags.tree?1:0,farm:farmSelf()?1:0,fst:farmStars(),pb:G.flags.pbest|0,sea:seaSelf()?1:0,sst:seaStars(),bb:G.flags.bbest|0,palace:G.flags.palace?1:0}})}
 function myAvSnap(){ // a copy of my avatar (and what it wears and holds), to send ahead to where I am going
  if(NET.mir)return NET.myAv?clone(NET.myAv):null;const f=avFind();if(!f||f.at==='pack')return null;
  const g=clone(f.at==='trav'?f.ents:grpOf(f.e,f.ents));for(const k of g)delete k._t;g[0].par=null;g[0].slot=null;return g}
@@ -2470,9 +3009,11 @@ function netMsg(m,id){if(!m||typeof m!=='object')return;
  if(id!==NET.peer)return;
  switch(m.t){
   // where each of us is
-  case'at':NET.there=typeof m.id==='string'&&SC.hasOwnProperty(m.id)?m.id:null;NET.frStars=+m.stars|0;NET.frFlags=cleanV(m.flags||{},2)||{};mapPing();netUI();if(S)for(const e of S.ents)if(e.t==='pboard')redraw(e);break;
+  case'at':NET.there=typeof m.id==='string'&&SC.hasOwnProperty(m.id)?m.id:null;NET.frStars=+m.stars|0;NET.frFlags=cleanV(m.flags||{},2)||{};mapPing();netUI();if(S)for(const e of S.ents)if(e.t==='pboard'||e.t==='bboard')redraw(e);break;
   case'house':NET.frHouse=cleanHouse(m.h);mapPing();break;
   case'pweigh':if(isFinite(m.kg))pumpRecord(clamp(+m.kg|0,1,2000));break; // I weighed my pumpkin in my friend's place
+  case'bscore':if(isFinite(m.n))bubRecord(clamp(+m.n|0,0,200));break; // I played the bubble game in my friend's place
+  case'bnews':if(isFinite(m.n))toast('Your friend popped '+(clamp(+m.n|0,0,200))+' bubbles in the Bubble Pop! Can you beat that?',5000);break;
   case'pnews':if(isFinite(m.kg))toast('Your friend grew a '+(clamp(+m.kg|0,1,2000))+' lb pumpkin! Can you grow a bigger one?',5000);break;
   case'enter':if(typeof m.id!=='string'||!SC.hasOwnProperty(m.id)){NET.send({t:'no',n:m.n});break}if(NET.pend&&NET.pend.id===m.id&&NET.role==='host'){NET.queue=m;break}netAnswer(m);break; // both heading for the same place: player 1 goes first
   case'join':if(m.re){if(NET.mir&&SID===m.id)netFull(m,true)}else netReply(m);break;
@@ -2516,7 +3057,7 @@ function netHands(m){if(!S)return;const fno=3-myNo();ACTOR='peer';try{switch(m.t
     const r=m.res&&typeof m.res==='object'?m.res:null;dropCore(e,p||{x:e.x,y:e.y},r&&{pack:!!r.pack,trash:!!r.trash,xbox:!!r.xbox,ids:(Array.isArray(r.ids)?r.ids:[]).filter(Number.isInteger).slice(0,40)},!r)}}break;
  case'cat':if(SC[SID].home&&typeof m.id==='string'&&T.hasOwnProperty(m.id)&&catHas(m.id))addFromCat(m.id);break;
  case'pat':if(SC[SID].in&&(m.k==='wall'||m.k==='floor'))setPat(m.k,m.i);break;
- case'style':{const c=byId(m.id);if(c&&c.t==='char'&&!(c.me&&c.me!==fno)&&(!m.k||((m.k==='a'||m.k==='b'||m.k==='c')&&hexOk(m.c)))){styleApply(c,m.a,m.k,m.c);if(STY===c)renderStyle()}break}}}
+ case'style':{const c=byId(m.id);if(c&&c.t==='char'&&!(c.me&&c.me!==fno)&&(!m.k||((m.k==='a'||m.k==='b'||m.k==='c'||m.k==='t')&&hexOk(m.c)))){styleApply(c,m.a,m.k,m.c);if(STY===c)renderStyle()}break}}}
  catch(err){console.error(err)}finally{ACTOR=null}}
 
 /* ---------- I run the place: send what changed to my friend who is watching ---------- */
@@ -2742,11 +3283,11 @@ function showHint(){const c=STK.filter(s=>!G.st[s[0]]);showModal(c.length?`<h2>T
 /* ---------- map & title ---------- */
 const BALLOON=`<svg viewBox="0 0 120 190"><path d="M60 4 Q112 4 112 60 Q112 100 74 128 L46 128 Q8 100 8 60 Q8 4 60 4Z" fill="#ff7aa8"/><path d="M60 4 Q84 30 74 128 L46 128 Q36 30 60 4Z" fill="#ffd23f"/><path d="M48 128 L50 150 M72 128 L70 150" stroke="#8a5a44" stroke-width="3"/><rect x="42" y="148" width="36" height="26" rx="6" fill="#c9a27a"/><g class="gf"><rect x="46" y="132" width="28" height="22" rx="4" fill="#7ad3ff"/><rect x="57" y="132" width="6" height="22" fill="#fff"/><path d="M60 132 Q50 120 48 128 Q50 134 60 132 Q70 134 72 128 Q70 120 60 132Z" fill="#fff"/></g></svg>`;
 function showMap(){farmMigrate();const m=$('#map');m.className='ui on';$stage.classList.add('onmap');let html=mapSVG();
- for(const s of mapSpots()){const open=spotOpen(s);if(s.secret&&!open)continue;html+=`<div class="mlabel${open?'':' lk'}${s.art==='home'&&NET.peer?' mine':''}" style="left:${s.x}px;top:${s.y+12}px">${open?'':IC.lock}<span>${s.n}</span>${!open&&s.fneed?`<b>${s.fneed}</b>${IC.clover}`:!open&&s.need?`<b>${s.need}</b>${IC.star}`:!open&&s.duo?IC.duo:''}</div>`;
+ for(const s of mapSpots()){const open=spotOpen(s);if(s.secret&&!open&&!s.why)continue;html+=`<div class="mlabel${open?'':' lk'}${(s.art==='home'||s.mine)&&NET.peer?' mine':''}" style="left:${s.x}px;top:${s.y+12}px">${open?'':IC.lock}<span>${open?s.n:(s.lk||s.n)}</span>${!open&&s.sneed?`<b>${s.sneed}</b>${IC.shellic}`:!open&&s.fneed?`<b>${s.fneed}</b>${IC.clover}`:!open&&s.need?`<b>${s.need}</b>${IC.star}`:!open&&s.duo?IC.duo:''}</div>`;
   if(s.art==='home')html+=`<button class="hbrush" id="hpaint" style="left:${s.x+72}px;top:${s.y-4}px" aria-label="Paint my house">${IC.brush}</button>`}
  const ready=G.daily.last!==dayN();html+=`<button class="gbal${ready?' ready':''}" id="gbal">${outline(BALLOON,5)}<span>${ready?'Gift!':'Tomorrow'}</span></button><div class="mtitle">${WORLDS[G.world||0]}</div>${wswHTML()}<div class="mfr" id="mfr" style="display:none">${IC.duo}<span>Friend is here!</span></div>`;
  m.innerHTML=html;showMap.sig=mapSig();netMark();updHud();
- m.onclick=ev=>{if(ev.target.closest('#wsw')){worldSwitch();return}if(ev.target.closest('#hpaint')){openHouse();return}const sp=ev.target.closest('[data-go]');if(sp){const s=mapSpots().find(x=>x.id===sp.dataset.go);if(!s)return;if(!spotOpen(s)){usfx('nope');toast(s.fneed?`${s.n} opens when you have ${s.fneed} Clover Farm stickers. You have ${farmStars()} so far — look after the animals and grow things!`:s.duo?'Buddy Island opens when two friends play together! Tap the two-friends button to start.':s.need?`${s.n} opens when you have ${s.need} stars. You have ${stars()} so far!`:'Just a very tall tree… I wonder what\'s up there? Maybe the park has a clue.');return}usfx('pop');go(s.id);return}
+ m.onclick=ev=>{const wb=ev.target.closest('.wsw');if(wb){worldSwitch(wb.dataset.w!=null?+wb.dataset.w:null);return}if(ev.target.closest('[data-sea]')){seaMapTap(ev.target.closest('[data-sea]'));return}if(ev.target.closest('#hpaint')){openHouse();return}const sp=ev.target.closest('[data-go]');if(sp){const s=mapSpots().find(x=>x.id===sp.dataset.go);if(!s)return;if(!spotOpen(s)){usfx('nope');toast(s.why?s.why:s.sneed?`${s.n} opens when you have ${s.sneed} Coral Cove stickers. You have ${seaStars()} so far — explore, make things and meet the sea creatures!`:s.fneed?`${s.n} opens when you have ${s.fneed} Clover Farm stickers. You have ${farmStars()} so far — look after the animals and grow things!`:s.duo?'Buddy Island opens when two friends play together! Tap the two-friends button to start.':s.need?`${s.n} opens when you have ${s.need} stars. You have ${stars()} so far!`:'Just a very tall tree… I wonder what\'s up there? Maybe the park has a clue.');return}usfx('pop');go(s.id);return}
   if(ev.target.closest('[data-whale]')){usfx('splash');const w=m.querySelector('.whale');w.classList.remove('hi');void w.getBoundingClientRect();w.classList.add('hi');if(!G.st.whale){star('whale');setTimeout(()=>!SID&&showMap(),900)}return}
   if(ev.target.closest('#gbal'))openGift()}}
 const HWALL=['#ffe3ea','#fff3c4','#ffe2c8','#dcf6c9','#d3f3ee','#e3f0ff','#f0deff','#ffffff'],HROOF=['#ff7d9a','#ff8552','#ffc531','#56c596','#2bb7a3','#5b9bf0','#9b6bff','#8a5a44'];
@@ -2756,8 +3297,8 @@ function openHouse(){const hs=Object.assign({},HOUSE0,G.house),row=(k,list)=>lis
  $('#hctl').onclick=ev=>{const b=ev.target.closest('button');if(!b)return;hs[b.dataset.k]=b.dataset.c;G.house={w:hs.w,r:hs.r};usfx('splat');star('housepaint');dirty();ren();if(NET.peer)NET.send({t:'house',h:G.house});if(!SID)showMap()};
  $('#hok').onclick=closeModal}
 /* the map is only redrawn when something on it really changed — otherwise a tap could get lost while a friend's news arrives */
-function mapSig(){return JSON.stringify([G.world||0,farmOpen(),G.house,NET.frHouse,!!NET.peer,NET.role,mapSpots().map(s=>s.id+(spotOpen(s)?1:0)),!!G.st.whale,G.daily.last===dayN()])}
-function netMark(){const el=$('#mfr');if(!el)return;let s=NET.peer&&NET.there?mapSpots().find(x=>x.id===netSpot(NET.there)):null;if(!s&&NET.peer&&NET.there){const w=$('#wsw');if(w)s={x:w.offsetLeft+w.offsetWidth/2,y:w.offsetTop-96}} // friend is in the other world: point at the signpost
+function mapSig(){return JSON.stringify([G.world||0,farmOpen(),seaOpen(),!!G.st.manta,G.house,NET.frHouse,!!NET.peer,NET.role,mapSpots().map(s=>s.id+(spotOpen(s)?1:0)),!!G.st.whale,G.daily.last===dayN()])}
+function netMark(){const el=$('#mfr');if(!el)return;let s=NET.peer&&NET.there?mapSpots().find(x=>x.id===netSpot(NET.there)):null;if(!s&&NET.peer&&NET.there){const tw=(SC[NET.there]&&SC[NET.there].w)||0,cw=G.world||0,w=$(cw===1&&tw===2?'#wsw2':cw===2&&tw===0?'#wsw0':'#wsw');if(w)s={x:w.offsetLeft+w.offsetWidth/2,y:w.offsetTop-96}} // friend is in the other world: point at the signpost
  if(!s){el.style.display='none';return}el.style.display='';el.style.left=s.x+'px';el.style.top=(s.y+50)+'px'}
 function mapPing(){if(SID||!$('#map').classList.contains('on'))return;if(showMap.sig!==mapSig())showMap();else netMark()}
 function hideMap(){const m=$('#map');m.className='ui';m.innerHTML='';m.onclick=null;$stage.classList.remove('onmap')}
