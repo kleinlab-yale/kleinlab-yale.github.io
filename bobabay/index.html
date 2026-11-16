@@ -484,7 +484,14 @@ input{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
 @keyframes mbub{0%{transform:translateY(0);opacity:0}12%{opacity:.9}100%{transform:translateY(-330px);opacity:0}}
 .spot.locked.mys .sp-in{filter:none}
 .sea .ent>.in>.avtag{bottom:-52px}
-.sea #snow,.seamap #snow{display:none!important}
+.sea #snow i,.seamap #snow i{opacity:.75;box-shadow:none} /* under water the Christmas snow is soft 'sea snow' */
+#stylep{width:404px;max-height:756px;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+#stylep .sws{gap:7px}#stylep .sws .swt{width:34px;height:34px}#stylep .swt.xoff svg{width:19px;height:19px}
+#stylep .srow2{gap:6px;margin-top:10px}#stylep .srow2 .btn.sm{padding:0 9px;font-size:18px;height:46px}
+#stylep .lbl{margin:5px 0 4px;font-size:18px}
+#stylep h3{font-size:26px;margin:0 0 4px}
+#stylep .srow{margin:3px 0}#stylep .srow button{width:46px;height:46px}#stylep .srow button svg{width:27px;height:27px}#stylep .srow span{font-size:23px}
+#stylep>.sub.sm{font-size:17px;margin:8px 0 0}
 
 </style>
 </head>
@@ -739,7 +746,8 @@ function charSVG(e){const c=e.c,s=e.s,t=tr(e),f=t.face||(s.pose==='sleep'?'sleep
  const tx=sit?' transform="translate(0 42)"':'',b=bodySVG(c,s,sit,merOn()?tailCol(e):'');
  // legs & shoes stay put when sitting; everything above the hips slides down onto the seat
  const k=b.indexOf('</g></g>')+8,par=e.par&&S&&byId(e.par),legs=s.pose==='sleep'||(par&&TD(par).tuck)?'':b.slice(0,k),rest=b.slice(k); // tucked away inside a cannon or a submarine: no legs showing
- return(sit||s.pose==='sleep'?'':E(65,227,48,7,'rgba(30,10,60,.14)',0,NP))+`<g${tx}>${h.back}</g>`+legs+`<g${tx}>${rest}${up}</g>`}
+ const fl=s.fl&&s.pose!=='sleep'?floatSVG(s):null; // a swim ring: half behind the body, half in front
+ return(sit||s.pose==='sleep'?'':E(65,227,48,7,'rgba(30,10,60,.14)',0,NP))+`<g${tx}>${h.back}${fl?fl.back:''}</g>`+legs+`<g${tx}>${rest}${up}${fl?fl.front:''}</g>`}
 function randChar(){const s={hs:ri(0,HAIRN-1),of:ri(0,OUTN-1),lash:Math.random()<.5?1:0,fr:Math.random()<.3?1:0,lid:Math.random()<.7?1:0,pose:'stand'};
  return{s,c:{a:pick(SKIN.slice(0,6)),b:pick(HAIRC),c:pick(PAL.slice(0,15)),d:pick(['#4a90e2','#6c63ff','#ff8fb1','#2bb7a3','#4a4e69','#ffb74d','#9b6bff','#e9e4f5']),e:pick(['#ff5c7a','#ffd23f','#4a4e69','#56d39a','#7ad3ff','#9b6bff'])}}}
 
@@ -2232,7 +2240,9 @@ D('dyepot','Dye Pot',170,150,'fix',{a:'#8d99ae'},(e,c)=>{const col=hexOk(e.s.col
    return false},
   tap(e){anim(e,'wig',300);say(e,e.s.col?'Dip wool or yarn in me!':'Drop in a strawberry, blueberry, carrot… to make dye!')}});
 D('ksweat','Knitted Sweater',120,100,'item',{a:'#fff6e8',b:'#ffffff',d:'#ff8fb1'},(e,c)=>sh(120,100,.36)+P('M30 10 Q60 0 90 10 L118 40 L100 56 L94 48 L94 96 L26 96 L26 48 L20 56 L2 40Z',c.a,'a')+R(26,44,68,10,0,c.b,'b')+R(26,60,68,10,0,c.d,'d')+R(24,88,72,10,5,c.b,'b')+P('M44 8 Q60 18 76 8',c.b,'b'),
- {wear(ch,it){if(ch.s.xs===6&&S){const z=absXY(ch);popOut('ksweat',z.x+70,z.y-120,{c:{a:ch.s.kc||'#fff6e8',b:ch.s.kc2||'#ffffff',d:ch.s.kc3||'#ff8fb1'}},90)}ch.s.xs=6;ch.s.kc=it.c.a;ch.s.kc2=it.c.b;ch.s.kc3=it.c.d;rm(it);redraw(ch);hearts(ch,4);sfx.magic();say(ch,pick(['So cozy!','I love it!','Toasty warm!']));star('cozy');dirty()}});
+ {wear(ch,it){const k=[hexOk(it.c.a)?it.c.a:'#fff6e8',hexOk(it.c.b)?it.c.b:'#ffffff',hexOk(it.c.d)?it.c.d:'#ff8fb1'];if(ch.s.xs===6)wardGive('sw',[ch.s.kc,ch.s.kc2,ch.s.kc3]);const fresh=wardGive('sw',k);
+   ch.s.xs=6;ch.s.kc=k[0];ch.s.kc2=k[1];ch.s.kc3=k[2];rm(it);redraw(ch);hearts(ch,4);sfx.magic();say(ch,pick(['So cozy!','I love it!','Toasty warm!']));star('cozy');dirty();
+   if(fresh&&!G.flags.wtip){G.flags.wtip=1;toast('Your sweater now lives in your wardrobe: take it off or put it back on in the makeover window any time.',6000)}}});
 D('flour','Flour',66,74,'item',{a:'#f6efe2'},(e,c)=>sh(66,74,.36)+P('M10 18 Q8 70 14 72 L52 72 Q58 70 56 18Z',c.a,'a')+P('M10 18 Q20 2 33 10 Q46 2 56 18Z',dk(c.a,.08),'a')+L('M24 34 L24 58 M24 40 l-6 -4 M24 46 l-6 -4 M24 52 l-6 -4 M24 40 l6 -4 M24 46 l6 -4 M24 52 l6 -4','#d9a52e',2.400,0,NO)+R(32,38,18,12,3,'#ffe9a8'));
 const RECIPE={bread:['Bread dough','#f3d9a4'],cake:['Cake batter','#ffe0ec'],pie:['Unbaked pie','#f2c27a'],mush:['Mystery mush','#b9c98a']},FRUITS=Object.keys(JAMF);
 D('batter','Baking Tin',100,56,'item',{a:'#b7c0d3'},(e,c)=>{const r=RECIPE[e.s.r]?e.s.r:'mush';return sh(100,56,.34)+P('M6 22 L94 22 L86 52 L14 52Z',c.a,'a')+E(50,22,44,9,RECIPE[r][1])+(r==='pie'?L('M20 20 L80 20 M30 14 L30 28 M50 13 L50 30 M70 14 L70 28',dk(RECIPE[r][1],.2),3,0,NO)+C(40,22,4,hexOk(e.s.fc)?e.s.fc:'#ff5c7a',0,NO)+C(62,24,4,hexOk(e.s.fc)?e.s.fc:'#ff5c7a',0,NO):r==='cake'?C(36,20,3,'#ff8fb1',0,NO)+C(62,22,3,'#7ad3ff',0,NO):'')},{nm:e=>(RECIPE[e.s.r]||RECIPE.mush)[0],tap(e){anim(e,'wig',300);say(e,'Bake me in the wood stove!')}});
@@ -2277,7 +2287,14 @@ function xfit(v,skin,s){const F=v===6?[s&&hexOk(s.kc)?s.kc:'#fff6e8',s&&hexOk(s.
  else if(v===4)o+=R(60,116,10,64,0,b,0,NO)+R(33,160,64,10,0,k,0,NO)+R(58,158,14,14,3,'#ffd23f',0,NO)+R(40,112,50,9,4.500,b,0,NO);
  else o+=P('M41 116 L49 129 L57 119 L65 131 L73 119 L81 129 L89 116 Q65 109 41 116Z',b,0,NO)+C(65,145,3.400,k,0,NO)+C(65,159,3.400,k,0,NO)+R(33,167,64,8,0,b,0,NO);
  return o}
-function xFitRow(ch){const f=(G.xmas&&G.xmas.fit)||[];if(!f.length&&!ch.s.xs)return'';return`<div class="lbl">Christmas outfits</div><div class="sws"><button class="swt xoff${ch.s.xs?'':' on'}" data-a="xs" data-c="0">${IC.x}</button>`+f.map(v=>`<button class="swt${ch.s.xs===v?' on':''}" data-a="xs" data-c="${v}" title="${XFITN[v]}" style="background:linear-gradient(135deg,${XFITC[v][0]} 55%,${XFITC[v][1]} 55%)"></button>`).join('')+`</div>`}
+/* the wardrobe: clothes you made yourself (knitted sweaters, necklaces) stay yours when you take them off */
+const wardOk=a=>Array.isArray(a)&&a.length===3&&a.every(hexOk),wardKey=c=>c.join('').toLowerCase();
+function ward(k){const w=G.ward=G.ward&&typeof G.ward==='object'?G.ward:{};w[k]=Array.isArray(w[k])?w[k].filter(wardOk).slice(-16):[];return w[k]}
+function wardAdd(k,cols){if(!wardOk(cols))return false;const l=ward(k),key=wardKey(cols);if(l.some(c=>wardKey(c)===key))return false;l.push(cols.slice());if(l.length>16)l.shift();dirty();return true}
+function wardGive(k,cols){if(ACTOR&&NET.peer){NET.send({t:'ward',k,c:cols});return false}return wardAdd(k,cols)} // what my friend's hands put on goes into my friend's wardrobe, not mine
+const wardSw=(a,cols,on)=>`<button class="swt${on?' on':''}" data-a="${a}" data-c="${cols.join('')}" style="background:linear-gradient(135deg,${cols[0]} 38%,${cols[1]} 38% 68%,${cols[2]} 68%)"></button>`;
+function xFitRow(ch){const f=(G.xmas&&G.xmas.fit)||[],mine=[ch.s.kc,ch.s.kc2,ch.s.kc3];if(ch.s.xs===6)wardAdd('sw',mine);const sw=ward('sw'),key=ch.s.xs===6&&wardOk(mine)?wardKey(mine):'',sm=swimBtns(ch);if(!f.length&&!sw.length&&!sm&&!ch.s.xs)return'';
+ return`<div class="lbl">My outfits</div><div class="sws"><button class="swt xoff${ch.s.xs?'':' on'}" data-a="xs" data-c="0">${IC.x}</button>`+sm+sw.map(c=>wardSw('kw',c,key===wardKey(c))).join('')+f.map(v=>`<button class="swt${ch.s.xs===v?' on':''}" data-a="xs" data-c="${v}" title="${XFITN[v]}" style="background:linear-gradient(135deg,${XFITC[v][0]} 55%,${XFITC[v][1]} 55%)"></button>`).join('')+`</div>`}
 function xFit(v){const x=xState();if(!x.fit.includes(v)){x.fit.push(v);x.fit.sort();dirty()}}
 
 /* ---------- three Christmas hats ---------- */
@@ -2323,26 +2340,47 @@ function openAdvent(){const x=xState(),t=xDay();if(t<0){toast('The Christmas cal
  $('#modal .xcal').onclick=ev=>{const b=ev.target.closest('.xdoor');if(!b)return;const i=+b.dataset.d;if(x.got[i])return;if(i>t){usfx('nope');toast('That door opens on '+xLabel(i)+'.');return}xOpen(i)}}
 
 /* ---------- Santa comes to your living room on Christmas Eve (or Christmas Day, if you missed him) ---------- */
-function xSanta(){const x=xState(),d=xDay(),y=NOW().getFullYear();if(d<29||x.santa===y||!S||(SC[SID].base||SID)!=='home'||NET.mir||(NET.peer&&!iOwn(SID)))return;x.santa=y;dirty();
+const XHOMES={home:['Back up the chimney… ho ho ho!','Jingle, jingle… is that someone on the roof?'],fhouse:['The reindeer are waiting by the barn… ho ho ho!','Jingle, jingle… are those sleigh bells over the farm?'],shome:['Back up to the sleigh in my bubble… ho ho ho!','Jingle, jingle… is someone swimming down the chimney?']};
+function xSanta(){const x=xState(),d=xDay(),y=NOW().getFullYear(),hk=S?SC[SID].base||SID:'';if(d<29||!S||!XHOMES[hk]||NET.mir||(NET.peer&&!iOwn(SID)))return;
+ x.sv=x.sv||{};if(hk==='home'?x.santa===y:x.sv[hk]===y)return;if(hk==='home')x.santa=y;else x.sv[hk]=y;dirty(); // Santa finds each of your homes once a year
  const sid=SID,ok=()=>SID===sid&&S&&!NET.mir,[ft,fb]=SC[SID].floor,tree=S.ents.find(e=>e.t==='xtree'&&!e.par),px=tree?clamp(tree.x,300,W-300):800;let santa;
- setTimeout(()=>{if(!ok())return;[0,1,2,3,4].forEach(i=>setTimeout(()=>sfx.ding(),i*170));toastAll('Jingle, jingle… is that someone on the roof?',3600)},900);
- setTimeout(()=>{if(!ok())return;const sx=clamp(px+260,200,W-200);santa=spawn('char',sx,ft+150,{c:{a:SKIN[1],b:'#ffffff',c:XRED,d:XRED,e:'#35252d'},s:{hs:0,of:3,xs:4,beard:1,npc:2,lid:0,pose:'stand'}});
-   const hat=spawn('hat',0,0,{s:{v:X0}}),sl=chSlot(santa,'head',hat);attach(hat,santa,'head',sl.dx,sl.dy,'put');tr(santa).busy=1;tr(hat).busy=1;anim(santa,'pop',320);sparkle(sx,ft-40,12);sfx.magic();say(santa,'Ho ho ho! Merry Christmas!',2600);star('santa');xFit(4)},2600);
+ setTimeout(()=>{if(!ok())return;[0,1,2,3,4].forEach(i=>setTimeout(()=>sfx.ding(),i*170));toastAll(XHOMES[hk][1],3600)},900);
+ setTimeout(()=>{if(!ok())return;const sx=clamp(px+260,200,W-200);santa=spawn('char',sx,ft+150,{c:{a:SKIN[1],b:'#ffffff',c:XRED,d:XRED,e:'#35252d',t:XRED},s:{hs:0,of:3,xs:4,beard:1,npc:2,lid:0,pose:'stand'}});
+   const hat=spawn('hat',0,0,{s:{v:X0}}),sl=chSlot(santa,'head',hat);attach(hat,santa,'head',sl.dx,sl.dy,'put');tr(santa).busy=1;tr(hat).busy=1;anim(santa,'pop',320);sparkle(sx,ft-40,12);sfx.magic();say(santa,hk==='shome'?'Ho ho ho! Merry Christmas… blub! I swam all the way down!':hk==='fhouse'?'Ho ho ho! Merry Christmas, little farmer!':'Ho ho ho! Merry Christmas!',2800);star('santa');xFit(4)},2600);
  setTimeout(()=>{if(!ok()||!santa||!byId(santa.id))return;const ck=S.ents.find(e=>(e.t==='cookie'||e.t==='ginger')&&!tr(e).drag);let n=3;
    if(ck){const a=absXY(ck);crumbs(a.x,a.y-10,'#f2b880');rm(ck);sfx.chomp();setFace(santa,'yum',1600);say(santa,'Mmm, cookies! Thank you!',2400);star('cookies');n=4}
    for(let i=0;i<n;i++)setTimeout(()=>{if(!ok())return;const e=spawn('present',px,ft+60);delete e.fre;e.ow=NET.peer?myNo():undefined;if(!e.ow)delete e.ow;anim(e,'pop',300);sfx.pop();e.x=clamp(px+(i-(n-1)/2)*96,80,W-80);e.y=Math.min(fb,ft+170+(i%2)*26);place(e)},500+i*420)},5200);
- setTimeout(()=>{if(!ok()||!santa||!byId(santa.id))return;say(santa,'A Santa suit for you, too! Back up the chimney… ho ho ho!',3000)},8600);
+ setTimeout(()=>{if(!ok()||!santa||!byId(santa.id))return;say(santa,(x.fit.includes(4)&&hk!=='home'?'Presents for you! ':'A Santa suit for you, too! ')+XHOMES[hk][0],3000)},8600);
  setTimeout(()=>{if(SID!==sid||!santa||!byId(santa.id))return;const a=absXY(santa);sparkle(a.x,a.y-120,14);puff(a.x,a.y-110,'#ffffff',6);sfx.magic();rm(santa);toast('Santa left a Santa suit in your Christmas outfits!',4200)},11800)}
-SC.home.enter=function(){xSanta()};
+SC.home.enter=function(){xSanta()};SC.fhouse.enter=function(){xSanta()}; // (the pineapple house asks for him too, in the Coral Cove file)
 
 /* ---------- snow in town, the calendar button, the Christmas box ---------- */
-function xTown(){const x=556,y=652;return`<g transform="translate(${x} ${y})" class="np">`+outline(R(-7,-14,14,18,3,'#9a6a4a')+P('M0 -60 L44 -8 Q0 4 -44 -8Z','#2e9e6b')+P('M0 -96 L34 -44 Q0 -34 -34 -44Z','#34ad76')+P('M0 -124 L24 -80 Q0 -72 -24 -80Z','#3fbd84'),5)+P(star5(0,-128,13,6),'#ffd23f')+[[-16,-52],[14,-58],[-24,-20],[4,-24],[26,-16],[-6,-88],[10,-94]].map(([a,b],i)=>`<circle cx="${a}" cy="${b}" r="5" fill="${XCOL[i%6]}" class="tw" style="animation-delay:-${(i*.4).toFixed(1)}s"/>`).join('')+`</g>`}
+function xTree(x,y,k=1){return`<g transform="translate(${x} ${y}) scale(${k})" class="np">`+outline(R(-7,-14,14,18,3,'#9a6a4a')+P('M0 -60 L44 -8 Q0 4 -44 -8Z','#2e9e6b')+P('M0 -96 L34 -44 Q0 -34 -34 -44Z','#34ad76')+P('M0 -124 L24 -80 Q0 -72 -24 -80Z','#3fbd84'),5)+P(star5(0,-128,13,6),'#ffd23f')+[[-16,-52],[14,-58],[-24,-20],[4,-24],[26,-16],[-6,-88],[10,-94]].map(([a,b],i)=>`<circle cx="${a}" cy="${b}" r="5" fill="${XCOL[i%6]}" class="tw" style="animation-delay:-${(i*.4).toFixed(1)}s"/>`).join('')+`</g>`}
+function xTown(){if((G.world||0)!==1)return xTree(556,652); // Clover Farm: a tree by the road, a snowman by the farmhouse, snow on the fields
+ return[[250,470,150,26],[900,700,180,30],[1420,640,150,26],[560,760,130,22]].map(([x,y,rx,ry])=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity=".8" class="np"/>`).join('')+xTree(778,752,1.100)
+  +`<g transform="translate(396 500) scale(.42)" class="np">`+outline(T.snowman.draw({s:{},c:T.snowman.c},T.snowman.c).replace(/<ellipse[^>]*rgba[^>]*>/,''),7)+`</g>`+xWreath(880,436,.62)}
 function xHud(){if(!$xbox)return;const on=XMAS(),n=(G.xbox||[]).length,sc=SID&&SC[SID],t=xDay(),b=$('#b-xmas');$stage.classList.toggle('xmas',on);$stage.classList.toggle('out',!!sc&&!sc.in);$stage.classList.toggle('hasx',n>0||on);
  const bd=$xbox.querySelector('.badge');bd.textContent=n||'';bd.style.display=n?'':'none';
  if(on){const x=xState();b.querySelector('b').textContent=xLabel(t).split(' ')[1];b.classList.toggle('ready',!x.got[t])}}
 function xInit(){$xbox=$('#xbox');$xbox.innerHTML=outline(IC.gift.replace(/#ff7aa8/g,XRED).replace(/#ff9cc0/g,'#ff6b6b').replace(/#ffd23f/g,XGRN),3.400)+'<span class="badge"></span>';$xbox.onclick=()=>openTray('xbox');
  const b=$('#b-xmas');b.innerHTML=`<svg viewBox="0 0 24 24"><path d="M12 2 L18 10 H15 L20 17 H4 L9 10 H6Z" fill="${XGRN}"/><rect x="10.500" y="17" width="3" height="4" fill="#9a6a4a"/><circle cx="12" cy="3" r="1.800" fill="#ffd23f"/></svg><b></b>`;b.onclick=()=>{ac();openAdvent()};
  $('#snow').innerHTML=Array.from({length:26},(_,i)=>`<i style="left:${(i*61+17)%1600}px;animation-duration:${6+i%5*1.700}s;animation-delay:-${(i*1.300)%9}s;width:${8+i%3*4}px;height:${8+i%3*4}px"></i>`).join('');xState();xHud()}
+
+/* ---------- every world dresses up: strings of lights in the shops and outdoors, snow on the ground, little Santa hats ---------- */
+const xBulbs=(pts,r=9)=>pts.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${XCOL[i%6]}" stroke="${INK}" stroke-width="3" class="tw" style="animation-delay:-${(i*.31).toFixed(2)}s"/>`).join('');
+function xGarland(y,wire='#5a3b2a'){const pts=[];for(const[x0,x1]of[[40,560],[560,1040],[1040,1560]])for(const t of[.14,.32,.5,.68,.86])pts.push([Math.round((1-t)*(1-t)*x0+2*(1-t)*t*(x0+x1)/2+t*t*x1),Math.round(y+2*(1-t)*t*78)+13]);
+ return`<g class="np">`+L(`M40 ${y} Q300 ${y+78} 560 ${y} Q800 ${y+78} 1040 ${y} Q1300 ${y+78} 1560 ${y}`,wire,4)+xBulbs(pts)+`</g>`}
+function xSnowy(y){return`<g class="np"><path d="M0 ${y+6} Q200 ${y-24} 400 ${y} Q600 ${y+24} 800 ${y-2} Q1000 ${y-26} 1200 ${y+2} Q1400 ${y+28} 1600 ${y-8} L1600 ${y+44} Q1400 ${y+70} 1200 ${y+42} Q1000 ${y+14} 800 ${y+40} Q600 ${y+66} 400 ${y+40} Q200 ${y+16} 0 ${y+48}Z" fill="#fff" opacity=".92"/>`
+ +[[150,706,96],[520,650,70],[860,826,110],[1180,696,84],[1450,806,100],[330,866,84],[1010,632,60]].map(([x,yy,r])=>E(x,yy,r,r*.2,'#fff',0,' opacity=".85"')).join('')+`</g>`}
+function xWreath(x,y,k=1){return`<g transform="translate(${x} ${y}) scale(${k})" class="np">`+outline(U([0,40,80,120,160,200,240,280,320].map(a=>C(Math.round(44*Math.cos(a*Math.PI/180)),Math.round(44*Math.sin(a*Math.PI/180)),20,'#2e9e6b')).join(''),6)+P('M0 42 Q-21 26 -25 42 Q-21 56 0 44 Q21 56 25 42 Q21 26 0 42Z',XRED),5)+[[-35,-26],[35,-20],[-19,38],[27,34],[0,-44]].map(([a,b])=>C(a,b,5.500,XRED)).join('')+`</g>`}
+function xWrap(sc,extra){const d0=sc.draw;sc.draw=function(st){const o=d0.call(this,st);return XMAS()?o.replace(/<\/svg>$/,extra(st)+'</svg>'):o}}
+xWrap(SC.park,()=>xSnowy(566)+xGarland(128));           // also the schoolyard and Clover Farm's fields, which share this picture
+xWrap(SC.beach,()=>xGarland(128));xWrap(SC.castle,()=>xGarland(128,'#b98cf0'));xWrap(SC.duo,()=>xGarland(128));
+xWrap(SC.barn,()=>xGarland(318)+xWreath(800,208,.9));
+{const r0=roomBg;window.roomBg=function(st,sc){const o=r0(st,sc);return XMAS()&&!sc.home&&!sc.nogar?o.replace(/<\/svg>$/,xGarland(128)+'</svg>'):o}} // shops, the classroom and other shared rooms; homes are yours to decorate
+const xCap=(x,y,k=1,r=0)=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(${k})">`+P('M-22 2 Q-20 -40 8 -46 Q28 -48 34 -24 Q22 -34 14 -22 Q22 -8 22 2Z',XRED)+R(-29,-5,58,15,7.500,'#fff')+C(35,-22,9,'#fff')+`</g>`;
+function xDress(t,x,y,k,r,ok){const d=T[t];if(!d)return;const d0=d.draw;d.draw=(e,c)=>d0(e,c)+(XMAS()&&(!ok||ok(e))?xCap(x,y,k,r):'')} // at Christmas time the animals wear little Santa hats
+xDress('cow',50,32,.9,-8);xDress('sheep',36,36,.7,-6);xDress('pig',40,25,.8,-6);xDress('hen',28,20,.5,-6);xDress('pony',42,22,.8,-10);
 
 /* ---------- the front page and the tab icon dress up for Christmas ---------- */
 function xFig(base,xs,hv){const e=mk('char',0,0,{c:base.c,s:Object.assign({},base.s,{xs})},true),h=mk('hat',0,0,{s:{v:X0+hv}},true),sl=chSlot(e,'head',h); // a friend in a Christmas outfit and hat, drawn as one picture
@@ -2416,7 +2454,7 @@ function seaBg(st,deco){const b=st.bg,n=st.night,top=n?'#0a1c3d':lt(b.sky,.45),b
   +P('M0 590 Q260 556 520 584 Q800 612 1080 580 Q1340 554 1600 590 L1600 604 Q1340 570 1080 596 Q800 628 520 600 Q260 572 0 606Z',lt(b.ground,.5),0,' opacity=".7" class="np"'+NO)
   +[[120,700],[420,660],[640,790],[880,690],[1130,860],[1290,680],[1500,790],[300,860],[980,800]].map(([x,y])=>L(`M${x} ${y} q16 -8 32 0 q16 8 32 0`,dk(b.ground,.1),4,0,NP)).join('')
   +[[220,760],[760,880],[1210,740],[1420,872],[560,720]].map(([x,y])=>C(x,y,5,dk(b.ground,.16),0,NP)+C(x+15,y+7,3,dk(b.ground,.16),0,NP)).join('');
- return o+(deco?deco(st):'')+'</svg>'}
+ return o+(deco?deco(st):'')+(XMAS()?xGarland(128,'#1f8a78'):'')+'</svg>'}
 const coralArt=(x,y,k,sc=1)=>`<g transform="translate(${x} ${y}) scale(${sc})" class="np">`+U(R(-9,-70,18,72,9,k)+R(-44,-52,16,40,8,k)+R(-44,-28,44,14,7,k)+R(28,-64,16,46,8,k)+R(0,-36,44,14,7,k)+C(-36,-56,10,k)+C(36,-68,10,k)+C(0,-74,12,k),5)+`</g>`;
 const SEAB={sky:'#49bdea',ground:'#ffe7b0'};
 
@@ -2444,7 +2482,7 @@ D('clam','Giant Clam',240,196,'fix',{a:'#ff9fc0'},(e,c)=>{const g=pearlG(e),pc=h
    +P('M18 108 Q20 186 120 190 Q220 186 222 108 Q120 146 18 108Z',c.a,'a')+L('M120 186 L60 132 M120 186 L90 140 M120 186 L120 142 M120 186 L150 140 M120 186 L180 132',dk(c.a,.14),3,0,NO)+C(96,160,5,INK)+C(144,160,5,INK)+L('M110 170 Q120 178 130 170',INK,3)},
  {fx:1,accept(e,it){if(!['kelp','sgrape','bberry'].includes(it.t)||!e.s.pt||pearlG(e)>=3)return false;rm(it);sfx.chomp();anim(e,'chomp',220);hearts(e,2);e.s.pt-=PEARLMS/3;say(e,'Mmm! That helps my pearl grow!');dirty();return true},
   tap(e){const g=pearlG(e),a=absXY(e);if(g<3){anim(e,'chomp',220);sfx.snip();say(e,['My next pearl has only just started… a sea snack would help!','Growing, growing… not shiny yet.','Almost ready! Just a little longer.'][g]);return}
-   const pc=hexOk(e.s.pc)?e.s.pc:'#fff6ee';e.s.pt=Date.now();e.s.pg=0;e.s.pc=pick(PEARLC);redraw(e);anim(e,'land',260);sfx.ding();sparkle(a.x,a.y-110,7);popTo('pearl',e,165,{c:{a:pc}});say(e,'A pearl for you! I\'ll grow another.');star('pearl');dirty()},
+   const pc=hexOk(e.s.pc)?e.s.pc:'#fff6ee';e.s.pt=Date.now();e.s.pg=0;e.s.pc=pick(PEARLC);redraw(e);anim(e,'land',260);sfx.ding();sparkle(a.x,a.y-110,7);popTo('pearl',e,-165,{c:{a:pc}});say(e,'A pearl for you! I\'ll grow another.');star('pearl');dirty()},
   tick(e){if(!e.s.pt)return;const g=pearlG(e);if(g>=3){e.s.pt=0;e.s.pg=0;redraw(e);const a=absXY(e);sparkle(a.x,a.y-110,6);sfx.ding();dirty();return}if(g!==(e.s.pg|0)){e.s.pg=g;redraw(e);anim(e,'land',240);dirty()}}});
 D('pearl','Pearl',52,52,'item',{a:'#fff6ee'},(e,c)=>sh(52,52,.32)+(e.s.glow?C(26,26,25,'#9dfbe6',0,' opacity=".45" class="np"'+NO):'')+C(26,27,19,c.a,'a')+C(19,20,6,'#fff',0,' opacity=".9"'+NO)+(e.s.sh?P(star5(40,12,7,3),'#fff',0,NO):''),
  {nm:e=>(e.s.sh?'Shiny ':'')+(e.s.glow?'Glow Pearl':'Pearl'),nd:1,light:e=>e.s.glow?{dx:0,dy:-26,r:110}:null,tap(e){const a=absXY(e);sparkle(a.x,a.y-26,4);sfx.magic();anim(e,'wig',300)}});
@@ -2526,13 +2564,14 @@ D('swirl','Swirly Current',200,160,'toy',{a:'#d6f6ff'},(e,c)=>hit(200,160)+`<g c
    if(n)star('swirl');later(e,1500,()=>{tr(e).fast=0;redraw(e)})}});
 D('coral','Coral',170,180,'furn',{a:'#ff7aa8'},(e,c)=>sh(170,180,.4)+U(R(74,40,22,136,11,c.a,'a')+R(22,70,20,74,10,c.a,'a')+R(22,120,70,20,10,c.a,'a')+R(128,54,20,82,10,c.a,'a')+R(82,112,66,20,10,c.a,'a')+C(32,66,15,c.a,'a')+C(138,50,15,c.a,'a')+C(85,34,17,c.a,'a')+R(48,20,16,50,8,c.a,'a')+C(56,18,11,c.a,'a')+R(50,56,36,14,7,c.a,'a'))+[[85,60],[32,96],[138,84],[85,120],[56,36]].map(([x,y])=>C(x,y,4,lt(c.a,.5),0,NO)).join(''));
 D('kelpp','Kelp Plant',120,290,'furn',{a:'#2bb7a3'},(e,c)=>sh(120,290,.3)+[[40,250,-1],[66,280,1],[88,220,-1]].map(([x,h,d])=>`<g${sway(x,286)}>`+`<path d="M${x} 286 q${d*22} ${-h/4} 0 ${-h/2} q${-d*22} ${-h/4} 0 ${-h/2}" fill="none" stroke="${d>0?c.a:dk(c.a,.14)}" stroke-width="20" stroke-linecap="round" data-p="a"/>`+`</g>`).join(''));
-CH.merk={c:{a:SKIN[1],b:'#7ad3ff',c:'#ff7aa8',d:'#ffd23f',e:'#ff5c7a',t:'#9b6bff'},s:{hs:6,of:3,lash:1}};
-CH.merb={c:{a:SKIN[4],b:'#2f2f48',c:'#ffd23f',d:'#4a90e2',e:'#ff5c7a',t:'#2bb7a3'},s:{hs:4,of:0,fr:1}};
+CH.merk={c:{a:SKIN[1],b:'#7ad3ff',c:'#ff7aa8',d:'#ffd23f',e:'#ff5c7a',t:'#9b6bff'},s:{hs:6,of:3,lash:1,xs:7}};
+CH.merb={c:{a:SKIN[4],b:'#2f2f48',c:'#ffd23f',d:'#4a90e2',e:'#ff5c7a',t:'#2bb7a3'},s:{hs:4,of:0,fr:1,xs:8}};
 
-SC.reef={n:'Coral Plaza',w:2,sea:1,floor:[610,872],land:90,bg:Object.assign({},SEAB),pat:{},nav:{r:'kelpg'},arrive:[950,858],
- draw:st=>seaBg(st,()=>coralArt(90,612,'#ff8fb1',1.300)+coralArt(1530,606,'#ffb74d',1.200)+coralArt(980,596,'#d58bff',.9)),
- init(a){a.put('bboard',170,716);a.put('bblaster',440,770);a.put('bfount',800,716);a.put('clam',1140,770);a.put('anemone',1410,750);a.put('char',620,842,CH.merk);
-  a.put('seastar',300,884);a.put('crab',700,888);a.put('shell',1040,888,{c:{a:'#d58bff'}});a.put('sandspot',1250,886);a.put('puffer',1400,884);a.put('kelpp',1576,690)}};
+SC.reef={n:'Coral Plaza',w:2,sea:1,floor:[610,872],land:90,bg:Object.assign({},SEAB),pat:{},nav:{r:'kelpg'},arrive:[765,868],enter(){if(!G.flags.swtip){G.flags.swtip=1;dirty();setTimeout(()=>toast('New here? The Splash Shop has swimsuits, snorkels and swim rings — and the round stage is for trying them on.',6500),1200)}},
+ draw:st=>seaBg(st,()=>coralArt(90,612,'#ff8fb1',1.300)+coralArt(1530,606,'#ffb74d',1.200)+(XMAS()?xCoralTree(1078,566,2.200):coralArt(1078,596,'#d58bff',.9))),
+ init(a){a.put('bboard',150,716);a.put('bblaster',380,770);a.put('swimrack',610,770);a.put('bfount',880,716);a.put('clam',1190,770);a.put('anemone',1450,750);
+  const k=a.put('char',240,876,CH.merk);a.give(k,'snorkel','head');a.put('stage',560,886,{c:{a:'#2bb7a3',b:'#ffd23f'}});
+  a.put('seastar',80,888);a.put('crab',910,894);a.put('shell',1110,888,{c:{a:'#d58bff'}});a.put('sandspot',1250,886);a.put('puffer',356,896);a.put('kelpp',1582,690)}};
 SC.kelpg={n:'Kelp Garden',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#3fc7c9',ground:'#ffe7b0'},pat:{},nav:{l:'reef',r:'shack'},arrive:[1165,866],
  draw:st=>seaBg(st,()=>coralArt(1560,610,'#ff8fb1',1.200)+coralArt(700,598,'#ffd23f',.8)+coralArt(60,606,'#d58bff',1)),
  init(a){a.put('swirl',1000,270);a.put('sseedbox',170,770);a.put('sbed',470,742);a.put('sbed',750,742);a.put('sbed',1030,742);a.put('sbed',610,866);a.put('sbed',890,866);a.put('octo',1420,770);a.put('kelpp',36,690,{c:{a:'#3fae6a'}});
@@ -2546,13 +2585,13 @@ function seaMap(){let o=SVGO+`<defs><linearGradient id="msea" x1="0" y1="0" x2="
  o+=[[150,190],[540,130],[930,210],[1320,150]].map(([x,w])=>`<path d="M${x} 0 L${x+w} 0 L${x+w-170} 640 L${x-250} 640Z" fill="#fff" opacity=".1"/>`).join('');
  o+=`<path d="M-40 330 Q90 200 230 270 Q340 170 470 260 Q640 180 790 262 Q960 170 1110 256 Q1280 180 1420 250 Q1540 210 1640 270 L1640 500 L-40 500Z" fill="#3c9fdd" opacity=".6"/>`;
  // someone big glides by
- o+=`<g class="manta" data-sea="manta"><g transform="translate(0 158)"><g class="bobm">`+outline(L('M150 36 Q158 84 196 100','#5b7fd6',7)+P('M0 0 Q44 -48 98 -30 Q130 -58 150 -22 Q170 -58 202 -30 Q256 -48 300 0 Q250 -6 206 22 Q172 44 150 40 Q128 44 94 22 Q50 -6 0 0Z','#5b7fd6'),5)+E(150,12,38,15,'#dfe9ff',0,NO)+C(131,-8,4.500,INK)+C(169,-8,4.500,INK)+L('M140 6 Q150 14 160 6',INK,3)+(G.st.manta?P(heartP(150,-58,10),'#ff7aa8'):'')+`</g><circle cx="150" cy="10" r="120" fill="transparent"/></g></g>`;
+ o+=`<g class="manta" data-sea="manta"><g transform="translate(0 158)"><g class="bobm">`+outline(L('M150 36 Q158 84 196 100','#5b7fd6',7)+P('M0 0 Q44 -48 98 -30 Q130 -58 150 -22 Q170 -58 202 -30 Q256 -48 300 0 Q250 -6 206 22 Q172 44 150 40 Q128 44 94 22 Q50 -6 0 0Z','#5b7fd6'),5)+E(150,12,38,15,'#dfe9ff',0,NO)+C(131,-8,4.500,INK)+C(169,-8,4.500,INK)+L('M140 6 Q150 14 160 6',INK,3)+(XMAS()?outline(xCap(150,-20,.8,-8),5):G.st.manta?P(heartP(150,-58,10),'#ff7aa8'):'')+`</g><circle cx="150" cy="10" r="120" fill="transparent"/></g></g>`;
  // the sandy sea floor and the shell path across it
  o+=`<path d="M-40 400 Q200 300 460 350 Q720 280 1000 350 Q1260 290 1640 360 L1640 940 L-40 940Z" fill="#f4dfa6" stroke="#b99c62" stroke-width="5"/><path d="M-40 700 Q360 620 800 690 Q1220 750 1640 660 L1640 940 L-40 940Z" fill="#ffefc4" stroke="#c9ad74" stroke-width="5"/>`;
  const RD='M-40 790 C230 760 330 690 560 700 C800 712 900 560 1140 580 C1340 596 1460 500 1640 480';o+=L(RD,'#e6cb8e',62)+L(RD,'#fff9e0',50);
  const kelp=(x,y,h,k)=>`<g class="sway" style="transform-origin:${x}px ${y}px">`+outline(`<path d="M${x} ${y} q-16 ${-h/4} 0 ${-h/2} q16 ${-h/4} 0 ${-h/2}" fill="none" stroke="${k}" stroke-width="15" stroke-linecap="round"/>`,4.500)+`</g>`;
  [[60,580,120,'#2bb7a3'],[100,600,90,'#3fae6a'],[730,440,100,'#3fae6a'],[1570,740,110,'#2bb7a3'],[910,430,80,'#2bb7a3'],[40,900,120,'#3fae6a'],[1250,900,90,'#2bb7a3']].forEach(([x,y,h,k])=>o+=kelp(x,y,h,k));
- [[440,570,'#ff8fb1',.8],[1560,600,'#ffb74d',.7],[640,860,'#ff7aa8',.9],[870,420,'#d58bff',.6],[1220,860,'#56d39a',.7],[60,440,'#ff8fb1',.7],[100,760,'#ffb74d',.6]].forEach(([x,y,k,s])=>o+=coralArt(x,y,k,s));
+ [[440,570,'#ff8fb1',.8],[1560,600,'#ffb74d',.7],[640,860,'#ff7aa8',.9],[870,420,'#d58bff',.6],[1220,860,'#56d39a',.7],[60,440,'#ff8fb1',.7],[100,760,'#ffb74d',.6]].forEach(([x,y,k,s],i)=>o+=XMAS()&&i===2?xCoralTree(x,y+6,1.400):coralArt(x,y,k,s)+(XMAS()?`<g class="np">`+xBulbs([[x-36*s,y-58*s],[x+36*s,y-70*s],[x,y-78*s]],5)+`</g>`:''));
  [[330,790,'#ff8552'],[820,800,'#ffd23f'],[700,560,'#ff7aa8'],[620,540,'#9b6bff'],[1160,700,'#ff8552']].forEach(([x,y,k])=>o+=outline(P(star5(x,y,15,7),k),4));
  [[500,760],[1000,640],[400,470],[760,470],[1560,780]].forEach(([x,y])=>o+=outline(P(`M${x} ${y} Q${x-20} ${y-6} ${x-16} ${y-20} Q${x-8} ${y-30} ${x} ${y-28} Q${x+8} ${y-30} ${x+16} ${y-20} Q${x+20} ${y-6} ${x} ${y}Z`,'#fff6ee'),4));
  // fish going by, and bubbles
@@ -2595,10 +2634,17 @@ D('jbench','Jewellery Bench',270,210,'fix',{a:'#c98f5a',b:'#ff8fb1'},(e,c)=>{con
    const big=js.length>=3,cols=js.splice(0,3),shiny=e.s.jsh;e.s.jsh=0;redraw(e);dirty();busyMaker(e,1700,()=>{const a=absXY(e),o={c:{a:cols[0],b:cols[1]||cols[0],d:cols[2]||cols[1]||cols[0]}};
     if(big){popTo('tiara',e,-150,o);say(e,'A tiara fit for a queen! Drop it on someone\'s head.',3000);star('tiara')}else{popTo('neck',e,-150,o);say(e,'A necklace! Drop it on a friend to put it on.',3000)}sfx.ding();if(shiny)sparkle(a.x-150,a.y-60,9)})}});
 D('neck','Necklace',92,74,'item',{a:'#fff6ee',b:'#ffc9de',d:'#cfe8ff'},(e,c)=>hit(92,74)+sh(92,74,.3)+L('M12 10 Q46 86 80 10','#e9dcc8',2.400,0,NO)+[[12,12],[18,28],[28,42],[46,50],[64,42],[74,28],[80,12]].map(([x,y],i)=>C(x,y,i===3?10:7,i===3?c.a:i%2?c.b:c.d,i===3?'a':i%2?'b':'d')).join(''),
- {wear(ch,it){if(ch.s.nk&&S){const z=absXY(ch);popOut('neck',z.x+70,z.y-120,{c:{a:ch.s.nc||'#fff6ee',b:ch.s.nc2||'#fff6ee',d:ch.s.nc3||'#fff6ee'}},90)}ch.s.nk=1;ch.s.nc=it.c.a;ch.s.nc2=it.c.b;ch.s.nc3=it.c.d;rm(it);redraw(ch);hearts(ch,4);sfx.magic();say(ch,pick(['So pretty!','I feel fancy!','Ooh, sparkly!']));star('neck');dirty()}});
+ {wear(ch,it){const k=[hexOk(it.c.a)?it.c.a:'#fff6ee',hexOk(it.c.b)?it.c.b:'#fff6ee',hexOk(it.c.d)?it.c.d:'#fff6ee'];if(ch.s.nk)wardGive('nk',[ch.s.nc,ch.s.nc2,ch.s.nc3]);const fresh=wardGive('nk',k);
+   ch.s.nk=1;ch.s.nc=k[0];ch.s.nc2=k[1];ch.s.nc3=k[2];rm(it);redraw(ch);hearts(ch,4);sfx.magic();say(ch,pick(['So pretty!','I feel fancy!','Ooh, sparkly!']));star('neck');dirty();
+   if(fresh&&!G.flags.wtip){G.flags.wtip=1;toast('Your necklace now lives in your wardrobe: take it off or put it back on in the makeover window any time.',6000)}}});
 D('tiara','Pearl Tiara',120,80,'hat',{a:'#fff6ee',b:'#ffc9de',d:'#cfe8ff'},(e,c)=>hit(120,80)+L('M20 76 Q60 54 100 76','#ffd23f',7)+P('M34 70 L43 42 L54 60 L60 32 L66 60 L77 42 L86 70Z','#ffd23f')+C(43,38,8,c.b,'b')+C(77,38,8,c.d,'d')+C(60,26,11,c.a,'a')+C(56,22,3.500,'#fff',0,' opacity=".85"'+NO),{hat:{dy:0}});
-function seaRow(ch){return tailRow(ch)+(ch.s.nk?`<div class="srow2"><button class="btn sm on" data-a="nk">Take off necklace</button></div>`:'')}
-{const a1=styleApply;window.styleApply=function(c,a,k,col,q){if(a==='nk'){if(c.s.nk){const o={c:{a:c.s.nc||'#fff6ee',b:c.s.nc2||'#fff6ee',d:c.s.nc3||'#fff6ee'}};c.s.nk=0;if(S&&byId(c.id)){const z=absXY(c);popOut('neck',z.x+70,z.y-120,o,90)}else{G.pack.push([mk('neck',0,0,o)]);updPack(true)}}if(S&&byId(c.id))redraw(c);dirty();return}a1(c,a,k,col,q)}}
+function seaRow(ch){const mine=[ch.s.nc,ch.s.nc2,ch.s.nc3],ring=[ch.s.fc,ch.s.fc2,ch.s.fc];if(ch.s.nk)wardAdd('nk',mine);if(ch.s.fl)wardAdd('fl',ring);const nk=ward('nk'),fl=ward('fl'),key=ch.s.nk&&wardOk(mine)?wardKey(mine):'',fkey=ch.s.fl&&wardOk(ring)?wardKey(ring):'';
+ return tailRow(ch)+(nk.length||ch.s.nk?`<div class="lbl">Necklaces</div><div class="sws"><button class="swt xoff${ch.s.nk?'':' on'}" data-a="nk">${IC.x}</button>`+nk.map(c=>wardSw('nw',c,key===wardKey(c))).join('')+`</div>`:'')
+  +(fl.length||ch.s.fl?`<div class="lbl">Swim rings</div><div class="sws"><button class="swt xoff${ch.s.fl?'':' on'}" data-a="fl">${IC.x}</button>`+fl.map(c=>wardSw('fw',c,fkey===wardKey(c))).join('')+`</div>`:'')}
+{const a1=styleApply;window.styleApply=function(c,a,k,col,q){ // a necklace that is taken off stays in the wardrobe, and goes back on from there
+  if(a==='nk'||a==='nw'){if(c.s.nk)wardGive('nk',[c.s.nc,c.s.nc2,c.s.nc3]);const m=a==='nw'?String(col).match(/#[0-9a-fA-F]{6}/g):null;if(m&&m.length===3){c.s.nk=1;c.s.nc=m[0];c.s.nc2=m[1];c.s.nc3=m[2]}else if(a==='nk')c.s.nk=0;if(S&&byId(c.id))redraw(c);dirty();return}
+  if(a==='fl'||a==='fw'){if(c.s.fl)wardGive('fl',[c.s.fc,c.s.fc2,c.s.fc]);const m=a==='fw'?String(col).match(/#[0-9a-fA-F]{6}/g):null;if(m&&m.length===3){c.s.fl=1;c.s.fc=m[0];c.s.fc2=m[1]}else if(a==='fl')c.s.fl=0;if(S&&byId(c.id))redraw(c);dirty();return}
+  a1(c,a,k,col,q)}}
 F('fizz','Berry Fizz',52,86,{a:'#ff7aa8'},(e,c)=>sh(52,86,.34)+P('M8 20 L44 20 L40 78 Q40 84 34 84 L18 84 Q12 84 12 78Z','#e8f6ff',0,' opacity=".9"')+P('M10 34 L42 34 L40 78 Q40 82 34 82 L18 82 Q12 82 12 78Z',c.a,'a')+[[20,48,4],[32,60,5],[24,70,3],[33,42,3]].map(([x,y,r])=>C(x,y,r,'#fff',0,' opacity=".7"'+NO)).join('')+L('M34 20 L42 2','#ff5c7a',4)+R(6,16,40,8,4,'#fff'),{r:'float'});
 D('kettle','Fizz Kettle',210,250,'fix',{a:'#7a6a8f',b:'#7ad3ff'},(e,c)=>{const b=tr(e).busy,col=hexOk(tr(e).col)?tr(e).col:'#cfeeff';return sh(210,250,.46)+`<rect x="40" y="10" width="140" height="140" fill="transparent" class="hit"/>`+P('M30 246 Q40 170 78 150 L132 150 Q170 170 180 246Z',c.a,'a')+E(105,152,30,9,'#ff8552')+(b?P('M86 150 Q96 126 104 144 Q112 122 124 150Z','#ffd23f',0,NO):'')+[[60,214],[150,206],[104,232]].map(([x,y])=>C(x,y,6,dk(c.a,.2),'a',NO)).join('')
    +R(84,126,42,10,5,'#4a4e69')+P('M52 126 Q46 60 105 54 Q164 60 158 126Z',c.b,'b')+E(105,58,30,8,col)+P('M158 86 Q190 76 194 50 L184 48 Q180 68 156 74Z',c.b,'b')+L('M62 70 Q40 90 58 112',dk(c.b,.2),8,'b')+C(105,44,9,'#ffd23f')+(b?`<g class="np bub">${C(92,30,7,'#fff')+C(118,20,9,'#fff')+C(104,6,5,'#fff')}</g>`:'')},
@@ -2609,7 +2655,7 @@ D('porthole','Bubble Window',210,210,'furn',{a:'#ffd27a'},(e,c)=>C(105,105,100,c
 D('clambed','Clam Bed',320,250,'furn',{a:'#b98cf0',b:'#8fe6d0'},(e,c)=>sh(320,250,.47)+P('M30 150 Q20 14 160 8 Q300 14 290 150Z',lt(c.a,.22),'a')+L('M160 146 L160 16 M160 146 L100 22 M160 146 L220 22 M160 146 L52 52 M160 146 L268 52',dk(c.a,.08),3,0,NO)+R(26,120,268,70,30,'#fff6fb')+R(96,104,128,56,26,'#ffffff')+L('M148 130 l8 6 l8 -6',dk('#ffffff',.2),2.600),
  {front:(e,c)=>P('M14 160 Q160 128 306 160 L304 222 Q160 244 16 222Z',c.b,'b')+P('M14 160 Q160 128 306 160 L306 182 Q160 150 14 182Z',lt(c.b,.5),'b',NO)+L('M14 182 Q160 150 306 182',INK,3)+P('M6 206 Q20 250 160 250 Q300 250 314 206 Q160 236 6 206Z',c.a,'a'),under:['sleep0'],bed:[[0,22]]});
 D('shlamp','Shell Lamp',96,130,'furn',{a:'#ffb3c7'},(e,c)=>sh(96,130,.38)+R(42,70,12,50,6,dk(c.a,.2),'a')+E(48,120,28,8,dk(c.a,.2),'a')+P('M48 78 Q6 66 10 34 Q22 6 48 10 Q74 6 86 34 Q90 66 48 78Z',e.s.on?lt(c.a,.5):c.a,'a')+L('M48 74 L48 16 M48 74 L28 22 M48 74 L68 22',dk(c.a,.14),2.600,0,NO)+(e.s.on?C(48,44,30,'#fff3a8',0,' opacity=".4" class="np"'+NO):''),{tt:1,s:{on:0},tap(e){e.s.on=e.s.on?0:1;redraw(e);sfx.click();updLights();dirty()},light:e=>e.s.on?{dx:0,dy:-80,r:220}:null});
-SC.shome={n:'Pineapple House',w:2,sea:1,in:1,home:1,hspot:'shome',floor:[650,872],bg:{wall:'#ffe9a8',floor:'#f3c58a',trim:'#56c596'},pat:{wall:5,floor:1},arrive:[760,856],
+SC.shome={n:'Pineapple House',w:2,sea:1,in:1,home:1,hspot:'shome',enter(){xSanta()},floor:[650,872],bg:{wall:'#ffe9a8',floor:'#f3c58a',trim:'#56c596'},pat:{wall:5,floor:1},arrive:[760,856],
  init(a){a.put('porthole',300,330,{c:{a:'#56c596'}});a.put('porthole',1290,330,{c:{a:'#ff8fb1'}});a.put('clock',800,170,{c:{a:'#ffd23f'}});a.put('clambed',200,790);a.put('shlamp',420,800);a.put('rug',760,866,{c:{a:'#ff8fb1',b:'#fff6ee'}});
   const so=a.put('sofa',700,760,{c:{a:'#2bb7a3',b:'#ffd23f'}});a.on(so,'cushion',-60,{c:{a:'#ff8fb1'}});const ws=a.put('wshelf',800,330);a.on(ws,'shell',-60,{c:{a:'#ffb3c7'}});a.on(ws,'seastar',0,{c:{a:'#ffd23f'}});a.on(ws,'shell',60,{c:{a:'#7ad3ff'}});
   a.put('polisher',1090,790);a.put('jbench',1370,800);a.put('kelpp',1560,740,{c:{a:'#3fae6a'}});a.put('shell',930,884,{c:{a:'#ffd23f'}});a.put('seastar',520,884,{c:{a:'#9b6bff'}})}};
@@ -2648,8 +2694,8 @@ D('bplate','Burger Board',230,170,'fix',{a:'#c98f5a',b:'#fff6ee'},(e,c)=>{const 
    const fill=ly.slice(1);e.s.ly=[];redraw(e);dirty();sfx.pop();busyMaker(e,500,()=>{const a=absXY(e);popTo('sburger',e,-150,{s:{ly:fill}});sfx.ding();sparkle(a.x,a.y-110,5);star('burger');if(fill.length>=4)star('stack');say(e,fill.length>=4?'A SKY-HIGH burger! Who is hungry enough?':'One Reef Burger, coming up! Serve it to a customer.',2800)})}});
 CH.cust1={c:{a:SKIN[0],b:'#9b6bff',c:'#ff8552',d:'#4a90e2',e:'#ffd23f',t:'#ff8fb1'},s:{hs:1,of:3,fr:1,npc:4}};
 CH.cust2={c:{a:SKIN[4],b:'#56d39a',c:'#ff7aa8',d:'#ffd23f',e:'#9b6bff',t:'#ffb74d'},s:{hs:7,of:0,lash:1,npc:4}};
-SC.shack={n:'Crab Shack',w:2,sea:1,in:1,floor:[650,872],bg:{wall:'#ffd9a8',floor:'#bfe6ee',trim:'#e0524d'},pat:{wall:1,floor:2},nav:{l:'kelpg',r:'lagoon'},arrive:[1170,866],
- deco:st=>`<g class="np">`+outline(R(565,126,470,96,22,'#fff6ee')+L('M602 178 Q590 170 590 156 M650 178 Q662 170 662 156','#ff6b5e',7)+C(588,150,11,'#ff6b5e')+C(664,150,11,'#ff6b5e')+L('M618 166 L616 152 M634 166 L636 152','#ff6b5e',5)+E(626,184,27,18,'#ff6b5e')+C(616,148,6,'#fff')+C(636,148,6,'#fff'),6)+C(616,149,2.600,INK)+C(636,149,2.600,INK)+L('M618 186 Q626 192 634 186',INK,3)+`<text x="843" y="192" font-size="48" font-weight="700" text-anchor="middle" fill="${st.bg.trim}">CRAB SHACK</text>`
+SC.shack={n:'Crab Shack',w:2,sea:1,in:1,nogar:1,floor:[650,872],bg:{wall:'#ffd9a8',floor:'#bfe6ee',trim:'#e0524d'},pat:{wall:1,floor:2},nav:{l:'kelpg',r:'lagoon'},arrive:[1170,866],
+ deco:st=>`<g class="np">`+outline(R(565,126,470,96,22,'#fff6ee')+L('M602 178 Q590 170 590 156 M650 178 Q662 170 662 156','#ff6b5e',7)+C(588,150,11,'#ff6b5e')+C(664,150,11,'#ff6b5e')+L('M618 166 L616 152 M634 166 L636 152','#ff6b5e',5)+E(626,184,27,18,'#ff6b5e')+C(616,148,6,'#fff')+C(636,148,6,'#fff'),6)+C(616,149,2.600,INK)+C(636,149,2.600,INK)+L('M618 186 Q626 192 634 186',INK,3)+(XMAS()?outline(xCap(626,170,.62,-8),5)+xWreath(1150,330,.8):'')+`<text x="843" y="192" font-size="48" font-weight="700" text-anchor="middle" fill="${st.bg.trim}">CRAB SHACK</text>`
   +L('M40 250 Q300 330 565 200 M1035 200 Q1130 262 1236 250','#8a5a44',4)+[[110,272],[230,290],[350,286],[470,254],[1090,236],[1180,254]].map(([x,y],i)=>outline(C(x,y+12,12,['#ffd23f','#ff7aa8','#7ad3ff','#56d39a'][i%4]),4)).join('')+`</g>`,
  init(a){a.put('porthole',1340,470,{c:{a:'#e0524d'}});a.put('bunbox',120,772);a.put('pattyp',320,790);a.put('sgrill',550,790);a.put('bplate',790,780);a.put('kettle',1000,776);
   const cs=a.put('coralseat',1410,770,{c:{a:'#e0524d'}});a.sit(cs,0,CH.cust1);a.sit(cs,1,CH.cust2);a.put('ctable',1380,876,{c:{a:'#fff6ee',b:'#e0524d'}});
@@ -2713,7 +2759,7 @@ D('bboard','Bubble Board',300,300,'fix',{a:'#8a5a44',b:'#1fa6c4'},(e,c)=>{const 
   return sh(300,300,.4)+R(40,170,16,128,5,c.a,'a')+R(244,170,16,128,5,c.a,'a')+R(6,6,288,190,16,c.a,'a')+R(16,16,268,46,10,c.b,'b')+`<text x="150" y="48" font-size="25" font-weight="700" text-anchor="middle" fill="#fff" class="np">BUBBLE POP BEST</text>`
    +row(72,'Me',me,fr>=0&&lead===1&&me>0)+(fr>=0?row(128,'Friend',fr,lead===2):`<text x="150" y="158" font-size="19" font-weight="600" text-anchor="middle" fill="#fff3e0" class="np">Play together to compete!</text>`)},
  {fx:1,tap(e){redraw(e);const me=G.flags.bbest|0,fr=NET.peer?(NET.frFlags&&NET.frFlags.bb)|0:0;say(e,!me?'Press GO on the Bubble Pop machine!':NET.peer?(me>fr?'You\'re winning!':me<fr?'Your friend is ahead — pop faster!':'It\'s a tie!'):'Your record: '+me+' bubbles')}});
-CH.merk2={c:{a:SKIN[0],b:'#ff8552',c:'#56d39a',d:'#ff8fb1',e:'#ff5c7a',t:'#4a90e2'},s:{hs:8,of:7,lash:1,fr:1}};
+CH.merk2={c:{a:SKIN[0],b:'#ff8552',c:'#56d39a',d:'#ff8fb1',e:'#ff5c7a',t:'#4a90e2'},s:{hs:8,of:7,lash:1,fr:1,xs:9}};
 SC.lagoon={n:'Sandy Lagoon',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#5fc9ee',ground:'#ffedc2'},pat:{},nav:{l:'shack',r:'wreck'},arrive:[800,866],
  draw:st=>seaBg(st,()=>`<g class="np">`+outline(P('M1040 610 Q1030 300 1300 290 Q1570 300 1560 610 L1470 610 Q1476 400 1300 396 Q1124 400 1130 610Z',mix(st.bg.sky,'#8a96c0',.7)),6)+C(1100,420,16,'#c3cfe6')+C(1500,380,20,'#c3cfe6')+C(1220,318,12,'#c3cfe6')+`</g>`+coralArt(70,610,'#ffb74d',1.200)+coralArt(930,600,'#ff8fb1',.9)),
  init(a){a.put('jelly',560,310);a.put('jelly',1010,330,{c:{a:'#7ad3ff'}});a.put('nursery',150,780);a.put('seahorse',470,800);a.put('dolphin',1080,800);const cs=a.put('coralseat',1400,740);a.sit(cs,1,CH.merk2);a.put('sandspot',640,888);a.put('kelp',300,884);a.put('bberry',1210,884);a.put('roe',250,880);a.put('kelpp',1580,690)}};
@@ -2787,10 +2833,10 @@ D('sstage','Clam Stage',660,360,'fix',{a:'#c9a6ff',b:'#ff8fb1'},(e,c)=>sh(660,36
    [0,2,4,5,7,4,7,9].forEach((n,i)=>setTimeout(()=>{if(SID===sid)sfx.note(n)},i*300));
    for(let r=0;r<2;r++)setTimeout(()=>{if(SID!==sid)return;for(const p of ps)if(byId(p.id)){anim(p,'dance',1200);notes(p);if(TD(p).k==='char')setFace(p,'laugh',1300)}},r*1250);
    setTimeout(()=>{if(SID===sid&&byId(e.id)){tr(e).busy=0;confetti(a.x,a.y-240,30);sfx.star()}},2600)}});
-CH.mers={c:{a:SKIN[5],b:'#ffd23f',c:'#9b6bff',d:'#ff5c7a',e:'#56d39a',t:'#ff8552'},s:{hs:9,of:5,lash:1}};
+CH.mers={c:{a:SKIN[5],b:'#ffd23f',c:'#9b6bff',d:'#ff5c7a',e:'#56d39a',t:'#ff8552'},s:{hs:9,of:5,lash:1,xs:10}};
 SC.theatre={n:'Tide Theatre',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#6f8fe8',ground:'#ffe7c4'},pat:{},nav:{l:'wreck',r:'trench'},arrive:[1020,868],
  draw:st=>seaBg(st,()=>coralArt(60,610,'#d58bff',1.300)+coralArt(1540,608,'#ff8fb1',1.300)),
- init(a){a.put('jelly',420,300,{c:{a:'#ffb3c7'}});a.put('jelly',1190,300,{c:{a:'#a6f0c0'}});const s=a.put('sstage',640,770);a.on(s,'char',-90,CH.mers);a.put('cxylo',1270,770);a.put('cdrum',1180,888);a.put('conch',1370,890);
+ init(a){a.put('jelly',420,300,{c:{a:'#ffb3c7'}});a.put('jelly',1190,300,{c:{a:'#a6f0c0'}});const s=a.put('sstage',640,770);a.on(s,'char',-90,CH.mers);a.put('cxylo',1270,770);a.put('cdrum',1210,888);a.put('conch',1100,890);
   const cs=a.put('coralseat',240,876,{c:{a:'#7ad3ff'}});a.sit(cs,0,CH.merb);a.put('seastar',470,888,{c:{a:'#ffd23f'}})}};
 SPOTS.push({id:'theatre',n:'Tide Theatre',x:1010,y:850,w:2,sneed:17});
 
@@ -2819,7 +2865,7 @@ SC.trench={n:'Glow Trench',w:2,sea:1,floor:[610,872],land:90,bg:{sky:'#2a4f8f',g
  draw:st=>seaBg(st,()=>`<g class="np">`+outline(P('M0 0 L300 0 Q230 150 270 300 Q200 430 250 600 L0 620Z',ROCK)+P('M1600 0 L1290 0 Q1370 160 1330 310 Q1400 440 1350 600 L1600 620Z',ROCK)+P('M560 0 L620 150 L680 0Z',ROCK)+P('M900 0 L950 110 L1010 0Z',ROCK),6)
   +[[120,200,'#7dffe0'],[200,420,'#b388ff'],[80,520,'#ffe66d'],[1480,180,'#ff8fd8'],[1420,400,'#7dffe0'],[1540,520,'#b388ff'],[620,90,'#ffe66d'],[950,60,'#7dffe0']].map(([x,y,k])=>C(x,y,7,k,0,' class="tw"'+NO)+C(x,y,18,k,0,' opacity=".25"'+NO)).join('')+`</g>`),
  init(a){a.put('jelly',520,310,{c:{a:'#7dffe0'}});a.put('jelly',1100,310,{c:{a:'#ff8fd8'}});GLOWC.forEach((k,i)=>a.put('gcoral',[110,330,1010,1260,1490][i],[700,760,720,770,710][i],{c:{a:k}}));
-  a.put('sub',610,790);a.put('crystal',1150,886);a.put('angler',280,888);a.put('pearl',1380,884,{c:{a:'#cfe8ff'}})}};
+  a.put('sub',610,790);a.put('crystal',1150,886);a.put('angler',280,888);a.put('pearl',1290,886,{c:{a:'#cfe8ff'}})}};
 SPOTS.push({id:'trench',n:'Glow Trench',x:1410,y:414,w:2,sneed:21});
 
 /* ---------- the Pearl Palace: only for guests with a royal invitation ---------- */
@@ -2848,6 +2894,44 @@ SC.palace={n:'Pearl Palace',w:2,sea:1,in:1,floor:[650,872],bg:{wall:'#fbe6f4',fl
   const q=a.put('char',1030,820,CH.queen);a.give(q,'tiara','head',{c:{a:'#ffe08a',b:'#ffc9de',d:'#cfe8ff'}});const tb=a.put('table',300,800,{c:{a:'#fff6fb',b:'#ffd27a'}});a.on(tb,'cupcake',-70);a.on(tb,'bberry',10);a.on(tb,'cake',80);
   a.put('shlamp',120,800,{c:{a:'#ffd27a'}});a.put('coral',1390,850,{c:{a:'#b98cf0'}});a.put('trident',1240,860);a.put('pearl',1150,884,{c:{a:'#ffc9de'}})}};
 SPOTS.push({id:'palace',n:'Pearl Palace',lk:'???',x:240,y:330,w:2,secret:'palace',why:'A grand gate, all covered in seaweed. It only opens for guests with a royal invitation… they say one lies in a sunken treasure chest!'});
+
+/* ---------- Christmas under the sea: a coral Christmas tree, lights, and Santa hats for the creatures ---------- */
+function xCoralTree(x,y,k=1){return coralArt(x,y,'#2e9e6b',k)+`<g transform="translate(${x} ${y}) scale(${k})" class="np">`+[[-36,-58],[36,-70],[0,-40],[-24,-22],[24,-30],[0,-62],[-36,-36],[36,-46]].map(([a,b],i)=>`<circle cx="${a}" cy="${b}" r="5" fill="${XCOL[i%6]}" stroke="${INK}" stroke-width="1.600" class="tw" style="animation-delay:-${(i*.4).toFixed(1)}s"/>`).join('')+outline(P(star5(0,-90,13,6),'#ffd23f'),3.400)+`</g>`}
+xDress('crab',68,40,.5,0,e=>!e.s.cap&&!e.s.chef);xDress('octo',165,66,1.250,-6);xDress('dolphin',88,66,.8,-24);xDress('seahorse',122,28,.8,-10);xDress('turtle',258,68,.7,10);xDress('jelly',65,18,.85,-6);xDress('puffer',50,42,.6,-10,e=>!tr(e).big);
+
+/* ---------- swimwear for the water world: swimsuits, snorkel masks, goggles, bubble helmets, swim rings ---------- */
+STK.push(['swimsuit','Splish Splash','Put on a swimsuit from the Splash Shop.','sea'],['snork','Snorkel Ready','Wear a snorkel mask, swim goggles or a bubble helmet.','sea']);
+const SWIMN={7:'Stripy swimsuit',8:'Wetsuit',9:'Starfish swimsuit',10:'Mermaid top'},SWIMC={7:['#ff5c7a','#ffffff','#ffd23f'],8:['#2bb7a3','#35354f','#ffd23f'],9:['#ffd23f','#ff8552','#ff7aa8'],10:['#9b6bff','#bfe3ff','#ffd23f']};
+const swimOwn=()=>(Array.isArray(G.swim)?G.swim:[]).filter(v=>SWIMC[v]);
+function swimAdd(v){const own=swimOwn();if(!v)v=[7,8,9,10].find(x=>!own.includes(x));if(!v||!SWIMC[v]){toast('You already have every swimsuit!',3600);return 0}if(own.includes(v))return 0;own.push(v);own.sort((a,b)=>a-b);G.swim=own;dirty();
+ toast('New in your wardrobe: the '+SWIMN[v]+'! Stand on a makeover stage (or use "Change my look") to put it on.',6000);usfx('chest');return v}
+function swimGive(v){if(ACTOR&&NET.peer){NET.send({t:'ward',k:'swim',v:v||0});return}swimAdd(v)}
+function swimBtns(ch){return swimOwn().map(v=>`<button class="swt${ch.s.xs===v?' on':''}" data-a="xs" data-c="${v}" title="${SWIMN[v]}" style="background:linear-gradient(135deg,${SWIMC[v][0]} 55%,${SWIMC[v][1]} 55%)"></button>`).join('')}
+function swimfit(v,skin){const[a,b,k]=SWIMC[v],sl='M43 117 C28 116 21 132 13 160 Q19 169 29 166 L43 134Z',hand=C(27,170,5.200,skin)+C(19,173,10,skin),arm=v===8?P(sl,a)+L('M15 153 L30 159',k,5,0,NO)+hand:P(sl,skin)+hand;
+ let o=arm+`<g transform="translate(130 0) scale(-1 1)">${arm}</g>`+P('M41 116 Q65 109 89 116 L97 150 Q99 172 96 180 L34 180 Q31 172 33 150Z',a);
+ if(v===7)o+=R(36,127,58,6,0,b,0,NO)+R(34,142,62,6,0,b,0,NO)+R(33.500,157,63,6,0,b,0,NO)+R(34,171,62,6,0,b,0,NO)+P('M52 112 Q65 131 78 112Z',skin);
+ else if(v===8)o+=P('M41 116 Q50 113 57 114 L53 180 L34 180 Q31 172 33 150Z',b,0,NO)+P('M89 116 Q80 113 73 114 L77 180 L96 180 Q99 172 97 150Z',b,0,NO)+L('M65 116 L65 166',k,3,0,NO)+C(65,169,3.400,k,0,NO)+R(51,109,28,9,4.500,b);
+ else if(v===9)o+=P('M52 112 Q65 131 78 112Z',skin)+P(star5(65,146,16,7.500),b,0,NO)+C(61,144,1.700,INK,0,NO)+C(69,144,1.700,INK,0,NO)+L('M61 150 Q65 153 69 150',INK,1.800,0,NO)+P('M32 170 L98 170 L101 180 Q92 190 83 181 Q74 190 65 181 Q56 190 47 181 Q38 190 29 180Z',k);
+ else o+=P('M52 112 Q65 131 78 112Z',skin)+L('M39 138 q6.500 6 13 0 q6.500 6 13 0 q6.500 6 13 0 q6.500 6 13 0 M37 152 q7 6 14 0 q7 6 14 0 q7 6 14 0 q7 6 14 0 M36 166 q7 6 14.500 0 q7 6 14.500 0 q7 6 14.500 0 q7 6 14.500 0',b,2.800,0,NO)+P('M65 121 Q54 113 52 123 Q56 133 65 126 Q74 133 78 123 Q76 113 65 121Z',k);
+ return o}
+{const x0=xfit;window.xfit=function(v,skin,s){return SWIMC[v]?swimfit(v,skin):x0(v,skin,s)}}
+function floatSVG(s){const a=hexOk(s.fc)?s.fc:'#ff7aa8',b=hexOk(s.fc2)?s.fc2:'#ffffff';
+ return{back:E(65,168,60,23,a),front:P('M5 168 Q6 193 65 193 Q124 193 125 168 Q104 182 65 182 Q26 182 5 168Z',a)+P('M20 178 L33 181 L31 191 L16 186Z',b,0,NO)+R(58,182,14,11,0,b,0,NO)+P('M97 181 L110 178 L114 186 L99 191Z',b,0,NO)+L('M13 173 Q20 181 31 184',lt(a,.5),3,0,NO)}}
+D('snorkel','Snorkel Mask',120,80,'hat',{a:'#2bb7a3',b:'#ff8552'},(e,c)=>hit(120,80)+L('M18 58 L4 54 M102 58 L116 54',dk(c.a,.2),6,'a')+`<path d="M104 72 Q123 70 121 44 L119 -30" fill="none" stroke="${c.b}" stroke-width="10" stroke-linecap="round" data-p="b"/>`+R(112,-38,14,11,4,'#fff')+`<rect x="21" y="45" width="78" height="28" rx="14" fill="#d6f3ff" fill-opacity=".38" data-o="1"/><rect x="21" y="45" width="78" height="28" rx="14" fill="none" stroke="${c.a}" stroke-width="8" data-p="a"/>`+P('M52 77 Q60 64 68 77Z',c.a,'a')+L('M31 55 Q39 51 47 53','#fff',3.400,0,' opacity=".85"'+NO),{hat:{dy:70}});
+D('goggles','Swim Goggles',120,80,'hat',{a:'#ff7aa8'},(e,c)=>hit(120,80)+L('M22 58 L4 54 M98 58 L116 54 M52 59 L68 59',dk(c.a,.18),6,'a')+[37,83].map(x=>`<circle cx="${x}" cy="59" r="14" fill="#d6f3ff" fill-opacity=".38" data-o="1"/><circle cx="${x}" cy="59" r="14" fill="none" stroke="${c.a}" stroke-width="7" data-p="a"/>`).join('')+L('M30 54 Q34 50 40 51 M76 54 Q80 50 86 51','#fff',3,0,' opacity=".85"'+NO),{hat:{dy:70}});
+D('dhelm','Bubble Helmet',170,170,'hat',{a:'#ffd27a'},(e,c)=>`<circle cx="85" cy="84" r="68" fill="#d6f3ff" fill-opacity=".2" stroke="${INK}" stroke-width="5" data-o="1"/><circle cx="85" cy="84" r="63" fill="none" stroke="#ffffff" stroke-width="5" opacity=".9" data-o="1" class="np"/>`+L('M40 62 Q50 34 78 26','#fff',8,0,' opacity=".8"'+NO)+R(41,138,88,18,9,c.a,'a')+C(154,92,9,c.a,'a')+[62,85,108].map(x=>C(x,147,3,dk(c.a,.3),0,NO)).join(''),{hat:{dy:132}});
+D('swimring','Swim Ring',130,66,'item',{a:'#ff7aa8',b:'#ffffff'},(e,c)=>hit(130,66)+sh(130,66,.42)+E(65,34,60,27,c.a,'a')+[[20,26,-34],[65,12,0],[110,26,34],[30,50,30],[100,50,-30]].map(([x,y,r])=>R(x-8,y-5,16,10,3,c.b,'b',rot(r,x,y)+NO)).join('')+`<ellipse cx="65" cy="32" rx="30" ry="10" fill="#2a1640" fill-opacity=".2" data-o="1" class="np"/>`,
+ {wear(ch,it){const k=[hexOk(it.c.a)?it.c.a:'#ff7aa8',hexOk(it.c.b)?it.c.b:'#ffffff'];if(ch.s.fl)wardGive('fl',[ch.s.fc,ch.s.fc2,ch.s.fc]);const fresh=wardGive('fl',[k[0],k[1],k[0]]);ch.s.fl=1;ch.s.fc=k[0];ch.s.fc2=k[1];rm(it);redraw(ch);hearts(ch,3);sfx.boing();say(ch,pick(['Floaty!','Bob, bob, bob!','I can\'t sink now!']));dirty();
+   if(fresh&&!G.flags.wtip){G.flags.wtip=1;toast('Your swim ring now lives in your wardrobe: take it off or put it back on in the makeover window any time.',6000)}}});
+{const w0=wear;window.wear=function(who,hat){w0(who,hat);if(['snorkel','goggles','dhelm'].includes(hat.t))star('snork')}}
+const GEAR=[['snorkel',['#2bb7a3','#ff7aa8','#4a90e2','#ffd23f']],['goggles',['#ff7aa8','#9b6bff','#56d39a','#ff8552']],['swimring',['#ff7aa8','#7ad3ff','#ffd23f','#56d39a']],['dhelm',['#ffd27a','#ff9fb6','#9eeaff']]];
+D('swimrack','Splash Shop',260,300,'fix',{a:'#ff9fb6',b:'#1fa6c4'},(e,c)=>sh(260,300,.46)+R(22,66,14,230,6,dk(c.a,.12),'a')+R(224,66,14,230,6,dk(c.a,.12),'a')+R(10,58,240,16,8,c.a,'a')+R(28,6,204,46,14,c.b,'b')+`<text x="130" y="39" font-size="24" font-weight="700" text-anchor="middle" fill="#fff" class="np">SPLASH SHOP</text>`
+  +[[66,'#ff5c7a'],[130,'#2bb7a3'],[194,'#ffd23f']].map(([x,k],i)=>L(`M${x} 74 L${x} 88 M${x-18} 102 L${x} 88 L${x+18} 102`,'#8d99ae',3.400)+P(`M${x-22} 102 Q${x} 96 ${x+22} 102 L${x+18} 172 Q${x} 180 ${x-18} 172Z`,k)+(i===0?R(x-20,118,40,6,0,'#fff',0,NO)+R(x-19,136,38,6,0,'#fff',0,NO)+R(x-18,154,36,6,0,'#fff',0,NO):i===1?L(`M${x} 102 L${x} 160`,'#ffd23f',3,0,NO):P(star5(x,138,13,6),'#ff8552',0,NO))).join('')
+  +`<path d="M84 232 L78 198 Q78 186 90 186" fill="none" stroke="#ff8552" stroke-width="9" stroke-linecap="round"/>`+E(168,226,38,15,'#7ad3ff')+E(168,224,18,6,dk(c.a,.3),0,NO)+P('M40 234 L220 234 L206 296 L54 296Z','#d9a36c')+L('M52 254 L208 254 M58 274 L202 274 M90 236 L94 294 M130 236 L130 294 M170 236 L166 294','#b8824f',4,0,NO)+R(32,226,196,16,8,'#c98f5a'),
+ {fx:1,accept(e,it){if(it.t!=='pearl')return false;rm(it);sfx.kaching();anim(e,'wig',400);say(e,'A pearl! Let me find you something new…',2400);swimGive(0);return true},
+  tap(e){const a=absXY(e);anim(e,'land',240);if(!ACTOR&&!swimOwn().length){swimAdd(7);say(e,'Welcome! A stripy swimsuit, on the house. Bring me a pearl for a new one.',3600)}else if(ACTOR&&NET.peer)NET.send({t:'ward',k:'swim',v:7});
+   if(S.ents.filter(k=>GEAR.some(g=>g[0]===k.t)&&!k.par).length>=5){if(swimOwn().length)say(e,'Try those on first! (Swimsuits: bring me a pearl.)',2800);return}
+   const i=e.s.i=((e.s.i|0)+1)%GEAR.length,g=GEAR[i];sfx.pop();popTo(g[0],e,rnd(-100,100),{c:{a:pick(g[1])}});if(swimOwn().length>1||ACTOR)say(e,pick(['Snorkels, goggles, rings and helmets!','Drop it on a friend\'s head to wear it.','A pearl buys a new swimsuit!']),2600);dirty()}});
 
 /* =====================================================================
    PLAY TOGETHER — two players, joined by a room code. No sign-in, no chat.
@@ -3012,6 +3096,7 @@ function netMsg(m,id){if(!m||typeof m!=='object')return;
   case'at':NET.there=typeof m.id==='string'&&SC.hasOwnProperty(m.id)?m.id:null;NET.frStars=+m.stars|0;NET.frFlags=cleanV(m.flags||{},2)||{};mapPing();netUI();if(S)for(const e of S.ents)if(e.t==='pboard'||e.t==='bboard')redraw(e);break;
   case'house':NET.frHouse=cleanHouse(m.h);mapPing();break;
   case'pweigh':if(isFinite(m.kg))pumpRecord(clamp(+m.kg|0,1,2000));break; // I weighed my pumpkin in my friend's place
+  case'ward':if(m.k==='swim')swimAdd(+m.v|0);else if((m.k==='sw'||m.k==='nk'||m.k==='fl')&&wardOk(m.c))wardAdd(m.k,m.c);break; // something I put on or took off in my friend's place: it belongs in my wardrobe
   case'bscore':if(isFinite(m.n))bubRecord(clamp(+m.n|0,0,200));break; // I played the bubble game in my friend's place
   case'bnews':if(isFinite(m.n))toast('Your friend popped '+(clamp(+m.n|0,0,200))+' bubbles in the Bubble Pop! Can you beat that?',5000);break;
   case'pnews':if(isFinite(m.kg))toast('Your friend grew a '+(clamp(+m.kg|0,1,2000))+' lb pumpkin! Can you grow a bigger one?',5000);break;
@@ -3263,8 +3348,8 @@ function styleApply(c,a,k,col,q){ // q = quietly (the "this is you" window)
  if(k)c.c[k]=col;
  else if(a==='hs+'||a==='hs-'){c.s.hs=(c.s.hs+(a==='hs+'?1:HAIRN-1))%HAIRN;q||star('style')}
  else if(a==='of+'||a==='of-'){c.s.of=(c.s.of+(a==='of+'?1:OUTN-1))%OUTN;q||star('style')}
- else if(a==='xs'){if(c.s.xs===6&&+col!==6){const o={c:{a:c.s.kc||'#fff6e8',b:c.s.kc2||'#ffffff',d:c.s.kc3||'#ff8fb1'}};if(S&&byId(c.id)){const z=absXY(c);popOut('ksweat',z.x+70,z.y-120,o,90)}else{G.pack.push([mk('ksweat',0,0,o)]);updPack(true);toast('Your knitted sweater is in your backpack.')}} // taking off a knitted sweater gives it back
-  c.s.xs=clamp(+col|0,0,5);if(c.s.xs&&c.s.xs<4)star('sweater')}
+ else if(a==='xs'){if(c.s.xs===6)wardGive('sw',[c.s.kc,c.s.kc2,c.s.kc3]);const v=+col|0;c.s.xs=(v>=1&&v<=5)||(v>=7&&v<=10)?v:0;if(c.s.xs&&c.s.xs<4)star('sweater');if(c.s.xs>=7&&!q)star('swimsuit')} // a knitted sweater that is taken off stays in the wardrobe
+ else if(a==='kw'){const k=String(col).match(/#[0-9a-fA-F]{6}/g);if(k&&k.length===3){if(c.s.xs===6)wardGive('sw',[c.s.kc,c.s.kc2,c.s.kc3]);c.s.xs=6;c.s.kc=k[0];c.s.kc2=k[1];c.s.kc3=k[2]}} // …and goes back on from there
  else if(a==='lash')c.s.lash=c.s.lash?0:1;else if(a==='fr')c.s.fr=c.s.fr?0:1;else if(a==='lid')c.s.lid=c.s.lid===0?1:0;
  else if(a==='rand'){const r=randChar();Object.assign(c.c,r.c);Object.assign(c.s,{hs:r.s.hs,of:r.s.of,lash:r.s.lash,fr:r.s.fr,lid:r.s.lid});if(!q){star('style');const z=absXY(c);sparkle(z.x,z.y-200,8)}}
  else return;
