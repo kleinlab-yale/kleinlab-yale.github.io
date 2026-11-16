@@ -1,6 +1,20 @@
 {
   "items": [
     {
+      "date": "November 2026",
+      "text": "KLAY contributed to “MCAM is Expressed in a Subset of Advanced Cutaneous Melanomas,” now published in Cancer Medicine and indexed on PubMed.",
+      "links": [
+        {
+          "label": "Read Cancer Medicine paper",
+          "url": "https://doi.org/10.1002/cam4.72494"
+        },
+        {
+          "label": "View on PubMed",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/43007853/"
+        }
+      ]
+    },
+    {
       "date": "September 2026",
       "text": "KLAY’s MCAM study, “Structural Basis for MCAM Mediated Inhibition of Laminin Dependent Cell Migration,” is now available as a bioRxiv preprint.",
       "links": [
