@@ -492,6 +492,29 @@ input{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
 #stylep h3{font-size:26px;margin:0 0 4px}
 #stylep .srow{margin:3px 0}#stylep .srow button{width:46px;height:46px}#stylep .srow button svg{width:27px;height:27px}#stylep .srow span{font-size:23px}
 #stylep>.sub.sm{font-size:17px;margin:8px 0 0}
+/* ---------- Christmas fun: Jingle Bells, the reward track, the village ---------- */
+.toast.bel{border-color:#c98a00;background:#fff8dc}.toast.bel small{color:#c0392b}
+.toast.bel svg{animation:jing .6s ease-in-out 2}
+@keyframes jing{0%,100%{transform:rotate(0)}25%{transform:rotate(-18deg)}75%{transform:rotate(18deg)}}
+.fx.rise svg.jb{width:34px;height:34px}
+.xtabs{justify-content:center}.xtabs .tab{display:flex;align-items:center;gap:6px}.xtabs .tab svg{width:26px;height:26px}
+.xbody{max-height:600px;overflow-y:auto;padding:4px 6px 8px}
+.xtrk{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin:6px 0 12px}
+.xrw{background:#f4f0fb;border:3.5px solid #cfc6e3;border-radius:18px;padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;opacity:.75}
+.xrw .xth{height:96px;width:100%;display:flex;align-items:center;justify-content:center}.xrw .xth svg{width:112px;height:96px}.xrw:not(.got):not(.next) .xth svg{filter:saturate(.35) opacity(.6)}
+.xrw b{font-size:17px;line-height:1.1;color:#2a1f3d}.xrw span{font-size:17px;font-weight:700;color:#c0392b;display:flex;align-items:center;gap:3px}.xrw span svg{width:22px;height:22px}
+.xrw.got{background:#e3f8ea;border-color:#2bb673;opacity:1}.xrw.got span{color:#1f8a52}
+.xrw.next{background:#fff8dc;border-color:#ffb400;opacity:1;box-shadow:0 0 0 4px #fff3a8;animation:pulse2 1.6s ease-in-out infinite}
+.xbar{height:24px;border-radius:12px;background:#efe9fb;overflow:hidden;margin:0 40px 4px;border:3px solid #35252d}.xbar i{display:block;height:100%;background:linear-gradient(90deg,#e63946,#ffd23f,#2bb673)}
+.xwh{margin:14px 0 8px;font-size:22px}
+.xways{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:left}
+.xw{display:flex;align-items:center;gap:8px;background:#fff;border:3px solid #e2dbf0;border-radius:16px;padding:6px 10px;font-size:18px;line-height:1.15}
+.xw span{flex:1}.xw b{display:flex;align-items:center;gap:2px;color:#c0392b;font-size:18px}.xw b svg{width:22px;height:22px}.xw i{font-style:normal;font-weight:700;color:#8a829a;min-width:34px;text-align:right}
+.xw.done{background:#e3f8ea;border-color:#9bdcb4}.xw.done i{color:#1f8a52}
+.mlabel.xv{background:#e63946;color:#fff;border-color:#35252d}
+.xmas.snowin #snow{display:block}
+.swt.tg{background:#fff;font-size:16px;font-weight:700;color:#2a1f3d;width:auto!important;padding:0 14px;border-radius:21px}.swt.tg.on{background:#cfeeff}
+.xw.lk{background:#f4f0fb;color:#8a829a}.xw small{display:block;font-size:14px;color:#a79fb8;font-weight:600}
 
 </style>
 </head>
@@ -1254,7 +1277,7 @@ const STK=[
  ['streak7','A Whole Week!','Open gifts 7 days running','toys']];
 const STKG={food:['Yummy','#ff8552'],home:['Home','#ff7aa8'],friends:['Friends','#9b6bff'],pets:['Pets','#2bb7a3'],world:['World','#4a90e2'],toys:['Toys & Gifts','#ffb400']};
 const UNL=[[3,'New furniture in the catalog!'],[6,'Shell Beach is open!'],[9,'Bigger backpack — 12 pockets!'],[13,'Fancy furniture in the catalog!'],[18,'Even bigger backpack — 18 pockets!'],[22,'The Cloud Castle is open!'],[28,'Royal furniture in the catalog!'],[34,'Giant backpack — 24 pockets!'],[40,'A golden egg is in your backpack!']];
-const packCap=()=>{const s=stars();return s>=34?24:s>=18?18:s>=9?12:8};
+const packCap=()=>{const s=stars();return(s>=34?24:s>=18?18:s>=9?12:8)+(G.xup&&G.xup.pack?4:0)}; // the Elf Backpack (a Christmas reward) adds 4 pockets
 const CAT=[
  ['Seats',['sofa','armchair','chair','stool','bench',['beanbag',3],['swing',13],['lounger',13],['throne',28]]],
  ['Tables',['table','ctable','desk','bookshelf','wshelf','dresser','counter',['toybox',3]]],
@@ -1395,10 +1418,11 @@ const SPOTS=[
  {id:'cafe',n:'Boba Café',x:470,y:418},{id:'toys',n:'Toy Shop',x:1050,y:436},{id:'home',n:'My House',x:790,y:618},{id:'salon',n:'Style Studio',x:232,y:604},
  {id:'pets',n:'Pet Shop',x:1356,y:540},{id:'park',n:'Sunny Park',x:700,y:836},{id:'beach',n:'Shell Beach',x:150,y:826,need:6},
  {id:'tree',n:'Treehouse',x:1420,y:800,secret:'tree'},{id:'castle',n:'Cloud Castle',x:1216,y:150,need:22}];
+const XA={}; // extra map art (Christmas-only places)
 const spotOpen=s=>s.sneed?seaStars()>=s.sneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.sst|0)>=s.sneed):s.fneed?farmStars()>=s.fneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.fst|0)>=s.fneed):s.duo?!!NET.peer:s.need?Math.max(stars(),NET.peer?NET.frStars:0)>=s.need:s.secret?!!(G.flags[s.secret]||(NET.peer&&NET.frFlags[s.secret])):true; // with a friend, a place opens if either of you has unlocked it
 function mapSpots(){const two=!!NET.peer,mine=NET.role==='guest'?'home2':'home',fr=NET.role==='guest'?'home':'home2',out=[];
  for(const s of SPOTS){if(s.hm){const g=NET.role==='guest';out.push(Object.assign({},s,{id:g?s.id+'2':s.id,art:s.id,mine:1,x:s.x+(two?s.dx||0:0)}));if(two)out.push(Object.assign({},s,{id:g?s.id:s.id+'2',n:s.n2,art:s.id+'f',x:s.x+(s.dx2||150)}));continue} // a second home (the pineapple): mine, and my friend's next to it
-  if(s.id!=='home'){out.push(s);continue}out.push(Object.assign({},s,{id:mine,art:'home',x:two?690:s.x}));if(two)out.push({id:fr,n:'Friend\'s House',art:'home2',x:962,y:628})}return out.filter(s=>(s.w||0)===(G.world||0))} // only the places of the world whose map is showing
+  if(s.id!=='home'){out.push(s);continue}out.push(Object.assign({},s,{id:mine,art:'home',x:two?690:s.x}));if(two)out.push({id:fr,n:'Friend\'s House',art:'home2',x:962,y:628})}return out.filter(s=>(s.w||0)===(G.world||0)&&(!s.xm||XMAS()))} // only the places of the world whose map is showing
 const HOUSE0={w:'#ffe3ea',r:'#ff7d9a'},HOUSE2={w:'#e3f0ff',r:'#5b9bf0'};
 function houseCol(art,h){h=h||HOUSE0;const w=hexOk(h.w)?h.w:HOUSE0.w,r=hexOk(h.r)?h.r:HOUSE0.r; // walls, side wall, roof and trim all follow the two chosen colours
  return art.replace(/#ffe3ea/g,'~w').replace(/#f4b6c6/g,'~s').replace(/#ff7d9a/g,'~r').replace(/#ff9cb2/g,'~t').replace(/~w/g,w).replace(/~s/g,mix(w,r,.3)).replace(/~r/g,r).replace(/~t/g,lt(r,.25))}
@@ -1419,7 +1443,7 @@ function mapSVG(){if((G.world||0)===1)return farmMap();if((G.world||0)===2)retur
  A.pets=slab(180,74)+box(180,110,74,'#dcf6c9','#b6e09d','#8fd694')+R(12,-80,84,54,9,'#cfeeff')+P('M34 -52 Q46 -64 60 -52 Q46 -40 34 -52Z','#ff8552')+P('M34 -52 L24 -60 L24 -44Z','#ff8552')+C(72,-62,3,'#fff')+C(80,-50,2.500,'#fff')+door(114,44,70,'#ffffff')+C(136,-36,7,'#8fd694')+C(126,-46,4,'#8fd694')+C(136,-50,4,'#8fd694')+C(146,-46,4,'#8fd694')+awn(4,-108,172,'#56d39a')+swin(180,[[20,-84,34,40]])+E(46,-170,17,32,'#b9824f',0,rot(24,46,-170))+E(146,-170,17,32,'#b9824f',0,rot(-24,146,-170))+C(96,-170,48,'#f6e3c9')+C(118,-182,17,'#d9a36c',0,NO)+C(78,-180,5.500,INK)+C(116,-180,5.500,INK)+E(96,-164,8,6,INK)+L('M86 -152 Q96 -144 106 -152',INK,3)+R(91,-152,10,13,5,'#ff8fa3')+C(66,-160,7,'#ff8fa3',0,' opacity=".5"')+C(126,-160,7,'#ff8fa3',0,' opacity=".5"');
  A.park=E(0,0,170,58,'#a5dc8c',0,NO)+E(60,6,52,20,'#7ad3ff')+L('M40 4 q8 -5 16 0 M62 12 q8 -5 16 0','#fff',3)+[-150,-122,-94,-66,-38].map(x=>R(x,-34-Math.abs(x+94)*.06,9,26,3,'#e9c9a0')).join('')+L('M-150 -22 L-30 -20','#e9c9a0',5)+R(-70,-6,58,9,4,'#d9a36c')+R(-64,2,6,14,2,'#9a6a4a')+R(-24,2,6,14,2,'#9a6a4a')+L('M112 -60 L128 4 M158 -60 L142 4','#ff6f7d',6)+R(108,-66,54,9,4,'#ff6f7d')+L('M126 -58 L126 -22 M144 -58 L144 -22','#8d99ae',2.5)+R(120,-24,30,7,3,'#ffd23f')+C(-8,26,6,'#ff8fb1')+C(26,34,6,'#ffd23f')+C(-104,24,6,'#fff')+tree(-118,-22,1.250)+tree(8,-36,1.050,'#4fb894');
  A.beach=R(-6,-104,8,108,4,'#f6efe6')+P('M-80 -72 Q-2 -148 76 -72 Q50 -84 25 -72 Q0 -84 -25 -72 Q-50 -84 -80 -72Z','#ff6f7d')+P('M-25 -72 Q-16 -118 -2 -128 Q14 -118 25 -72 Q0 -84 -25 -72Z','#ffffff')+P('M36 4 L36 -22 L44 -22 L44 -30 L52 -30 L52 -22 L60 -22 L60 -30 L68 -30 L68 -22 L76 -22 L76 4Z','#f3c77c')+P('M50 4 L50 -8 Q56 -16 62 -8 L62 4Z','#d9a65c',0,NO)+L('M56 -30 L56 -50',INK,2.5)+P('M56 -50 L72 -44 L56 -38Z','#ff5c7a')+C(-52,-6,13,'#7ad3ff')+P('M-64 -8 Q-52 0 -40 -8 Q-44 -17 -52 -19 Q-60 -17 -64 -8Z','#fff',0,NO);
- mapSVG.home=A.home;A.home2=houseCol(A.home,NET.frHouse||HOUSE2);A.home=houseCol(A.home,G.house); // each house wears its owner's colours
+ mapSVG.home=A.home;A.home2=houseCol(A.home,NET.frHouse||HOUSE2);A.home=houseCol(A.home,G.house)+(roofOn()?xRoofSnow():''); // each house wears its owner's colours (and snow on the roof, a Christmas reward)
  A.duo=E(0,-2,92,20,'#8fdcff',0,NO)+`<path d="M-69 -24 A69 69 0 0 1 69 -24" fill="none" stroke="${INK}" stroke-width="5"${NO}/>`+[['#ff5c7a',62],['#ffd23f',50],['#56d39a',38],['#7ad3ff',26]].map(([k,r])=>`<path d="M${-r} -24 A${r} ${r} 0 0 1 ${r} -24" fill="none" stroke="${k}" stroke-width="12.500"${NO}/>`).join('')+`<path d="M-19 -24 A19 19 0 0 1 19 -24" fill="none" stroke="${INK}" stroke-width="5"${NO}/>`
   +P('M-80 -4 Q-72 -34 -20 -36 Q42 -40 80 -4 Q0 14 -80 -4Z','#ffe7a3')+P(heartP(-6,-20,9),'#ff5c7a')+L('M46 -22 Q52 -50 44 -66','#b5651d',7)+P('M44 -66 Q22 -82 6 -68 Q28 -72 42 -60 Q32 -88 52 -96 Q48 -80 48 -66 Q68 -86 86 -72 Q64 -74 50 -58Z','#3fae8a');
  A.tree=spotOpen({secret:'tree'})?outline(P('M-16 4 Q-6 -60 -12 -128 L14 -128 Q8 -60 18 4Z','#9a6a4a'),5)+U(C(0,-170,66,'#3fae8a')+C(-52,-132,42,'#3fae8a')+C(52,-132,42,'#3fae8a')+C(-30,-212,40,'#3fae8a')+C(34,-210,40,'#3fae8a'),5)+outline(R(-40,-196,80,54,8,'#e9c08f')+P('M-50 -190 L0 -232 L50 -190Z','#ff8552')+R(-11,-174,22,32,6,'#9a6a4a')+C(22,-172,8,'#cfeeff'),5)+L('M-30 -142 L-30 2 M-12 -142 L-12 2',INK,3)+[-120,-96,-72,-48,-24].map(y=>L(`M-30 ${y} L-12 ${y}`,INK,3)).join(''):outline(P('M-16 4 Q-6 -60 -12 -128 L14 -128 Q8 -60 18 4Z','#9a6a4a'),5)+U(C(0,-170,66,'#3fae8a')+C(-52,-132,42,'#3fae8a')+C(52,-132,42,'#3fae8a')+C(-30,-212,40,'#3fae8a')+C(34,-210,40,'#3fae8a'),5)+C(-22,-196,13,'#5fc7a2',0,NO)+E(2,-76,9,13,'#5a3a2a');
@@ -1448,7 +1472,7 @@ function mapSVG(){if((G.world||0)===1)return farmMap();if((G.world||0)===2)retur
  A.school=slab(186,74)+box(186,116,74,'#ffe0cc','#f6bfa2','#ff9a76')+win(14,-88,40,40)+win(132,-88,40,40)+door(70,46,70,'#7ad3ff')+C(93,-97,15,'#fff')+L('M93 -97 L93 -107 M93 -97 L100 -93',INK,3)+swin(186,[[20,-90,34,40]])+R(8,-48,52,12,5,'#ff9a76')+R(126,-48,52,12,5,'#ff9a76')
   +`<g transform="rotate(-16 100 -168)">`+R(46,-184,92,30,4,'#ffd23f')+R(26,-184,24,30,9,'#ff8fb1')+R(46,-184,9,30,0,'#c9c9d6')+P('M138 -184 L170 -169 L138 -154Z','#f6e3c9')+P('M158 -175 L170 -169 L158 -163Z',INK)+L('M60 -174 L128 -174','#fff3a8',4)+`</g>`;
  const W={home:176,home2:176,cafe:186,toys:176,salon:168,pets:180,school:186};
- mapSpots().sort((a,b)=>a.y-b.y).forEach(sp=>{const k=sp.art||sp.id,open=spotOpen(sp),dx=W[k]?-W[k]/2-18:0,art=/tree|castle/.test(k)?A[k]:outline(A[k],5);
+ mapSpots().sort((a,b)=>a.y-b.y).forEach(sp=>{const k=sp.art||sp.id,open=spotOpen(sp),dx=W[k]?-W[k]/2-18:0,art=XA[k]?XA[k]():/tree|castle/.test(k)?A[k]:outline(A[k],5);
   o+=`<g class="spot${open||sp.secret?'':' locked'}" data-go="${sp.id}" transform="translate(${sp.x} ${sp.y})"><g class="sp-in"><g transform="translate(${dx} 0)">${art}</g></g><circle r="96" cy="-70" fill="transparent"/></g>`});
  return o+'</svg>'}
 
@@ -1514,7 +1538,7 @@ function moveAnim(e,mut,an,done){const el=EL.get(e.id);if(!el){mut();done&&done(
  const tok=el._mt=(el._mt||0)+1,sid=SID;setTimeout(()=>{if(el._mt===tok)el.style.transition='';if(SID===sid)done&&done()},ms+16)}
 function landFx(e,an){if(!byId(e.id))return;const d=TD(e);if(an==='fall'){anim(e,d.bouncy?'bounce':'land',d.bouncy?600:240);const p=e.par&&byId(e.par);
   if(p&&TD(p).water&&e.slot==='surf'){sfx.splash();const a=absXY(e);drops(a.x,a.y-10,5);if(e.t==='duck')star('duck')}else sfx.drop()}
- if(d.landed)d.landed(e);if(S.night&&d.light)updLights()}
+ if(d.landed)d.landed(e);if(S.night&&d.light)updLights();afterLand(e)}
 function unpar(e){if(!e.par)return;const a=absXY(e),p=byId(e.par),sl=e.slot,el=EL.get(e.id);e.par=null;e.slot=null;e.x=a.x;e.y=a.y;delete e.dx;delete e.dy;
  if(el){$ents.appendChild(el);el.classList.remove('sm','bob','hd')}
  if(TD(e).k==='char'&&e.s.pose!=='stand'){e.s.pose='stand';delete e.s.lie;reslot(e);redraw(e)}
@@ -1597,10 +1621,10 @@ const PTR=new Map();
 function spt(ev){const r=$stage.getBoundingClientRect();return{x:(ev.clientX-r.left)/SCALE,y:(ev.clientY-r.top)/SCALE}}
 const over=(el,P)=>{if(!el||el.offsetParent===null)return false;const r=el.getBoundingClientRect();return P.cx>=r.left-12&&P.cx<=r.right+12&&P.cy>=r.top-12&&P.cy<=r.bottom+12};
 function onDown(ev){if(ev.button>0)return;ac();if(!S||ev.target.closest('.ui'))return;
- const el=ev.target.closest('.ent'),e=el?byId(+el.dataset.id):null,p=spt(ev);
- PTR.set(ev.pointerId,{e,p0:p,p,tg:ev.target,bg:!!ev.target.closest('#bg'),drag:false,cx:ev.clientX,cy:ev.clientY});try{$stage.setPointerCapture(ev.pointerId)}catch(_){}ev.preventDefault()}
+ const pk=pickAt(ev.clientX,ev.clientY,ev.target),e=pk.e,p=spt(ev);
+ PTR.set(ev.pointerId,{e,p0:p,p,tg:pk.tg,bg:!!ev.target.closest('#bg'),drag:false,cx:ev.clientX,cy:ev.clientY,cx0:ev.clientX,cy0:ev.clientY});try{$stage.setPointerCapture(ev.pointerId)}catch(_){}ev.preventDefault()}
 function onMove(ev){const P=PTR.get(ev.pointerId);if(!P)return;P.p=spt(ev);P.cx=ev.clientX;P.cy=ev.clientY;if(P.dead)return;const g=NET.mir;
- if(!P.drag){if(Math.hypot(P.p.x-P.p0.x,P.p.y-P.p0.y)<10)return;if(MODE==='paint'||!P.e||!(g?gGrab(P):startDrag(P))){P.dead=true;return}}
+ if(!P.drag){if(Math.hypot(P.p.x-P.p0.x,P.p.y-P.p0.y)<10)return;if(MODE!=='paint'&&P.e)P.e=grabPick(P);if(MODE==='paint'||!P.e||!(g?gGrab(P):startDrag(P))){P.dead=true;return}}
  if(g)gMove(P);else dragMove(P)}
 function onUp(ev){const P=PTR.get(ev.pointerId);if(!P)return;PTR.delete(ev.pointerId);P.p=spt(ev);P.cx=ev.clientX;P.cy=ev.clientY;
  if(!S)return;const cancel=ev.type==='pointercancel';
@@ -1608,7 +1632,7 @@ function onUp(ev){const P=PTR.get(ev.pointerId);if(!P)return;PTR.delete(ev.point
   if(P.drag)gDrop(P,cancel);else if(!P.dead&&!cancel){const r=resolveTap(P);if(MODE==='paint')NET.send({t:'tap',r,col:paintCol()});else if(r.id!=null)NET.send({t:'tap',r})}return}
  if(P.drag)endDrag(P,cancel);else if(!P.dead&&!cancel)tapAt(P)}
 function startDrag(P){let e=P.e;if(!byId(e.id))return false;const d=TD(e);if(tr(e).busy||tr(e).drag)return false;
- let o=P.p0;if(isFix(e)){if(!d.disp)return false;const n=dispense(e,P.p);if(!n)return false;e=P.e=n;o=P.p}else if(!mayMove(e,myNo())){shy(e);return false}
+ let o=P.p0;if(stuck(e)){if(!d.disp)return false;const n=dispense(e,P.p,P.p0);if(!n)return false;e=P.e=n;o=P.p}else if(!mayMove(e,myNo())){shy(e);return false}
  if(e.par)unpar(e);P.off={x:e.x-o.x,y:e.y-o.y};beginDrag(P);return true}
 function beginDrag(P){const e=P.e,el=EL.get(e.id);P.drag=true;tr(e).drag=1;el.classList.add('drag');el.style.transition='';posE(e);sfx.pick();dragUI(true)}
 function dragMove(P){const e=P.e;if(!byId(e.id)){P.dead=true;dragUI(false);return}e.x=clamp(P.p.x+P.off.x,10,W-10);e.y=clamp(P.p.y+P.off.y,30,H+60);posE(e);
@@ -1631,7 +1655,7 @@ function dropCore(e,p,res,cancel){const el=EL.get(e.id);if(!el||!byId(e.id))retu
   if(res.pack){stash(e);return}
   if(res.xbox){stash(e,1);return}
   if(res.trash){trashE(e);return}
-  const ex=subIds(e);for(const id of res.ids){const x=byId(id);if(x&&!ex.has(id)&&tryAccept(x,e,p))return}
+  const ex=subIds(e);if(TD(e).k!=='fix')for(const id of res.ids){const x=byId(id);if(x&&!ex.has(id)&&tryAccept(x,e,p))return}
   if(TD(e).k==='char')for(const x of S.ents){const d=TD(x);if(!d.mag||ex.has(x.id))continue;const a=absXY(x),fl=x.flip?-1:1; // seats that are easy to miss pull a friend in
    if(d.seats.some((s,i)=>!kidIn(x,'seat'+i)&&Math.abs(a.x+s[0]*fl-p.x)<84&&p.y>a.y+s[1]-200&&p.y<a.y+s[1]+50)&&tryAccept(x,e,p))return}}
  place(e)}
@@ -1643,13 +1667,14 @@ function tapCore(r){const e=r.id!=null?byId(r.id):null;if(!e)return;const d=TD(e
  if(d.tap)d.tap(e,tg,r.p);else if(d.disp)dispense(e);
  else if(d.k==='furn'&&!isFix(e)&&!kidsOf(e).length&&!e.par){if(!canDeco(actNo())){shy(e);return}e.flip=!e.flip;redraw(e);anim(e,'land',240);sfx.boing();dirty()}
  else{anim(e,'wig',320);sfx.pop()}}
-function dispense(e,pt){const d=TD(e),g=d.disp(e);if(!g)return null;if(S.ents.length>170){say(e,'So much stuff! Tidy up a bit first.');sfx.nope();return null}
+function dispense(e,pt,p0){const d=TD(e),g=d.disp(e,p0||pt);if(!g)return null;if(S.ents.length>170){say(e,'So much stuff! Tidy up a bit first.');sfx.nope();return null}
  const a=absXY(e);let n;if(pt)n=spawn(g.t,pt.x,pt.y+T[g.t].h/2,g.o);else{n=popOut(g.t,a.x+rnd(-20,20),a.y-d.h*.55,g.o,pick([-1,1])*rnd(80,160));sfx.pop();anim(e,'land',240)}
  if(d.after)d.after(e);return n}
 
 /* ---------- backpack & bin ---------- */
 function stash(e,x){const d=TD(e),g=!!ACTOR,no=actNo(),back=()=>{e.x=clamp(e.x,120,W-300);e.y=Math.min(e.y,740);place(e)};$pack.classList.remove('open');if($xbox)$xbox.classList.remove('open'); // x: into the Christmas box instead of the backpack
  if(x&&!isXm(e)){back();toast('Only Christmas things go in the Christmas box.');return}
+ if(TD(e).k==='fix'){back();toast('The '+nameOf(e)+' belongs to this place. You can move it around, but it can\'t go in the backpack.',4200);usfx('nope');return}
  if(!mayKeep(e,no)){back();shy(e);return}
  if(!g&&!x&&G.pack.length>=packCap()){toast('Your backpack is full! It has '+packCap()+' pockets.');usfx('nope');back();return}
  const keep=[],rel=[];(function rec(x){keep.push(x);for(const k of kidsOf(x)){if(['head','handL','handR'].includes(k.slot))rec(k);else rel.push(k)}})(e);
@@ -1664,6 +1689,7 @@ function unpack(i,p,x){const arr=(x?G.xbox:G.pack).splice(i,1)[0],root=arr[0];if
  if(root.from&&root.from!==SID)star('pack');delete root.from;if(NET.peer)for(const k of arr){k.ow=myNo();delete k.fre} // what I bring along stays mine
  updPack();dirty();return root}
 function trashE(e){const k=TD(e).k,no=actNo();$trash.classList.remove('open');
+ if(k==='fix'){e.x=clamp(e.x,320,W-120);e.y=Math.min(e.y,720);place(e);toast('The '+nameOf(e)+' belongs to this place — it can\'t go in the bin.',3800);usfx('nope');return}
  if(k!=='char'&&k!=='pet'&&!mayKeep(e,no)){e.x=clamp(e.x,320,W-120);e.y=Math.min(e.y,720);place(e);shy(e);return}
  if(k==='char'||k==='pet'){e.x=clamp(e.x,320,W-120);e.y=Math.min(e.y,720);place(e);say(e,pick(['No way!','Hey! Not me!','Nope nope nope!']));sfx.nope();return}
  const rel=kidsOf(e);for(const c of rel){unpar(c);c.x=clamp(c.x,320,W-120);c.y=Math.min(c.y,720)}
@@ -1694,7 +1720,7 @@ function scOpen(id,st,o){o=o||{};const sc=SC[id],arrive=!o.mir&&!o.keep; // put 
  hideMap();clearScene();SID=id;S=st;S.ents=S.ents.filter(e=>T[e.t]);if(arrive)avArrive();IDX=new Map(S.ents.map(e=>[e.id,e]));
  for(const e of S.ents)if(e.par&&!IDX.has(e.par)){e.par=null;e.slot=null;if(e.x==null){e.x=800;e.y=760}}
  drawBg();mountAll();setNight(true);setParty(true);updHud();if(!o.quiet){$stage.classList.remove('enter');void $stage.offsetWidth;$stage.classList.add('enter');hushed(()=>sfx.whoosh())}
- if(arrive){avHello();if(sc.enter)sc.enter()}dirty()}
+ if(arrive){avHello();if(sc.enter)sc.enter()}dirty();setTimeout(()=>{if(SID===id&&S===st)reachAll()},450)}
 function go(id,quiet){if(NET.peer){netGo(id,quiet);return} // with a friend, each of us walks around on our own (see PLAY TOGETHER)
  closeTrays();closeStyle();setMode('play');if(S)scClose();
  const sc=id!=='map'&&SC.hasOwnProperty(id)&&!SC[id].own?SC[id]:null;if(!sc){G.cur='map';toMap();return}
@@ -1706,9 +1732,9 @@ function setParty(q){$stage.classList.toggle('party',!!(S&&S.party));if(!q)dirty
 function tick(){if(!S||document.hidden)return;
  if(NET.mir){tickN++;if(tickN%120===0)for(const e of S.ents)if(T[e.t].clock)redraw(e);return} // my friend is running this place
  for(const e of S.ents.slice()){const d=T[e.t];if(d.tick&&byId(e.id))d.tick(e,.25)}
- tickN++;if(tickN%4===0)wander();if(tickN%120===0)for(const e of S.ents)if(T[e.t].clock)redraw(e)}
+ tickN++;if(tickN%4===0)wander();if(tickN%20===10)reachSweep();if(tickN%120===0)for(const e of S.ents)if(T[e.t].clock)redraw(e)}
 function wander(){const[ft,fb]=SC[SID].floor;for(const e of S.ents){if(e.t!=='pet'||e.par||e.s.zz||e.y<ft)continue;const t=tr(e);if(t.drag||t.busy||Math.random()>.1)continue;
-  const dx=pick([-1,1])*rnd(40,110);e.flip=dx<0;redraw(e);anim(e,'hop',420);glide(e,clamp(e.x+dx,80,W-80),clamp(e.y+rnd(-12,12),ft+10,fb),420)}}
+  const dx=pick([-1,1])*rnd(40,110);e.flip=dx<0;redraw(e);anim(e,'hop',420);glide(e,clamp(e.x+dx,80,W-80),clamp(e.y+rnd(-12,12),ft+10,fb),420,()=>reach(e))}}
 
 /* ---------- little effects ---------- */
 function fxEl(cls,html,x,y,ms,style){const d=h('div','fx '+cls,html);d.style.cssText=`left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;`+(style||'');$fx.appendChild(d);setTimeout(()=>d.remove(),ms);return d}
@@ -1733,6 +1759,68 @@ function star(id){if(NET.feed&&!NET.sent.has(id)){NET.sent.add(id);NET.send({t:'
  if(G.st[id])return;const before=stars();G.st[id]=Date.now();if(NET.peer)netAt();const def=STK.find(s=>s[0]===id),name=def?def[1]:(id.startsWith('pet_')?'You met '+PETS[id.slice(4)].n+'!':id);
  hushed(()=>{sfx.star();stickerToast(name)});updHud();dirty();const n=stars();
  for(const u of UNL)if(before<u[0]&&n>=u[0])setTimeout(()=>{toast('⭐ '+u[0]+' stars!  '+u[1],5600);usfx('chest');if(u[0]===40){G.pack.push([mk('egg',0,0,{s:{r:2}})]);dirty()}updPack(true);updHud()},1500)}
+
+/* =====================================================================
+   NOTHING GETS LOST — things can never stay trapped behind something.
+   · Machines, stations, plant beds and trees can be dragged around
+     (only dispensers, the sun, dig spots and game bubbles stay put).
+   · Something that lands where a finger cannot reach it — behind a
+     machine, a bed, a counter or under the backpack button — hops out
+     in front of it. When a place opens, anything already stuck is freed.
+   · Taps and drags go "through" invisible touch areas, and dragging on a
+     machine grabs a small thing hidden behind it.
+   ===================================================================== */
+T.sun.pin=1;
+const stuck=e=>{const d=TD(e);return !!(e.fx||d.disp||d.pin||d.z!=null)};   // things that never move (dragging a dispenser pulls something out of it)
+const isBig=e=>{const k=TD(e).k;return k==='fix'||k==='furn'};
+const rootOf=e=>{let x=e;while(x&&x.par&&byId(x.par))x=byId(x.par);return x};
+const rescuable=e=>{const d=TD(e);return !e.par&&d.k!=='fix'&&!d.mt&&d.z==null&&!tr(e).drag};
+/* how much of a thing can a finger actually reach? sample a grid over it and look at what is on top */
+function reachInfo(e){const d=TD(e),r=$stage.getBoundingClientRect(),cov={};let pres=0,vis=0;
+ for(const fx of[.12,.31,.5,.69,.88])for(const fy of[.1,.3,.5,.7,.9]){const sx=e.x-d.w/2+d.w*fx,sy=e.y-d.h+d.h*fy;if(sx<2||sx>W-2||sy<2||sy>H-2)continue;
+  let blk=null,me=false;
+  for(const n of document.elementsFromPoint(r.left+sx*SCALE,r.top+sy*SCALE)){if(!n.closest)continue;if(n.closest('#bg'))break;
+   if(n.closest('#hud')){if(!blk&&!n.closest('#tray,#stylep,#trash'))blk='ui';continue}
+   const en=n.closest('.ent');if(!en)continue;const x=byId(+en.dataset.id);if(!x)continue;const rt=rootOf(x);
+   if(rt===e){me=true;break}if(n.classList&&n.classList.contains('hit')&&isBig(rt))continue; // an invisible touch area: a press goes through it (pickAt)
+   if(!blk&&isBig(rt))blk=String(rt.id)}
+  if(!me)continue;pres++;if(blk)cov[blk]=(cov[blk]||0)+1;else vis++}
+ return{pres,vis,cov}}
+const trapped=r=>r.pres>0&&r.vis<Math.max(2,Math.ceil(r.pres*.18));
+/* move a stuck thing to the nearest spot where it can be seen and grabbed */
+function reach(e,now){if(!S||NET.mir||!byId(e.id)||!rescuable(e)||tr(e).busy)return false;const el=EL.get(e.id);if(!el)return false;
+ const r0=reachInfo(e);if(!trapped(r0))return false;const d=TD(e),[ft,fb]=SC[SID].floor,x0=e.x,y0=e.y,fl=!!d.float||y0<ft-4;
+ const ck=Object.keys(r0.cov).sort((a,b)=>r0.cov[b]-r0.cov[a])[0],cv=ck&&ck!=='ui'?byId(+ck):null,cand=[];
+ const X=x=>clamp(x,Math.max(70,d.w/2+6),W-Math.max(70,d.w/2+6)),Y=y=>fl?y:clamp(y,ft+8,fb);
+ if(cv){const a=absXY(cv),cw=TD(cv).w/2+d.w/2+10;if(!fl&&a.y+18<=fb)cand.push([x0,a.y+18]);cand.push([a.x-cw,y0],[a.x+cw,y0]);if(!fl)cand.push([a.x-cw,fb-4],[a.x+cw,fb-4])}
+ else cand.push([x0-170,y0],[x0,fl?y0:y0-120],[x0-320,y0]);
+ const xs=[];for(let x=110;x<=W-110;x+=70)xs.push(x);xs.sort((a,b)=>Math.abs(a-x0)-Math.abs(b-x0));
+ for(const y of fl?[y0]:[fb-6,Math.round((ft+fb)/2),ft+30])for(const x of xs)cand.push([x,y]);
+ const tv=el.style.transition;el.style.transition='none';let best=null,n=0;
+ for(const[cx,cy]of cand){if(n++>70)break;e.x=X(cx);e.y=Y(cy);posE(e);const r=reachInfo(e);if(r.pres&&r.vis>=r.pres*.6){best=[e.x,e.y];break}}
+ e.x=x0;e.y=y0;posE(e);el.style.transition=tv;if(!best)return false;
+ if(now){e.x=best[0];e.y=best[1];posE(e)}else{glide(e,best[0],best[1],420);anim(e,'hop',420)}
+ dirty();return true}
+const reachSoon=(e,ms)=>{const sid=SID;if(ms==null)ms=TD(e).bouncy?720:330; // wait until the landing bounce is over
+ setTimeout(()=>{if(SID===sid&&S&&byId(e.id)&&!e.par&&!tr(e).drag)reach(e)},ms)};
+/* a big thing just landed: anything it now hides hops out in front */
+function freeAround(f){if(!S||NET.mir)return;const a=absXY(f),d=TD(f);
+ for(const g of S.ents)if(g!==f&&rescuable(g)&&zOf(g)<zOf(f)){const gd=TD(g);if(Math.abs(g.x-a.x)<(gd.w+d.w)/2&&g.y>a.y-d.h&&g.y-gd.h<a.y)reachSoon(g,330)}}
+function afterLand(e){if(!S||NET.mir||e.par)return;if(isBig(e))freeAround(e);if(rescuable(e))reachSoon(e)}
+/* a quiet safety net every few seconds: whatever got hidden some other way hops out too */
+function reachSweep(){if(!S||NET.mir||document.hidden)return;for(const P of PTR.values())if(P.drag)return;for(const e of S.ents.slice())if(rescuable(e)&&!tr(e).busy)reach(e)}
+function reachAll(){if(!S||NET.mir)return 0;let n=0;for(const e of S.ents.slice())if(rescuable(e)&&reach(e,1))n++;return n}
+/* what does a finger press on? invisible touch areas of big things let the press through to what is visible below */
+function pickAt(cx,cy,tg){const en0=tg&&tg.closest?tg.closest('.ent'):null,e0=en0?byId(+en0.dataset.id):null;
+ if(!e0||!tg.classList||!tg.classList.contains('hit')||!isBig(e0))return{e:e0,tg};
+ const own=rootOf(e0);for(const n of document.elementsFromPoint(cx,cy)){if(!n.closest)continue;if(n.closest('#bg'))break;const en=n.closest('.ent');if(!en)continue;const x=byId(+en.dataset.id);if(!x||rootOf(x)===own)continue;
+  if(n.classList&&n.classList.contains('hit')&&isBig(x))continue;return{e:x,tg:n}}
+ return{e:e0,tg}}
+/* starting a drag on a big thing: a small thing hidden behind it at that spot wins */
+function grabPick(P){const top=P.e;if(!top||!byId(top.id)||!isBig(top)||TD(top).disp||P.cx0==null)return top;const own=rootOf(top);
+ for(const n of document.elementsFromPoint(P.cx0,P.cy0)){if(!n.closest)continue;if(n.closest('#bg'))break;const en=n.closest('.ent');if(!en)continue;const x=byId(+en.dataset.id);if(!x||rootOf(x)===own)continue;
+  if(isBig(x)||tr(x).busy||tr(x).drag||!mayMove(x,myNo()))continue;return x}
+ return top}
 
 /* =====================================================================
    ME & FRIENDS — every player has one character that is "them".
@@ -1793,7 +1881,7 @@ for(const id of HOMES){const b=SC[id],nv={};for(const k in b.nav||{})nv[k]=b.nav
 const ownerOf=id=>!id||!SC[id]?0:SC[id].own===2?2:1;                           // the town and house 1 belong to whoever started the room; house 2 to the friend
 const isHome=id=>!!SC[id]&&HOMES.includes(SC[id].base||id);
 const canDeco=no=>!NET.peer||ownerOf(SID)===no;                                 // may this player redecorate here?
-const isDeco=e=>{const d=TD(e);return d.k==='furn'||!!d.mt};
+const isDeco=e=>{const d=TD(e);return d.k==='furn'||d.k==='fix'||!!d.mt}; // furniture, machines and wall things: only the owner of a place moves them
 function holder(e){for(let x=e;x;x=x.par?byId(x.par):null)if(isAv(x))return x.me;return 0} // the avatar that this is, or that wears / holds this
 /* Playing together is for sharing, not for fighting: you cannot move your friend, take what they wear, hold or brought along, or redecorate their places. */
 function mayMove(e,no){if(!NET.peer)return true;const hd=holder(e);if(hd&&hd!==no)return false;if(e.ow&&e.ow!==no)return false;if(e.ow===no||(e.fre&&e.t==='gpump'))return true; // your own things (and a freshly grown giant pumpkin) can always be moved
@@ -2196,7 +2284,7 @@ function farmMap(){let o=SVGO+`<defs><linearGradient id="msky" x1="0" y1="0" x2=
  A.fyard=P('M-40 0 L-26 -130 L26 -130 L40 0Z','#fff3e0')+P('M-34 -128 L0 -168 L34 -128Z','#e63946')+`<g class="np sunspin" style="transform-origin:0px -140px">`+[0,90,180,270].map(a=>`<g transform="rotate(${a} 0 -140)"><rect x="-4" y="-222" width="8" height="82" rx="3" fill="#9a6a4a"/><rect x="4" y="-218" width="24" height="56" rx="4" fill="#fff8e7" stroke="${INK}" stroke-width="4"/></g>`).join('')+`</g>`+C(0,-140,9,'#e63946')+P('M70 -10 L70 -52 Q70 -60 78 -60 L112 -60 L118 -44 L150 -44 Q160 -42 160 -30 L160 -10Z','#e63946')+C(86,-12,22,'#4a4e69')+C(86,-12,9,'#ffd23f')+C(146,-6,14,'#4a4e69')+C(146,-6,5,'#ffd23f');
  A.ppatch=[[-60,-8,30],[10,-6,24],[64,-10,34]].map(([x,y,r])=>E(x-r*.45,y-r*.8,r*.6,r*.8,'#e6761a')+E(x+r*.45,y-r*.8,r*.6,r*.8,'#e6761a')+E(x,y-r*.82,r*.7,r*.86,'#ff8a1c')+R(x-3,y-r*1.8,6,12,3,'#3fae6a')).join('')+R(-110,-90,10,82,3,'#9a6a4a')+R(-120,-104,64,34,6,'#fff3e0');
  A.market=R(-86,-110,10,110,3,'#9a6a4a')+R(76,-110,10,110,3,'#9a6a4a')+[0,1,2,3,4].map(i=>P(`M${-96+i*38.4} -126 L${-57.6+i*38.4} -126 L${-57.6+i*38.4} -100 Q${-76.8+i*38.4} -88 ${-96+i*38.4} -100Z`,i%2?'#fff':'#e63946')).join('')+R(-100,-136,200,14,6,'#e63946')+R(-92,-46,184,46,8,'#e8c3a0')+[[-60,-54,'#ff8552'],[-30,-56,'#56d39a'],[0,-54,'#ff5c7a'],[30,-56,'#ffd23f'],[60,-54,'#9b6bff']].map(([x,y,k])=>C(x,y,12,k)).join('');
- for(const sp of mapSpots().sort((a,b)=>a.y-b.y)){const open=spotOpen(sp);o+=`<g class="spot${open?'':' locked'}" data-go="${sp.id}" transform="translate(${sp.x} ${sp.y})"><g class="sp-in">${outline(A[sp.id]||'',5)}</g><circle r="100" cy="-70" fill="transparent"/></g>`}
+ for(const sp of mapSpots().sort((a,b)=>a.y-b.y)){const open=spotOpen(sp);o+=`<g class="spot${open?'':' locked'}" data-go="${sp.id}" transform="translate(${sp.x} ${sp.y})"><g class="sp-in">${XA[sp.id]?XA[sp.id]():outline(A[sp.id]||'',5)}</g><circle r="100" cy="-70" fill="transparent"/></g>`}
  if(XMAS())o+=xTown();return o+'</svg>'}
 IC.clover='<svg viewBox="0 0 24 24"><g fill="#2bb673"><circle cx="8" cy="8" r="4.500"/><circle cx="16" cy="8" r="4.500"/><circle cx="8" cy="15" r="4.500"/><circle cx="16" cy="15" r="4.500"/></g><path d="M12 12 Q13 18 17 22" stroke="#1f8a55" stroke-width="2.200" fill="none" stroke-linecap="round"/></svg>';
 
@@ -2346,7 +2434,7 @@ function xSanta(){const x=xState(),d=xDay(),y=NOW().getFullYear(),hk=S?SC[SID].b
  const sid=SID,ok=()=>SID===sid&&S&&!NET.mir,[ft,fb]=SC[SID].floor,tree=S.ents.find(e=>e.t==='xtree'&&!e.par),px=tree?clamp(tree.x,300,W-300):800;let santa;
  setTimeout(()=>{if(!ok())return;[0,1,2,3,4].forEach(i=>setTimeout(()=>sfx.ding(),i*170));toastAll(XHOMES[hk][1],3600)},900);
  setTimeout(()=>{if(!ok())return;const sx=clamp(px+260,200,W-200);santa=spawn('char',sx,ft+150,{c:{a:SKIN[1],b:'#ffffff',c:XRED,d:XRED,e:'#35252d',t:XRED},s:{hs:0,of:3,xs:4,beard:1,npc:2,lid:0,pose:'stand'}});
-   const hat=spawn('hat',0,0,{s:{v:X0}}),sl=chSlot(santa,'head',hat);attach(hat,santa,'head',sl.dx,sl.dy,'put');tr(santa).busy=1;tr(hat).busy=1;anim(santa,'pop',320);sparkle(sx,ft-40,12);sfx.magic();say(santa,hk==='shome'?'Ho ho ho! Merry Christmas… blub! I swam all the way down!':hk==='fhouse'?'Ho ho ho! Merry Christmas, little farmer!':'Ho ho ho! Merry Christmas!',2800);star('santa');xFit(4)},2600);
+   const hat=spawn('hat',0,0,{s:{v:X0}}),sl=chSlot(santa,'head',hat);attach(hat,santa,'head',sl.dx,sl.dy,'put');tr(santa).busy=1;tr(hat).busy=1;anim(santa,'pop',320);sparkle(sx,ft-40,12);sfx.magic();say(santa,hk==='shome'?'Ho ho ho! Merry Christmas… blub! I swam all the way down!':hk==='fhouse'?'Ho ho ho! Merry Christmas, little farmer!':'Ho ho ho! Merry Christmas!',2800);star('santa');bell('santa',santa);xFit(4)},2600);
  setTimeout(()=>{if(!ok()||!santa||!byId(santa.id))return;const ck=S.ents.find(e=>(e.t==='cookie'||e.t==='ginger')&&!tr(e).drag);let n=3;
    if(ck){const a=absXY(ck);crumbs(a.x,a.y-10,'#f2b880');rm(ck);sfx.chomp();setFace(santa,'yum',1600);say(santa,'Mmm, cookies! Thank you!',2400);star('cookies');n=4}
    for(let i=0;i<n;i++)setTimeout(()=>{if(!ok())return;const e=spawn('present',px,ft+60);delete e.fre;e.ow=NET.peer?myNo():undefined;if(!e.ow)delete e.ow;anim(e,'pop',300);sfx.pop();e.x=clamp(px+(i-(n-1)/2)*96,80,W-80);e.y=Math.min(fb,ft+170+(i%2)*26);place(e)},500+i*420)},5200);
@@ -2356,8 +2444,8 @@ SC.home.enter=function(){xSanta()};SC.fhouse.enter=function(){xSanta()}; // (the
 
 /* ---------- snow in town, the calendar button, the Christmas box ---------- */
 function xTree(x,y,k=1){return`<g transform="translate(${x} ${y}) scale(${k})" class="np">`+outline(R(-7,-14,14,18,3,'#9a6a4a')+P('M0 -60 L44 -8 Q0 4 -44 -8Z','#2e9e6b')+P('M0 -96 L34 -44 Q0 -34 -34 -44Z','#34ad76')+P('M0 -124 L24 -80 Q0 -72 -24 -80Z','#3fbd84'),5)+P(star5(0,-128,13,6),'#ffd23f')+[[-16,-52],[14,-58],[-24,-20],[4,-24],[26,-16],[-6,-88],[10,-94]].map(([a,b],i)=>`<circle cx="${a}" cy="${b}" r="5" fill="${XCOL[i%6]}" class="tw" style="animation-delay:-${(i*.4).toFixed(1)}s"/>`).join('')+`</g>`}
-function xTown(){if((G.world||0)!==1)return xTree(556,652); // Clover Farm: a tree by the road, a snowman by the farmhouse, snow on the fields
- return[[250,470,150,26],[900,700,180,30],[1420,640,150,26],[560,760,130,22]].map(([x,y,rx,ry])=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity=".8" class="np"/>`).join('')+xTree(778,752,1.100)
+function xTown(){if((G.world||0)!==1)return''; // the Christmas Village spot stands where the town tree was. Clover Farm: snow on the fields, a snowman by the farmhouse
+ return[[250,470,150,26],[900,700,180,30],[1420,640,150,26],[560,760,130,22]].map(([x,y,rx,ry])=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#fff" opacity=".8" class="np"/>`).join('')
   +`<g transform="translate(396 500) scale(.42)" class="np">`+outline(T.snowman.draw({s:{},c:T.snowman.c},T.snowman.c).replace(/<ellipse[^>]*rgba[^>]*>/,''),7)+`</g>`+xWreath(880,436,.62)}
 function xHud(){if(!$xbox)return;const on=XMAS(),n=(G.xbox||[]).length,sc=SID&&SC[SID],t=xDay(),b=$('#b-xmas');$stage.classList.toggle('xmas',on);$stage.classList.toggle('out',!!sc&&!sc.in);$stage.classList.toggle('hasx',n>0||on);
  const bd=$xbox.querySelector('.badge');bd.textContent=n||'';bd.style.display=n?'':'none';
@@ -2482,10 +2570,12 @@ D('clam','Giant Clam',240,196,'fix',{a:'#ff9fc0'},(e,c)=>{const g=pearlG(e),pc=h
    +P('M18 108 Q20 186 120 190 Q220 186 222 108 Q120 146 18 108Z',c.a,'a')+L('M120 186 L60 132 M120 186 L90 140 M120 186 L120 142 M120 186 L150 140 M120 186 L180 132',dk(c.a,.14),3,0,NO)+C(96,160,5,INK)+C(144,160,5,INK)+L('M110 170 Q120 178 130 170',INK,3)},
  {fx:1,accept(e,it){if(!['kelp','sgrape','bberry'].includes(it.t)||!e.s.pt||pearlG(e)>=3)return false;rm(it);sfx.chomp();anim(e,'chomp',220);hearts(e,2);e.s.pt-=PEARLMS/3;say(e,'Mmm! That helps my pearl grow!');dirty();return true},
   tap(e){const g=pearlG(e),a=absXY(e);if(g<3){anim(e,'chomp',220);sfx.snip();say(e,['My next pearl has only just started… a sea snack would help!','Growing, growing… not shiny yet.','Almost ready! Just a little longer.'][g]);return}
-   const pc=hexOk(e.s.pc)?e.s.pc:'#fff6ee';e.s.pt=Date.now();e.s.pg=0;e.s.pc=pick(PEARLC);redraw(e);anim(e,'land',260);sfx.ding();sparkle(a.x,a.y-110,7);popTo('pearl',e,-165,{c:{a:pc}});say(e,'A pearl for you! I\'ll grow another.');star('pearl');dirty()},
+   const pc=hexOk(e.s.pc)?e.s.pc:'#fff6ee';e.s.pt=Date.now();e.s.pg=0;e.s.pc=pick(PEARLC);redraw(e);anim(e,'land',260);sfx.ding();sparkle(a.x,a.y-110,7);if(XMAS()){popTo('pearl',e,-165,{c:{a:'#eef8ff'},s:{snow:1,xm:1}});say(e,'A SNOW PEARL! They only grow at Christmas time. Three make a snowflake tiara!',3400);star('pearl');star('spearl');bell('spearl',e);dirty();return}
+   popTo('pearl',e,-165,{c:{a:pc}});say(e,'A pearl for you! I\'ll grow another.');star('pearl');dirty()},
   tick(e){if(!e.s.pt)return;const g=pearlG(e);if(g>=3){e.s.pt=0;e.s.pg=0;redraw(e);const a=absXY(e);sparkle(a.x,a.y-110,6);sfx.ding();dirty();return}if(g!==(e.s.pg|0)){e.s.pg=g;redraw(e);anim(e,'land',240);dirty()}}});
-D('pearl','Pearl',52,52,'item',{a:'#fff6ee'},(e,c)=>sh(52,52,.32)+(e.s.glow?C(26,26,25,'#9dfbe6',0,' opacity=".45" class="np"'+NO):'')+C(26,27,19,c.a,'a')+C(19,20,6,'#fff',0,' opacity=".9"'+NO)+(e.s.sh?P(star5(40,12,7,3),'#fff',0,NO):''),
- {nm:e=>(e.s.sh?'Shiny ':'')+(e.s.glow?'Glow Pearl':'Pearl'),nd:1,light:e=>e.s.glow?{dx:0,dy:-26,r:110}:null,tap(e){const a=absXY(e);sparkle(a.x,a.y-26,4);sfx.magic();anim(e,'wig',300)}});
+D('pearl','Pearl',52,52,'item',{a:'#fff6ee'},(e,c)=>sh(52,52,.32)+(e.s.glow?C(26,26,25,'#9dfbe6',0,' opacity=".45" class="np"'+NO):'')+C(26,27,19,c.a,'a')+C(19,20,6,'#fff',0,' opacity=".9"'+NO)+(e.s.sh?P(star5(40,12,7,3),'#fff',0,NO):'')+(e.s.snow?flake(26,27,10,'#7ab8e8',2.400):''),
+ {nm:e=>(e.s.sh?'Shiny ':'')+(e.s.snow?'Snow Pearl':e.s.glow?'Glow Pearl':'Pearl'),nd:1,light:e=>e.s.glow?{dx:0,dy:-26,r:110}:null,tap(e){const a=absXY(e);sparkle(a.x,a.y-26,4);sfx.magic();anim(e,'wig',300)}});
+function flake(x,y,r,k,w){let d='';for(let i=0;i<6;i++){const a=i*Math.PI/3,c=Math.cos(a),s=Math.sin(a),f=(t,o)=>`${(x+c*r*t-s*o).toFixed(1)} ${(y+s*r*t+c*o).toFixed(1)}`;d+=`M${x} ${y} L${f(1,0)} M${f(.6,0)} L${f(.85,r*.22)} M${f(.6,0)} L${f(.85,-r*.22)} `}return`<path d="${d}" stroke="${k}" stroke-width="${w||2}" stroke-linecap="round" fill="none" class="np"/>`}
 const SSTARC=['#ff8552','#ff7aa8','#ffd23f','#9b6bff','#56d39a'];
 D('seastar','Sea Star',78,76,'toy',{a:'#ff8552'},(e,c)=>sh(78,76,.34)+P(star5(39,40,35,17),c.a,'a',' stroke-linejoin="round"')+[[39,16],[18,33],[60,33],[26,58],[52,58]].map(([x,y])=>C(x,y,3,lt(c.a,.45),0,NO)).join('')+C(32,38,3.200,INK)+C(46,38,3.200,INK)+L('M33 46 Q39 51 45 46',INK,2.400)+(e.s.sh?P(star5(62,14,7,3),'#fff',0,NO):''),
  {tap(e){anim(e,'spin',600);sfx.squeak();say(e,pick(['High five! …I have five!','Star power!','Wheee!']))}});
@@ -2504,7 +2594,7 @@ D('crab','Crab',136,100,'toy',{a:'#ff6b5e'},(e,c)=>sh(136,100,.42)+L('M40 70 L18
  {nm:e=>e.s.cap?'Captain Pinch':e.s.chef?'Chef Clawdia':'Crab',
   tap(e){const t=tr(e);if(t.busy||e.par)return;const dir=e.x<W/2?1:-1,sid=SID;t.busy=1;sfx.snip();setTimeout(()=>sfx.snip(),200);anim(e,'dance',900);star('crab');
    say(e,e.s.cap?pick(['Arr! The treasure map was torn in THREE pieces!','Arr! Bubbles, sand and a swap — that\'s where map pieces hide.','X marks the spot, matey! Put the map together on the table.','A key in the sand opens the chest. Arr!']):e.s.chef?pick(['Kelp goes in the patty press — squish!','Grill the patty, then build: bun first!','Cheese is in the bun basket, dearie.','Serve the customers and they leave a tip!','Four fillings make a SKY-HIGH burger!']):pick(['Click clack!','Sideways is the best way!','Shuffle shuffle!']),e.s.cap||e.s.chef?3400:1800);
-   glide(e,clamp(e.x+dir*rnd(120,200),90,W-90),e.y,800,()=>{tr(e).busy=0});setTimeout(()=>{if(SID===sid&&byId(e.id))tr(e).busy=0},1000)}});
+   glide(e,clamp(e.x+dir*rnd(120,200),90,W-90),e.y,800,()=>{tr(e).busy=0;reach(e)});setTimeout(()=>{if(SID===sid&&byId(e.id))tr(e).busy=0},1000)}});
 D('puffer','Pufferfish',130,120,'toy',{a:'#ffd23f'},(e,c)=>{const big=tr(e).big;return sh(130,120,.36)+(big?[0,36,72,108,144,180,216,252,288,324].map(a=>{const r=a*Math.PI/180,x=65+54*Math.cos(r),y=62+54*Math.sin(r);return P(`M${(65+44*Math.cos(r-.16)).toFixed(0)} ${(62+44*Math.sin(r-.16)).toFixed(0)} L${x.toFixed(0)} ${y.toFixed(0)} L${(65+44*Math.cos(r+.16)).toFixed(0)} ${(62+44*Math.sin(r+.16)).toFixed(0)}Z`,dk(c.a,.14),'a')}).join('')+C(65,62,46,c.a,'a')+E(65,80,32,18,'#fff8e0',0,NO)+C(50,50,9,'#fff')+C(80,50,9,'#fff')+C(50,50,4,INK)+C(80,50,4,INK)+C(65,70,6,INK)
    :P('M100 64 L124 48 L122 82Z',dk(c.a,.14),'a')+E(62,66,42,30,c.a,'a')+E(58,78,28,13,'#fff8e0',0,NO)+P('M62 40 Q74 26 84 42Z',dk(c.a,.14),'a')+C(42,58,7,'#fff')+C(41,59,3.200,INK)+C(26,70,3.500,INK)+[[58,54],[74,60],[66,48]].map(([x,y])=>C(x,y,2.200,dk(c.a,.25),0,NO)).join(''))},
  {tap(e){const t=tr(e);if(t.big)return;t.big=1;redraw(e);anim(e,'pop',300);sfx.boing();say(e,pick(['PUFF!','Whoa! You startled me!','Poof!']));star('puff');later(e,2200,()=>{tr(e).big=0;redraw(e);anim(e,'land',240);sfx.squeak()})}});
@@ -2591,7 +2681,7 @@ function seaMap(){let o=SVGO+`<defs><linearGradient id="msea" x1="0" y1="0" x2="
  const RD='M-40 790 C230 760 330 690 560 700 C800 712 900 560 1140 580 C1340 596 1460 500 1640 480';o+=L(RD,'#e6cb8e',62)+L(RD,'#fff9e0',50);
  const kelp=(x,y,h,k)=>`<g class="sway" style="transform-origin:${x}px ${y}px">`+outline(`<path d="M${x} ${y} q-16 ${-h/4} 0 ${-h/2} q16 ${-h/4} 0 ${-h/2}" fill="none" stroke="${k}" stroke-width="15" stroke-linecap="round"/>`,4.500)+`</g>`;
  [[60,580,120,'#2bb7a3'],[100,600,90,'#3fae6a'],[730,440,100,'#3fae6a'],[1570,740,110,'#2bb7a3'],[910,430,80,'#2bb7a3'],[40,900,120,'#3fae6a'],[1250,900,90,'#2bb7a3']].forEach(([x,y,h,k])=>o+=kelp(x,y,h,k));
- [[440,570,'#ff8fb1',.8],[1560,600,'#ffb74d',.7],[640,860,'#ff7aa8',.9],[870,420,'#d58bff',.6],[1220,860,'#56d39a',.7],[60,440,'#ff8fb1',.7],[100,760,'#ffb74d',.6]].forEach(([x,y,k,s],i)=>o+=XMAS()&&i===2?xCoralTree(x,y+6,1.400):coralArt(x,y,k,s)+(XMAS()?`<g class="np">`+xBulbs([[x-36*s,y-58*s],[x+36*s,y-70*s],[x,y-78*s]],5)+`</g>`:''));
+ [[440,570,'#ff8fb1',.8],[1560,600,'#ffb74d',.7],[640,860,'#ff7aa8',.9],[870,420,'#d58bff',.6],[1220,860,'#56d39a',.7],[60,440,'#ff8fb1',.7],[100,760,'#ffb74d',.6]].forEach(([x,y,k,s],i)=>o+=XMAS()&&i===2?'':coralArt(x,y,k,s)+(XMAS()?`<g class="np">`+xBulbs([[x-36*s,y-58*s],[x+36*s,y-70*s],[x,y-78*s]],5)+`</g>`:''));
  [[330,790,'#ff8552'],[820,800,'#ffd23f'],[700,560,'#ff7aa8'],[620,540,'#9b6bff'],[1160,700,'#ff8552']].forEach(([x,y,k])=>o+=outline(P(star5(x,y,15,7),k),4));
  [[500,760],[1000,640],[400,470],[760,470],[1560,780]].forEach(([x,y])=>o+=outline(P(`M${x} ${y} Q${x-20} ${y-6} ${x-16} ${y-20} Q${x-8} ${y-30} ${x} ${y-28} Q${x+8} ${y-30} ${x+16} ${y-20} Q${x+20} ${y-6} ${x} ${y}Z`,'#fff6ee'),4));
  // fish going by, and bubbles
@@ -2613,7 +2703,7 @@ function seaMap(){let o=SVGO+`<defs><linearGradient id="msea" x1="0" y1="0" x2="
  A.trench=P('M-122 0 Q-134 -122 -44 -152 Q28 -178 92 -142 Q142 -102 126 0Z','#6a7aa6')+P('M-66 0 Q-72 -86 -8 -102 Q62 -106 68 0Z','#1f2547')+C(-30,-50,6,'#7dffe0')+C(10,-72,5,'#b388ff')+C(36,-34,6,'#7dffe0')+C(-4,-22,4,'#ffe66d')+L('M96 -142 Q110 -172 92 -186','#6a7aa6',6)+C(90,-190,9,'#ffe66d');
  A.palace=R(-112,-72,44,72,6,'#ffe9f4')+P('M-122 -68 Q-90 -128 -58 -68Z','#b98cf0')+R(68,-72,44,72,6,'#ffe9f4')+P('M58 -68 Q90 -128 122 -68Z','#b98cf0')+R(-72,-104,144,104,8,'#fff3fb')+P('M-86 -98 Q0 -196 86 -98Z','#ff9fc0')+P('M-22 0 L-22 -42 Q-22 -64 0 -64 Q22 -64 22 -42 L22 0Z','#ffd23f')+C(0,-116,13,'#fff6ee')+C(-90,-132,7,'#fff6ee')+C(90,-132,7,'#fff6ee')+C(0,-200,9,'#ffd23f');
  A.palace0=P('M-84 0 L-84 -92 Q-84 -154 0 -154 Q84 -154 84 -92 L84 0Z','#9aa7c2')+P('M-52 0 L-52 -82 Q-52 -120 0 -120 Q52 -120 52 -82 L52 0Z','#5a6b8a')+L('M0 -118 L0 0','#3d4a66',5)+C(0,-58,9,'#ffd23f')+L('M-66 -150 q-16 36 0 72 q16 36 0 72 M58 -146 q16 34 0 68 q-16 34 0 68 M-24 -154 q-10 24 0 48','#3fae6a',13);
- for(const sp of mapSpots().sort((a,b)=>a.y-b.y)){const open=spotOpen(sp),ak=sp.art||sp.id,art=!open&&A[ak+'0']?A[ak+'0']:A[ak];o+=`<g class="spot${open?'':' locked'}${!open&&sp.secret?' mys':''}" data-go="${sp.id}" transform="translate(${sp.x} ${sp.y})"><g class="sp-in">${outline(art||'',5)}</g><circle r="100" cy="-70" fill="transparent"/></g>`}
+ for(const sp of mapSpots().sort((a,b)=>a.y-b.y)){const open=spotOpen(sp),ak=sp.art||sp.id,art=!open&&A[ak+'0']?A[ak+'0']:A[ak];o+=`<g class="spot${open?'':' locked'}${!open&&sp.secret?' mys':''}" data-go="${sp.id}" transform="translate(${sp.x} ${sp.y})"><g class="sp-in">${XA[ak]?XA[ak]():outline(art||'',5)}</g><circle r="100" cy="-70" fill="transparent"/></g>`}
  return o+'</svg>'}
 D('roe','Sea Egg',56,64,'item',{a:'#bfefff',b:'#7ad3ff'},(e,c)=>sh(56,64,.34)+P('M28 4 Q50 6 50 38 Q50 60 28 60 Q6 60 6 38 Q6 6 28 4Z',c.a,'a')+C(20,30,5,c.b,'b')+C(36,22,4,c.b,'b')+C(34,44,6,c.b,'b')+E(18,18,4,7,'#fff',0,' opacity=".7" class="np"'+rot(20,18,18)),{tap(e){anim(e,'wig',300);sfx.pop();say(e,'A sea egg! The Lagoon nursery keeps eggs warm.',2600)}});
 
@@ -2628,16 +2718,18 @@ D('polisher','Polishing Sponge',200,190,'fix',{a:'#ffd23f',b:'#8d99ae'},(e,c)=>s
   tap(e){anim(e,'wig',300);say(e,'Drop a shell, pearl or sea star on me to make it shine!')}});
 D('jbench','Jewellery Bench',270,210,'fix',{a:'#c98f5a',b:'#ff8fb1'},(e,c)=>{const js=(e.s.jc||[]).filter(hexOk);return sh(270,210,.46)+`<rect x="8" y="16" width="254" height="96" fill="transparent" class="hit"/>`+R(26,96,18,110,7,dk(c.a,.15),'a')+R(226,96,18,110,7,dk(c.a,.15),'a')+R(8,84,254,26,12,c.a,'a')+R(40,110,190,40,8,dk(c.a,.08),'a')+C(135,130,6,'#ffd23f')
    +P('M176 84 L182 30 Q206 4 230 30 L236 84Z',c.b,'b')+L('M190 40 Q206 66 222 40','#fff6ee',4)+C(206,56,5,'#fff6ee')+R(30,58,120,28,10,'#fff3e0')+js.map((k,i)=>C(52+i*38,58,15,k)+C(47+i*38,53,4,'#fff',0,' opacity=".8"'+NO)).join('')+(js.length?`<text x="135" y="196" font-size="18" font-weight="700" text-anchor="middle" fill="#fff" class="np">${js.length}/3</text>`:'')},
- {fx:1,accept(e,it){if(!JEWEL.includes(it.t)||tr(e).busy)return false;const js=e.s.jc=(e.s.jc||[]);if(js.length>=3){say(e,'Three is plenty! Tap me to make something.');return false}js.push(hexOk(it.c.a)?it.c.a:'#fff6ee');if(it.s.sh)e.s.jsh=1;rm(it);redraw(e);sfx.pop();
+ {fx:1,accept(e,it){if(!JEWEL.includes(it.t)||tr(e).busy)return false;const js=e.s.jc=(e.s.jc||[]);if(js.length>=3){say(e,'Three is plenty! Tap me to make something.');return false}js.push(hexOk(it.c.a)?it.c.a:'#fff6ee');if(it.s.sh)e.s.jsh=1;if(it.s.snow)e.s.jsn=(e.s.jsn|0)+1;rm(it);redraw(e);sfx.pop();
    say(e,js.length<3?`${js.length} in! Tap me for a necklace — or bring ${3-js.length} more for a TIARA.`:'Three! Tap me to make a tiara!',3000);dirty();return true},
   tap(e){const js=e.s.jc||[];if(!js.length){anim(e,'wig',300);say(e,'Bring pearls, shells or sea stars: 1 or 2 make a necklace, 3 make a tiara!',3200);return}if(tr(e).busy)return;sfx.pop();say(e,'Thread, twist, tie…');
-   const big=js.length>=3,cols=js.splice(0,3),shiny=e.s.jsh;e.s.jsh=0;redraw(e);dirty();busyMaker(e,1700,()=>{const a=absXY(e),o={c:{a:cols[0],b:cols[1]||cols[0],d:cols[2]||cols[1]||cols[0]}};
-    if(big){popTo('tiara',e,-150,o);say(e,'A tiara fit for a queen! Drop it on someone\'s head.',3000);star('tiara')}else{popTo('neck',e,-150,o);say(e,'A necklace! Drop it on a friend to put it on.',3000)}sfx.ding();if(shiny)sparkle(a.x-150,a.y-60,9)})}});
+   const big=js.length>=3,cols=js.splice(0,3),shiny=e.s.jsh,snowy=big&&(e.s.jsn|0)>=3;e.s.jsh=0;e.s.jsn=0;redraw(e);dirty();busyMaker(e,1700,()=>{const a=absXY(e),o={c:{a:cols[0],b:cols[1]||cols[0],d:cols[2]||cols[1]||cols[0]}};
+    if(snowy){o.s={snow:1,xm:1};popTo('tiara',e,-150,o);say(e,'A SNOWFLAKE TIARA! Only at Christmas — drop it on someone\'s head.',3400);star('tiara');star('stiara');bell('stiara',e)}
+    else if(big){popTo('tiara',e,-150,o);say(e,'A tiara fit for a queen! Drop it on someone\'s head.',3000);star('tiara')}else{popTo('neck',e,-150,o);say(e,'A necklace! Drop it on a friend to put it on.',3000)}sfx.ding();if(shiny)sparkle(a.x-150,a.y-60,9)})}});
 D('neck','Necklace',92,74,'item',{a:'#fff6ee',b:'#ffc9de',d:'#cfe8ff'},(e,c)=>hit(92,74)+sh(92,74,.3)+L('M12 10 Q46 86 80 10','#e9dcc8',2.400,0,NO)+[[12,12],[18,28],[28,42],[46,50],[64,42],[74,28],[80,12]].map(([x,y],i)=>C(x,y,i===3?10:7,i===3?c.a:i%2?c.b:c.d,i===3?'a':i%2?'b':'d')).join(''),
  {wear(ch,it){const k=[hexOk(it.c.a)?it.c.a:'#fff6ee',hexOk(it.c.b)?it.c.b:'#fff6ee',hexOk(it.c.d)?it.c.d:'#fff6ee'];if(ch.s.nk)wardGive('nk',[ch.s.nc,ch.s.nc2,ch.s.nc3]);const fresh=wardGive('nk',k);
    ch.s.nk=1;ch.s.nc=k[0];ch.s.nc2=k[1];ch.s.nc3=k[2];rm(it);redraw(ch);hearts(ch,4);sfx.magic();say(ch,pick(['So pretty!','I feel fancy!','Ooh, sparkly!']));star('neck');dirty();
    if(fresh&&!G.flags.wtip){G.flags.wtip=1;toast('Your necklace now lives in your wardrobe: take it off or put it back on in the makeover window any time.',6000)}}});
-D('tiara','Pearl Tiara',120,80,'hat',{a:'#fff6ee',b:'#ffc9de',d:'#cfe8ff'},(e,c)=>hit(120,80)+L('M20 76 Q60 54 100 76','#ffd23f',7)+P('M34 70 L43 42 L54 60 L60 32 L66 60 L77 42 L86 70Z','#ffd23f')+C(43,38,8,c.b,'b')+C(77,38,8,c.d,'d')+C(60,26,11,c.a,'a')+C(56,22,3.500,'#fff',0,' opacity=".85"'+NO),{hat:{dy:0}});
+D('tiara','Pearl Tiara',120,80,'hat',{a:'#fff6ee',b:'#ffc9de',d:'#cfe8ff'},(e,c)=>e.s.snow?hit(120,80)+L('M20 76 Q60 54 100 76','#bfe3ff',7)+P('M34 70 L43 42 L54 60 L60 26 L66 60 L77 42 L86 70Z','#dff2ff')+C(43,40,7,c.b,'b')+C(77,40,7,c.d,'d')+C(60,20,15,'#ffffff')+flake(60,20,12,'#5aa9e6',2.600)+flake(43,40,5,'#5aa9e6',1.600)+flake(77,40,5,'#5aa9e6',1.600)
+  :hit(120,80)+L('M20 76 Q60 54 100 76','#ffd23f',7)+P('M34 70 L43 42 L54 60 L60 32 L66 60 L77 42 L86 70Z','#ffd23f')+C(43,38,8,c.b,'b')+C(77,38,8,c.d,'d')+C(60,26,11,c.a,'a')+C(56,22,3.500,'#fff',0,' opacity=".85"'+NO),{hat:{dy:0},nm:e=>e.s.snow?'Snowflake Tiara':'Pearl Tiara'});
 function seaRow(ch){const mine=[ch.s.nc,ch.s.nc2,ch.s.nc3],ring=[ch.s.fc,ch.s.fc2,ch.s.fc];if(ch.s.nk)wardAdd('nk',mine);if(ch.s.fl)wardAdd('fl',ring);const nk=ward('nk'),fl=ward('fl'),key=ch.s.nk&&wardOk(mine)?wardKey(mine):'',fkey=ch.s.fl&&wardOk(ring)?wardKey(ring):'';
  return tailRow(ch)+(nk.length||ch.s.nk?`<div class="lbl">Necklaces</div><div class="sws"><button class="swt xoff${ch.s.nk?'':' on'}" data-a="nk">${IC.x}</button>`+nk.map(c=>wardSw('nw',c,key===wardKey(c))).join('')+`</div>`:'')
   +(fl.length||ch.s.fl?`<div class="lbl">Swim rings</div><div class="sws"><button class="swt xoff${ch.s.fl?'':' on'}" data-a="fl">${IC.x}</button>`+fl.map(c=>wardSw('fw',c,fkey===wardKey(c))).join('')+`</div>`:'')}
@@ -2746,7 +2838,7 @@ function bubRecord(n){const best=G.flags.bbest|0;if(n>=20)star('pop20');
  if(NET.peer){const fb=(NET.frFlags&&NET.frFlags.bb)|0;if(fb&&n>fb)star('bbeat');NET.send({t:'bnews',n});netAt()}
  if(S)for(const e of S.ents)if(e.t==='bboard')redraw(e)}
 D('gbub','Game Bubble',100,100,'fix',{a:'#9eeaff'},(e,c)=>`<circle cx="50" cy="50" r="44" fill="${c.a}" fill-opacity=".55" stroke="#ffffff" stroke-width="6" data-o="1"/>`+L('M24 40 Q28 22 46 16','#fff',7,0,' opacity=".9"'+NO),
- {fx:1,z:8000,tap(e){const a=absXY(e),bl=S.ents.find(x=>x.t==='bblaster');sfx.pop();drops(a.x,a.y-50,6);if(bl&&tr(bl).busy){tr(bl).n=(tr(bl).n|0)+1;redraw(bl)}rm(e)},
+ {fx:1,z:8000,pin:1,tap(e){const a=absXY(e),bl=S.ents.find(x=>x.t==='bblaster');sfx.pop();drops(a.x,a.y-50,6);if(bl&&tr(bl).busy){tr(bl).n=(tr(bl).n|0)+1;redraw(bl)}rm(e)},
   tick(e){const bl=S.ents.find(x=>x.t==='bblaster');if(!bl||!tr(bl).busy||Date.now()-(e.s.born||0)>2600)rm(e)}});
 D('bblaster','Bubble Pop',220,260,'fix',{a:'#2bb7a3',b:'#ffd23f'},(e,c)=>{const t=tr(e),b=t.busy;return sh(220,260,.46)+R(88,150,44,100,10,dk(c.a,.14),'a')+R(50,236,120,20,10,dk(c.a,.2),'a')+P('M20 150 Q10 30 110 22 Q210 30 200 150Z',c.a,'a')+R(40,60,140,62,14,'#143a4a')
    +`<text x="110" y="${b?104:100}" font-size="${b?40:27}" font-weight="700" text-anchor="middle" fill="#7dffe0" class="np">${b?(t.n|0)+' · '+(t.left|0)+'s':e.s.last!=null?'last: '+(e.s.last|0):'POP!'}</text>`+C(110,160,26,b?'#8d99ae':c.b,'b')+`<text x="110" y="168" font-size="19" font-weight="700" text-anchor="middle" fill="${INK}" class="np">${b?'…':'GO'}</text>`+C(40,36,9,'#effcff',0,' opacity=".8"'+NO)+C(182,44,7,'#effcff',0,' opacity=".8"'+NO)},
@@ -2883,7 +2975,7 @@ const custTalk=e=>{anim(e,'hop',420);sfx.pop();say(e,pick(['One Reef Burger, ple
   if(free&&ch.s.npc===4&&isBurger(it.t)){star('serve');eat(ch,it);setTimeout(()=>{if(SID!==sid||!byId(ch.id))return;const a=absXY(ch);say(ch,pick(['Best burger under the sea! Here\'s a tip.','Mmm! Keep the change!','Five sea stars! Take this.']),2800);
     popOut(Math.random()<.5?'pearl':'shell',clamp(a.x-150,80,W-80),a.y-170,{c:{a:pick(PEARLC)}},-60);sfx.kaching()},2700);return true}
   return a0.call(this,ch,it,p)}}
-const isRoyalHat=h=>!!h&&(h.t==='tiara'||(h.t==='hat'&&(h.s.v===1||h.s.v===16)));
+const isRoyalHat=h=>!!h&&(h.t==='tiara'||(h.t==='hat'&&(h.s.v===1||h.s.v===16||h.s.v===XCROWN)));
 D('sthrone','Pearl Throne',250,300,'furn',{a:'#ffc9de',b:'#ffd23f'},(e,c)=>sh(250,300,.46)+P('M26 200 Q4 30 125 10 Q246 30 224 200Z',c.a,'a')+L('M125 196 L125 22 M125 196 L72 34 M125 196 L178 34 M125 196 L34 76 M125 196 L216 76',dk(c.a,.1),3.400,0,NO)+C(125,14,17,'#fff6ee')+C(119,8,5,'#fff',0,NO)+C(38,60,10,'#fff6ee')+C(212,60,10,'#fff6ee')
   +R(4,170,52,122,22,c.b,'b')+R(194,170,52,122,22,c.b,'b')+R(36,196,178,96,16,dk(c.a,.14),'a')+R(48,184,154,40,16,'#ff8fb1')+C(30,180,11,'#7ad3ff')+C(220,180,11,'#7ad3ff'),
  {seats:[[0,-106]],sat(x,ch){const a=absXY(x);if(isRoyalHat(kidIn(ch,'head'))){star('royal');sfx.star();confetti(a.x,a.y-260,30);setFace(ch,'laugh',2200);say(ch,pick(['All hail ME!','I rule the waves!','Bow, little fishies!']))}else say(ch,'Comfy! But a royal needs a tiara or a crown…',2800)}});
@@ -2932,6 +3024,286 @@ D('swimrack','Splash Shop',260,300,'fix',{a:'#ff9fb6',b:'#1fa6c4'},(e,c)=>sh(260
   tap(e){const a=absXY(e);anim(e,'land',240);if(!ACTOR&&!swimOwn().length){swimAdd(7);say(e,'Welcome! A stripy swimsuit, on the house. Bring me a pearl for a new one.',3600)}else if(ACTOR&&NET.peer)NET.send({t:'ward',k:'swim',v:7});
    if(S.ents.filter(k=>GEAR.some(g=>g[0]===k.t)&&!k.par).length>=5){if(swimOwn().length)say(e,'Try those on first! (Swimsuits: bring me a pearl.)',2800);return}
    const i=e.s.i=((e.s.i|0)+1)%GEAR.length,g=GEAR[i];sfx.pop();popTo(g[0],e,rnd(-100,100),{c:{a:pick(g[1])}});if(swimOwn().length>1||ACTOR)say(e,pick(['Snorkels, goggles, rings and helmets!','Drop it on a friend\'s head to wear it.','A pearl buys a new swimsuit!']),2600);dirty()}});
+
+/* =====================================================================
+   CHRISTMAS FUN — things to DO at Christmas time (25 Nov – 25 Dec), and
+   things to EARN. Every Christmas activity rings up Jingle Bells, and
+   Jingle Bells unlock rewards on the Christmas reward track.
+   · Christmas Village (on every map): Comet the reindeer, the gift-wrap
+     bench, snow to roll into snowmen and snowballs, an ice rink, a tree.
+   · Holiday Kitchen: pantry → prep counter → Christmas oven → feast table
+     (roast turkey dinner, glazed ham dinner, apple pie, hot cocoa).
+   · Clover Farm: chop your own Christmas tree. Coral Cove: snow pearls
+     and a snowflake tiara.
+   Everything earned stays after Christmas; only the activities go away.
+   ===================================================================== */
+IC.bell='<svg viewBox="0 0 24 24"><path d="M12 3 C7.500 3 6 7 6 10.500 L6 15 L4 18 L20 18 L18 15 L18 10.500 C18 7 16.500 3 12 3Z" fill="#ffd23f" stroke="#35252d" stroke-width="1.700" stroke-linejoin="round"/><circle cx="12" cy="19.500" r="2.200" fill="#ffd23f" stroke="#35252d" stroke-width="1.500"/><path d="M9 7 Q10 5.500 12 5.300" stroke="#fff" stroke-width="1.400" fill="none" stroke-linecap="round"/></svg>';
+Object.assign(sfx,{jingle(){[1568,1760,1568,2093,1760].forEach((f,i)=>tone(f,.16,{at:i*.07,vol:.07,type:'triangle'}));noise(.35,{ft:'highpass',f:5000,vol:.05})},chop(){noise(.09,{f:900,vol:.25});tone(140,.08,{type:'square',vol:.1})},skate(){noise(.5,{ft:'highpass',f:3500,fto:6000,vol:.05})}});
+
+/* ---------- Jingle Bells: [bells each time, times per day, what for] ---------- */
+const XB={cal:[1,9,'A calendar door'],cook:[1,6,'Holiday cooking'],gold:[1,3,'A golden roast'],feast:[3,2,'A Christmas feast'],gift:[1,4,'A present for a friend'],snowman:[2,2,'You built a snowman'],snowdeco:[1,3,'Snowman style'],snowball:[1,3,'Snowball fight'],skate:[1,2,'Ice skating'],deer:[1,3,'Comet the reindeer'],chop:[2,1,'Your own Christmas tree'],spearl:[1,3,'A snow pearl'],stiara:[2,1,'A snowflake tiara'],santa:[2,3,'Santa came!'],sleigh:[1,2,'A sleigh ride']};
+const XWAYS=[['cal','Open a calendar door'],['cook','Cook a holiday dish in the Holiday Kitchen'],['gold','Baste a roast 3 times while it cooks'],['feast','Hold a Christmas feast at the feast table'],['gift','Wrap a present and give it to someone'],['snowman','Build a snowman from 3 snowballs'],['snowdeco','Give a snowman a nose, a hat or a scarf'],['snowball','Throw a snowball at a friend'],['skate','Go skating on the ice rink'],['deer','Feed Comet the reindeer'],['chop','Chop a Christmas tree at Clover Farm'],['spearl','Find snow pearls in Coral Cove'],['stiara','Make a snowflake tiara (3 snow pearls)'],['santa','Be home when Santa comes (24–25 Dec)'],['sleigh','Ride Santa\'s sleigh']];
+const bellSvg=(s=40)=>IC.bell.replace('<svg ',`<svg width="${s}" height="${s}" `);
+const xwOk=k=>k==='sleigh'?!!xUp().got.sleigh:k==='chop'?farmOpen():k==='spearl'||k==='stiara'?seaOpen():true,XWLOCK={sleigh:'a reward at 32 bells',chop:'opens with Clover Farm',spearl:'opens with Coral Cove',stiara:'opens with Coral Cove'};
+function bell(src,at){if(!XMAS()||!XB[src])return;if(ACTOR&&NET.peer){NET.send({t:'xbell',src});return}bellAdd(src,at)} // the bell goes to whoever did it
+function bellAdd(src,at){const k=XB[src];if(!k||!XMAS())return 0;xUp();const x=xState(),d=dayN();if(!x.bd||x.bd.d!==d)x.bd={d,n:{},full:{}};const n=x.bd.n[src]|0;
+ if(n>=k[1]){if(!x.bd.full[src]){x.bd.full[src]=1;dirty();toast('That\'s all the Jingle Bells for this one today ('+k[2].toLowerCase()+') — try something else!',4200)}return 0}
+ x.bd.n[src]=n+1;const b0=G.xbells|0,b1=b0+k[0];G.xbells=b1;dirty();hushed(()=>sfx.jingle());
+ const tt=h('div','toast stk bel',IC.bell+`<span><small>+${k[0]} Jingle Bell${k[0]>1?'s':''}!</small>${k[2]} · ${b1} bells</span>`);$('#toasts').appendChild(tt);setTimeout(()=>tt.classList.add('out'),2800);setTimeout(()=>tt.remove(),3200);
+ if(at&&S&&byId(at.id)){const t=topOf(at);for(let i=0;i<k[0];i++)fxEl('rise',bellSvg(),t.x+rnd(-30,30),t.y,1300+i*160,`animation-delay:${i*160}ms`)}
+ xCatch(1500);
+ if(TRAY==='xbox')renderTray();return k[0]}
+
+/* ---------- the reward track ---------- */
+const XCROWN=HATS.length;HATS.push(['Superstar Crown','#ffd23f','#ff5c7a']);
+const XTRACK=[[3,'roof','Snowy Roof'],[6,'gbh','Gingerbread House'],[10,'pjs','Christmas PJs'],[15,'deer','Baby Reindeer'],[20,'pack','Elf Backpack'],[25,'snowm','Snow Machine'],[32,'sleigh','Santa\'s Sleigh'],[40,'crown','Superstar Crown']];
+function xCatch(ms){const u=xUp(),n=G.xbells|0;let i=0;for(const r of XTRACK)if(n>=r[0]&&!u.got[r[1]])setTimeout(()=>xReward(r),ms+1400*i++)} // every reward you have enough bells for (one after another)
+function xUp(){const u=G.xup=G.xup&&typeof G.xup==='object'?G.xup:{};u.got=u.got&&typeof u.got==='object'?u.got:{};const y=xState().y;if(u.y!==y){if(u.y){u.got={};G.xbells=0}u.y=y}return u} // each Christmas starts a fresh bell track (the snowy roof and the bigger backpack stay)
+function xReward(r){const u=xUp(),k=r[1];if(u.got[k])return;u.got[k]=1;let where=' It\'s in your Christmas box.';
+ if(k==='roof'){u.roof=1;where=' Look at your house on the Boba Bay map!'}
+ else if(k==='gbh')G.xbox.push([mk('gbhouse',0,0)]);
+ else if(k==='pjs'){xFit(11);where=' Put them on in the makeover window.'}
+ else if(k==='deer'){G.xbox.push([mk('pet',0,0,{s:{sp:'deer',xm:1},c:{a:PETS.deer.a,b:PETS.deer.b}})]);star('pet_deer');where=' Your new pet is waiting in the Christmas box!'}
+ else if(k==='pack'){u.pack=1;where=' Your backpack now has '+packCap()+' pockets.'}
+ else if(k==='snowm')G.xbox.push([mk('xsnowm',0,0)]);
+ else if(k==='sleigh')G.xbox.push([mk('xsleigh',0,0)]);
+ else if(k==='crown'){G.xbox.push([mk('hat',0,0,{s:{v:XCROWN}})]);star('superstar')}
+ dirty();updPack(true);if(!SID)showMap();usfx('chest');hushed(()=>confetti(800,300,40));toast('Christmas reward: '+r[2]+'!'+where,6500)}
+const xBag=()=>{const s=$pack&&$pack.querySelector('svg');return s?s.outerHTML.replace('<svg','<svg class="th"'):''};
+function xRwThumb(k){if(k==='roof')return mapSVG.home?`<svg class="th" viewBox="-40 -250 320 270">${outline(houseCol(mapSVG.home,G.house)+xRoofSnow(),5)}</svg>`:'';
+ if(k==='gbh')return thumb(mk('gbhouse',0,0,null,true));if(k==='pjs')return thumb(mk('char',0,0,{c:CH.me.c,s:Object.assign({},CH.me.s,{xs:11})},true));
+ if(k==='deer')return thumb(mk('pet',0,0,{s:{sp:'deer'},c:{a:PETS.deer.a,b:PETS.deer.b}},true));if(k==='pack')return xBag();
+ if(k==='snowm')return thumb(mk('xsnowm',0,0,null,true));if(k==='sleigh')return thumb(mk('xsleigh',0,0,null,true));return thumb(mk('hat',0,0,{s:{v:XCROWN}},true))}
+window.openAdvent=function(tab){const x=xState(),t=xDay();if(t<0){toast('The Christmas calendar comes back on 25 November!');return}
+ if(tab!=null)openAdvent.tab=tab;tab=openAdvent.tab|0;const u=xUp(),nb=G.xbells|0;let body;if(XTRACK.some(r=>nb>=r[0]&&!u.got[r[1]]))xCatch(300);
+ if(tab===0)body=`<p class="sub sm">A little gift every day until Christmas — and every door rings up a Jingle Bell!</p><div class="xcal">`+ADV.map((a,i)=>`<button class="xdoor${x.got[i]?' got':i<=t?' can':''}${i===t?' today':''}" data-d="${i}">${x.got[i]?xThumb(i):`<b>${xLabel(i).split(' ')[1]}</b><small>${xLabel(i).split(' ')[0]}</small>`}</button>`).join('')+`</div>`;
+ else{const nx=XTRACK.find(r=>!u.got[r[1]]),today=x.bd&&x.bd.d===dayN()?x.bd.n:{};
+  body=`<div class="xbody"><div class="xtrk">`+XTRACK.map(r=>{const got=!!u.got[r[1]];return`<div class="xrw${got?' got':nx===r?' next':''}"><div class="xth">${xRwThumb(r[1])}</div><b>${r[2]}</b><span>${got?'✓ Yours!':IC.bell+r[0]}</span></div>`}).join('')+`</div>`
+   +`<div class="bar xbar"><i style="width:${Math.min(100,nb/40*100).toFixed(0)}%"></i></div><p class="sub sm">${nx?(nx[0]>nb?`<b>${nx[0]-nb} more</b> Jingle Bells for the ${nx[2]}!`:`Your ${nx[2]} is on its way!`):'You earned every Christmas reward — you\'re a Christmas Superstar!'}</p>`
+   +`<h4 class="xwh">Ways to earn Jingle Bells today</h4><div class="xways">`+XWAYS.map(([k,txt])=>{const c=XB[k],n=today[k]|0,ok=xwOk(k);return`<div class="xw${n>=c[1]?' done':''}${ok?'':' lk'}"><span>${txt}${ok?'':`<small>${XWLOCK[k]}</small>`}</span><b>${IC.bell}+${c[0]}</b><i>${n}/${c[1]}</i></div>`}).join('')+`</div></div>`}
+ showModal(`<h2>Christmas</h2><div class="tabs xtabs"><button class="tab${tab===0?' on':''}" data-xt="0">Calendar</button><button class="tab${tab===1?' on':''}" data-xt="1">${IC.bell}<span>${nb} Jingle Bells</span></button></div>`+body,'book xwin',true);
+ $('#modal .xtabs').onclick=ev=>{const b=ev.target.closest('[data-xt]');if(b){usfx('click');openAdvent(+b.dataset.xt)}};
+ const cal=$('#modal .xcal');if(cal)cal.onclick=ev=>{const b=ev.target.closest('.xdoor');if(!b)return;const i=+b.dataset.d;if(x.got[i])return;if(i>t){usfx('nope');toast('That door opens on '+xLabel(i)+'.');return}xOpen(i);bell('cal')}};
+
+/* ---------- stickers for the Christmas fun ---------- */
+STK.push(['tdinner','Turkey Time','Roast a turkey dinner in the Holiday Kitchen.','xmas'],['hdinner','Honey-Glazed','Roast a ham dinner with a sweet glaze.','xmas'],['apie','Apple Pie','Bake a Christmas apple pie.','xmas'],['xcocoa','Cocoa Break','Stir up a hot cocoa at the prep counter.','xmas'],
+ ['golden','Golden Roast','Baste a roast 3 times while it cooks.','xmas'],['xfeast','Christmas Feast','Put a main dish, a dessert and a drink on the feast table — then tap it!','xmas'],['wrapper','Wrapped Up','Wrap a present at the gift-wrap bench.','xmas'],['shelper','Santa\'s Helper','Give wrapped presents to 5 different friends.','xmas'],
+ ['xsnowman','Snow Sculptor','Build a snowman: big, medium and small snowballs.','xmas'],['snowstyle','Snow Stylist','Give a snowman a carrot nose, a hat and a yarn scarf.','xmas'],['snowball','Snowball Fight!','Throw a snowball at someone.','xmas'],['skate','Twirl on Ice','Go skating on the ice rink.','xmas'],['reindeer','Snack for Comet','Feed Comet the reindeer.','xmas'],
+ ['xchop','Tree Hunter','Chop down a Christmas tree at Clover Farm.','xmas'],['spearl','Snow Pearl','Find a snow pearl in Coral Cove at Christmas time.','xmas'],['stiara','Snowflake Tiara','Make a tiara from 3 snow pearls.','xmas'],['sleigh','Up, Up and Away','Ride Santa\'s sleigh.','xmas'],['superstar','Christmas Superstar','Earn 40 Jingle Bells.','xmas']);
+
+/* ---------- holiday food: the drawings ---------- */
+const turkeyArt=(x,y,k,col)=>`<g transform="translate(${x} ${y}) scale(${k})">`+E(-30,-14,16,10,col,0,rot(-35,-30,-14))+E(30,-14,16,10,col,0,rot(35,30,-14))+C(-43,-24,5.500,'#fff')+C(43,-24,5.500,'#fff')+E(0,0,42,25,col)+E(-8,-9,22,10,lt(col,.35),0,NO)+L('M-22 7 Q0 17 22 7',dk(col,.18),2.600,0,NO)+`</g>`;
+const hamArt=(x,y,k,col,gl)=>`<g transform="translate(${x} ${y}) scale(${k})">`+R(30,-16,24,11,5,'#fff6ea',0,rot(-18,42,-10))+C(56,-18,6.500,'#fff6ea')+C(57,-7,6.500,'#fff6ea')+P('M-40 10 Q-46 -26 -6 -30 Q30 -32 38 -6 Q44 18 10 24 Q-32 30 -40 10Z',col)
+ +(gl?L('M-26 -16 L12 18 M-10 -24 L26 10 M6 -27 L34 -2 M-34 -2 L-6 22 M-30 6 L20 -24 M-22 18 L32 -12 M-36 -8 L4 -28',dk(col,.22),2.200,0,NO)+[[-14,-4],[2,5],[17,-6],[-2,-15],[10,13],[-22,8]].map(([a,b])=>C(a,b,2.200,'#5a2d1a',0,NO)).join(''):'')+E(-12,-16,14,6,lt(col,.4),0,NO)+`</g>`;
+const pieArt=(x,y,k,baked,cin)=>`<g transform="translate(${x} ${y}) scale(${k})">`+P('M-46 0 L46 0 L38 18 L-38 18Z',baked?'#d9a36c':'#f3dcb8')+E(0,0,48,14,baked?'#e8b56c':'#f6e2c0')+E(0,-1,39,9,'#c9673a',0,NO)+L('M-31 -6 L31 -6 M-35 2 L35 2 M-17 -9 L-17 8 M0 -10 L0 9 M17 -9 L17 8',baked?'#f2c27a':'#fbeacb',4,0,NO)
+ +(cin?C(-24,-3,2.200,'#7a4a2c',0,NO)+C(22,4,2.200,'#7a4a2c',0,NO)+C(6,-7,2,'#7a4a2c',0,NO):'')+(baked?E(10,-12,8,4,'#2bb673',0,rot(-20,10,-12)+NO)+E(21,-12,8,4,'#2bb673',0,rot(20,21,-12)+NO)+C(15.500,-14,3.200,'#e63946',0,NO):'')+`</g>`;
+const cakeArt=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})">`+P('M-36 12 Q-40 -26 0 -28 Q40 -26 36 12 Q0 22 -36 12Z','#7a4a2c')+P('M-30 -14 Q-20 -24 0 -24 Q20 -24 30 -14 Q22 -8 14 -14 Q6 -6 -4 -13 Q-14 -6 -22 -13Z','#fff6ea')+[[-16,0],[10,4],[-4,8],[20,-2]].map(([a,b])=>C(a,b,3.500,'#e63946',0,NO)).join('')+C(0,-28,4,'#e63946')+`</g>`;
+const XSIDE={xpotato:['#e9c58f',9],xcran:['#c8102e',6],carrot:['#ff8552',7],corn:['#ffd23f',7]};
+const sideArt=(t,x,y)=>{const s=XSIDE[t];if(!s)return'';return t==='xcran'?[[0,0],[7,-3],[-6,-4],[2,-8],[8,5],[-7,4]].map(([a,b])=>C(x+a,y+b,4,s[0],0,NO)).join(''):t==='carrot'?L(`M${x-9} ${y+3} L${x+9} ${y-4} M${x-7} ${y+8} L${x+10} ${y+1}`,s[0],5,0,NO):[[0,0],[9,3],[-8,3]].map(([a,b])=>C(x+a,y+b,s[1]-1,s[0],0,NO)).join('')};
+
+/* ---------- holiday ingredients from the pantry ---------- */
+F('xturkey','Turkey',104,72,{a:'#f4d3b5'},(e,c)=>sh(104,72,.4)+turkeyArt(52,44,.95,c.a),{r:'yuck'},{nm:()=>'Turkey (raw)'});
+F('xham','Ham',104,70,{a:'#ffa9a3'},(e,c)=>sh(104,70,.4)+hamArt(46,40,.95,c.a,0),{r:'yuck'},{nm:()=>'Ham (raw)'});
+F('xpotato','Potatoes',70,50,{a:'#c9935a'},(e,c)=>sh(70,50,.36)+E(24,32,18,13,c.a,'a')+E(46,30,19,14,dk(c.a,.06),'a')+[[18,28],[28,36],[42,26],[52,34]].map(([x,y])=>C(x,y,1.800,dk(c.a,.3),0,NO)).join(''),{r:'yuck'});
+F('xcran','Cranberries',64,50,{a:'#c8102e'},(e,c)=>sh(64,50,.36)+P('M6 24 L58 24 Q56 48 32 48 Q8 48 6 24Z','#fff6ee')+[[18,22],[30,18],[42,22],[24,14],[36,12],[48,16],[14,16]].map(([x,y])=>C(x,y,6.500,c.a,'a')).join('')+E(42,6,8,4,'#2bb673',0,rot(-20,42,6)),{r:'sour'});
+F('xcrust','Pie Crust',92,44,{a:'#f3dcb8'},(e,c)=>sh(92,44,.42)+E(46,26,42,13,c.a,'a')+E(46,24,32,8,lt(c.a,.3),'a',NO)+[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>{const t=i/12*Math.PI*2;return C(46+42*Math.cos(t),26+13*Math.sin(t),3.500,dk(c.a,.08),'a',NO)}).join(''),{r:'yum'});
+F('xcinn','Cinnamon',70,42,{a:'#9a5b34'},(e,c)=>sh(70,42,.34)+[12,22,32].map(y=>R(8,y-6,54,11,5.500,c.a,'a')+C(62,y-.500,5,dk(c.a,.25),'a',NO)).join('')+R(30,4,10,36,4,'#e63946'),{r:'yuck'});
+F('xcocoa','Cocoa',58,74,{a:'#7a4a2c'},(e,c)=>sh(58,74,.34)+R(6,14,46,56,8,c.a,'a')+E(29,14,23,6,dk(c.a,.2),'a')+R(10,30,38,24,4,'#fff6ea')+`<text x="29" y="47" font-size="10" font-weight="700" text-anchor="middle" fill="#7a4a2c" class="np">COCOA</text>`,{r:'yuck'});
+F('xsugar','Brown Sugar',62,70,{a:'#d9b07a'},(e,c)=>sh(62,70,.34)+P('M8 20 L54 20 L56 68 L6 68Z',c.a,'a')+P('M8 20 L16 8 L24 18 L31 6 L38 18 L46 8 L54 20Z',lt(c.a,.2),'a')+R(12,34,38,20,4,'#fff6ea')+`<text x="31" y="48" font-size="9.500" font-weight="700" text-anchor="middle" fill="#8a5a3c" class="np">SUGAR</text>`,{r:'yum'});
+const PAN=['xturkey','xham','xpotato','xcran','xsugar','xcrust','apple','xcinn','xcocoa','milk'];
+const pIcon=(t,x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})"><g transform="translate(${-T[t].w/2} ${-T[t].h})">${T[t].draw(mk(t,0,0,null,true),T[t].c)}</g></g>`;
+D('xpantry','Holiday Pantry',300,310,'fix',{a:'#b5651d',b:'#2bb673'},(e,c)=>{let o=sh(300,310,.46)+R(10,40,280,268,14,c.a,'a')+R(0,30,300,22,10,dk(c.a,.15),'a')+R(36,0,228,42,14,c.b,'b')+`<text x="150" y="30" font-size="24" font-weight="700" text-anchor="middle" fill="#fff" class="np">PANTRY</text>`
+  +E(36,14,10,5,'#2bb673',0,rot(-30,36,14))+E(26,22,10,5,'#2bb673',0,rot(20,26,22))+C(36,22,4,'#e63946')+C(30,26,4,'#e63946');
+  PAN.forEach((t,i)=>{const cx=34+(i%5)*58,cy=66+Math.floor(i/5)*112;o+=R(cx-27,cy,54,100,10,lt(c.a,.4))+pIcon(t,cx,cy+86,T[t].w>90?.52:.7)+`<rect x="${cx-28}" y="${cy-2}" width="56" height="104" fill="transparent" data-b="${i}"/>`});
+  return o+R(10,288,280,18,6,dk(c.a,.2),'a')},
+ {fx:1,disp(e,pt){let i=((e.s.i|0)+1)%PAN.length;if(pt){const a=absXY(e),cx=Math.round((pt.x-(a.x-150)-34)/58),cy=pt.y-(a.y-310)<170?0:1;if(cx>=0&&cx<5)i=cy*5+cx}e.s.i=i;return{t:PAN[i]}},
+  tap(e,tg){const b=tg&&tg.closest&&tg.closest('[data-b]'),i=b?+b.dataset.b:((e.s.i|0)+1)%PAN.length;e.s.i=i;if(S.ents.filter(k=>PAN.includes(k.t)&&!k.par).length>=14){say(e,'Use some of those first!');sfx.nope();return}
+   anim(e,'land',240);sfx.pop();const it=popTo(PAN[i],e,rnd(-110,110));say(e,nameOf(it)+'!',1200)}});
+
+/* ---------- prep counter: put the ingredients together ---------- */
+const XING=new Set([...PAN,'honey','carrot','corn','butter']);
+D('xprep','Prep Counter',270,200,'fix',{a:'#f3dcc0',b:'#2bb673'},(e,c)=>{const ing=(e.s.ing||[]).filter(t=>T[t]);return sh(270,200,.46)+`<rect x="0" y="0" width="270" height="196" fill="transparent" class="hit"/>`+R(14,86,242,110,12,c.b,'b')+R(28,100,100,80,8,lt(c.b,.2),'b',NO)+R(142,100,100,80,8,lt(c.b,.2),'b',NO)+C(78,140,5,'#ffd23f')+C(192,140,5,'#ffd23f')
+  +R(0,70,270,22,10,c.a,'a')+R(46,56,178,16,8,'#c98f5a')+ing.map((t,i)=>pIcon(t,62+i*37,64,T[t].w>90?.42:.55)).join('')+(ing.length?'':`<text x="135" y="52" font-size="17" font-weight="700" text-anchor="middle" fill="${dk(c.b,.2)}" class="np">put food here</text>`)},
+ {fx:1,accept(e,it){const t=it.t;if(!XING.has(t))return false;const ing=e.s.ing=(e.s.ing||[]);if(ing.length>=5){say(e,'That\'s plenty — tap me to make it!');return false}
+   ing.push(t);rm(it);redraw(e);sfx.splat();anim(e,'land',200);say(e,ing.length===1?'Add more, then tap me!':'In it goes! Tap me when it\'s ready.',1600);dirty();return true},
+  tap(e){const ing=e.s.ing||[],has=t=>ing.includes(t);if(!ing.length){anim(e,'wig',300);say(e,'Turkey dinner: turkey + potatoes, cranberries or carrots · Ham dinner: ham + sugar or honey · Apple pie: pie crust + apple · Cocoa: cocoa + milk',5200);return}
+   if(tr(e).busy)return;const sides=[...new Set(ing.filter(t=>XSIDE[t]))].slice(0,4),a=absXY(e);let r=has('xturkey')?'turkey':has('xham')?'ham':has('xcrust')&&has('apple')?'pie':has('xcocoa')&&has('milk')?'cocoa':'mush';
+   const gl=has('xsugar')||has('honey'),cin=has('xcinn');e.s.ing=[];redraw(e);dirty();anim(e,'wig',500);sfx.whirr();
+   busyMaker(e,800,()=>{if(r==='cocoa'){popTo('cup',e,-150,{s:{fill:1,col:'#8a5a44',nm:'Hot Cocoa',fx:'yum',cream:1,xm:1}});sfx.ding();star('xcocoa');bell('cook',e);say(e,'Hot cocoa — with whipped cream!',2400);return}
+    popTo('xtray',e,-150,{s:{r,sd:sides,gl:gl?1:0,cin:cin?1:0}});say(e,r==='mush'?'Hmm… that\'s a funny mix. Roast it and see!':'Ready for the oven! Put it in the Christmas oven.',2800)})}});
+D('xtray','Roasting Pan',120,74,'item',{a:'#b7c0d3'},(e,c)=>{const s=e.s,r=s.r||'mush';return sh(120,74,.4)+(r==='turkey'?turkeyArt(60,32,.62,'#f4d3b5'):r==='ham'?hamArt(56,34,.62,'#ffa9a3',0):r==='pie'?pieArt(60,40,.95,0,s.cin):P('M30 40 Q34 16 60 18 Q88 16 90 40Z','#b9c98a'))
+  +(s.sd||[]).map((t,i)=>sideArt(t,[26,94,40,80][i],[40,40,44,44][i])).join('')+P('M6 42 L114 42 L104 70 L16 70Z',c.a,'a')+R(0,38,120,10,5,lt(c.a,.3),'a')},
+ {nm:e=>({turkey:'Turkey dinner',ham:(e.s.gl?'Glazed ':'')+'Ham dinner',pie:'Apple pie',mush:'Mystery mix'}[e.s.r]||'Mystery mix')+' (ready to roast)',tap(e){anim(e,'wig',300);say(e,'Roast me in the Christmas oven!')}});
+
+/* ---------- the Christmas oven: roast it, and baste it for a golden one ---------- */
+D('xoven','Christmas Oven',260,290,'fix',{a:'#e63946',b:'#ffd23f'},(e,c)=>{const t=tr(e),b=t.busy,s=t.r||{};return sh(260,290,.46)+R(176,8,30,72,6,'#4a4e69')+R(168,0,46,14,6,'#4a4e69')+R(16,70,228,214,22,c.a,'a')+R(6,60,248,22,11,dk(c.a,.15),'a')
+  +E(46,58,12,6,'#2bb673',0,rot(-25,46,58))+E(64,56,12,6,'#2bb673',0,rot(25,64,56))+C(55,60,5,'#e63946')+C(52,52,4,'#e63946')
+  +R(40,104,180,124,16,'#2a1a20')+(b?C(130,166,62,'#ff8a3d',0,' opacity=".35" class="np"'+NO)+`<g class="np">`+(s.r==='turkey'?turkeyArt(130,180,.7,'#d98c4a'):s.r==='ham'?hamArt(126,182,.7,'#e88a7a',0):s.r==='pie'?pieArt(130,190,.9,1,0):P('M100 196 Q104 170 130 172 Q158 170 160 196Z','#b9c98a'))+P('M64 222 Q80 200 92 216 Q104 196 118 218 Q132 198 144 216 Q158 200 172 220 Q184 206 196 222Z','#ffb347')+`</g>`:'')
+  +R(40,104,180,124,16,'none','',` stroke="${c.b}" stroke-width="8"`)+R(70,238,120,12,6,c.b,'b')+[56,96,164,204].map(x=>C(x,88,8,'#fff6ea')+C(x,88,3.500,dk(c.a,.2),0,NO)).join('')
+  +(b?[0,1,2].map(i=>P(`M${108+i*22} 32 Q${100+i*22} 46 ${108+i*22} 50 Q${116+i*22} 46 ${108+i*22} 32Z`,i<(t.bs|0)?'#ffd23f':'#fff6ea')).join(''):'')},
+ {fx:1,light:e=>tr(e).busy?{dx:0,dy:-120,r:160}:null,
+  accept(e,it){if(it.t!=='xtray'){if(TD(it).k==='food')say(e,'I roast pans from the prep counter!');return false}const t=tr(e);if(t.busy)return false;t.r=Object.assign({},it.s);t.bs=0;rm(it);sfx.fire();
+   say(e,t.r.r==='pie'?'Baking… tap me to brush it with butter!':'Roasting… tap me to baste it — 3 times for a GOLDEN roast!',3000);const who=ACTOR;
+   busyMaker(e,5200,()=>asActor(who,()=>{const s=tr(e).r||{},gold=(tr(e).bs|0)>=3&&s.r!=='mush';sfx.ding();const d=popTo('xdish',e,-170+rnd(-40,20),{s:{r:s.r||'mush',sd:s.sd||[],gl:s.gl|0,cin:s.cin|0,gold:gold?1:0,fx:s.r==='mush'?'yuck':null,ck:1}});
+    if(s.r==='mush'){say(e,'A… mystery fruitcake. Try a real recipe!',2600);return}star(s.r==='turkey'?'tdinner':s.r==='ham'?'hdinner':'apie');if(s.r==='ham'&&s.gl)star('hdinner');bell('cook',d);
+    if(gold){star('golden');bell('gold',d);const a=absXY(e);sparkle(a.x-170,a.y-60,12);say(e,'GOLDEN and perfect!',2600)}else say(e,'Ding! Dinner is ready!',2200)}));if(S.night)updLights();return true},
+  tap(e){const t=tr(e),a=absXY(e);if(!t.busy){anim(e,'wig',300);say(e,'Put a roasting pan from the prep counter in me!');return}if((t.bs|0)>=3){say(e,'Almost done — smells amazing!');return}
+   t.bs=(t.bs|0)+1;redraw(e);sfx.sizzle();drops(a.x,a.y-170,5);say(e,(t.r&&t.r.r==='pie'?'Brush, brush! ':'Baste! ')+t.bs+'/3',1200)}});
+F('xdish','Holiday Dish',130,92,{a:'#ffffff'},(e,c)=>{const s=e.s,r=s.r||'mush';return sh(130,92,.44)+E(65,76,62,15,'#e2e8f2')+E(65,72,60,14,c.a,'a')+E(65,72,51,11,'#f4f7fb',0,NO)+L('M10 72 Q65 90 120 72','#2bb673',3,0,NO)
+  +(s.sd||[]).map((t,i)=>sideArt(t,[22,108,36,94][i],[68,68,76,76][i])).join('')
+  +(r==='turkey'?turkeyArt(65,50,.8,s.gold?'#e3a04a':'#c97a3a'):r==='ham'?hamArt(62,54,.85,s.gl?'#d9734e':'#e88a7a',s.gl):r==='pie'?pieArt(65,60,.95,1,s.cin):cakeArt(65,58,.9))
+  +(s.gold?`<g class="np">`+[[18,26],[112,22],[96,6]].map(([x,y])=>P(star5(x,y,8,3.500),'#ffd23f')).join('')+`</g>`:'')},{r:'yum'},
+ {nm:e=>(e.s.gold?'Golden ':'')+({turkey:'Roast Turkey Dinner',ham:(e.s.gl?'Glazed ':'')+'Ham Dinner',pie:(e.s.cin?'Cinnamon ':'')+'Apple Pie',mush:'Mystery Fruitcake'}[e.s.r]||'Mystery Fruitcake')});
+
+/* ---------- the feast table: a main dish, a dessert and a drink — then tap ---------- */
+const XDESS=new Set(['pie','cake','cookie','ginger','cupcake','muffin','donut','cane','fcake']);
+function feastParts(e){const k=kidsOf(e),main=k.find(x=>x.t==='xdish'&&(x.s.r==='turkey'||x.s.r==='ham')),dess=k.find(x=>(x.t==='xdish'&&x.s.r==='pie')||XDESS.has(x.t)),drink=k.find(x=>(x.t==='cup'&&x.s.fill)||x.t==='milk'||x.t==='juice'||x.t==='fizz');return{main,dess,drink}}
+D('xtable','Feast Table',440,210,'fix',{a:'#e63946',b:'#8a5a3c'},(e,c)=>sh(440,210,.48)+R(34,80,18,126,6,c.b,'b')+R(388,80,18,126,6,c.b,'b')+P('M0 70 L440 70 L436 146 Q421 160 406 146 Q391 160 376 146 Q361 160 346 146 Q331 160 316 146 Q301 160 286 146 Q271 160 256 146 Q241 160 226 146 Q211 160 196 146 Q181 160 166 146 Q151 160 136 146 Q121 160 106 146 Q91 160 76 146 Q61 160 46 146 Q31 160 16 146 Q2 156 4 146Z',c.a,'a')
+  +R(0,62,440,16,8,lt(c.a,.15),'a')+R(180,62,80,96,0,'#2bb673',0,NO)+P('M180 158 L220 140 L260 158Z','#2bb673',0,NO)+L('M186 66 L186 150 M254 66 L254 150','#ffd23f',3,0,NO),
+ {fx:1,surf:[[-200,200,-140]],
+  tap(e){const t=tr(e),a=absXY(e),sid=SID;if(t.busy)return;const f=feastParts(e),miss=[!f.main&&'a main dish (turkey or ham dinner)',!f.dess&&'a dessert (apple pie, cake or cookies)',!f.drink&&'a drink (hot cocoa, milk or juice)'].filter(Boolean);
+   if(miss.length){anim(e,'wig',300);say(e,'For a Christmas feast we still need '+miss.join(', and ')+'!',4200);return}
+   t.busy=1;const who=ACTOR;sfx.star();say(e,'Merry Christmas, everyone! Let\'s eat!',2600);for(const ch of S.ents.filter(x=>x.t==='char'&&x.s.pose!=='sleep')){setFace(ch,'laugh',2200);hearts(ch,3);notes(ch)}confetti(a.x,a.y-240,30);
+   setTimeout(()=>{if(SID!==sid||!byId(e.id)){t.busy=0;return}for(const d of[f.main,f.dess,f.drink])if(d&&byId(d.id)){const p=absXY(d);crumbs(p.x,p.y-20,'#f2b880');if(d.t==='cup'){Object.assign(d.s,{fill:0,cream:0,nm:null});redraw(d)}else rm(d)}sfx.yum();
+    asActor(who,()=>{star('xfeast');bell('feast',e)});const u=xUp();if(!u.feast1&&!who){u.feast1=1;popTo('trophy',e,240);toast('Your first Christmas feast! The family gives you a golden trophy.',5000)}t.busy=0;dirty()},2200)}});
+
+/* ---------- gift wrapping: wrap a toy, give it to someone ---------- */
+const XPAPER=[['#e63946','#ffd23f','Red and gold'],['#2bb673','#ffffff','Holly green'],['#3a86ff','#ffffff','Snowflake blue'],['#9b6bff','#ffd23f','Purple sparkle'],['#ff8fb1','#ffffff','Candy pink']];
+D('xwrap','Gift Wrap Bench',250,260,'fix',{a:'#8a5a3c'},(e,c)=>{const p=XPAPER[(e.s.p|0)%XPAPER.length];return sh(250,260,.46)+`<rect x="0" y="0" width="250" height="256" fill="transparent" class="hit"/>`+R(22,140,18,116,6,dk(c.a,.15),'a')+R(210,140,18,116,6,dk(c.a,.15),'a')+R(10,150,230,34,8,dk(c.a,.08),'a')
+  +R(40,10,170,44,12,'#fff6ee')+`<text x="125" y="40" font-size="22" font-weight="700" text-anchor="middle" fill="#e63946" class="np">GIFT WRAP</text>`+R(120,54,10,30,3,dk(c.a,.15),'a')
+  +R(0,128,250,22,10,c.a,'a')+P('M40 128 L40 168 Q60 176 80 168 L80 128Z',p[0])+R(26,94,128,36,18,p[0])+[44,72,100,128].map(x=>C(x,112,4,p[1],0,NO)).join('')+C(26,112,18,dk(p[0],.18))+C(26,112,7,'#fff6ea',0,NO)
+  +C(196,108,20,'#ffd23f')+C(196,108,8,'#c98f5a',0,NO)+L('M196 128 Q200 140 186 148','#ffd23f',4)},
+ {fx:1,accept(e,it){const d=TD(it);if(!['toy','item','food','drink','hat'].includes(d.k)||it.t==='xgift'||d.w>150||d.h>200)return false;if(tr(e).busy)return false;
+   const p=XPAPER[(e.s.p|0)%XPAPER.length],sv={t:it.t,c:Object.assign({},it.c),s:JSON.parse(JSON.stringify(it.s||{}))};rm(it);sfx.zip();say(e,'Fold, tape, ribbon…');
+   busyMaker(e,1000,()=>{popTo('xgift',e,150,{c:{a:p[0],b:p[1]},s:{it:sv}});sfx.ding();star('wrapper');say(e,'Wrapped! Now give it to someone — drop it on them.',2800)});return true},
+  tap(e){e.s.p=((e.s.p|0)+1)%XPAPER.length;redraw(e);sfx.zip();anim(e,'land',220);say(e,XPAPER[e.s.p][2]+' paper! Drop a toy on me to wrap it.',2400);dirty()}});
+D('xgift','Wrapped Present',84,88,'item',{a:'#e63946',b:'#ffd23f'},(e,c)=>sh(84,88,.4)+R(8,30,68,54,8,c.a,'a')+[[22,48],[46,62],[62,44],[28,72],[60,74]].map(([x,y])=>C(x,y,3.500,lt(c.a,.45),0,NO)).join('')+R(4,20,76,18,6,lt(c.a,.2),'a')+R(36,20,12,64,0,c.b,'b')+P('M42 20 Q24 2 20 14 Q22 24 42 20 Q62 24 64 14 Q60 2 42 20Z',c.b,'b')+R(56,40,20,14,3,'#fff6ee',0,rot(12,66,47)),
+ {tap(e){anim(e,'shake',500);sfx.squeak();say(e,'What could it be? Give it to someone to open it!',2400)}});
+function giftOpen(ch,g){const sv=g.s.it||{},a=absXY(ch),mine=ch.me&&ch.me===actNo();rm(g);let it=null;
+ if(sv.t&&T[sv.t]&&!['fix','furn','char','pet'].includes(T[sv.t].k)){it=spawn(sv.t,a.x,a.y-120,{c:cleanV(sv.c||{},1)||{},s:cleanV(sv.s||{},1)||{}});if(T[sv.t].hat)wear(ch,it);else hold(ch,it,'handR')}
+ sfx.chest();confetti(a.x,a.y-180,18);setFace(ch,'wow',1600);hearts(ch,4);say(ch,mine?'A present! Ooh, '+(it?nameOf(it).toLowerCase():'a surprise')+'!':pick(['For ME? Thank you so much!','I love it! Merry Christmas!','You\'re so kind!']),2600);
+ if(!mine){bell('gift',ch);const x=xState(),k=SID+':'+ch.id;x.gv=Array.isArray(x.gv)?x.gv:[];if(!x.gv.includes(k)){x.gv.push(k);if(x.gv.length>12)x.gv.shift()}if(x.gv.length>=5)star('shelper');dirty()}}
+
+/* ---------- snow: roll snowballs, build snowmen, have a snowball fight ---------- */
+const SBR=[44,32,22];
+D('xsnow','Snow Pile',230,124,'fix',{a:'#ffffff'},(e,c)=>sh(230,124,.46)+P('M4 120 Q16 54 70 44 Q100 18 140 34 Q206 40 226 120Z',c.a,'a')+P('M20 112 Q60 96 110 104 Q170 112 214 100',lt('#cfe6ff',.2),0,' fill="none" stroke="#cfe6ff" stroke-width="5" class="np"'+NO)+E(150,62,24,9,'#e4f1ff',0,NO)+R(166,0,10,70,4,'#8a5a3c',0,rot(18,171,35))+P('M176 58 L200 84 L184 98 L162 74Z','#e63946',0,rot(18,181,78)),
+ {fx:1,tap(e){const i=e.s.i=((e.s.i|0)+1)%3;if(S.ents.filter(k=>k.t==='sball'&&!k.par).length>=9){say(e,'So many snowballs! Build something first.');sfx.nope();return}anim(e,'land',220);sfx.crack();const a=absXY(e);puff(a.x,a.y-60,'#ffffff',6);
+   popTo('sball',e,rnd(-120,120),{s:{sz:i}});say(e,['A BIG snowball!','A medium snowball!','A little snowball!'][i],1400)}});
+D('sball','Snowball',100,150,'toy',{a:'#ffffff'},(e,c)=>{const st=(e.s.st&&e.s.st.length?e.s.st:[e.s.sz|0]).map(z=>SBR[clamp(z|0,0,2)]);let y=148,o=sh(100,150,.38),prev=0;
+  st.forEach((r,i)=>{const cy=i?y-prev*.82-r*.82:y-r;o+=C(50,cy,r,c.a,'a')+C(50-r*.35,cy-r*.35,r*.28,'#ffffff',0,' opacity=".9"'+NO)+L(`M${50-r*.6} ${cy+r*.5} Q50 ${cy+r*.75} ${50+r*.6} ${cy+r*.5}`,'#cfe6ff',3,0,NO);y=cy;prev=r});return o},
+ {nm:e=>e.s.st&&e.s.st.length>1?'Snowballs':['Big Snowball','Snowball','Little Snowball'][e.s.sz|0],
+  accept(e,it){if(it.t!=='sball')return false;const st=e.s.st&&e.s.st.length?e.s.st.slice():[e.s.sz|0];if(it.s.st&&it.s.st.length>1)return false;const nz=it.s.sz|0;
+   if(nz<=st[st.length-1]){say(e,'Too wobbly! Put a SMALLER snowball on top.');return false}st.push(nz);rm(it);const a=absXY(e);puff(a.x,a.y-80,'#ffffff',5);sfx.drop();
+   if(st.length<3){e.s.st=st;redraw(e);anim(e,'land',240);say(e,'One more — a little one for the head!');dirty();return true}
+   const x=e.x,y=e.y;rm(e);const sm=spawn('xsman',x,y,{s:{xm:1}});anim(sm,'pop',320);sparkle(x,y-160,10);sfx.star();star('xsnowman');bell('snowman',sm);later(sm,500,()=>say(sm,'Hello! Give me a carrot nose, a hat and a scarf!',3000));return true},
+  tap(e){if(e.s.st&&e.s.st.length>1){const z=e.s.st.pop();if(e.s.st.length<2)e.s.st=null;redraw(e);const a=absXY(e);popOut('sball',a.x+60,a.y-80,{s:{sz:z}},70);dirty();return}anim(e,'hop',420);sfx.boing()}});
+D('xsman','Snowman',150,240,'furn',{a:'#ffffff'},(e,c)=>{const s=e.s;return sh(150,240,.4)+L('M44 112 L8 86 M18 94 L8 104','#8a5a3c',5)+L('M106 112 L142 86 M132 94 L142 104','#8a5a3c',5)+C(75,188,50,c.a,'a')+C(75,116,37,c.a,'a')+C(75,62,28,c.a,'a')
+  +[100,118,136].map(y=>C(75,y,4,INK)).join('')+C(65,56,3.500,INK)+C(85,56,3.500,INK)+[[63,72],[69,76],[75,77],[81,76],[87,72]].map(([x,y])=>C(x,y,2,INK)).join('')
+  +(s.sc&&hexOk(s.sc)?P('M44 84 Q75 98 106 84 L106 94 Q75 108 44 94Z',s.sc)+R(88,90,14,36,5,s.sc):'')+(s.nose?P('M75 62 L104 66 L75 70Z','#ff8552'):'')},
+ {accept(e,it){const s=e.s,a=absXY(e);let ok=false;
+   if(it.t==='carrot'&&!s.nose){s.nose=1;rm(it);ok=true;say(e,'A nose! Now I can smell the cookies!',2400)}
+   else if(it.t==='yarn'&&!s.sc){s.sc=hexOk(it.c.a)?it.c.a:'#e63946';rm(it);ok=true;say(e,'A cozy scarf! Thank you!',2400)}
+   else if(TD(it).hat){const old=kidIn(e,'head');if(old){unpar(old);old.x+=90;place(old)}attach(it,e,'head',0,-189+((TD(it).hat&&TD(it).hat.dy)||0),'go');sfx.pop();say(e,'Do I look dashing?',2000);ok=true}
+   if(!ok)return false;redraw(e);sparkle(a.x,a.y-150,6);bell('snowdeco',e);if(s.nose&&s.sc&&kidIn(e,'head'))star('snowstyle');dirty();return true},
+  tap(e){anim(e,'hop',420);sfx.squeak();say(e,pick(['Brrr-illiant!','I\'m a little chilly — but I like it!','Snow much fun!','Carrot nose, hat and scarf, please!']))}});
+
+/* ---------- ice rink ---------- */
+D('xrink','Ice Rink',420,120,'fix',{a:'#cfeeff'},(e,c)=>E(210,66,206,50,'#ffffff')+E(210,62,196,44,c.a,'a')+E(210,62,150,30,lt(c.a,.4),'a',NO)+L('M90 58 Q140 40 190 60 Q240 80 300 58 M120 76 Q180 92 250 74',lt(c.a,.7),3,0,NO)+[[18,64],[60,96],[150,108],[270,108],[360,96],[402,64]].map(([x,y])=>C(x,y,9,'#ffffff')).join(''),
+ {fx:1,mt:'rug',accept(e,it){const k=TD(it).k;if(k!=='char'&&k!=='pet')return false;if(tr(it).busy||it.s.pose==='sleep')return false;const a=absXY(e),sid=SID,y=a.y-16;
+   if(it.par)unpar(it);it.x=clamp(it.x,a.x-150,a.x+150);it.y=y;setFree(it,it.x,y,'put');tr(it).busy=1;sfx.skate();if(k==='char')setFace(it,'laugh',3600);say(it,pick(['Wheee!','I\'m twirling!','Look, no hands!']),2000);
+   const xs=[a.x+150,a.x-150,a.x+60,a.x];let i=0;const step=()=>{if(SID!==sid||!byId(it.id)){return}if(i>=xs.length){tr(it).busy=0;star('skate');bell('skate',it);reachSoon(it);return}
+    const tx=xs[i++];it.flip=tx<it.x;redraw(it);anim(it,'spin',600);sparkle(it.x,y-30,3);sfx.skate();glide(it,tx,y,620,step)};setTimeout(step,250);return true},
+  tap(e,tg,p){sfx.skate();sparkle(p.x,p.y,4)}});
+
+/* ---------- Comet the reindeer ---------- */
+D('xdeer','Comet the Reindeer',250,250,'furn',{a:'#a8714a',b:'#5a3b2a'},(e,c)=>sh(250,250,.45)+`<g transform="translate(0 30)">`+R(64,130,22,86,9,dk(c.a,.12),'a')+R(160,130,22,86,9,dk(c.a,.12),'a')+P('M200 96 Q222 92 220 112 Q208 104 198 108Z',lt(c.a,.4),'a')+E(122,116,86,44,c.a,'a')+E(118,136,50,18,lt(c.a,.35),'a',NO)
+  +R(84,128,22,88,9,c.a,'a')+R(178,128,22,88,9,c.a,'a')+[86,180].map(x=>R(x-2,204,26,14,5,c.b,'b')).join('')+P('M60 100 L40 30 Q40 14 56 14 L76 16 Q90 20 84 40 L92 100Z',c.a,'a')+R(14,20,64,40,20,c.a,'a')+E(20,46,14,11,lt(c.a,.35),'a')+C(12,42,6.500,INK)+C(52,30,4,INK)+C(53,28.500,1.500,'#fff')
+  +L('M50 14 L42 -14 M44 -2 L30 -6 M42 -10 L34 -24 M64 14 L72 -14 M70 -2 L84 -8 M72 -10 L80 -24',c.b,6,'b')+P('M66 12 L80 4 L76 18Z',c.a,'a')
+  +R(100,74,64,30,8,'#2bb673')+R(96,98,72,10,5,'#ffd23f')+L('M58 68 Q88 92 96 82',XRED,8)+[[66,74],[80,84]].map(([x,y])=>C(x,y,6,'#ffd23f')).join('')+`</g>`,
+ {seats:[[0,-128]],mag:1,sat(){sfx.jingle()},
+  accept(e,it){if(!['carrot','apple','corn','hay','cookie','ginger'].includes(it.t))return false;rm(it);sfx.chomp();anim(e,'chomp',220);hearts(e,4);setTimeout(()=>sfx.jingle(),300);say(e,pick(['Mmm! Thank you!','Jingle jingle — yum!','Now I can fly all night!']),2200);star('reindeer');bell('deer',e);return true},
+  tap(e){const t=tr(e);if(t.busy||e.par)return;const r=kidIn(e,'seat0'),a=absXY(e);sfx.jingle();if(!r){anim(e,'hop',420);say(e,pick(['Hi, I\'m Comet! Got a carrot?','Hop on my back!','I\'m practising for Christmas Eve!']),2400);return}
+   const dir=e.x<W/2?1:-1,sid=SID,x0=e.x;t.busy=1;setFace(r,'laugh',3000);if(!!e.flip!==(dir>0)){e.flip=dir>0;redraw(e)}sparkle(a.x,a.y-150,8);
+   glide(e,dir>0?W-220:220,e.y,1400,()=>{e.flip=!e.flip;redraw(e);sfx.jingle();glide(e,x0,e.y,1400,()=>{tr(e).busy=0})});setTimeout(()=>{if(SID===sid&&byId(e.id))tr(e).busy=0},3200)}});
+
+/* ---------- Clover Farm: chop your own Christmas tree (one a day) ---------- */
+D('xpine','Christmas Pine',240,360,'fix',{a:'#2e8b57'},(e,c)=>{if(e.s.cut===dayN())return sh(240,360,.3)+`<rect x="80" y="230" width="160" height="128" fill="transparent" class="hit"/>`+E(120,346,34,10,'#8a5a3c')+R(98,326,44,22,8,'#a8714a')+E(120,326,22,7,'#e6c09a')+L('M120 300 L120 326',c.a,5)+E(112,302,10,5,c.a,0,rot(-30,112,302))+E(128,298,10,5,c.a,0,rot(30,128,298))+R(150,240,80,46,10,'#fff6ee')+`<text x="190" y="270" font-size="15" font-weight="700" text-anchor="middle" fill="#8a5a3c" class="np">tomorrow!</text>`+R(186,286,8,50,3,'#8a5a3c');
+  return sh(240,360,.3)+R(104,300,32,58,6,'#8a5a3c')+E(196,344,30,12,'#a8714a')+E(196,338,24,8,'#e6c09a')+L('M188 336 L214 262','#8a5a3c',7)+P('M206 262 Q226 254 230 274 L216 280Z','#b7c0d3')+L('M222 258 L232 276','#e63946',4,0,NO)+P('M120 120 L230 310 Q120 336 10 310Z',dk(c.a,.08),'a')+P('M120 60 L204 216 Q120 236 36 216Z',c.a,'a')+P('M120 6 L172 120 Q120 134 68 120Z',lt(c.a,.12),'a')+P('M28 306 Q60 290 84 304 Q110 288 136 304 Q164 290 196 304 Q214 300 226 308 Q120 330 14 308Z','#ffffff',0,NO)+P('M50 214 Q80 200 104 212 Q130 198 156 212 Q182 202 196 214 Q120 232 44 214Z','#ffffff',0,NO)+P('M74 118 Q98 108 120 118 Q142 108 166 118 Q120 132 74 118Z','#ffffff',0,NO)},
+ {fx:1,tap(e){const a=absXY(e),t=tr(e);if(e.s.cut===dayN()){say(e,'A new tree grows here every day — come back tomorrow!',2600);return}t.k=(t.k||0)+1;sfx.chop();anim(e,'shake',400);leaves(a.x,a.y-120,4);if(t.k<3){say(e,['Chop!','Chop, chop!'][t.k-1],900);return}
+   t.k=0;e.s.cut=dayN();redraw(e);sfx.whoosh();puff(a.x,a.y-80,'#ffffff',8);const tr0=mk('xtree',0,0);if(ACTOR&&NET.peer)NET.send({t:'pk',a:[tr0],x:1});else{G.xbox.push([tr0]);updPack(true);toast('TIMBER! A Christmas tree for your home — it\'s in your Christmas box.',4600)}star('xchop');bell('chop',e);dirty()}});
+
+/* ---------- rewards ---------- */
+D('gbhouse','Gingerbread House',200,200,'furn',{a:'#c98b5c',b:'#ffffff'},(e,c)=>sh(200,200,.44)+R(28,90,144,106,6,c.a,'a')+P('M14 96 L100 18 L186 96Z',dk(c.a,.2),'a')+L('M14 96 L100 18 L186 96',c.b,9,'b')+[[60,64],[100,40],[140,64],[80,80],[120,80]].map(([x,y],i)=>C(x,y,6,['#e63946','#2bb673','#ffd23f','#3a86ff','#ff8fb1'][i])).join('')
+  +R(78,128,44,68,22,e.s.op?'#5a3b2a':'#e63946')+(e.s.op?'':C(112,164,3.500,'#ffd23f'))+R(38,108,30,30,6,'#fff3a8')+R(132,108,30,30,6,'#fff3a8')+L('M53 108 L53 138 M38 123 L68 123 M147 108 L147 138 M132 123 L162 123',c.b,3,'b')+L('M28 192 Q50 182 72 192 Q100 182 128 192 Q150 182 172 192',c.b,5,'b')+[44,156].map(x=>R(x-5,150,10,40,4,'#ffffff')+L(`M${x-5} 158 L${x+5} 154 M${x-5} 170 L${x+5} 166 M${x-5} 182 L${x+5} 178`,XRED,3,0,NO)).join(''),
+ {xm:1,tap(e){e.s.op=e.s.op?0:1;redraw(e);sfx.pop();anim(e,'land',240);if(e.s.op&&S.ents.filter(k=>k.t==='ginger').length<4){const g=popTo('ginger',e,rnd(-120,120));later(g,500,()=>say(g,pick(['Run, run, as fast as I can!','Hello! I live here!','Got any frosting?']),2200))}dirty()}});
+D('xsnowm','Snow Machine',140,180,'furn',{a:'#7ad3ff',b:'#ffffff'},(e,c)=>sh(140,180,.4)+R(30,80,80,96,14,c.a,'a')+R(20,70,100,18,9,dk(c.a,.15),'a')+P('M40 70 L28 18 L112 18 L100 70Z',lt(c.a,.3),'a')+R(20,8,100,16,8,c.b,'b')+P(star5(70,124,18,8),'#ffffff')+C(70,124,6,c.a,'a',NO)+R(46,154,48,10,5,e.s.on?'#56d39a':'#b7c0d3')
+  +L('M110 110 L132 100 L132 84',INK,4)+C(132,80,6,'#e63946')+(e.s.on?`<g class="np bub">`+[[50,0],[86,-10],[68,-22]].map(([x,y])=>C(x,y,6,'#ffffff')).join('')+`</g>`:''),
+ {xm:1,tap(e){e.s.on=e.s.on?0:1;redraw(e);sfx[e.s.on?'magic':'pop']();anim(e,'land',240);say(e,e.s.on?'Let it snow!':'Snow off.',1400);xHud();dirty()}});
+D('xsleigh','Santa\'s Sleigh',480,260,'furn',{a:'#e63946',b:'#ffd23f'},(e,c)=>sh(480,260,.46)+L('M150 200 L32 140 M150 216 L40 160','#8a5a3c',5)
+  +`<g transform="translate(-26 30) scale(.6)">`+T.xdeer.draw({s:{},c:T.xdeer.c},T.xdeer.c).replace(/<ellipse[^>]*rgba[^>]*>/,'')+`</g>`+R(186,80,250,60,18,dk(c.a,.25),'a'),
+ {xm:1,front:(e,c)=>P('M160 210 Q148 120 196 96 L240 96 Q250 150 300 150 L430 150 Q470 150 466 110 L478 110 Q486 210 420 214 L190 214Z',c.a,'a')+L('M200 160 Q260 190 330 176 Q380 166 430 176',c.b,6,'b')+P(star5(256,176,12,5),c.b,'b')
+   +L('M150 238 L456 238 Q482 238 476 212',c.b,8,'b')+L('M210 214 L210 238 M380 214 L380 238',c.b,6,'b'),
+  under:['seat0','seat1'],seats:[[40,-112],[150,-112]],mag:1,sat(){sfx.jingle()},
+  tap(e){const t=tr(e);if(t.busy||e.par)return;const rs=[0,1].map(i=>kidIn(e,'seat'+i)).filter(Boolean),sid=SID,x0=e.x,y0=e.y;sfx.jingle();if(!rs.length){anim(e,'hop',420);say(e,'Ho ho ho! Put friends in the sleigh, then tap it!',2600);return}
+   t.busy=1;for(const r of rs)setFace(r,'laugh',4500);star('sleigh');bell('sleigh',e);const iv=setInterval(()=>{if(SID!==sid||!byId(e.id)){clearInterval(iv);return}const a=absXY(e);sparkle(a.x-150,a.y-90,3)},220);
+   glide(e,clamp(x0+300,300,W-240),y0-260,900,()=>glide(e,W+380,-160,900,()=>{e.x=-380;e.y=-120;posE(e);glide(e,x0,y0,1500,()=>{clearInterval(iv);tr(e).busy=0;sfx.jingle();dirty()})}));setTimeout(()=>{clearInterval(iv);if(SID===sid&&byId(e.id)){tr(e).busy=0;if(e.y<0){e.x=x0;e.y=y0;posE(e)}}},4200)}});
+XM.add('xgift');XM.add('xsman');XM.add('sball');XM.add('gbhouse');XM.add('xsnowm');XM.add('xsleigh');XM.add('xdish');XM.add('xtray');
+/* the Superstar Crown, Christmas PJs and the baby reindeer */
+{const h0=hatSVG;window.hatSVG=function(v,c){if(v!==XCROWN)return h0(v,c);return P('M18 74 L14 30 L36 50 L60 18 L84 50 L106 30 L102 74Z',c.a,'a')+R(14,66,92,12,6,dk(c.a,.15),'a')+C(60,20,6,c.b,'b')+C(36,52,4.500,c.b,'b')+C(84,52,4.500,c.b,'b')+P(star5(60,4,14,6),'#fff3a8')}}
+XFITN[11]='Christmas PJs';XFITC[11]=['#e63946','#ffffff','#2bb673'];
+{const x0=xfit;window.xfit=function(v,skin,s){if(v!==11)return x0(v,skin,s);const[a,b,k]=XFITC[11],sl='M43 117 C28 116 21 132 13 160 Q19 169 29 166 L43 134Z',arm=P(sl,a)+L('M15 155 L31 160',b,5,0,NO)+C(27,170,5.200,skin)+C(19,173,10,skin);
+ return arm+`<g transform="translate(130 0) scale(-1 1)">${arm}</g>`+P('M41 116 Q65 109 89 116 L97 150 Q99 172 96 180 L34 180 Q31 172 33 150Z',a)+P('M52 112 L65 126 L78 112 L80 118 L65 132 L50 118Z',b,0,NO)+L('M65 132 L65 178',b,2.600,0,NO)+[142,156,170].map(y=>C(65,y,2.600,k,0,NO)).join('')
+  +[[45,130],[84,128],[50,150],[82,148],[44,168],[86,170],[56,164],[75,138]].map(([x,y])=>C(x,y,2.600,b,0,NO)).join('')+R(33,173,64,8,4,b,0,NO)}}
+PETS.deer={n:'Reindeer',a:'#b9824f',b:'#f6e3c9',snd:'jingle',fav:'carrot',r:9};
+{const p0=petSVG;window.petSVG=function(e){if(e.s.sp!=='deer')return p0(e);const a=e.c.a,b=e.c.b,f=tr(e).face||(e.s.zz?'sleep':'');
+ const eye=x=>f==='sleep'?L(`M${x-5} 44 Q${x} 49 ${x+5} 44`,INK,3):f==='yum'?L(`M${x-5} 46 Q${x} 39 ${x+5} 46`,INK,3):C(x,44,4.600,INK)+C(x+1.500,42.500,1.700,'#fff');
+ return E(55,96,34,6,'rgba(30,10,60,.13)',0,NP)+L('M84 76 Q96 70 92 62',a,8,'a')+R(35,80,9,16,4,dk(a,.25),'a')+R(66,80,9,16,4,dk(a,.25),'a')+E(55,74,30,21,a,'a')+E(55,80,17,12,b,'b',NO)+[[40,66],[68,64],[60,76]].map(([x,y])=>C(x,y,3,lt(a,.5),0,NO)).join('')
+  +L('M42 22 L34 0 M37 10 L25 7 M35 4 L39 -6 M68 22 L76 0 M73 10 L85 7 M75 4 L71 -6','#6b4226',5)+E(29,31,9,5,a,'a',rot(-30,29,31))+E(81,31,9,5,a,'a',rot(30,81,31))+C(55,44,27,a,'a')+E(55,56,15,11,b,'b',NO)+eye(44)+eye(66)+E(55,52,6,4.500,INK)+L('M50 60 Q55 64 60 60',INK,2.400)
+  +C(35,54,4.500,'#ff7d9a',0,' opacity=".5" class="np"')+C(75,54,4.500,'#ff7d9a',0,' opacity=".5" class="np"')+R(36,66,38,7,3.500,XRED)+C(55,76,5,'#ffd23f')}}
+
+/* ---------- the house on the map gets a snowy roof ---------- */
+function xRoofSnow(){const R0=[88,-196],dv=[74,-37],dn=[88,76],pt=(t,f)=>`${(R0[0]+dv[0]*t+dn[0]*f).toFixed(0)} ${(R0[1]+dv[1]*t+dn[1]*f).toFixed(0)}`;
+ return P(`M${pt(0,-.02)} L${pt(1,-.02)} L${pt(1,.42)} Q${pt(.86,.52)} ${pt(.72,.4)} Q${pt(.56,.54)} ${pt(.4,.42)} Q${pt(.24,.52)} ${pt(.1,.4)} L${pt(0,.38)}Z`,'#ffffff')+L('M-10 -112 L88 -199 L186 -112','#ffffff',9)+E(132,-212,20,7,'#ffffff')
+  +[.12,.28,.44,.6,.76,.92].map(t=>{const x=176+74*t,y=-120-37*t;return P(`M${(x-5).toFixed(0)} ${(y+2).toFixed(0)} L${(x+5).toFixed(0)} ${(y-1).toFixed(0)} L${(x+1).toFixed(0)} ${(y+16).toFixed(0)}Z`,'#dff2ff')}).join('')}
+const roofOn=()=>{const u=xUp();return !!u.roof&&!(G.house&&G.house.ns)};
+
+/* ---------- the elf, the grandparents and the hints ---------- */
+CH.xelf={c:{a:SKIN[0],b:'#ff8552',c:XGRN,d:XRED,e:'#35252d'},s:{hs:3,of:0,xs:5,lash:1,fr:1,npc:5}};
+CH.gpa={c:{a:SKIN[4],b:'#fafafa',c:'#4a90e2',d:'#4a4e69',e:'#8a5a44'},s:{hs:4,of:6,gl:1,xs:2}};CH.gma=Object.assign({},CH.gran,{s:Object.assign({},CH.gran.s,{xs:1})});
+function elfTalk(e){const u=xUp(),nb=G.xbells|0,nx=XTRACK.find(r=>!u.got[r[1]]),x=xState(),today=x.bd&&x.bd.d===dayN()?x.bd.n:{},left=XWAYS.filter(([k])=>(today[k]|0)<XB[k][1]&&k!=='santa'&&k!=='cal'&&xwOk(k));
+ anim(e,'hop',420);sfx.jingle();say(e,(nx&&nx[0]>nb?`You have ${nb} Jingle Bells — ${nx[0]-nb} more for the ${nx[2]}! `:nx?'':'You\'re a Christmas Superstar! ')+(left.length?'Try this: '+pick(left)[1].toLowerCase()+'.':''),4400)}
+{const n1=T.char.nm;T.char.nm=e=>e.s.npc===5?'Elf Juniper':n1(e)}
+{const g0=goofy;window.goofy=function(e){if(e.s.npc===5){elfTalk(e);return}g0(e)}}
+{const a0=T.char.accept;T.char.accept=function(ch,it,p){const free=ch.s.pose!=='sleep'&&!tr(ch).busy; // presents get opened, snowballs go splat
+  if(free&&it.t==='xgift'){giftOpen(ch,it);return true}
+  if(free&&it.t==='sball'&&!(it.s.st&&it.s.st.length>1)){const a=absXY(ch);rm(it);puff(a.x,a.y-170,'#ffffff',9);sfx.splat();setFace(ch,'laugh',1800);say(ch,pick(['Hey! Snowball fight!','Brrr! You got me!','Ha ha — my turn next!']),2000);star('snowball');bell('snowball',ch);return true}
+  return a0.call(this,ch,it,p)}}
+
+/* ---------- the Christmas Village and the Holiday Kitchen (only at Christmas time) ---------- */
+function xvilBg(st){const n=st.night,b=st.bg;let o=SVGO+skyG(n?'#14204a':b.sky,n?'#3a4a8c':'#eef6ff')+`<rect data-p="sky" width="1600" height="640" fill="url(#sky)"/>`+(n?nstars():cloud(140,120,1.100)+cloud(1260,90,.9));
+ o+=P('M0 470 Q200 390 420 446 Q640 370 880 436 Q1120 360 1360 426 Q1500 390 1600 414 L1600 640 L0 640Z',n?'#5a6aa8':'#dbe8f8',0,NP+NO);
+ const pine=(x,y,k)=>`<g transform="translate(${x} ${y}) scale(${k})">`+P('M0 -120 L44 -30 Q0 -20 -44 -30Z','#2e8b57')+P('M0 -80 L54 10 Q0 22 -54 10Z','#2a7d4f')+P('M-34 -34 Q0 -24 34 -34 L22 -54 Q0 -46 -22 -54Z','#fff',0,NO)+R(-7,10,14,18,3,'#8a5a3c')+`</g>`;
+ const house=(x,w,hh,wall,roof)=>{const y=600,cx=x+w/2,win=n?'#ffd86b':'#fff3a8';return R(x,y-hh,w,hh,4,wall)+P(`M${x-14} ${y-hh+4} L${cx} ${y-hh-w*.45} L${x+w+14} ${y-hh+4}Z`,roof)+P(`M${x-14} ${y-hh+4} L${cx} ${y-hh-w*.45} L${x+w+14} ${y-hh+4} L${x+w} ${y-hh+14} Q${cx} ${y-hh-w*.24} ${x} ${y-hh+14}Z`,'#ffffff')+R(cx-14,y-46,28,46,10,'#8a5a3c')+R(x+14,y-hh+28,26,24,5,win)+R(x+w-40,y-hh+28,26,24,5,win)+R(x+w*.7,y-hh-w*.42,16,30,3,dk(wall,.2))+(n?'':`<g class="np" opacity=".7">${C(x+w*.7+8,y-hh-w*.5,8,'#fff')+C(x+w*.7+18,y-hh-w*.6,10,'#fff')}</g>`)};
+ o+=`<g class="np">`+outline(pine(40,560,.8)+pine(1560,560,.9)+house(70,170,120,'#e9b07c','#b5651d')+house(340,140,100,'#f3c5d0','#c0573c')+house(1210,160,110,'#c7e3f5','#3a6ea5')+house(1420,130,96,'#f6e2a8','#2e8b57')+pine(650,520,.6)+pine(1130,520,.55),5)+`</g>`+xGarland(150,'#2e8b57');
+ o+=P('M0 600 Q260 580 520 596 Q800 612 1080 592 Q1340 576 1600 600 L1600 900 L0 900Z',b.ground,'ground')+P('M0 600 Q260 580 520 596 Q800 612 1080 592 Q1340 576 1600 600 L1600 616 Q1340 592 1080 608 Q800 630 520 612 Q260 596 0 616Z','#dbe8f8',0,NP+NO)
+  +[[150,720,110],[560,700,80],[880,840,120],[1250,720,90],[420,860,100],[1480,800,80]].map(([x,y,r])=>E(x,y,r,r*.16,'#e3eefb',0,NP+NO)).join('')
+  +[[260,780],[300,800],[340,790],[380,810],[700,860],[740,880],[960,700],[1000,720]].map(([x,y])=>E(x,y,7,4,'#d3e1f3',0,NP+NO)).join('');
+ return o+'</svg>'}
+SC.xvil={n:'Christmas Village',xm:1,floor:[610,872],land:90,bg:{sky:'#a9cdf2',ground:'#f7fbff'},pat:{},nav:{r:'xkit'},arrive:[640,866],draw:xvilBg,
+ init(a){const el=a.put('char',170,860,CH.xelf);a.give(el,'hat','head',{s:{v:X0+1}});a.put('xdeer',420,820);a.put('xwrap',730,770);const tr0=a.put('xtree',1010,680,{s:{on:1}});
+  [[-60,-120,XRED],[50,-150,'#ffd23f'],[-20,-230,'#3a86ff'],[70,-80,'#9b6bff'],[-90,-60,'#2bb673']].forEach(([dx,dy,k])=>{const b=a.put('bauble',0,0,{c:{a:k},s:{k:1}});b.par=tr0.id;b.slot='orn';b.dx=dx;b.dy=dy});
+  a.put('xrink',1070,890);a.put('xsnow',1390,750);a.put('sball',1270,770,{s:{sz:0}});a.put('teddy',600,884);a.put('carrot',300,884)}};
+SC.xkit={n:'Holiday Kitchen',xm:1,in:1,spot:'xvil',floor:[650,872],bg:{wall:'#f6e0c6',floor:'#c98f5a',trim:'#2e9e6b'},pat:{wall:1,floor:1},nav:{l:'xvil'},arrive:[580,866],
+ init(a){a.put('window',470,330,{c:{a:'#fffaf3',b:'#e63946'}});a.put('wreath',1100,250);a.put('stocking',1300,380);a.put('stocking',1390,380,{c:{a:XGRN}});
+  a.put('xpantry',160,780);a.put('xprep',450,800);a.put('xoven',730,786);a.put('xtable',1110,830);const c1=a.put('chair',870,846);a.sit(c1,0,CH.gpa);const c2=a.put('chair',1350,846,{flip:true});a.sit(c2,0,CH.gma);a.put('xtree',1500,700,{s:{on:1}})}};
+SPOTS.push({id:'xvil',n:'Christmas Village',x:556,y:652,w:0,xm:1},{id:'xvil',n:'Christmas Village',x:1090,y:660,w:1,xm:1},{id:'xvil',n:'Christmas Village',x:680,y:790,w:2,xm:1});
+XA.xvil=()=>{const g=outline(R(-58,-14,30,26,5,XRED)+R(-50,-14,6,26,0,'#ffd23f')+R(28,-10,34,22,5,'#3a86ff')+R(42,-10,6,22,0,'#ffffff')+R(-24,-6,26,20,5,'#2bb673'),4);return((G.world||0)===2?xCoralTree(0,4,1.400):xTree(0,4,1.150))+g};
+/* things that are only there at Christmas time: they appear when a place opens during the event, and go away after it */
+const XPROPS={field:[['xpine',1250,640]]};
+{const so=scOpen;window.scOpen=function(id,st,o){if(st&&Array.isArray(st.ents)&&!(o&&o.mir)){if(!XMAS())st.ents=st.ents.filter(e=>!(e.s&&e.s.xev));else for(const[t,x,y]of XPROPS[id]||[])if(!st.ents.some(e=>e.t===t))st.ents.push(mk(t,x,y,{s:{xev:1}}))}
+  return so.apply(this,arguments)}}
+/* the Snow Machine makes it snow in any room it's switched on in */
+{const h0=xHud;window.xHud=function(){h0();$stage.classList.toggle('snowin',!!(XMAS()&&SID&&S&&S.ents.some(e=>e.t==='xsnowm'&&e.s.on)))}}
 
 /* =====================================================================
    PLAY TOGETHER — two players, joined by a room code. No sign-in, no chat.
@@ -3098,6 +3470,7 @@ function netMsg(m,id){if(!m||typeof m!=='object')return;
   case'pweigh':if(isFinite(m.kg))pumpRecord(clamp(+m.kg|0,1,2000));break; // I weighed my pumpkin in my friend's place
   case'ward':if(m.k==='swim')swimAdd(+m.v|0);else if((m.k==='sw'||m.k==='nk'||m.k==='fl')&&wardOk(m.c))wardAdd(m.k,m.c);break; // something I put on or took off in my friend's place: it belongs in my wardrobe
   case'bscore':if(isFinite(m.n))bubRecord(clamp(+m.n|0,0,200));break; // I played the bubble game in my friend's place
+  case'xbell':if(typeof m.src==='string'&&XB.hasOwnProperty(m.src))bellAdd(m.src);break; // a Jingle Bell I earned while playing in my friend's place
   case'bnews':if(isFinite(m.n))toast('Your friend popped '+(clamp(+m.n|0,0,200))+' bubbles in the Bubble Pop! Can you beat that?',5000);break;
   case'pnews':if(isFinite(m.kg))toast('Your friend grew a '+(clamp(+m.kg|0,1,2000))+' lb pumpkin! Can you grow a bigger one?',5000);break;
   case'enter':if(typeof m.id!=='string'||!SC.hasOwnProperty(m.id)){NET.send({t:'no',n:m.n});break}if(NET.pend&&NET.pend.id===m.id&&NET.role==='host'){NET.queue=m;break}netAnswer(m);break; // both heading for the same place: player 1 goes first
@@ -3129,7 +3502,7 @@ function netHands(m){if(!S)return;const fno=3-myNo();ACTOR='peer';try{switch(m.t
    if(m.col){if(hexOk(m.col))paintCore(r,m.col)}else tapCore(r);break}
  case'grab':{let id=null;const p0=ptOk(m.p0),p=ptOk(m.p);if(NET.rp&&!byId(NET.rp.e.id))NET.rp=null;
    if(!NET.rp&&p0&&p){const e=byId(m.id);if(e&&!tr(e).busy&&!tr(e).drag){let x=e,off=null;
-    if(isFix(e)){x=TD(e).disp?dispense(e,p):null;if(x)off={x:0,y:TD(x).h/2}}else if(!mayMove(e,fno))x=null;else{if(e.par)unpar(e);off={x:e.x-p0.x,y:e.y-p0.y}}
+    if(stuck(e)){x=TD(e).disp?dispense(e,p,p0):null;if(x)off={x:0,y:TD(x).h/2}}else if(!mayMove(e,fno))x=null;else{if(e.par)unpar(e);off={x:e.x-p0.x,y:e.y-p0.y}}
     if(x){tr(x).drag=1;const el=EL.get(x.id);el.classList.add('drag');el.style.transition='';posE(x);NET.rp={e:x,off};id=x.id}}}
    netFlush();NET.send({t:'grabbed',id,off:id!=null?NET.rp.off:null});break}
  case'unpack':{const p=ptOk(m.p);let a=(Array.isArray(m.a)?m.a:[]).slice(0,40).map(cleanE).filter(Boolean);if(!a.length)break;if(NET.rp&&!byId(NET.rp.e.id))NET.rp=null;
@@ -3195,9 +3568,9 @@ setInterval(()=>netMirSave(),4000);
 setInterval(()=>{if(NET.peer&&S&&!NET.mir&&!NET.feed&&!iOwn(SID)&&NET.ld){NET.ld=0;NET.send({t:'back',id:SID,st:scSer(S)})}},5000); // a place I borrowed: its owner gets a fresh copy now and then
 
 /* ---------- my hands, while I watch my friend's copy ---------- */
-function gGrab(P){const e=P.e;if(!byId(e.id))return false;const d=TD(e);if(NET.drag||tr(e).drag)return false;if(isFix(e)){if(!d.disp)return false}else if(!mayMove(e,myNo())){shy(e);return false}
+function gGrab(P){const e=P.e;if(!byId(e.id))return false;const d=TD(e);if(NET.drag||tr(e).drag)return false;if(stuck(e)){if(!d.disp)return false}else if(!mayMove(e,myNo())){shy(e);return false}
  NET.send({t:'grab',id:e.id,p0:P.p0,p:P.p});P.drag=true;NET.drag={id:null,P,off:null};
- if(!isFix(e)){const a=absXY(e),el=EL.get(e.id);e.par=null;e.slot=null;e.x=a.x;e.y=a.y;$ents.appendChild(el);el.classList.remove('sm','bob','hd');el.classList.add('drag');el.style.transition='';tr(e).drag=1;NET.drag.id=e.id;NET.drag.off={x:a.x-P.p0.x,y:a.y-P.p0.y};posE(e)}
+ if(!stuck(e)){const a=absXY(e),el=EL.get(e.id);e.par=null;e.slot=null;e.x=a.x;e.y=a.y;$ents.appendChild(el);el.classList.remove('sm','bob','hd');el.classList.add('drag');el.style.transition='';tr(e).drag=1;NET.drag.id=e.id;NET.drag.off={x:a.x-P.p0.x,y:a.y-P.p0.y};posE(e)}
  sfx.pick();dragUI(true);return true}
 function gMove(P){const D=NET.drag;if(!D||D.P!==P){P.dead=true;if(!D)dragUI(false);return}const now=performance.now();if(now-(D.t||0)>45){D.t=now;NET.send({t:'mv',x:Math.round(P.p.x),y:Math.round(P.p.y)})}
  $pack.classList.toggle('open',over($pack,P));$trash.classList.toggle('open',over($trash,P));
@@ -3312,7 +3685,7 @@ function resetRoom(){const id=SID,keep=[];for(const e of S.ents){if((e.t==='char
 function unparQuiet(e){if(e.par){const a=absXY(e);e.x=a.x;e.y=a.y}e.par=null;e.slot=null;if(e.t==='char'){e.s.pose='stand';delete e.s.lie}e.s.zz=0;const fl=SC[SID].floor;e.x=clamp(e.x||800,120,W-120);e.y=clamp(e.y||780,fl[0]+60,fl[1])}
 
 /* ---------- sticker book ---------- */
-const PETHINT={0:'Hatches from a spotty egg',1:'Hatches from a zigzag egg',2:'Hatches from a golden egg',hedge:'Hiding somewhere in the park…',crab:'Loves a really good sandcastle',cloud:'Lives high above the clouds',alien:'Out there, among the stars…',frog:'Splish splash… try the pond'};
+const PETHINT={0:'Hatches from a spotty egg',1:'Hatches from a zigzag egg',2:'Hatches from a golden egg',hedge:'Hiding somewhere in the park…',crab:'Loves a really good sandcastle',cloud:'Lives high above the clouds',alien:'Out there, among the stars…',frog:'Splish splash… try the pond',deer:'A Christmas reward: 15 Jingle Bells'};
 function openBook(tab){if(tab!=null)BT=tab;const n=stars(),nx=UNL.find(u=>u[0]>n),pets=Object.keys(PETS),pg=pets.filter(p=>G.st['pet_'+p]).length,mg=Object.keys(G.minis).length,sg=STK.filter(s=>G.st[s[0]]).length;
  let html=`<div class="mh"><div class="big">${IC.star}<b>${n}</b><span>stars</span></div>`+(nx?`<div class="nx"><div class="bar"><i style="width:${Math.min(100,n/nx[0]*100).toFixed(0)}%"></i></div><span><b>${nx[0]-n} more</b> for: ${nx[1]}</span></div>`:farmBookLine())+`</div>`;
  html+=`<div class="tabs">`+[`Stickers ${sg}/${STK.length}`,`Pets ${pg}/${pets.length}`,`Minis ${mg}/${MININ.length}`].map((t,i)=>`<button class="tab${i===BT?' on':''}" data-bt="${i}">${t}</button>`).join('')+`</div><div class="body">`;
@@ -3348,7 +3721,7 @@ function styleApply(c,a,k,col,q){ // q = quietly (the "this is you" window)
  if(k)c.c[k]=col;
  else if(a==='hs+'||a==='hs-'){c.s.hs=(c.s.hs+(a==='hs+'?1:HAIRN-1))%HAIRN;q||star('style')}
  else if(a==='of+'||a==='of-'){c.s.of=(c.s.of+(a==='of+'?1:OUTN-1))%OUTN;q||star('style')}
- else if(a==='xs'){if(c.s.xs===6)wardGive('sw',[c.s.kc,c.s.kc2,c.s.kc3]);const v=+col|0;c.s.xs=(v>=1&&v<=5)||(v>=7&&v<=10)?v:0;if(c.s.xs&&c.s.xs<4)star('sweater');if(c.s.xs>=7&&!q)star('swimsuit')} // a knitted sweater that is taken off stays in the wardrobe
+ else if(a==='xs'){if(c.s.xs===6)wardGive('sw',[c.s.kc,c.s.kc2,c.s.kc3]);const v=+col|0;c.s.xs=(v>=1&&v<=5)||(v>=7&&v<=11)?v:0;if(c.s.xs&&c.s.xs<4)star('sweater');if(c.s.xs>=7&&!q)star('swimsuit')} // a knitted sweater that is taken off stays in the wardrobe
  else if(a==='kw'){const k=String(col).match(/#[0-9a-fA-F]{6}/g);if(k&&k.length===3){if(c.s.xs===6)wardGive('sw',[c.s.kc,c.s.kc2,c.s.kc3]);c.s.xs=6;c.s.kc=k[0];c.s.kc2=k[1];c.s.kc3=k[2]}} // …and goes back on from there
  else if(a==='lash')c.s.lash=c.s.lash?0:1;else if(a==='fr')c.s.fr=c.s.fr?0:1;else if(a==='lid')c.s.lid=c.s.lid===0?1:0;
  else if(a==='rand'){const r=randChar();Object.assign(c.c,r.c);Object.assign(c.s,{hs:r.s.hs,of:r.s.of,lash:r.s.lash,fr:r.s.fr,lid:r.s.lid});if(!q){star('style');const z=absXY(c);sparkle(z.x,z.y-200,8)}}
@@ -3368,7 +3741,7 @@ function showHint(){const c=STK.filter(s=>!G.st[s[0]]);showModal(c.length?`<h2>T
 /* ---------- map & title ---------- */
 const BALLOON=`<svg viewBox="0 0 120 190"><path d="M60 4 Q112 4 112 60 Q112 100 74 128 L46 128 Q8 100 8 60 Q8 4 60 4Z" fill="#ff7aa8"/><path d="M60 4 Q84 30 74 128 L46 128 Q36 30 60 4Z" fill="#ffd23f"/><path d="M48 128 L50 150 M72 128 L70 150" stroke="#8a5a44" stroke-width="3"/><rect x="42" y="148" width="36" height="26" rx="6" fill="#c9a27a"/><g class="gf"><rect x="46" y="132" width="28" height="22" rx="4" fill="#7ad3ff"/><rect x="57" y="132" width="6" height="22" fill="#fff"/><path d="M60 132 Q50 120 48 128 Q50 134 60 132 Q70 134 72 128 Q70 120 60 132Z" fill="#fff"/></g></svg>`;
 function showMap(){farmMigrate();const m=$('#map');m.className='ui on';$stage.classList.add('onmap');let html=mapSVG();
- for(const s of mapSpots()){const open=spotOpen(s);if(s.secret&&!open&&!s.why)continue;html+=`<div class="mlabel${open?'':' lk'}${(s.art==='home'||s.mine)&&NET.peer?' mine':''}" style="left:${s.x}px;top:${s.y+12}px">${open?'':IC.lock}<span>${open?s.n:(s.lk||s.n)}</span>${!open&&s.sneed?`<b>${s.sneed}</b>${IC.shellic}`:!open&&s.fneed?`<b>${s.fneed}</b>${IC.clover}`:!open&&s.need?`<b>${s.need}</b>${IC.star}`:!open&&s.duo?IC.duo:''}</div>`;
+ for(const s of mapSpots()){const open=spotOpen(s);if(s.secret&&!open&&!s.why)continue;html+=`<div class="mlabel${open?'':' lk'}${(s.art==='home'||s.mine)&&NET.peer?' mine':''}${s.xm?' xv':''}" style="left:${s.x}px;top:${s.y+12}px">${open?'':IC.lock}<span>${open?s.n:(s.lk||s.n)}</span>${!open&&s.sneed?`<b>${s.sneed}</b>${IC.shellic}`:!open&&s.fneed?`<b>${s.fneed}</b>${IC.clover}`:!open&&s.need?`<b>${s.need}</b>${IC.star}`:!open&&s.duo?IC.duo:''}</div>`;
   if(s.art==='home')html+=`<button class="hbrush" id="hpaint" style="left:${s.x+72}px;top:${s.y-4}px" aria-label="Paint my house">${IC.brush}</button>`}
  const ready=G.daily.last!==dayN();html+=`<button class="gbal${ready?' ready':''}" id="gbal">${outline(BALLOON,5)}<span>${ready?'Gift!':'Tomorrow'}</span></button><div class="mtitle">${WORLDS[G.world||0]}</div>${wswHTML()}<div class="mfr" id="mfr" style="display:none">${IC.duo}<span>Friend is here!</span></div>`;
  m.innerHTML=html;showMap.sig=mapSig();netMark();updHud();
@@ -3377,9 +3750,9 @@ function showMap(){farmMigrate();const m=$('#map');m.className='ui on';$stage.cl
   if(ev.target.closest('#gbal'))openGift()}}
 const HWALL=['#ffe3ea','#fff3c4','#ffe2c8','#dcf6c9','#d3f3ee','#e3f0ff','#f0deff','#ffffff'],HROOF=['#ff7d9a','#ff8552','#ffc531','#56c596','#2bb7a3','#5b9bf0','#9b6bff','#8a5a44'];
 function openHouse(){const hs=Object.assign({},HOUSE0,G.house),row=(k,list)=>list.map(c=>`<button class="swt${hs[k]===c?' on':''}" data-k="${k}" data-c="${c}" style="background:${c}"></button>`).join('');
- const ren=()=>{$('#hfig').innerHTML=`<svg viewBox="-70 -246 366 276">${outline(houseCol(mapSVG.home,hs),5)}</svg>`;$('#hctl').innerHTML=`<div class="lbl">Walls</div><div class="sws">${row('w',HWALL)}</div><div class="lbl">Roof</div><div class="sws">${row('r',HROOF)}</div>`};
+ const ren=()=>{$('#hfig').innerHTML=`<svg viewBox="-70 -246 366 276">${outline(houseCol(mapSVG.home,hs),5)}</svg>`;$('#hctl').innerHTML=`<div class="lbl">Walls</div><div class="sws">${row('w',HWALL)}</div><div class="lbl">Roof</div><div class="sws">${row('r',HROOF)}</div>`+(G.xup&&G.xup.roof?`<div class="lbl">Snowy roof</div><div class="sws"><button class="swt tg${hs.ns?'':' on'}" data-k="ns" data-c="${hs.ns?0:1}">${hs.ns?'Off':'On'}</button></div>`:'');if(G.xup&&G.xup.roof&&!hs.ns)$('#hfig svg').insertAdjacentHTML('beforeend',xRoofSnow())};
  showModal(`<h2>Paint my house</h2><div class="mepick"><div class="mefig hfig" id="hfig"></div><div class="mectl" id="hctl"></div></div><button class="btn" id="hok">Done</button>`,'mewin');ren();
- $('#hctl').onclick=ev=>{const b=ev.target.closest('button');if(!b)return;hs[b.dataset.k]=b.dataset.c;G.house={w:hs.w,r:hs.r};usfx('splat');star('housepaint');dirty();ren();if(NET.peer)NET.send({t:'house',h:G.house});if(!SID)showMap()};
+ $('#hctl').onclick=ev=>{const b=ev.target.closest('button');if(!b)return;if(b.dataset.k==='ns')hs.ns=hs.ns?0:1;else hs[b.dataset.k]=b.dataset.c;G.house={w:hs.w,r:hs.r};if(hs.ns)G.house.ns=1;usfx('splat');star('housepaint');dirty();ren();if(NET.peer)NET.send({t:'house',h:G.house});if(!SID)showMap()};
  $('#hok').onclick=closeModal}
 /* the map is only redrawn when something on it really changed — otherwise a tap could get lost while a friend's news arrives */
 function mapSig(){return JSON.stringify([G.world||0,farmOpen(),seaOpen(),!!G.st.manta,G.house,NET.frHouse,!!NET.peer,NET.role,mapSpots().map(s=>s.id+(spotOpen(s)?1:0)),!!G.st.whale,G.daily.last===dayN()])}
