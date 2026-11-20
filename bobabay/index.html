@@ -515,6 +515,14 @@ input{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
 .xmas.snowin #snow{display:block}
 .swt.tg{background:#fff;font-size:16px;font-weight:700;color:#2a1f3d;width:auto!important;padding:0 14px;border-radius:21px}.swt.tg.on{background:#cfeeff}
 .xw.lk{background:#f4f0fb;color:#8a829a}.xw small{display:block;font-size:14px;color:#a79fb8;font-weight:600}
+/* ---------- Thanksgiving: falling leaves ---------- */
+#leaves{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;display:none;z-index:40;overflow:hidden}
+.tgv.onmap #leaves,.tgv.out #leaves{display:block}
+.tgv.seamap #leaves,.tgv.sea #leaves,#title.on~#leaves{display:none}
+#leaves i{position:absolute;top:-40px;animation:leaff linear infinite}
+#leaves i svg{display:block;animation:leafs 2.6s ease-in-out infinite alternate}
+@keyframes leaff{0%{transform:translate(0,0)}100%{transform:translate(-160px,980px)}}
+@keyframes leafs{0%{transform:rotate(-40deg) translateX(-18px)}100%{transform:rotate(50deg) translateX(18px)}}
 
 </style>
 </head>
@@ -528,7 +536,7 @@ input{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
   <button id="b-paint" class="ui rb" aria-label="Paint"></button><button id="b-cat" class="ui rb" aria-label="Furniture catalog"></button>
   <div id="trash" class="ui"></div><div id="tray" class="ui"></div><div id="pack" class="ui"></div><div id="xbox" class="ui"></div><button id="b-xmas" class="ui rb" aria-label="Christmas calendar"></button><div id="stylep" class="ui"></div>
  </div>
- <div id="snow"></div><div id="modal" class="ui"></div><div id="fx"></div><div id="toasts"></div><div id="title" class="ui"></div>
+ <div id="snow"></div><div id="leaves"></div><div id="modal" class="ui"></div><div id="fx"></div><div id="toasts"></div><div id="title" class="ui"></div>
 </div>
 <div id="rot">Turn your device sideways for a bigger view!</div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -1432,7 +1440,7 @@ function mapSVG(){if((G.world||0)===1)return farmMap();if((G.world||0)===2)retur
  const win=(x,y,w,h,k='#cfeeff')=>R(x,y,w,h,Math.min(w,h)/3.2,k)+L(`M${x+w/2} ${y+2} L${x+w/2} ${y+h-2} M${x+2} ${y+h/2} L${x+w-2} ${y+h/2}`,'#fff',3);
  const swin=(w,list)=>`<g transform="translate(${w} 0) skewY(-26.565)">`+list.map(([x,y,ww,hh,k])=>R(x,y,ww,hh,5,k||'#cfeeff')).join('')+`</g>`;
  const awn=(x,y,w,c1,c2='#ffffff')=>{let o='';const n=Math.round(w/20),u=w/n;for(let i=0;i<n;i++)o+=P(`M${x+i*u} ${y} L${x+(i+1)*u} ${y} L${x+(i+1)*u} ${y+16} Q${x+(i+.5)*u} ${y+27} ${x+i*u} ${y+16}Z`,i%2?c2:c1);return o};
- const tree=(x,y,sc=1,k='#62c29a')=>`<g transform="translate(${x} ${y}) scale(${sc})">`+outline(R(-5,-24,10,28,4,'#9a6a4a'),4.5)+U(C(0,-52,24,k)+C(-19,-38,17,k)+C(19,-38,17,k)+C(0,-32,19,k),4.5)+C(-8,-58,7,lt(k,.28),0,NO)+`</g>`;
+ const tree=(x,y,sc=1,k='#62c29a')=>(k=tgTree(k,x,y))&&`<g transform="translate(${x} ${y}) scale(${sc})">`+outline(R(-5,-24,10,28,4,'#9a6a4a'),4.5)+U(C(0,-52,24,k)+C(-19,-38,17,k)+C(19,-38,17,k)+C(0,-32,19,k),4.5)+C(-8,-58,7,lt(k,.28),0,NO)+`</g>`;
  const bush=(x,y,sc=1,k='#57b88a')=>`<g transform="translate(${x} ${y}) scale(${sc})">`+U(C(-17,-10,14,k)+C(0,-19,18,k)+C(18,-10,14,k)+R(-29,-13,58,15,7,k),4.5)+C(-5,-22,5,lt(k,.28),0,NO)+`</g>`;
  const door=(x,w,h,k)=>P(`M${x} 0 L${x} ${-h+w/2} Q${x} ${-h} ${x+w/2} ${-h} Q${x+w} ${-h} ${x+w} ${-h+w/2} L${x+w} 0Z`,k)+C(x+w-9,-h*.42,3.2,INK);
  const A={};
@@ -1467,7 +1475,7 @@ function mapSVG(){if((G.world||0)===1)return farmMap();if((G.world||0)===2)retur
  [[420,760,'#ff8fb1'],[980,630,'#ffd23f'],[1120,880,'#fff'],[240,500,'#fff'],[640,860,'#ffd23f'],[1500,860,'#ff8fb1'],[900,560,'#fff']].forEach(([x,y,k])=>o+=C(x,y,6,k)+C(x,y,2.500,'#ffb400'));
  o+=outline(R(1168,790,6,40,2,'#9a6a4a')+R(1226,790,6,40,2,'#9a6a4a')+R(1140,752,116,44,10,'#56c596'),4.500)+`<text x="1198" y="782" font-size="20" font-weight="700" text-anchor="middle" fill="#fff" class="np">BOBA BAY</text>`;
  o+=`<g class="whale" data-whale="1" transform="translate(58 300) scale(.72)"><g class="bobm">`+(G.st.whale?L('M0 -40 Q-16 -70 -30 -52 M0 -40 Q16 -70 30 -52','#fff',6):'')+outline(P('M-70 0 Q-70 -44 -10 -44 Q50 -44 62 -4 L92 -30 Q104 0 86 22 L62 8 Q40 34 -20 30 Q-70 26 -70 0Z','#5b8def')+P('M-66 8 Q-30 30 30 24 Q-10 36 -40 28 Q-62 22 -66 8Z','#dfeaff',0,NO),5)+C(-42,-10,5,INK)+C(-40.500,-12,1.800,'#fff')+L('M-60 4 Q-50 12 -38 8',INK,3)+C(-52,2,5,'#ff8fb1',0,' opacity=".6"')+`</g></g>`;
- if(XMAS())o+=xTown();
+ if(XMAS())o+=xTown();if(TGV())o+=tgTown();
  // places, back row first so nearer buildings overlap
  A.school=slab(186,74)+box(186,116,74,'#ffe0cc','#f6bfa2','#ff9a76')+win(14,-88,40,40)+win(132,-88,40,40)+door(70,46,70,'#7ad3ff')+C(93,-97,15,'#fff')+L('M93 -97 L93 -107 M93 -97 L100 -93',INK,3)+swin(186,[[20,-90,34,40]])+R(8,-48,52,12,5,'#ff9a76')+R(126,-48,52,12,5,'#ff9a76')
   +`<g transform="rotate(-16 100 -168)">`+R(46,-184,92,30,4,'#ffd23f')+R(26,-184,24,30,9,'#ff8fb1')+R(46,-184,9,30,0,'#c9c9d6')+P('M138 -184 L170 -169 L138 -154Z','#f6e3c9')+P('M158 -175 L170 -169 L158 -163Z',INK)+L('M60 -174 L128 -174','#fff3a8',4)+`</g>`;
@@ -2273,7 +2281,7 @@ function farmMap(){let o=SVGO+`<defs><linearGradient id="msky" x1="0" y1="0" x2=
  o+=`<path d="M-40 430 Q220 250 480 350 Q720 240 980 340 Q1240 250 1640 360 L1640 940 L-40 940Z" fill="#9bd97c" stroke="#5aa85a" stroke-width="5"/><path d="M-40 650 Q380 540 800 620 Q1220 700 1640 600 L1640 940 L-40 940Z" fill="#b5e48c" stroke="#6fb86a" stroke-width="5"/>`;
  [[-10,480,300,150,'#f2d16b'],[980,600,300,120,'#c7e89a']].forEach(([x,y,w,h,k])=>{o+=`<path d="M${x} ${y+h} L${x+40} ${y} L${x+w} ${y} L${x+w-40} ${y+h}Z" fill="${k}" stroke="#35252d" stroke-width="5" stroke-linejoin="round"/>`;for(let i=1;i<6;i++)o+=L(`M${x+i*w/6} ${y+h-4} L${x+40+i*(w-40)/6-6} ${y+4}`,dk(k,.12),4)});
  const RD='M-40 780 C260 740 460 650 780 670 C1080 690 1300 600 1640 560';o+=L(RD,'#c9a27a',66)+L(RD,'#ecd2a6',54);
- const tree=(x,y,sc=1,k='#62c29a')=>`<g transform="translate(${x} ${y}) scale(${sc})">`+outline(R(-5,-24,10,28,4,'#9a6a4a'),4.500)+U(C(0,-52,24,k)+C(-19,-38,17,k)+C(19,-38,17,k)+C(0,-32,19,k),4.500)+`</g>`;
+ const tree=(x,y,sc=1,k='#62c29a')=>(k=tgTree(k,x,y))&&`<g transform="translate(${x} ${y}) scale(${sc})">`+outline(R(-5,-24,10,28,4,'#9a6a4a'),4.500)+U(C(0,-52,24,k)+C(-19,-38,17,k)+C(19,-38,17,k)+C(0,-32,19,k),4.500)+`</g>`;
  [[120,700,1],[760,420,.8],[1060,420,.9],[1500,700,1.100],[430,880,1],[980,880,.9],[1540,430,.8],[60,860,1.100],[340,380,.8]].forEach(([x,y,s],i)=>o+=tree(x,y,s,i%2?'#4fb894':'#62c29a'));
  [[250,720,'#ff8fb1'],[640,600,'#fff'],[900,770,'#ffd23f'],[1420,640,'#fff'],[300,880,'#ffd23f'],[1100,560,'#ff8fb1']].forEach(([x,y,k])=>o+=C(x,y,6,k)+C(x,y,2.500,'#ffb400'));
  const A={};
@@ -2285,7 +2293,7 @@ function farmMap(){let o=SVGO+`<defs><linearGradient id="msky" x1="0" y1="0" x2=
  A.ppatch=[[-60,-8,30],[10,-6,24],[64,-10,34]].map(([x,y,r])=>E(x-r*.45,y-r*.8,r*.6,r*.8,'#e6761a')+E(x+r*.45,y-r*.8,r*.6,r*.8,'#e6761a')+E(x,y-r*.82,r*.7,r*.86,'#ff8a1c')+R(x-3,y-r*1.8,6,12,3,'#3fae6a')).join('')+R(-110,-90,10,82,3,'#9a6a4a')+R(-120,-104,64,34,6,'#fff3e0');
  A.market=R(-86,-110,10,110,3,'#9a6a4a')+R(76,-110,10,110,3,'#9a6a4a')+[0,1,2,3,4].map(i=>P(`M${-96+i*38.4} -126 L${-57.6+i*38.4} -126 L${-57.6+i*38.4} -100 Q${-76.8+i*38.4} -88 ${-96+i*38.4} -100Z`,i%2?'#fff':'#e63946')).join('')+R(-100,-136,200,14,6,'#e63946')+R(-92,-46,184,46,8,'#e8c3a0')+[[-60,-54,'#ff8552'],[-30,-56,'#56d39a'],[0,-54,'#ff5c7a'],[30,-56,'#ffd23f'],[60,-54,'#9b6bff']].map(([x,y,k])=>C(x,y,12,k)).join('');
  for(const sp of mapSpots().sort((a,b)=>a.y-b.y)){const open=spotOpen(sp);o+=`<g class="spot${open?'':' locked'}" data-go="${sp.id}" transform="translate(${sp.x} ${sp.y})"><g class="sp-in">${XA[sp.id]?XA[sp.id]():outline(A[sp.id]||'',5)}</g><circle r="100" cy="-70" fill="transparent"/></g>`}
- if(XMAS())o+=xTown();return o+'</svg>'}
+ if(XMAS())o+=xTown();if(TGV())o+=tgTown();return o+'</svg>'}
 IC.clover='<svg viewBox="0 0 24 24"><g fill="#2bb673"><circle cx="8" cy="8" r="4.500"/><circle cx="16" cy="8" r="4.500"/><circle cx="8" cy="15" r="4.500"/><circle cx="16" cy="15" r="4.500"/></g><path d="M12 12 Q13 18 17 22" stroke="#1f8a55" stroke-width="2.200" fill="none" stroke-linecap="round"/></svg>';
 
 /* ---------- the Pumpkin Patch: who can grow the biggest pumpkin? and hay rides ---------- */
@@ -3304,6 +3312,110 @@ const XPROPS={field:[['xpine',1250,640]]};
   return so.apply(this,arguments)}}
 /* the Snow Machine makes it snow in any room it's switched on in */
 {const h0=xHud;window.xHud=function(){h0();$stage.classList.toggle('snowin',!!(XMAS()&&SID&&S&&S.ents.some(e=>e.t==='xsnowm'&&e.s.on)))}}
+
+/* =====================================================================
+   THANKSGIVING — a small autumn update, from 1 November until the
+   Christmas event starts (25 November). Falling leaves, leaf garlands,
+   autumn trees on the maps, and a Thanksgiving tab in the furniture
+   catalog with turkey friends, pumpkin pie, cider, a cornucopia,
+   leaf piles to jump in and a thankful tree.
+   Things you place at home stay after the update ends.
+   ===================================================================== */
+const TGV=()=>{const d=NOW();return d.getMonth()===10&&!XMAS()}; // November, until Christmas begins
+const TGC=['#e8613c','#f39237','#f6c445','#d9534f','#c97b2a'];
+const MAPLE=[[0,-1],[.18,-.55],[.45,-.72],[.38,-.3],[.86,-.4],[.62,0],[.78,.14],[.26,.2],[.3,.46],[0,.3],[-.3,.46],[-.26,.2],[-.78,.14],[-.62,0],[-.86,-.4],[-.38,-.3],[-.45,-.72],[-.18,-.55]];
+function leafPt(x,y,s,r){const c=Math.cos(r*Math.PI/180),n=Math.sin(r*Math.PI/180);return([a,b])=>[(x+(a*c-b*n)*s).toFixed(1),(y+(a*n+b*c)*s).toFixed(1)]}
+function leaf(x,y,s,r,k,ex){const f=leafPt(x,y,s,r),p=MAPLE.map(f),a=f([0,.3]),b=f([0,.82]);return P('M'+p.map(q=>q.join(' ')).join(' L')+'Z',k,0,ex)+L(`M${a.join(' ')} L${b.join(' ')}`,dk(k,.25),Math.max(1.6,s*.12),0,NO)}
+const tgTree=(k,x,y)=>TGV()?['#f5a13a','#e8613c','#f6c445','#62c29a','#e07b2a'][Math.abs(Math.round(x/10)*7+Math.round(y/10)*3)%5]:k; // the trees on the maps turn orange, red and gold
+const leafSvg=(i,s=11)=>`<svg width="${s*2+4}" height="${s*2+4}" viewBox="${-s-2} ${-s-2} ${s*2+4} ${s*2+4}"><path d="M${MAPLE.map(leafPt(0,0,s,i*53)).map(q=>q.join(' ')).join(' L')}Z" fill="${TGC[i%5]}" stroke="#35252d" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+const leafBurst=(x,y,n=12)=>burst(x,y,n,i=>leafSvg(i),150,120,900);
+Object.assign(sfx,{gobble(){[520,430,560,400,500,380].forEach((f,i)=>tone(f,.07,{at:i*.065,type:'square',vol:.05}))},rustle(){noise(.3,{ft:'highpass',f:2200,vol:.09})}});
+
+/* ---------- stickers ---------- */
+STKG.fall=['Thanksgiving','#e8613c'];
+STK.push(['gobble','Gobble Gobble!','Say hello to a turkey friend.','fall'],['leafjump','Leaf Leaper','Jump into a pile of leaves.','fall'],['thankful','So Thankful','Fill a thankful tree with 10 leaves.','fall'],['tgpie','Pie Day','Share a pumpkin pie.','fall']);
+
+/* ---------- things ---------- */
+D('tgturkey','Turkey Friend',150,150,'toy',{a:'#9a6a4a'},(e,c)=>{let o=sh(150,150,.4);
+  [-72,-48,-24,0,24,48,72].forEach((a,i)=>o+=E(75,34,15,46,['#e8613c','#f39237','#f6c445','#c97b2a'][i%4],0,rot(a,75,84)));
+  return o+E(75,100,40,38,c.a,'a')+E(75,110,25,22,lt(c.a,.35),'a',NO)+E(40,102,12,22,dk(c.a,.12),'a',rot(20,40,102))+E(110,102,12,22,dk(c.a,.12),'a',rot(-20,110,102))
+   +L('M62 134 L58 148 M52 148 L64 148 M88 134 L92 148 M86 148 L98 148','#ffb400',5)+C(75,58,21,lt(c.a,.15),'a')+C(67,53,4.500,INK)+C(83,53,4.500,INK)+C(68.500,51.500,1.600,'#fff')+C(84.500,51.500,1.600,'#fff')
+   +P('M70 61 L80 61 L75 70Z','#ffb400')+P('M76 66 Q68 76 72 86 Q80 80 79 68Z','#e63946')+C(59,63,4.500,'#ff8fa3',0,' opacity=".55" class="np"')+C(91,63,4.500,'#ff8fa3',0,' opacity=".55" class="np"')},
+ {accept(e,it){if(!['corn','popcorn','bread','apple','blueb','pumpk'].includes(it.t))return false;rm(it);sfx.chomp();anim(e,'chomp',220);hearts(e,3);setTimeout(()=>sfx.gobble(),250);say(e,pick(['Gobble! Yummy!','Thank you, friend!','Gobble gobble — more please!']));star('gobble');return true},
+  tap(e){anim(e,'hop',420);sfx.gobble();const a=absXY(e);if(Math.random()<.5)leafBurst(a.x,a.y-90,5);say(e,pick(['Gobble gobble!','Happy Thanksgiving!','I\'m thankful for YOU!','Gobble? Gobble!','Got any corn?']));star('gobble')}});
+D('tgcorn','Cornucopia',210,140,'item',{a:'#c98f5a'},(e,c)=>sh(210,140,.42)+P('M74 36 Q132 18 172 40 Q200 56 196 22 Q212 64 176 92 Q136 120 74 118Z',c.a,'a')
+  +L('M100 30 Q112 74 100 116 M128 28 Q140 70 130 112 M154 36 Q164 66 156 98',dk(c.a,.2),3,0,NO)+L('M90 56 Q130 50 176 62 M86 88 Q130 92 168 84',dk(c.a,.12),3,0,NO)+E(74,77,22,42,dk(c.a,.35),'a')
+  +[[40,72],[48,62],[54,74],[42,84],[50,88],[58,64]].map(([x,y])=>C(x,y,8,'#8e4fbf')).join('')+L('M44 56 Q50 44 58 48','#2bb673',4)
+  +E(84,106,30,11,'#f6c445',0,rot(-12,84,106))+L('M64 110 L104 100 M70 104 L100 96','#d9a72e',2.500,0,NO)+P('M112 98 Q124 90 132 100 Q122 106 112 98Z','#2bb673')
+  +C(30,112,15,'#e63946')+L('M30 97 L33 90','#6b4226',3)+C(26,107,4,'#fff',0,' opacity=".7"'+NO)+E(62,122,18,13,'#f39237')+L('M62 110 L62 132 M52 112 Q48 122 52 132 M72 112 Q76 122 72 132',dk('#f39237',.18),2.400,0,NO)+R(59,104,6,8,2,'#6b8e23'),
+ {tap(e){if(S.ents.filter(k=>k.s&&k.s.cnu&&!k.par).length>=8){say(e,'So much food! Eat some first.');sfx.nope();return}anim(e,'land',240);sfx.pop();const t=pick(['apple','corn','orange','carrot','blueb']),it=popTo(t,e,rnd(-120,-60));it.s.cnu=1;say(e,pick(['A horn of plenty!','Help yourself!','There\'s always more!']),1400)}});
+F('tgpie','Pumpkin Pie',104,64,{a:'#e8913a'},(e,c)=>sh(104,64,.38)+P('M6 30 L98 30 L88 58 L16 58Z','#d9a36c')+E(52,30,48,13,'#e8b56c')+E(52,29,40,9,c.a,'a')
+  +[14,26,38,50,62,74,86].map(x=>C(x,31+Math.abs(x-52)*-.05,5,'#f2c27a',0,NO)).join('')+P('M44 24 Q46 12 52 14 Q58 12 60 24 Q52 28 44 24Z','#fffaf0')+L('M48 20 Q52 16 56 20','#e9dcc8',2,0,NO)+L('M30 28 L40 32 M66 32 L76 28',dk(c.a,.15),2.400,0,NO),{r:'yum'},{tg:1});
+D('tgcider','Apple Cider',66,84,'drink',{a:'#e8613c'},(e,c)=>{const f=e.s.fill;return sh(66,84)+(f?`<g class="np">`+L('M24 6 Q18 14 24 22 M36 2 Q30 10 36 18','#fff',3.500,0,' opacity=".8"')+`</g>`+R(40,6,6,32,3,'#8a5a3c',0,rot(14,43,22)):'')
+  +L('M54 40 Q70 40 68 56 Q66 70 52 68',INK,12)+L('M54 40 Q70 40 68 56 Q66 70 52 68',c.a,6,'a',NO)
+  +R(6,28,52,52,12,c.a,'a')+(f?E(32,30,24,6,'#c97b2a'):E(32,30,24,6,dk(c.a,.2),'a'))+P(heartP(32,56,7),'#fff',0,NO)},
+ {food:{col:'#c97b2a',r:'yum'},init(e){if(e.s.fill==null)e.s.fill=1},tap(e){if(!e.s.fill){e.s.fill=1;redraw(e);sfx.pour();say(e,'Warm apple cider — refilled!',1500);dirty();return}anim(e,'wig',300);sfx.pop()}});
+D('tggourd','Harvest Basket',160,110,'item',{a:'#c98f5a'},(e,c)=>sh(160,110,.42)+L('M40 50 Q36 20 48 6 M60 46 Q60 18 72 2 M118 48 Q124 22 116 6','#d9a72e',4)+[[48,6],[72,2],[116,6]].map(([x,y])=>E(x,y,5,9,'#f6c445')).join('')
+  +E(46,58,26,22,'#f39237')+L('M46 38 L46 78 M32 42 Q28 58 32 76 M60 42 Q64 58 60 76',dk('#f39237',.18),2.400,0,NO)+R(43,32,6,9,2,'#6b8e23')+E(112,58,24,20,'#fff4e0')+L('M112 40 L112 76 M100 44 Q96 58 100 74 M124 44 Q128 58 124 74','#e9dcc8',2.400,0,NO)+R(109,34,6,8,2,'#6b8e23')
+  +P('M70 66 Q70 36 82 30 Q92 34 88 50 Q100 60 90 72Z','#f6c445')+C(84,62,3,'#2bb673',0,NO)+C(78,52,2.500,'#2bb673',0,NO)
+  +P('M12 64 L148 64 L136 106 L24 106Z',c.a,'a')+L('M16 78 L144 78 M20 92 L140 92',dk(c.a,.18),3,0,NO)+L('M44 66 L40 104 M72 66 L70 104 M100 66 L100 104 M124 66 L128 104',dk(c.a,.12),2.400,0,NO)+R(6,58,148,12,6,dk(c.a,.08),'a'));
+D('tgwreath','Autumn Wreath',150,150,'furn',{a:'#f39237',b:'#e8613c'},(e,c)=>{let o=L('M75 27 A48 48 0 1 1 74.9 27','#a8714a',14);
+  for(let i=0;i<14;i++){const a=i/14*Math.PI*2,x=75+48*Math.cos(a),y=75+48*Math.sin(a);o+=leaf(x,y,20,a*180/Math.PI+90+(i%2?25:-15),i%3===0?c.a:i%3===1?c.b:'#f6c445')}
+  return o+E(75,122,16,12,'#f39237')+R(72,108,6,7,2,'#6b8e23')+P('M75 32 Q60 18 54 30 Q58 40 75 34 Q92 40 96 30 Q90 18 75 32Z',c.b,'b')+C(75,32,6,dk(c.b,.15),'b')+L('M70 36 L62 52 M80 36 L88 52',c.b,5,'b')},{mt:'wall'});
+D('tgbunt','Leaf Garland',380,90,'furn',{a:'#e8613c'},(e,c)=>{let o=L('M8 10 Q190 70 372 10','#8a5a3c',4)+C(8,10,6,'#8a5a3c')+C(372,10,6,'#8a5a3c');
+  for(let i=0;i<9;i++){const t=(i+.5)/9,x=8+364*t,y=10+2*(1-t)*t*60;o+=leaf(x,y+16,17,180+(i%2?12:-12),i%3===0?c.a:TGC[(i+1)%5])}return o},{mt:'wall'});
+D('tgleaves','Leaf Pile',250,100,'furn',{a:'#f39237'},(e,c)=>{let o=E(125,84,118,16,'rgba(30,10,60,.13)',0,NP)+P('M10 88 Q24 40 80 32 Q125 4 172 30 Q228 40 240 88Z',dk(c.a,.15),'a');
+  [[40,70,22,10],[70,50,24,-30],[100,34,22,40],[132,30,24,-10],[164,44,24,60],[196,64,22,-50],[60,80,22,80],[96,64,24,-70],[130,58,24,20],[166,72,24,110],[208,82,20,-20],[120,84,22,160],[30,86,18,30],[226,86,16,-30]].forEach(([x,y,s,r],i)=>o+=leaf(x,y,s,r,i%4===0?c.a:TGC[i%5]));return o},
+ {mt:'rug',accept(e,it){const k=TD(it).k;if(k!=='char'&&k!=='pet')return false;if(tr(it).busy||it.s.pose==='sleep')return false;const a=absXY(e);if(it.par)unpar(it);
+   setFree(it,clamp(it.x,a.x-80,a.x+80),a.y-14,'put');anim(e,'shake',420);sfx.rustle();setTimeout(()=>{leafBurst(a.x,a.y-50,16)},120);if(k==='char')setFace(it,'laugh',1800);
+   later(it,300,()=>say(it,pick(['Wheee! Crunchy!','Leaf jump!','Crunch crunch crunch!','I\'m a leaf monster!']),2000));star('leafjump');return true},
+  tap(e,tg,p){sfx.rustle();anim(e,'shake',420);leafBurst(p.x,p.y-10,7)}});
+const THANKS=['my friends','my family','yummy pie','cozy blankets','my pets','hugs','sunny days','my house','playing outside','warm socks','pancakes','my teddy','rainbows','YOU!'];
+const TSPOT=[[86,58],[48,96],[126,90],[30,140],[72,126],[110,128],[144,140],[58,168],[100,104],[132,170]];
+D('tgthank','Thankful Tree',180,260,'furn',{a:'#8a5a3c',b:'#e07b4a'},(e,c)=>{const n=clamp(e.s.n|0,0,10);let o=sh(180,260,.42)+`<rect x="10" y="20" width="160" height="236" fill="transparent" class="hit"/>`
+  +L('M90 214 Q86 170 90 130 M90 160 Q60 140 40 150 M90 140 Q120 120 140 140 M89 120 Q70 90 50 96 M90 112 Q110 80 130 86 M90 100 Q92 70 86 52 M60 146 Q40 120 30 136 M120 128 Q150 160 150 150',c.a,7,'a');
+  for(let i=0;i<n;i++){const[x,y]=TSPOT[i];o+=leaf(x,y,17,(i*67)%360-30,TGC[i%5])}
+  return o+P('M50 214 L130 214 L120 256 L60 256Z',c.b,'b')+R(44,206,92,14,6,lt(c.b,.15),'b')+R(56,232,68,14,5,'#fff6e0')+`<text x="90" y="244" font-size="11" font-weight="700" text-anchor="middle" fill="#8a5a3c" class="np">THANKFUL</text>`},
+ {tap(e){const n=e.s.n|0,a=absXY(e);anim(e,'wig',300);if(n<10){e.s.n=n+1;redraw(e);sfx.pop();sparkle(a.x+TSPOT[n][0]-90,a.y-260+TSPOT[n][1],3);say(e,'I\'m thankful for '+pick(THANKS)+(n+1<10?'':' …and so much more!'),2200);
+    if(n+1>=10){star('thankful');hushed(()=>sfx.star());confetti(a.x,a.y-180,16)}dirty();return}
+   sfx.rustle();leafBurst(a.x,a.y-150,6);say(e,'I\'m thankful for '+pick(THANKS),2000)}});
+D('tgcandle','Pumpkin Candle',80,84,'item',{a:'#f39237'},(e,c)=>sh(80,84)+P('M40 6 Q47 15 40 24 Q33 15 40 6Z','#ffb74d')+L('M40 22 L40 30',INK,2.400)+R(32,28,16,18,4,'#fff6e0')+E(40,62,36,22,c.a,'a')+L('M40 42 L40 82 M22 46 Q14 62 22 80 M58 46 Q66 62 58 80',dk(c.a,.18),2.600,0,NO)+R(28,44,24,6,3,'#6b8e23'),{light:()=>({dx:0,dy:-60,r:150})});
+D('tgcrown','Leaf Crown',124,74,'hat',{a:'#f39237'},(e,c)=>hit(124,74)+L('M14 68 Q62 50 110 68','#8a5a3c',6)+[[22,52,-50],[40,40,-25],[62,32,0],[84,40,25],[102,52,50]].map(([x,y,r],i)=>leaf(x,y,17,r,i===2?c.a:TGC[(i+1)%5])).join('')+[[32,62],[92,62]].map(([x,y])=>C(x,y,6,'#c0392b')+C(x+4,y-6,2,'#6b4226')).join(''),{hat:{dy:0}});
+D('tgthat','Turkey Hat',130,108,'hat',{a:'#9a6a4a'},(e,c)=>{let o=hit(130,108);[-60,-30,0,30,60].forEach((a,i)=>o+=E(65,28,12,32,['#e8613c','#f39237','#f6c445','#f39237','#e8613c'][i],0,rot(a,65,70)));
+  return o+E(65,82,40,24,c.a,'a')+E(65,90,28,12,lt(c.a,.3),'a',NO)+C(30,62,14,lt(c.a,.15),'a')+C(26,58,3,INK)+P('M16 62 L8 66 L16 69Z','#ffb400')+P('M18 66 Q12 74 16 80 Q22 74 20 66Z','#e63946')+R(22,96,86,10,5,dk(c.a,.15),'a')},{hat:{dy:0}});
+const TGITEMS=['tgturkey','tgpie','tgcider','tgcorn','tggourd','tgcandle','tgleaves','tgthank','tgwreath','tgbunt','tgcrown','tgthat'];
+
+/* eating pumpkin pie earns a sticker */
+{const e0=eat;window.eat=function(who,it){if(it&&it.t==='tgpie')star('tgpie');return e0.apply(this,arguments)}}
+
+/* ---------- the furniture catalog gets a Thanksgiving tab while the update is on ---------- */
+function tgCat(){const i=CAT.findIndex(c=>c[0]==='Thanksgiving');if(TGV()&&i<0)CAT.push(['Thanksgiving',TGITEMS.slice()]);else if(!TGV()&&i>=0){CAT.splice(i,1);if(CTAB>=CAT.length)CTAB=0}}
+{const r0=renderTray;window.renderTray=function(){tgCat();return r0.apply(this,arguments)}}
+/* …and the daily gift balloon adds a Thanksgiving surprise */
+{const c0=claimGift;window.claimGift=function(){const R=c0.apply(this,arguments);if(TGV()){const g=G.tg=G.tg||{},got=g.gf=g.gf||{},left=TGITEMS.filter(k=>!got[k]),k=pick(left.length?left:TGITEMS);got[k]=1;const e=mk(k,0,0);G.pack.push([e]);R.push(e);updPack(true);dirty()}return R}}
+
+/* ---------- autumn everywhere: leaf garlands, leaves on the ground, falling leaves ---------- */
+function tgBunt(y){let o=L(`M40 ${y} Q300 ${y+70} 560 ${y} Q800 ${y+70} 1040 ${y} Q1300 ${y+70} 1560 ${y}`,'#8a5a3c',4);let i=0;
+ for(const[x0,x1]of[[40,560],[560,1040],[1040,1560]])for(const t of[.12,.3,.5,.7,.88]){const x=(1-t)*(1-t)*x0+2*(1-t)*t*(x0+x1)/2+t*t*x1,yy=y+2*(1-t)*t*70;o+=leaf(x,yy+18,19,180+(i%2?14:-14),TGC[i%5]);i++}
+ return`<g class="np">${o}</g>`}
+function tgGround(){return`<g class="np">`+[[150,760,0],[420,850,1],[700,730,2],[980,860,3],[1230,760,4],[1480,850,0],[300,700,2],[860,800,1],[1120,690,3]].map(([x,y,k],i)=>leaf(x,y,13,i*61,TGC[k],' opacity=".9"')).join('')
+ +[[1380,880]].map(([x,y])=>E(x,y,70,16,'#e07b2a',0,' opacity=".85"')+[[-40,-8],[-14,-14],[14,-12],[40,-6],[0,-4]].map(([dx,dy],i)=>leaf(x+dx,y+dy,14,i*70,TGC[(i+2)%5])).join('')).join('')+`</g>`}
+function tgWrap(sc,extra){if(!sc)return;const d0=sc.draw;sc.draw=function(st){const o=d0.call(this,st);return TGV()?o.replace(/<\/svg>$/,extra(st)+'</svg>'):o}}
+tgWrap(SC.park,()=>tgGround()+tgBunt(118)); // also the schoolyard and Clover Farm's fields, which share this picture
+tgWrap(SC.beach,()=>tgBunt(118));tgWrap(SC.castle,()=>tgBunt(118));tgWrap(SC.duo,()=>tgBunt(118));tgWrap(SC.barn,()=>tgBunt(300));
+{const r0=roomBg;window.roomBg=function(st,sc){const o=r0(st,sc);return TGV()&&!sc.home&&!sc.nogar&&!(sc.w===2)?o.replace(/<\/svg>$/,tgBunt(118)+'</svg>'):o}} // shared rooms on land; homes are yours to decorate
+/* the maps: little pumpkins and leaf piles */
+function tgTown(){const pk=(x,y,k=1)=>`<g transform="translate(${x} ${y}) scale(${k})">`+outline(E(0,0,22,15,'#f39237')+R(-3,-19,6,8,2,'#6b8e23'),4)+L('M0 -13 L0 13 M-11 -11 Q-15 0 -11 11 M11 -11 Q15 0 11 11',dk('#f39237',.18),2,0,NO)+`</g>`;
+ const pile=(x,y)=>`<g class="np">`+E(x,y,46,11,'#e07b2a',0,' opacity=".9"')+[[-26,-6],[-8,-12],[12,-10],[28,-4]].map(([dx,dy],i)=>leaf(x+dx,y+dy,10,i*80,TGC[(i+1)%5])).join('')+`</g>`;
+ if((G.world||0)===1)return`<g class="np">`+pile(150,700)+pile(700,600)+pile(1500,560)+pk(470,450,.8)+pk(500,458,.65)+`</g>`;
+ return`<g class="np">`+pile(330,600)+pile(1030,820)+pile(1180,560)+pk(905,632)+pk(936,640,.75)+pk(250,690,.8)+`</g>`}
+/* the welcome note, the falling leaves and the catalog tab */
+{const h0=xHud;window.xHud=function(){h0();const on=TGV();$stage.classList.toggle('tgv',on);tgCat();const lv=$('#leaves');if(on&&lv&&!lv.childElementCount)lv.innerHTML=Array.from({length:16},(_,i)=>`<i style="left:${(i*97+31)%1600}px;animation-duration:${8+i%5*1.900}s;animation-delay:-${(i*1.700)%11}s">${leafSvg(i,12)}</i>`).join('');
+  if(on&&!SID&&!$('#title').classList.contains('on')){const g=G.tg=G.tg||{},y=NOW().getFullYear();if(g.y!==y){g.y=y;dirty();setTimeout(()=>toast('Happy Thanksgiving! Autumn is here — find turkeys, pumpkin pie and more in the furniture catalog at home.',6500),900)}}}}
+/* event-only friends: a turkey and a leaf pile in Sunny Park, a turkey in the farmyard */
+const TGPROPS={park:[['tgleaves',150,895],['tgturkey',1010,700]],fyard:[['tgturkey',560,880]]};
+{const so=scOpen;window.scOpen=function(id,st,o){if(st&&Array.isArray(st.ents)&&!(o&&o.mir)&&TGPROPS[id]){if(!TGV())st.ents=st.ents.filter(e=>!(e.s&&e.s.tev));else for(const[t,x,y]of TGPROPS[id])if(!st.ents.some(e=>e.t===t&&e.s&&e.s.tev))st.ents.push(mk(t,x,y,{s:{tev:1}}))}
+  return so.apply(this,arguments)}}
 
 /* =====================================================================
    PLAY TOGETHER — two players, joined by a room code. No sign-in, no chat.
