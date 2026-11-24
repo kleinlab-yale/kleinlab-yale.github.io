@@ -1,9 +1,12 @@
+import { QUICK_PARTS } from './parts.js';
+
 export const STUD = 0.55;
 export const PLATE = 0.17;
-export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: 64, minY: -9, maxY: 105 };
+export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: 150, minY: -9, maxY: 105 };
 export const REACH = 13;
 export const MAX_EDITS = 6000;
-export const WORLD_SAVE_VERSION = 1;
+export const WORLD_SAVE_VERSION = 2;
+export const MAX_PATCH = 24;
 
 export const TONES = {
   turf: '#556941', olive: '#67774b', meadow: '#758256', moss: '#3e593d',
@@ -19,21 +22,35 @@ export const TONES = {
   fern: '#476649', sage: '#728665', reed: '#a3a16d', pearl: '#ffffed',
 };
 
-export const PIECES = [
-  { name: 'Terracotta brick', w: 2, d: 2, h: 3, tone: 'vermilion' },
-  { name: 'Cedar beam', w: 4, d: 2, h: 3, tone: 'cedar' },
-  { name: 'Ivory brick', w: 2, d: 1, h: 3, tone: 'milk' },
-  { name: 'Slate roof tile', w: 3, d: 2, h: 1, tone: 'teal' },
-  { name: 'Moss plate', w: 3, d: 3, h: 1, tone: 'moss' },
-  { name: 'Blossom brick', w: 2, d: 1, h: 2, tone: 'petal' },
-  { name: 'Amber lantern', w: 1, d: 1, h: 3, tone: 'amber' },
-];
+export const FORMS = ['brick', 'round', 'flower', 'tea'];
+const brickFields = ['id', 'x', 'y', 'z', 'w', 'd', 'h', 'tone', 'studs', 'form', 'turn'];
 
-export function shapeFor(slot, rotated) {
-  const part = PIECES[slot];
-  if (!part) return null;
-  const { w, d, h, tone } = part;
-  return { w: rotated ? d : w, d: rotated ? w : d, h, tone, studs: true };
+export function sameBrick(a, b) {
+  return a === b || Boolean(a && b && brickFields.every(field => a[field] === b[field]));
+}
+
+export function validBrick(brick) {
+  if (!(brick && insideBounds(brick) && Math.max(brick.w, brick.d, brick.h) <= 8 &&
+    Object.hasOwn(TONES, brick.tone) && typeof brick.studs === 'boolean' && FORMS.includes(brick.form) &&
+    Number.isInteger(brick.turn) && brick.turn >= 0 && brick.turn <= 3)) return false;
+  if (brick.form !== 'tea') return true;
+  const quarterTurn = brick.turn % 2;
+  return brick.h === 5 && !brick.studs && brick.w === 3 - quarterTurn && brick.d === 2 + quarterTurn;
+}
+
+export function validSnapshot(value) {
+  return Boolean(value && (value.version === WORLD_SAVE_VERSION || value.version === 1) &&
+    Array.isArray(value.removed) && value.removed.length <= MAX_EDITS &&
+    Array.isArray(value.added) && value.added.length <= MAX_EDITS &&
+    (value.version === 1 || (Array.isArray(value.changed) && value.changed.length <= MAX_EDITS)));
+}
+
+function legacyBrick(change) {
+  const part = QUICK_PARTS[change?.slot];
+  if (!part || typeof change.rotated !== 'boolean' || change.kind !== 'place') return null;
+  return { id: change.id, x: change.x, y: change.y, z: change.z,
+    w: change.rotated ? part.d : part.w, d: change.rotated ? part.w : part.d, h: part.h,
+    tone: part.tone, studs: true, form: 'brick', turn: Number(change.rotated) };
 }
 
 function column(x, z) {
@@ -60,7 +77,10 @@ export class BrickWorld {
     this.starter = new Map();
     this.removed = new Set();
     this.added = new Map();
+    this.changed = new Map();
     this.nextId = 1;
+    this.originalNextId = 1;
+    this.sceneryId = null;
     this.onChange = null;
   }
 
@@ -132,86 +152,127 @@ export class BrickWorld {
     }
   }
 
-  seed(x, y, z, w, h, d, tone, studs = true) {
-    const brick = { x, y, z, w, h, d, tone, studs, id: this.nextId };
+  seed(x, y, z, w, h, d, tone, studs = true, form = 'brick', turn = 0) {
+    const brick = { x, y, z, w, h, d, tone, studs, form, turn, id: this.sceneryId ?? this.nextId };
     if (!insideBounds(brick) || this.collides(brick)) return false;
-    this.nextId++;
+    if (this.sceneryId === null) this.originalNextId = ++this.nextId;
+    else this.sceneryId--;
     this.starter.set(brick.id, brick);
     this.put(brick);
     return true;
   }
 
-  canPlace(brick, players = []) {
-    return insideBounds(brick) && this.added.size < MAX_EDITS && !this.collides(brick) &&
-      !players.some(player => overlaps(brick, player));
+  startExpansion() {
+    this.sceneryId = -1;
   }
 
-  apply(request, players = []) {
-    if (!request || typeof request !== 'object') return null;
-    if (request.kind === 'remove') {
-      const brick = this.bricks.get(request.id);
-      if (!brick || (this.starter.has(brick.id) && this.removed.size >= MAX_EDITS)) return null;
-      const change = { kind: 'remove', id: brick.id };
-      return this.accept(change) ? change : null;
-    }
-    if (request.kind !== 'place' || !Number.isInteger(request.slot) || typeof request.rotated !== 'boolean') return null;
-    const shape = shapeFor(request.slot, request.rotated);
-    if (!shape) return null;
-    const brick = { ...shape, x: request.x, y: request.y, z: request.z };
-    if (!this.canPlace(brick, players)) return null;
-    const change = { kind: 'place', id: this.nextId++, x: brick.x, y: brick.y, z: brick.z,
-      slot: request.slot, rotated: request.rotated };
-    return this.accept(change) ? change : null;
+  canPlace(bricks, players = []) {
+    return this.added.size + bricks.length <= MAX_EDITS && this.hasSpace(bricks, new Set(), players);
   }
 
-  accept(change) {
-    if (!change || !Number.isSafeInteger(change.id)) return false;
-    if (change.kind === 'remove') {
-      const brick = this.bricks.get(change.id);
-      if (!brick) return false;
-      if (this.starter.has(brick.id)) {
-        if (this.removed.size >= MAX_EDITS) return false;
-        this.removed.add(brick.id);
-      } else {
-        this.added.delete(brick.id);
+  hasSpace(bricks, replacing, players) {
+    const incoming = [];
+    for (const brick of bricks) {
+      if (!validBrick(brick) || incoming.some(other => overlaps(brick, other))) return false;
+      incoming.push(brick);
+      const current = this.bricks.get(brick.id);
+      const moved = !current || ['x', 'y', 'z', 'w', 'h', 'd'].some(key => current[key] !== brick[key]);
+      if (moved && players.some(player => overlaps(brick, player))) return false;
+      for (const other of this.query(brick.x, brick.x + brick.w, brick.z, brick.z + brick.d)) {
+        if (!replacing.has(other.id) && overlaps(brick, other)) return false;
       }
-      this.take(brick);
-      this.onChange?.(change, brick);
-      return true;
     }
-    if (change.kind !== 'place' || change.id > 1e9 || !Number.isInteger(change.slot) || typeof change.rotated !== 'boolean' ||
-        change.id <= this.starter.size || this.bricks.has(change.id)) return false;
-    const shape = shapeFor(change.slot, change.rotated);
-    if (!shape) return false;
-    const brick = { ...shape, id: change.id, x: change.x, y: change.y, z: change.z };
-    if (!this.canPlace(brick)) return false;
-    this.nextId = Math.max(this.nextId, change.id + 1);
-    this.put(brick);
-    this.added.set(brick.id, { kind: 'place', id: brick.id, x: brick.x, y: brick.y, z: brick.z,
-      slot: change.slot, rotated: change.rotated });
-    this.onChange?.(change, brick);
     return true;
   }
 
+  patch(edits, players = [], limit = MAX_PATCH) {
+    if (!Array.isArray(edits) || edits.length === 0 || edits.length > limit) return false;
+    const changing = new Set();
+    const incoming = [];
+    let additions = this.added.size;
+    let removals = this.removed.size;
+    let changes = this.changed.size;
+    for (const edit of edits) {
+      if (!edit || !Number.isSafeInteger(edit.id) || changing.has(edit.id)) return false;
+      const { id, brick } = edit;
+      const starter = this.starter.get(id);
+      const current = this.bricks.get(id);
+      if (!starter && (id < this.originalNextId || id > 1e9)) return false;
+      if (brick === null && !current) return false;
+      if (brick !== null && (!validBrick(brick) || brick.id !== id)) return false;
+      changing.add(id);
+      if (brick) incoming.push(brick);
+      if (starter) {
+        removals += Number(brick === null) - Number(!current);
+        changes += Number(Boolean(brick && !sameBrick(brick, starter))) - Number(this.changed.has(id));
+      } else additions += Number(Boolean(brick)) - Number(Boolean(current));
+    }
+    if (Math.max(additions, removals, changes) > MAX_EDITS || !this.hasSpace(incoming, changing, players)) return false;
+
+    const previous = edits.map(({ id }) => ({ id, brick: this.bricks.get(id) ?? null }));
+    for (const { brick } of previous) if (brick) this.take(brick);
+    for (const { id, brick } of edits) this.storeBrick(id, brick);
+    this.onChange?.(edits, previous);
+    return true;
+  }
+
+  storeBrick(id, brick) {
+    const original = this.starter.get(id);
+    if (original) {
+      if (brick === null) this.removed.add(id);
+      else this.removed.delete(id);
+      if (brick && !sameBrick(brick, original)) this.changed.set(id, brick);
+      else this.changed.delete(id);
+    } else if (brick) {
+      this.added.set(id, brick);
+      this.nextId = Math.max(this.nextId, id + 1);
+    } else this.added.delete(id);
+    if (brick) this.put(brick);
+  }
+
   snapshot() {
-    return { version: WORLD_SAVE_VERSION, removed: Array.from(this.removed), added: Array.from(this.added.values()) };
+    return { version: WORLD_SAVE_VERSION, removed: Array.from(this.removed), nextId: this.nextId,
+      added: Array.from(this.added.values()), changed: Array.from(this.changed.values()) };
   }
 
   restore(snapshot) {
     const onChange = this.onChange;
     this.onChange = null;
-    for (const id of this.added.keys()) this.take(this.bricks.get(id));
+    for (const brick of this.added.values()) this.take(brick);
+    for (const brick of this.changed.values()) {
+      this.take(brick);
+      this.put(this.starter.get(brick.id));
+    }
     for (const id of this.removed) this.put(this.starter.get(id));
     this.added.clear();
+    this.changed.clear();
     this.removed.clear();
-    this.nextId = this.starter.size + 1;
-    if (snapshot?.version === WORLD_SAVE_VERSION && Array.isArray(snapshot.removed) && Array.isArray(snapshot.added)) {
-      for (const id of snapshot.removed.slice(0, MAX_EDITS)) {
-        if (this.starter.has(id)) this.accept({ kind: 'remove', id });
+    this.nextId = this.originalNextId;
+    if (validSnapshot(snapshot)) {
+      for (const id of snapshot.removed) {
+        const brick = this.bricks.get(id);
+        if (!brick || !this.starter.has(id)) continue;
+        this.take(brick);
+        this.removed.add(id);
       }
-      for (const change of snapshot.added.slice(0, MAX_EDITS)) {
-        if (change?.kind === 'place') this.accept(change);
+      if (snapshot.version === WORLD_SAVE_VERSION && snapshot.changed.length) {
+        const changed = snapshot.changed.filter(brick => validBrick(brick) && this.starter.has(brick.id));
+        if (changed.length) this.patch(changed.map(brick => ({ id: brick.id, brick })), [], MAX_EDITS);
       }
+      for (const saved of snapshot.added) {
+        const brick = snapshot.version === 1 ? legacyBrick(saved) : saved;
+        if (validBrick(brick) && brick.id >= this.originalNextId && !this.bricks.has(brick.id)) {
+          const edits = [{ id: brick.id, brick }];
+          if (snapshot.version === 1) {
+            // Give existing builds priority where the dock or kitchen overlaps an older save.
+            for (const existing of this.query(brick.x, brick.x + brick.w, brick.z, brick.z + brick.d)) {
+              if (existing.id < 0 && overlaps(existing, brick)) edits.push({ id: existing.id, brick: null });
+            }
+          }
+          this.patch(edits, [], MAX_EDITS);
+        }
+      }
+      if (Number.isSafeInteger(snapshot.nextId) && snapshot.nextId <= 1e9) this.nextId = Math.max(this.nextId, snapshot.nextId);
     }
     this.onChange = onChange;
     this.onChange?.(null, null);

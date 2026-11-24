@@ -4,18 +4,22 @@ import '@fontsource/instrument-serif/latin-400-italic.css';
 import './style.css';
 import { CAMERAS, DEFAULT_LOOK, readAppearance } from './appearance.js';
 import { createCustomizer } from './customize.js';
-import { adjacentBrick, PIECES, PLATE, REACH, shapeFor, STUD, TONES } from './bricks.js';
+import { adjacentBrick, PLATE, REACH, STUD, TONES } from './bricks.js';
+import { createBuildMenu, partButton, toneName } from './build-menu.js';
+import { Builder, PROTECTED_BRICK } from './editor.js';
+import { BUILD_KITS, layoutPart, matchedPart } from './parts.js';
 import { createGraphics } from './graphics.js';
 import { EYE, HEIGHT, movePlayer, RADIUS, spawnPlayer } from './player.js';
 import { createRooms, normalizeCode, validCode } from './rooms.js';
 import { createAudio } from './audio.js';
+import { createActivities } from './activities.js';
 import { district, makeValley } from './valley.js';
 
 const $ = id => document.getElementById(id);
-const GUEST_REMOVE_NOTE = 'You can remove bricks you placed during this visit.';
 const SAVE_KEY = 'brick-and-bloom:valley:1';
 const LOOK_KEY = 'brick-and-bloom:appearance:1';
 const VIEW_KEY = 'brick-and-bloom:view:1';
+const KIT_KEY = 'letsgo:build-kit:1';
 const icons = {
   brick: '<path d="M2.5 11.8 12 6.5l9.5 5.3v5.5L12 22.5l-9.5-5.2zM2.5 11.8 12 17l9.5-5.2M12 17v5.5M7 9.2V6.5l5-2.8 5 2.8v2.7M7 6.5l5 2.8 5-2.8M12 9.3V12"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15.5 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/>',
@@ -34,6 +38,12 @@ const icons = {
   plus: '<path d="M12 5v14M5 12h14"/>',
   minus: '<path d="M5 12h14"/>',
   rotate: '<path d="M3 4v5h5M3.6 9A9 9 0 1 1 4 16"/>',
+  undo: '<path d="M4 14l4-4-4-4m0 4h10a5 5 0 0 1 0 10h-3"/>',
+  paint: '<path d="m7 13 8-8 5 5-8 8-5-5Zm0 0-3 3 4 4 4-2M3 7h7"/>',
+  object: '<path d="m12 3 8 4v10l-8 4-8-4V7l8-4Zm8 4-8 4-8-4m8 4v10M8 5l8 4"/>',
+  boat: '<path d="M4 14h16l-3 5H7l-3-5ZM12 4v10m0-9 5 6h-5"/>',
+  tea: '<path d="M5 10h11v3a5.5 5.5 0 0 1-11 0v-3Zm11 1h2a2 2 0 0 1 0 4h-2M4 20h13M9 3v3m3-4v4"/>',
+  paw: '<path d="M7.5 18.5c-1.5-2.5 2.4-6.5 4.5-6.5s6 4 4.5 6.5c-1 1.7-3.4.3-4.5.3s-3.5 1.4-4.5-.3Z"/><ellipse cx="5.5" cy="10" rx="1.65" ry="2.2"/><ellipse cx="10" cy="6.6" rx="1.65" ry="2.2"/><ellipse cx="14" cy="6.6" rx="1.65" ry="2.2"/><ellipse cx="18.5" cy="10" rx="1.65" ry="2.2"/>',
   x: '<path d="m6 6 12 12M18 6 6 18"/>',
   copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"/>',
   message: '<path d="M20.5 11.5a8.2 8.2 0 0 1-8.5 8.1c-1.4 0-2.7-.3-3.9-.9l-4.1 1.1 1-3.7a7.8 7.8 0 0 1-1.5-4.6 8.5 8.5 0 0 1 17 0Z"/><path d="M8 11.5h8"/>',
@@ -51,54 +61,6 @@ function remember(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; }
 }
 
-function partIcon(part) {
-  const image = document.createElement('canvas');
-  image.width = 112;
-  image.height = 82;
-  image.setAttribute('aria-hidden', 'true');
-  const painter = image.getContext('2d');
-  const width = part.w;
-  const depth = part.d;
-  const height = part.h * 0.33;
-  const scale = Math.min(20, 86 / (width + depth));
-  const iso = (x, y, z) => [56 + (x - width / 2 - z + depth / 2) * scale,
-    41 + ((x - width / 2 + z - depth / 2) * 0.52 - y + height * 0.4) * scale];
-  const base = TONES[part.tone];
-  const shade = factor => {
-    const components = base.slice(1).match(/.{2}/g).map(value => parseInt(value, 16));
-    return `rgb(${components.map(value => Math.min(255, Math.round(value * factor))).join(' ')})`;
-  };
-  function polygon(points, color) {
-    painter.beginPath();
-    for (const [index, point] of points.entries()) {
-      const [x, y] = iso(...point);
-      if (!index) painter.moveTo(x, y);
-      else painter.lineTo(x, y);
-    }
-    painter.closePath();
-    painter.fillStyle = color;
-    painter.fill();
-    painter.strokeStyle = '#201c1a60';
-    painter.lineWidth = 1;
-    painter.stroke();
-  }
-  polygon([[0,0,depth], [width,0,depth], [width,height,depth], [0,height,depth]], shade(0.81));
-  polygon([[width,0,depth], [width,0,0], [width,height,0], [width,height,depth]], shade(0.57));
-  polygon([[0,height,0], [width,height,0], [width,height,depth], [0,height,depth]], shade(1.24));
-  for (let z = 0; z < depth; z++) {
-    for (let x = 0; x < width; x++) {
-      const [a, b] = iso(x + 0.5, height, z + 0.5);
-      for (const [offset, color] of [[0, shade(0.79)], [-scale * 0.16, shade(1.53)]]) {
-        painter.beginPath();
-        painter.ellipse(a, b + offset, scale * 0.34, scale * 0.17, 0, 0, Math.PI * 2);
-        painter.fillStyle = color;
-        painter.fill();
-      }
-    }
-  }
-  return image;
-}
-
 function boot() {
   const game = $('game');
   const canvas = $('world');
@@ -109,6 +71,8 @@ function boot() {
   let saveTimer = 0;
   let saveCache = stored(SAVE_KEY);
   world.restore(saveCache);
+  const localEditor = new Builder(world);
+  localEditor.restoreHistory(saveCache);
   const graphics = createGraphics(canvas, world);
   let appearance = readAppearance(stored(LOOK_KEY)) ?? { ...DEFAULT_LOOK };
   const storedView = stored(VIEW_KEY);
@@ -122,8 +86,12 @@ function boot() {
   let remote = null;
   let guestWorld = false;
   let screen = 'title';
-  let selected = 0;
-  let rotated = false;
+  const savedKit = stored(KIT_KEY);
+  const initialKit = BUILD_KITS.find(kit => kit.key === savedKit) ?? BUILD_KITS[0];
+  let quickParts = initialKit.parts.slice(0, 7);
+  let selected = quickParts[0];
+  let turn = 0;
+  let color = null;
   let tool = 'explore';
   let jump = false;
   let drag = null;
@@ -133,11 +101,11 @@ function boot() {
   let lastPose = 0;
   let lastStep = 0;
   let lastDistrict = '';
-  let lastBuild = 0;
   let roomPanelFromPause = false;
   let controlsFromPause = false;
   let appearanceFromPause = false;
-  const dialogs = { pause: $('pause-dialog'), room: $('room-dialog'), controls: $('controls-dialog'), appearance: $('appearance-dialog') };
+  const dialogs = { pause: $('pause-dialog'), room: $('room-dialog'), controls: $('controls-dialog'), appearance: $('appearance-dialog'),
+    parts: $('parts-dialog'), voyage: $('voyage-dialog') };
 
   function toast(message) {
     clearTimeout(toastTimer);
@@ -150,13 +118,14 @@ function boot() {
     if (guestWorld) return;
     clearTimeout(saveTimer);
     saveTimer = 0;
-    saveCache = world.snapshot();
+    saveCache = { ...world.snapshot(), undo: localEditor.history };
     if (!remember(SAVE_KEY, saveCache)) toast('Browser storage is unavailable. Keep this tab open to keep your changes.');
   }
 
-  world.onChange = (change, brick) => {
-    graphics.dirty(brick);
-    if (!guestWorld && change) {
+  world.onChange = (edits, previous) => {
+    if (!edits) graphics.dirty(null);
+    else for (const { brick } of [...edits, ...previous]) if (brick) graphics.dirty(brick);
+    if (!guestWorld && edits) {
       clearTimeout(saveTimer);
       saveTimer = setTimeout(save, 250);
     }
@@ -177,6 +146,10 @@ function boot() {
     $('camera-controls').hidden = next === 'title';
     $('district').hidden = next === 'title';
     $('room-shortcut').hidden = next === 'title';
+    if (next === 'title') {
+      graphics.puppy('local', null);
+      graphics.puppy('friend', null);
+    }
     if (next !== 'play') {
       keys.clear();
       padPointers.clear();
@@ -233,6 +206,7 @@ function boot() {
       return;
     }
     dialogs[name].close();
+    if (name === 'parts' || name === 'voyage') enter();
     if (name === 'controls' && controlsFromPause) dialogs.pause.showModal();
     if (name === 'appearance' && screen === 'pause') {
       if (appearanceFromPause) dialogs.pause.showModal();
@@ -262,7 +236,7 @@ function boot() {
     $('leave-room').textContent = phase === 'opening' || (phase === 'syncing' && role === 'guest') ? 'Cancel' : 'Leave room';
     const statuses = {
       opening: role === 'host' ? 'Opening your room…' : 'Finding the host…',
-      waiting: 'Keep this tab open. Your friend can build and remove bricks they place during their visit.',
+      waiting: 'Keep this tab open. Guests can build and edit their own bricks during their visit.',
       syncing: 'Connecting to your friend…',
       connected: '2 players connected.',
     };
@@ -297,6 +271,7 @@ function boot() {
     },
     status: state => {
       refreshRoom(state);
+      refreshBuildStatus();
       if (state.phase === 'connected') {
         rooms.appearance(appearance);
         if (state.role === 'guest') enter();
@@ -308,23 +283,25 @@ function boot() {
     pose: state => {
       remote = state;
       graphics.traveler.state(screen === 'title' ? null : state);
+      graphics.vessel('guest', screen !== 'title' && state?.boat ? { ...state.boat, x: state.x, z: state.z } : null);
+      graphics.puppy('friend', screen === 'title' ? null : state?.puppy);
     },
     appearance: look => graphics.traveler.appearance(look),
-    request: request => {
-      if (!remote || !request) return null;
-      const brick = request.kind === 'remove' ? world.bricks.get(request.id) :
-        { ...shapeFor(request.slot, request.rotated), x: request.x, y: request.y, z: request.z };
-      if (!brick || !reachFrom(remote, brick, 1.15)) return null;
-      const change = world.apply(request, localBoxes());
-      if (change) audio.tap(change.kind);
-      return change;
+    visitor: () => new Builder(world, true),
+    request: (request, visitor) => {
+      if (!remote) return { error: 'blocked' };
+      const result = visitor.perform(request, localBoxes(), brick => reachFrom(remote, brick, 1.15));
+      if (result.edits) audio.tap(request.kind === 'remove' ? 'remove' : 'place');
+      return result;
     },
-    change: change => {
-      if (!world.accept(change)) return false;
-      audio.tap(change.kind);
+    change: edits => {
+      if (!world.patch(edits)) return false;
+      audio.tap(edits.every(edit => !edit.brick) ? 'remove' : 'place');
       return true;
     },
-    blocked: reason => toast(reason === 'protected' ? GUEST_REMOVE_NOTE : 'That spot is blocked or out of reach.'),
+    blocked: error => toast(buildMessage(error)),
+    buildStatus: refreshBuildStatus,
+    tea: action => activities.receiveTea(action, remote),
   });
 
   function leaveRoom() {
@@ -337,24 +314,54 @@ function boot() {
     rooms.leave();
   }
 
+  function refreshBuildStatus() {
+    $('undo-build').disabled = guestWorld ? !rooms.canGuestUndo : !localEditor.canUndo;
+  }
+
+  function buildMessage(error) {
+    const messages = {
+      protected: PROTECTED_BRICK,
+      blocked: 'That spot is blocked or out of reach.',
+      square: 'This piece has the same shape after a quarter turn.',
+      color: 'That brick already uses this color.',
+      nothing: 'There are no more edits to undo.',
+      changed: 'Another edit changed that brick. Try Undo again for an earlier edit.',
+      restore: 'Clear the spot before restoring that brick.',
+    };
+    return messages[error] ?? messages.blocked;
+  }
+
   function setTool(kind) {
     tool = kind;
     game.dataset.tool = kind;
-    for (const action of ['explore', 'place', 'remove']) {
+    for (const action of ['explore', 'place', 'remove', 'rotate', 'paint']) {
       $(`${action}-tool`).setAttribute('aria-pressed', String(kind === action));
     }
     for (const [index, button] of Array.from($('inventory').children).entries()) {
-      button.setAttribute('aria-pressed', String(kind === 'place' && index === selected));
+      button.setAttribute('aria-pressed', String(kind === 'place' && quickParts[index] === selected));
     }
-    $('rotate-tool').disabled = kind !== 'place';
-    $('selected-piece').hidden = kind !== 'place';
+    $('selected-piece').hidden = kind !== 'place' && kind !== 'paint';
     const verb = coarse ? 'Tap' : 'Click';
+    const guestHint = guestWorld ? ' you placed this visit' : '';
     const hints = {
       explore: coarse ? 'Joystick to move · Drag to orbit' : 'Arrow keys to move · Drag to orbit',
-      place: `${verb} a surface to place this brick.`,
-      remove: guestWorld ? `${verb} a brick you placed during this visit.` : `${verb} the brick you want to remove.`,
+      place: `${verb} a surface to place this piece.`,
+      remove: `${verb} a brick${guestHint} to remove it.`,
+      rotate: `${verb} a brick${guestHint} to turn it.`,
+      paint: `${verb} a brick${guestHint} to paint it.`,
+      pick: `${verb} a brick to match its shape and color.`,
     };
     $('build-guide').textContent = hints[kind];
+    refreshBuildStatus();
+  }
+
+  function showSelected() {
+    const shape = layoutPart(selected, turn, color);
+    const output = $('selected-piece');
+    output.textContent = selected.name;
+    const detail = document.createElement('small');
+    detail.textContent = `${shape.w} × ${shape.d} · ${toneName(color ?? selected.tone)}`;
+    output.append(detail);
   }
 
   const customizer = createCustomizer(dialogs.appearance, appearance, graphics.preview, look => {
@@ -387,89 +394,123 @@ function boot() {
   }
   setView(view, false);
 
-  function select(slot, kind = 'place') {
-    selected = (slot + PIECES.length) % PIECES.length;
-    rotated = false;
-    const part = PIECES[selected];
-    $('selected-piece').innerHTML = `${part.name}<small>${part.w} × ${part.d}</small>`;
+  function refreshTray() {
+    const tray = $('inventory');
+    tray.replaceChildren();
+    for (const [index, part] of quickParts.entries()) {
+      const button = partButton(part, index + 1, tool === 'place' && selected === part, selected === part ? turn : 0, color);
+      button.onclick = () => { select(part); canvas.focus({ preventScroll: true }); };
+      tray.append(button);
+    }
+  }
+
+  function select(part, kind = 'place') {
+    selected = part;
+    turn = 0;
+    showSelected();
+    refreshTray();
     setTool(kind);
   }
 
-  for (const [index, part] of PIECES.entries()) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'piece';
-    button.title = `${part.name} (${index + 1})`;
-    button.setAttribute('aria-label', part.name);
-    const number = document.createElement('span');
-    number.className = 'slot-number';
-    number.textContent = String(index + 1);
-    number.setAttribute('aria-hidden', 'true');
-    button.append(number, partIcon(part));
-    button.addEventListener('click', () => { select(index); canvas.focus({ preventScroll: true }); });
-    $('inventory').append(button);
+  function turnNext() {
+    turn = (turn + 1) % 4;
+    showSelected();
+    refreshTray();
+    setTool('place');
   }
-  select(0, 'explore');
 
-  function rotate() {
-    if (tool !== 'place') return;
-    rotated = !rotated;
-    const part = PIECES[selected];
-    const shape = shapeFor(selected, rotated);
-    $('selected-piece').innerHTML = `${part.name}<small>${shape.w} × ${shape.d}</small>`;
+  function showParts(mode) {
+    if (screen !== 'play') return;
+    setScreen('pause');
+    dialogs.parts.showModal();
+    buildMenu.open(mode, color);
   }
+
+  const buildMenu = createBuildMenu(dialogs.parts, initialKit, {
+    kit: kit => {
+      color = null;
+      quickParts = kit.parts.slice(0, 7);
+      remember(KIT_KEY, kit.key);
+      select(quickParts[0]);
+    },
+    part: part => { select(part); enter(); },
+    color: tone => { color = tone; showSelected(); refreshTray(); },
+    paint: () => { setTool('paint'); enter(); },
+    pick: () => { setTool('pick'); enter(); },
+    turn: () => { turnNext(); enter(); },
+    workshop: () => { enter(); activities.openVoyage(); },
+  });
+  select(quickParts[0], 'explore');
 
   function pick(point) {
     return graphics.pick(point, REACH + (CAMERAS[view].distance ?? 0) + 4);
   }
 
-  function canRemove(id) {
-    return !guestWorld || rooms.canGuestRemove(id);
+  function canEdit(id) {
+    return !guestWorld || rooms.canGuestEdit(id);
+  }
+
+  function placement(hit) {
+    const layout = layoutPart(selected, turn, color);
+    const anchor = adjacentBrick(hit, layout);
+    const blocks = layout.blocks.map(block => ({ ...block, x: anchor.x + block.x, y: anchor.y + block.y, z: anchor.z + block.z }));
+    return { ...anchor, blocks };
+  }
+
+  function runEdit(request) {
+    if (activities.sailing) return;
+    if (guestWorld) {
+      if (rooms.state.phase !== 'connected') {
+        toast('Rejoin the host to keep building.');
+        return;
+      }
+      sendPose();
+      rooms.request(request);
+      return;
+    }
+    const result = localEditor.perform(request, localBoxes(), brick => reachFrom(player, brick));
+    if (result.edits) {
+      rooms.broadcast(result.edits);
+      audio.tap(request.kind === 'remove' ? 'remove' : 'place');
+    } else {
+      if (result.error === 'changed') save();
+      toast(buildMessage(result.error));
+    }
+    refreshBuildStatus();
   }
 
   function edit(kind, point) {
-    if (screen !== 'play' || performance.now() - lastBuild < 85) return;
-    if (guestWorld && rooms.state.phase !== 'connected') {
-      toast('Rejoin the host to keep building.');
-      return;
-    }
+    if (screen !== 'play' || activities.sailing) return;
     const hit = pick(point);
     if (!hit || !reachFrom(player, hit.brick)) {
       toast(hit ? 'Move closer to reach that brick.' : 'Choose a nearby brick or surface.');
       return;
     }
-    lastBuild = performance.now();
-    flashUntil = lastBuild + 450;
-    let request;
-    if (kind === 'place') {
-      const brick = adjacentBrick(hit, shapeFor(selected, rotated));
-      if (!reachFrom(player, brick) || !world.canPlace(brick, localBoxes())) {
-        toast('Choose an open spot for this piece.');
-        return;
-      }
-      request = { kind, x: brick.x, y: brick.y, z: brick.z, slot: selected, rotated };
-    } else {
-      if (!canRemove(hit.brick.id)) {
-        toast(GUEST_REMOVE_NOTE);
-        return;
-      }
-      request = { kind, id: hit.brick.id };
-    }
-    if (guestWorld) {
-      sendPose();
-      rooms.request(request);
+    flashUntil = performance.now() + 450;
+    if (kind === 'pick') {
+      color = null;
+      select(matchedPart(hit.brick));
       return;
     }
-    const change = world.apply(request, localBoxes());
-    if (change) {
-      rooms.broadcast(change);
-      audio.tap(kind);
-    } else {
-      toast('This world has reached its edit limit.');
+    if (kind === 'place') {
+      runEdit({ kind, bricks: placement(hit).blocks });
+      return;
     }
+    if (!canEdit(hit.brick.id)) {
+      toast(PROTECTED_BRICK);
+      return;
+    }
+    runEdit({ kind, id: hit.brick.id, tone: color ?? selected.tone });
   }
 
+  const activities = createActivities({ world, graphics, getPlayer: () => player,
+    openDialog: () => { setScreen('pause'); dialogs.voyage.showModal(); }, resume: enter, toast, sound: audio.tap,
+    read: stored, save: remember, sendTea: action => { sendPose(); rooms.tea(action); },
+    turnTo: yaw => { orbit.yaw = yaw; orbit.pitch = -0.24; },
+  });
+
   function resetPlayer() {
+    activities.reset();
     player = spawnPlayer(world, guestWorld);
     orbit.yaw = player.yaw;
     orbit.pitch = player.pitch;
@@ -478,8 +519,14 @@ function boot() {
   const angle = value => Math.atan2(Math.sin(value), Math.cos(value));
   const moveKeys = new Set(['ShiftLeft', 'ShiftRight', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
   window.addEventListener('keydown', event => {
-    if (screen !== 'play' || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (screen !== 'play' || event.altKey) return;
     const { code } = event;
+    if (code === 'KeyZ' && !event.repeat && !event.shiftKey) {
+      event.preventDefault();
+      runEdit({ kind: 'undo' });
+      return;
+    }
+    if (event.ctrlKey || event.metaKey) return;
     if (moveKeys.has(code)) {
       keys.add(code);
       event.preventDefault();
@@ -487,11 +534,13 @@ function boot() {
       jump = true;
       event.preventDefault();
     } else if (code === 'KeyR' && !event.repeat) {
-      rotate();
+      if (tool === 'place') turnNext();
+      else setTool('rotate');
     } else if (code === 'KeyV' && !event.repeat) {
       setView(view + 1);
     } else if (/^Digit[1-7]$/.test(code)) {
-      select(Number(code.at(-1)) - 1);
+      const part = quickParts[Number(code.at(-1)) - 1];
+      if (part) select(part);
     } else if (code === 'Escape') {
       showPause();
     }
@@ -502,7 +551,8 @@ function boot() {
   canvas.addEventListener('wheel', event => {
     if (screen !== 'play' || event.deltaY === 0) return;
     event.preventDefault();
-    select(selected + Math.sign(event.deltaY));
+    const index = quickParts.indexOf(selected);
+    select(quickParts[(Math.max(index, 0) + Math.sign(event.deltaY) + quickParts.length) % quickParts.length]);
   }, { passive: false });
   canvas.addEventListener('pointerdown', event => {
     if (screen !== 'play' || (event.button !== 0 && event.button !== 2) || drag) return;
@@ -596,7 +646,11 @@ function boot() {
   $('explore-tool').onclick = () => setTool('explore');
   $('place-tool').onclick = () => setTool('place');
   $('remove-tool').onclick = () => setTool('remove');
-  $('rotate-tool').onclick = rotate;
+  $('rotate-tool').onclick = () => setTool('rotate');
+  $('paint-tool').onclick = () => { if (color === null) showParts('colors'); else setTool('paint'); };
+  $('undo-build').onclick = () => runEdit({ kind: 'undo' });
+  $('open-parts').onclick = () => showParts('all');
+  $('open-objects').onclick = () => showParts('objects');
   $('jump-button').onclick = () => { jump = true; };
 
   $('solo-button').onclick = () => { if (rooms.state.role || guestWorld) leaveRoom(); enter(); };
@@ -701,7 +755,7 @@ function boot() {
 
   function sendPose() {
     rooms.pose({ x: player.x, y: player.y, z: player.z, yaw: player.yaw,
-      moving: player.moving, sprinting: player.sprinting, grounded: player.grounded });
+      moving: player.moving, sprinting: player.sprinting, grounded: player.grounded, boat: activities.pose, puppy: activities.companion });
   }
 
   let previous = performance.now();
@@ -722,12 +776,15 @@ function boot() {
           sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'),
         };
         const { x, z } = player;
-        if (movePlayer(player, world, input, dt, orbit.yaw)) resetPlayer();
-        else if (!CAMERAS[view].distance) player.yaw = orbit.yaw;
-        else if (player.moving) {
-          const heading = Math.atan2(x - player.x, z - player.z);
-          player.yaw = angle(player.yaw + angle(heading - player.yaw) * (1 - Math.exp(-dt * 18)));
+        if (!activities.move(input, orbit.yaw, dt)) {
+          if (movePlayer(player, world, input, dt, orbit.yaw)) resetPlayer();
+          else if (!CAMERAS[view].distance) player.yaw = orbit.yaw;
+          else if (player.moving) {
+            const heading = Math.atan2(x - player.x, z - player.z);
+            player.yaw = angle(player.yaw + angle(heading - player.yaw) * (1 - Math.exp(-dt * 18)));
+          }
         }
+        activities.tick(now, orbit.yaw, dt);
         jump = false;
         if (player.moving && player.grounded && now - lastStep > (player.sprinting ? 260 : 390)) {
           audio.tap('step');
@@ -739,10 +796,11 @@ function boot() {
       const bob = player.moving && player.grounded && !reduceMotion ? Math.sin(player.bob * 2) * 0.026 : 0;
       graphics.playerView(player, CAMERAS[view], orbit, bob, dt);
       if (aimPoint?.touch && now >= flashUntil) aimPoint = null;
-      const hit = screen === 'play' && tool !== 'explore' && aimPoint ? pick(aimPoint) : null;
-      const target = hit && (tool !== 'remove' || canRemove(hit.brick.id)) && reachFrom(player, hit.brick) ? hit : null;
-      const brick = target && tool === 'place' && !aimPoint.touch ? adjacentBrick(target, shapeFor(selected, rotated)) : null;
-      graphics.aim(target, brick, Boolean(brick && reachFrom(player, brick) && world.canPlace(brick, localBoxes())), tool);
+      const hit = screen === 'play' && !activities.sailing && tool !== 'explore' && aimPoint ? pick(aimPoint) : null;
+      const editable = hit && (['place', 'pick'].includes(tool) || canEdit(hit.brick.id));
+      const target = hit && editable && reachFrom(player, hit.brick) ? hit : null;
+      const brick = target && tool === 'place' && !aimPoint.touch ? placement(target) : null;
+      graphics.aim(target, brick, Boolean(brick && brick.blocks.every(block => reachFrom(player, block)) && world.canPlace(brick.blocks, localBoxes())), tool);
     }
     if (rooms.state.phase === 'connected' && now - lastPose >= 66) {
       lastPose = now;

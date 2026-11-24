@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import { BOUNDS, PLATE, STUD, TONES } from './bricks.js';
+import { BOUNDS, MAX_PATCH, PLATE, STUD, TONES } from './bricks.js';
 import { dressScene } from './landscape.js';
 import { noise } from './valley.js';
 import { EYE } from './player.js';
 import { appearancePreview, createTraveler } from './traveler.js';
+import { createWorldObjects } from './world-objects.js';
 
 const CHUNK = 18;
 const GAP = 0.018;
@@ -165,6 +166,7 @@ function brickMeshes(scene, world, bodyGeometry, lowPower) {
     new THREE.Vector2(0.137, 0.031), new THREE.Vector2(0, 0.031),
   ], lowPower ? 11 : 16);
   const flowerGeometry = blossomGeometry();
+  const pillarGeometry = new THREE.CylinderGeometry(0.48, 0.50, 1, 18);
   const group = new THREE.Group();
   scene.add(group);
   const meshByChunk = new Map();
@@ -196,21 +198,22 @@ function brickMeshes(scene, world, bodyGeometry, lowPower) {
       meshByChunk.delete(key);
     }
     const solids = [];
+    const pillars = [];
     const studs = [];
     const flowers = [];
     const glowing = [];
     for (const brick of world.query(x0, x0 + CHUNK, z0, z0 + CHUNK)) {
-      if (brick.x < x0 || brick.z < z0) continue;
+      if (brick.x < x0 || brick.z < z0 || brick.form === 'tea') continue;
       const visible = exposedFaces(world, brick, (x, z, y) => {
         studs.push({ x, z, y, brick });
-        if (bloom.has(brick.tone) && noise(x, y + 31, z) > (y < 8 ? 0.45 : 0.935)) flowers.push({ x, z, y, brick });
+        if (brick.form === 'flower' || (bloom.has(brick.tone) && noise(x, y + 31, z) > (y < 8 ? 0.45 : 0.935))) flowers.push({ x, z, y, brick });
       });
-      if (visible) (lights.has(brick.tone) ? glowing : solids).push(brick);
+      if (visible) (brick.form === 'round' ? pillars : lights.has(brick.tone) ? glowing : solids).push(brick);
     }
     const meshes = [];
-    for (const [bricks, material] of [[solids, bodyMaterial], [glowing, lanternMaterial]]) {
+    for (const [bricks, material, geometry] of [[solids, bodyMaterial, bodyGeometry], [glowing, lanternMaterial, bodyGeometry], [pillars, bodyMaterial, pillarGeometry]]) {
       if (!bricks.length) continue;
-      const mesh = batch(bodyGeometry, material, bricks.length, material === bodyMaterial);
+      const mesh = batch(geometry, material, bricks.length, material === bodyMaterial);
       for (const [index, brick] of bricks.entries()) {
         dimensions(object, brick);
         mesh.setMatrixAt(index, object.matrix);
@@ -226,7 +229,7 @@ function brickMeshes(scene, world, bodyGeometry, lowPower) {
       for (const [index, { x, y, z, brick }] of flowers.entries()) {
         const seed = noise(x, y, z);
         object.position.set((x + 0.5) * STUD, y * PLATE + STUD_HEIGHT - 0.004, (z + 0.5) * STUD);
-        object.rotation.set(0, seed * 6.28, 0);
+        object.rotation.set(0, seed * 6.28 + (brick.form === 'flower' ? brick.turn * Math.PI / 2 : 0), 0);
         object.scale.setScalar(0.82 + seed * 0.42);
         object.updateMatrix();
         mesh.setMatrixAt(index, object.matrix);
@@ -276,43 +279,54 @@ function indicators(scene, body, studGeometry) {
     new THREE.LineBasicMaterial({ color: '#ffdfc3', transparent: true, opacity: 0.78 }));
   const previewMaterial = new THREE.MeshBasicMaterial({ color: '#bcebd6', transparent: true, opacity: 0.2, depthWrite: false });
   const preview = new THREE.Group();
-  const previewBox = new THREE.Mesh(body, previewMaterial);
-  const outline = new THREE.LineSegments(target.geometry, new THREE.LineBasicMaterial({ color: '#bcebd6', transparent: true, opacity: 0.73 }));
-  const studs = new THREE.InstancedMesh(studGeometry, previewMaterial, 16);
+  const outlineMaterial = new THREE.LineBasicMaterial({ color: '#bcebd6', transparent: true, opacity: 0.73 });
+  const shapes = Array.from({ length: MAX_PATCH }, () => {
+    const box = new THREE.Mesh(body, previewMaterial);
+    const outline = new THREE.LineSegments(target.geometry, outlineMaterial);
+    preview.add(box, outline);
+    return { box, outline };
+  });
+  const studs = new THREE.InstancedMesh(studGeometry, previewMaterial, MAX_PATCH * 64);
   studs.frustumCulled = false;
-  preview.add(previewBox, outline, studs);
+  preview.add(studs);
   preview.visible = false;
   target.visible = false;
   scene.add(target, preview);
   const matrix = new THREE.Matrix4();
-  const lastTarget = { id: null };
+  let lastTarget = null;
   let lastPlacement = '';
-  return (hit, brick, allowed, mode) => {
+  return (hit, placement, allowed, mode) => {
     target.visible = Boolean(hit);
-    preview.visible = Boolean(brick);
+    preview.visible = Boolean(placement);
     target.material.color.set(mode === 'remove' ? '#ffb9a5' : '#ffdfc3');
-    if (hit && lastTarget.id !== hit.brick.id) {
+    if (hit && lastTarget !== hit.brick) {
       dimensions(target, hit.brick, -0.014);
-      lastTarget.id = hit.brick.id;
+      lastTarget = hit.brick;
     }
-    if (!brick) return;
-    const key = `${brick.x},${brick.y},${brick.z},${brick.w},${brick.h},${brick.d},${allowed}`;
+    if (!placement) return;
+    const key = placement.blocks.map(b => `${b.x},${b.y},${b.z},${b.w},${b.d},${b.h},${b.studs}`).join('/') + allowed;
     if (lastPlacement === key) return;
     lastPlacement = key;
-    dimensions(previewBox, brick);
-    dimensions(outline, brick, -0.009);
-    studs.count = brick.w * brick.d;
     let i = 0;
-    for (let z = 0; z < brick.d; z++) {
-      for (let x = 0; x < brick.w; x++) {
-        matrix.makeTranslation((brick.x + x + 0.5) * STUD, (brick.y + brick.h) * PLATE + STUD_HEIGHT * 0.4, (brick.z + z + 0.5) * STUD);
-        studs.setMatrixAt(i++, matrix);
+    for (const [index, { box, outline }] of shapes.entries()) {
+      const brick = placement.blocks[index];
+      box.visible = outline.visible = Boolean(brick);
+      if (!brick) continue;
+      dimensions(box, brick);
+      dimensions(outline, brick, -0.009);
+      if (!brick.studs) continue;
+      for (let z = 0; z < brick.d; z++) {
+        for (let x = 0; x < brick.w; x++) {
+          matrix.makeTranslation((brick.x + x + 0.5) * STUD, (brick.y + brick.h) * PLATE + STUD_HEIGHT * 0.4, (brick.z + z + 0.5) * STUD);
+          studs.setMatrixAt(i++, matrix);
+        }
       }
     }
+    studs.count = i;
     studs.instanceMatrix.needsUpdate = true;
     previewMaterial.color.set(allowed ? '#bcebd6' : '#f39d8a');
     previewMaterial.opacity = allowed ? 0.23 : 0.14;
-    outline.material.color.copy(previewMaterial.color);
+    outlineMaterial.color.copy(previewMaterial.color);
   };
 }
 
@@ -331,6 +345,7 @@ export function createGraphics(canvas, world) {
   camera.rotation.order = 'YXZ';
   const scenery = dressScene(scene, renderer, lowPower);
   const body = chamferBox();
+  const objects = createWorldObjects(scene, body);
   const meshes = brickMeshes(scene, world, body, lowPower);
   const aim = indicators(scene, body, meshes.studGeometry);
   const traveler = createTraveler(scene, body);
@@ -363,6 +378,9 @@ export function createGraphics(canvas, world) {
     aim,
     traveler,
     local,
+    vessel: objects.vessel,
+    puppy: objects.puppy,
+    tea: objects.tea,
     preview(canvas) { return appearancePreview(canvas, body); },
     dirty(brick) { meshes.dirty(brick); },
     overview(time) {
@@ -419,6 +437,7 @@ export function createGraphics(canvas, world) {
     },
     render(time, dt) {
       if (meshes.update() || firstFrame) {
+        objects.sync(world);
         renderer.shadowMap.needsUpdate = true;
         scenery.refresh();
         firstFrame = false;
@@ -433,6 +452,7 @@ export function createGraphics(canvas, world) {
       scenery.update(reduceMotion ? 0 : time);
       traveler.animate(dt);
       local.animate(dt);
+      objects.animate(reduceMotion ? 0 : time, dt);
       renderer.render(scene, camera);
     },
   };

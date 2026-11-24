@@ -1,4 +1,4 @@
-import { PLATE, STUD } from './bricks.js';
+import { BOUNDS, PLATE, STUD } from './bricks.js';
 import { SPAWN, WATER_LEVEL } from './valley.js';
 
 export const RADIUS = 0.23;
@@ -75,5 +75,5 @@ export function movePlayer(player, world, input, dt, yaw = player.yaw) {
   player.moving = Math.hypot(player.x - startX, player.z - startZ) > 0.001;
   player.sprinting = player.moving && input.sprint;
   if (player.moving && player.grounded) player.bob += dt * (player.sprinting ? 12 : 8.5);
-  return player.y < WATER_LEVEL - 0.56 || Math.abs(player.x) > 43 || Math.abs(player.z) > 47;
+  return player.y < WATER_LEVEL - 0.56 || Math.abs(player.x) > 43 || player.z < -47 || player.z > BOUNDS.maxZ * STUD + 1;
 }

@@ -1,9 +1,10 @@
 import { Peer } from 'peerjs';
 import { readAppearance } from './appearance.js';
-import { MAX_EDITS, WORLD_SAVE_VERSION } from './bricks.js';
+import { validSnapshot, WORLD_SAVE_VERSION } from './bricks.js';
+import { validHull } from './voyage.js';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const PROTOCOL = 2;
+const PROTOCOL = 3;
 const PREFIX = `brickbloom-v${PROTOCOL}-`;
 const TIMEOUT = 24000;
 const HEARTBEAT_INTERVAL = 2400;
@@ -28,14 +29,9 @@ function makeCode() {
   return Array.from(random, byte => ALPHABET[byte % ALPHABET.length]).join('');
 }
 
-function validSnapshot(snapshot) {
-  return snapshot?.version === WORLD_SAVE_VERSION && Array.isArray(snapshot.removed) && Array.isArray(snapshot.added) &&
-    snapshot.removed.length <= MAX_EDITS && snapshot.added.length <= MAX_EDITS;
-}
-
 function validPose(pose) {
   return pose && [pose.x, pose.y, pose.z, pose.yaw].every(Number.isFinite) &&
-    Math.abs(pose.x) < 45 && Math.abs(pose.z) < 48 && pose.y > -3 && pose.y < 27 && Math.abs(pose.yaw) <= Math.PI + 0.01;
+    Math.abs(pose.x) < 45 && Math.abs(pose.z) < 88 && pose.y > -3 && pose.y < 27 && Math.abs(pose.yaw) <= Math.PI + 0.01;
 }
 
 export function createRooms(events) {
@@ -51,6 +47,7 @@ export function createRooms(events) {
   let snapshotSent = false;
   let pendingChanges = [];
   const guestBricks = new Set();
+  let guestCanUndo = false;
 
   function report(phase, message = '') {
     state = { ...state, phase, message };
@@ -69,6 +66,7 @@ export function createRooms(events) {
     snapshotSent = false;
     pendingChanges = [];
     guestBricks.clear();
+    guestCanUndo = false;
     if (announce && connection?.open) {
       try { connection.send({ type: 'leave' }); } catch { /* The peer can already be gone. */ }
     }
@@ -89,6 +87,7 @@ export function createRooms(events) {
     snapshotSent = false;
     pendingChanges = [];
     guestBricks.clear();
+    guestCanUndo = false;
     clearTimeout(deadline);
     clearInterval(heartbeat);
     connection.close();
@@ -119,6 +118,7 @@ export function createRooms(events) {
   function bind(connection) {
     link = connection;
     ready = false;
+    const visitor = state.role === 'host' ? events.visitor() : null;
     deadline = setTimeout(() => finishConnection(connection, 'The connection timed out. Check that both networks allow browser multiplayer.'), TIMEOUT);
     connection.on('open', () => {
       if (connection !== link) return;
@@ -138,11 +138,11 @@ export function createRooms(events) {
         startHeartbeat(connection);
         const queued = pendingChanges;
         pendingChanges = [];
-        for (const change of queued) send('change', change);
+        for (const edits of queued) send('change', { edits });
         if (link === connection) report('connected');
         return;
       }
-      if (!isHost && type === 'snapshot' && !ready && validSnapshot(payload)) {
+      if (!isHost && type === 'snapshot' && !ready && payload?.version === WORLD_SAVE_VERSION && validSnapshot(payload)) {
         events.restore(payload);
         startHeartbeat(connection);
         send('ready');
@@ -158,32 +158,37 @@ export function createRooms(events) {
       if (type === 'leave') {
         finishConnection(connection);
       } else if (type === 'pose' && validPose(payload)) {
-        events.pose({ x: payload.x, y: payload.y, z: payload.z, yaw: payload.yaw,
-          moving: payload.moving === true, sprinting: payload.sprinting === true, grounded: payload.grounded === true });
+        const boat = payload.boat;
+        const sailing = validHull(boat?.code) && /[12]/.test(boat.code) && Number.isFinite(boat.yaw) && Math.abs(boat.yaw) <= Math.PI;
+        const puppy = payload.puppy;
+        const companion = validPose(puppy) && Math.hypot(puppy.x - payload.x, puppy.y - payload.y, puppy.z - payload.z) < 6.5;
+        events.pose({ x: payload.x, y: payload.y, z: payload.z, yaw: payload.yaw, moving: payload.moving === true,
+          sprinting: payload.sprinting === true, grounded: payload.grounded === true,
+          boat: sailing ? { code: boat.code, yaw: boat.yaw } : null,
+          puppy: companion ? { x: puppy.x, y: puppy.y, z: puppy.z, yaw: puppy.yaw,
+            moving: puppy.moving === true, aboard: sailing && puppy.aboard === true } : null });
       } else if (type === 'appearance') {
         const look = readAppearance(payload);
         if (look) events.appearance(look);
       } else if (isHost && type === 'request') {
-        if (payload?.kind === 'remove' && !guestBricks.has(payload.id)) {
-          send('blocked', 'protected');
-          return;
+        const { edits, error } = events.request(payload, visitor);
+        if (edits) send('change', { edits, guest: true, canUndo: visitor.canUndo });
+        else send('blocked', { error, canUndo: visitor.canUndo });
+      } else if (!isHost && type === 'change' && events.change(payload?.edits)) {
+        if (payload.guest === true) {
+          for (const { id, brick } of payload.edits) {
+            if (brick) guestBricks.add(id);
+            else guestBricks.delete(id);
+          }
+          guestCanUndo = payload.canUndo === true;
         }
-        const change = events.request(payload);
-        if (!change) {
-          send('blocked');
-        } else if (change.kind === 'place') {
-          guestBricks.add(change.id);
-          send('change', { ...change, placedByGuest: true });
-        } else {
-          guestBricks.delete(change.id);
-          send('change', change);
-        }
-      } else if (!isHost && type === 'change') {
-        if (!events.change(payload)) return;
-        if (payload.kind === 'place' && payload.placedByGuest === true) guestBricks.add(payload.id);
-        else if (payload.kind === 'remove') guestBricks.delete(payload.id);
+        events.buildStatus();
       } else if (!isHost && type === 'blocked') {
-        events.blocked(payload);
+        guestCanUndo = payload?.canUndo === true;
+        events.blocked(payload?.error);
+        events.buildStatus();
+      } else if (type === 'tea') {
+        events.tea(payload);
       }
     });
     connection.on('close', () => finishConnection(connection));
@@ -265,12 +270,13 @@ export function createRooms(events) {
     pose(pose) { if (ready) send('pose', pose); },
     appearance(look) { if (ready) send('appearance', look); },
     request(request) { if (ready) send('request', request); },
-    canGuestRemove(id) { return ready && state.role === 'guest' && guestBricks.has(id); },
-    broadcast(change) {
+    get canGuestUndo() { return ready && guestCanUndo; },
+    canGuestEdit(id) { return ready && state.role === 'guest' && guestBricks.has(id); },
+    tea(action) { if (ready) send('tea', action); },
+    broadcast(edits) {
       if (state.role !== 'host' || !snapshotSent) return;
-      if (change.kind === 'remove') guestBricks.delete(change.id);
-      if (ready) send('change', change);
-      else pendingChanges.push(change);
+      if (ready) send('change', { edits });
+      else pendingChanges.push(edits);
     },
   };
 }

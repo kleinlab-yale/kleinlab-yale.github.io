@@ -1,6 +1,7 @@
 import { BrickWorld, PLATE, STUD } from './bricks.js';
+import { DOCK, ISLANDS, SEA_LEVEL, islandAt } from './voyage.js';
 
-export const WATER_LEVEL = -0.43;
+export const WATER_LEVEL = SEA_LEVEL;
 export const SPAWN = { x: 12.5 * STUD, y: 0, z: 31.5 * STUD, yaw: -0.16, pitch: -0.21 };
 
 export function noise(x, y = 0, z = 0) {
@@ -419,6 +420,47 @@ function tree(world, cx, cz, scale, main = false) {
   }
 }
 
+function buildVoyage(world, make) {
+  world.startExpansion();
+  make.slab(13, 0, 52, 11, 1, 14, ['oak', 'cedar', 'oak', 'redwood']);
+  for (const x of [13, 23]) {
+    for (const z of [55, 60, 65]) {
+      make.post(x, -6, z, 1, 8, 1, ['darkBark', 'redwood']);
+      make.lantern(x, 2, z);
+    }
+    make.row(x, 2, 55, 10, 1, 'lacquer', 'z', true, 2);
+  }
+  for (const [key, island] of Object.entries(ISLANDS)) {
+    const { gridX: cx, gridZ: cz, rx, rz } = island;
+    for (let z = cz - rz; z <= cz + rz; z++) {
+      for (let x = cx - rx; x <= cx + rx; x++) {
+        const rim = ((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2;
+        if (rim > 0.93 + noise(x, 48, z) * 0.12) continue;
+        const bank = rim > 0.72;
+        const top = bank ? -1 : 0;
+        world.seed(x, -7, z, 1, top + 5, 1, bank ? 'sand' : 'soil', false);
+        const path = Math.abs(x - cx) <= 1;
+        const ground = bank ? 'sand' : pick(path ? ['chalk', 'stone', 'gravel'] : ['turf', 'olive', 'meadow'], noise(x, z));
+        world.seed(x, top - 2, z, 1, 2, 1, ground);
+        const courtyard = key === 'lantern' && z >= cz - 5 && Math.abs(x - cx) < 7;
+        if (!path && !courtyard && noise(x, 19, z) < 0.10) world.seed(x, top, z, 1, 1, 1, bank ? 'reed' : 'petal');
+      }
+    }
+    const lanterns = key === 'lantern' ? [[-6, -4], [6, -4]] : [[-3, -2], [3, -1], [-3, 3], [3, 4]];
+    for (const [dx, dz] of lanterns) make.gardenLamp(cx + dx, cz + dz);
+    if (key === 'lantern') {
+      make.house(cx, cz + 3, 9, 7, 10);
+      make.torii(cx, cz - 4, 0, 7, 12);
+      tree(world, cx - 7, cz + 3, 0.46);
+      tree(world, cx + 7, cz + 2, 0.42);
+    } else {
+      tree(world, cx + 4, cz + 2, 0.39);
+      make.slab(cx - 3, 0, cz + 3, 4, 1, 2, ['oak', 'cedar']);
+    }
+  }
+  world.seed(15, 32, -14, 3, 5, 2, 'cedar', false, 'tea');
+}
+
 export function makeValley() {
   const world = new BrickWorld();
   seedTerrain(world);
@@ -454,10 +496,14 @@ export function makeValley() {
       }
     }
   }
+  buildVoyage(world, make);
   return world;
 }
 
 export function district(x, y, z) {
+  const island = islandAt(x, z);
+  if (island) return ISLANDS[island].name;
+  if (Math.hypot(x - DOCK.x, z - DOCK.z) < 6) return 'South Dock';
   if (y > 3.2 && x > 4 && z < 5 && z > -14) return 'The High Pavilion';
   if (x > 15 && z < -4) return 'Lantern Shrine';
   if (Math.abs(z / STUD - 11.5) < 3.5 && x > -12 && x < 6) return 'Vermilion Bridge';

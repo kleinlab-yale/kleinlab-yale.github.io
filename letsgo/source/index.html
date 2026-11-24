@@ -70,11 +70,91 @@
           <button class="tool-button explore-tool" id="explore-tool" type="button" aria-pressed="true">Explore</button>
           <button class="tool-button" id="place-tool" type="button" aria-pressed="false"><span data-icon="plus" aria-hidden="true"></span>Place</button>
           <button class="tool-button remove-tool" id="remove-tool" type="button" aria-pressed="false"><span data-icon="minus" aria-hidden="true"></span>Remove</button>
-          <button class="tool-button" id="rotate-tool" type="button" aria-label="Rotate brick"><span data-icon="rotate" aria-hidden="true"></span>Rotate</button>
+          <button class="tool-button" id="rotate-tool" type="button" aria-pressed="false"><span data-icon="rotate" aria-hidden="true"></span>Rotate</button>
+          <button class="tool-button" id="paint-tool" type="button" aria-pressed="false"><span data-icon="paint" aria-hidden="true"></span>Paint</button>
+          <button class="tool-button" id="undo-build" type="button" disabled><span data-icon="undo" aria-hidden="true"></span>Undo</button>
         </div>
-        <div class="inventory" id="inventory" role="group" aria-label="Building pieces"></div>
+        <div class="inventory-row">
+          <button class="subtle-button" id="open-parts" type="button"><span data-icon="brick" aria-hidden="true"></span>Parts &amp; colors</button>
+          <div class="inventory" id="inventory" role="group" aria-label="Building pieces"></div>
+          <button class="subtle-button" id="open-objects" type="button"><span data-icon="object" aria-hidden="true"></span>Objects</button>
+        </div>
+      </div>
+      <div id="activity" class="activity">
+        <button id="voyage-button" class="subtle-button" type="button"><span data-icon="boat" aria-hidden="true"></span>Island voyage</button>
+        <button id="tea-action" class="subtle-button" type="button" hidden><span data-icon="tea" aria-hidden="true"></span><span id="tea-action-label">Brew tea</span></button>
+        <button id="rescue-puppy" class="subtle-button" type="button" hidden><span data-icon="paw" aria-hidden="true"></span>Rescue Mochi</button>
+        <div id="voyage-direction" class="voyage-direction" hidden><span id="voyage-arrow" data-icon="up" aria-hidden="true"></span><span id="voyage-distance"></span></div>
+        <div id="hull-status" class="hull-status" hidden><label for="hull-meter">Hull condition</label><meter id="hull-meter" min="0" max="100" low="25" high="60" optimum="100" value="100"></meter></div>
       </div>
     </div>
+
+    <dialog id="parts-dialog" class="panel workshop-panel" aria-labelledby="parts-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="parts" data-icon="x" aria-label="Close parts"></button>
+        <h2 id="parts-title">Parts &amp; colors</h2>
+        <div class="kit-heading"><label for="kit-select">Build kit</label><select id="kit-select"></select></div>
+        <div class="parts-layout">
+          <section class="parts-shelf" aria-label="Parts">
+            <div id="part-groups" class="part-groups" role="group" aria-label="Part groups"></div>
+            <button id="workshop-from-parts" class="button secondary wide" type="button" hidden>Open boat workshop</button>
+            <div id="part-grid" class="part-grid"></div>
+          </section>
+          <section class="brick-palette" aria-label="Brick colors">
+            <h3>Color <span id="chosen-color" class="current-choice"></span></h3>
+            <label class="tone-option"><input id="show-all-tones" type="checkbox" />Show all colors</label>
+            <div id="brick-colors" class="swatches"></div>
+            <div class="palette-actions">
+              <button id="use-part-colors" class="text-button" type="button">Use part colors</button>
+              <button id="paint-with-color" class="text-button" type="button">Paint placed bricks</button>
+            </div>
+          </section>
+        </div>
+        <div class="parts-actions">
+          <button id="pick-brick" class="button secondary" type="button">Match a brick in the world</button>
+          <button id="turn-next-brick" class="button secondary" type="button">Turn next piece</button>
+          <button class="button primary" type="button" data-close="parts">Done</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="voyage-dialog" class="panel workshop-panel" aria-labelledby="voyage-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="voyage" data-icon="x" aria-label="Close island voyage"></button>
+        <h2 id="voyage-title">Island voyage</h2>
+        <div id="voyage-guide">
+          <p class="panel-copy">Mochi, a lost puppy, is waiting on Lantern Island. Build a boat at the south dock and test it on the shorter crossing to Reed Islet.</p>
+          <ol class="voyage-destinations"><li id="reed-progress">Reach Reed Islet</li><li id="lantern-progress">Reach Lantern Island</li><li id="puppy-progress">Rescue Mochi</li></ol>
+          <button id="track-dock" class="button primary wide" type="button">Show dock direction</button>
+          <button id="return-dock" class="button secondary wide" type="button" hidden>Return to the south dock</button>
+        </div>
+        <div id="boat-workshop" hidden>
+          <p class="panel-copy">Connect the planks edge to edge. A sealed, reinforced floor gives you more range.</p>
+          <div class="boat-layout">
+            <section aria-label="Hull grid">
+              <div class="boat-brushes option-row" role="group" aria-label="Boat building tool">
+                <button type="button" data-hull="1" aria-pressed="true">Plank</button>
+                <button type="button" data-hull="2" aria-pressed="false">Reinforced</button>
+                <button type="button" data-hull="0" aria-pressed="false">Remove</button>
+              </div>
+              <div id="boat-grid" class="boat-grid" role="group" aria-label="Five by seven hull grid"></div>
+            </section>
+            <section class="boat-report" aria-label="Hull report">
+              <h3 id="boat-range">Range 0 m</h3>
+              <p id="boat-advice" class="panel-copy"></p>
+              <label for="voyage-destination">Destination</label>
+              <select id="voyage-destination"><option value="reed">Reed Islet</option><option value="lantern">Lantern Island</option></select>
+              <p id="destination-range" class="panel-copy"></p>
+              <div class="boat-patterns">
+                <button id="raft-pattern" class="text-button" type="button">Load a simple raft</button>
+                <button id="hull-pattern" class="text-button" type="button">Outline a larger hull</button>
+              </div>
+            </section>
+          </div>
+          <button id="launch-boat" class="button primary wide" type="button" disabled>Launch boat</button>
+        </div>
+      </div>
+    </dialog>
 
     <dialog id="room-dialog" class="panel" aria-labelledby="room-title">
       <div class="panel-inner">
@@ -118,11 +198,13 @@
           <div><dt>Orbit</dt><dd id="orbit-help">Drag with either mouse button</dd></div>
           <div><dt>Place a brick</dt><dd id="place-help">Choose a brick, then click a surface</dd></div>
           <div><dt>Remove a brick</dt><dd id="remove-help">Choose Remove, then click a brick</dd></div>
+          <div><dt>Rotate or paint</dt><dd>Choose the tool and select a placed brick</dd></div>
+          <div><dt>Undo</dt><dd>Restore your last building edit</dd></div>
           <div><dt>Change views</dt><dd>Use the Camera button</dd></div>
         </dl>
         <details class="shortcuts" id="shortcuts">
           <summary>Keyboard shortcuts</summary>
-          <p><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move <kbd>Space</kbd> Jump <kbd>1</kbd>–<kbd>7</kbd> Pick brick <kbd>R</kbd> Rotate <kbd>V</kbd> Camera <kbd>Esc</kbd> Pause</p>
+          <p><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move <kbd>Space</kbd> Jump <kbd>1</kbd>–<kbd>7</kbd> Pick brick <kbd>R</kbd> Rotate <kbd>Z</kbd> Undo <kbd>V</kbd> Camera <kbd>Esc</kbd> Pause</p>
         </details>
         <button class="button primary wide" type="button" data-close="controls">Done</button>
       </div>
