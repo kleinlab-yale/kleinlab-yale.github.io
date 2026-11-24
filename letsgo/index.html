@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#242927" />
+  <link rel="icon" type="image/png" href="./favicon.png" />
+  <meta name="description" content="A touch-friendly 3D brick-building sandbox in a cherry-blossom village. Explore, rebuild, and play with a friend." />
+  <title>LetsGo</title>
+  <script type="module" crossorigin src="./assets/index-Bg1ZrIjP.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/three-D89aZAtZ.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-DGYKG0mk.css">
+</head>
+<body>
+  <div id="game" data-screen="title">
+    <canvas id="world" aria-label="Blossom Valley, an interactive three-dimensional brick village" tabindex="0"></canvas>
+    <div class="screen-shade" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="world-brand">
+        <span class="world-mark" data-icon="brick" aria-hidden="true"></span>
+        <div>
+          <span class="world-name">Blossom Valley</span>
+          <span id="district" class="district" hidden></span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="room-shortcut" class="subtle-button" type="button" hidden><span data-icon="users" aria-hidden="true"></span><span id="room-shortcut-label">Co-op</span></button>
+        <div id="camera-controls" class="camera-controls" role="group" aria-label="Camera" hidden>
+          <button id="camera-left" class="subtle-button icon-button orbit-button" type="button" aria-label="Turn camera left" title="Turn camera left" data-icon="left"></button>
+          <button id="camera-button" class="subtle-button" type="button" aria-label="Change camera view" title="Change camera view (V)"><span data-icon="camera" aria-hidden="true"></span><span id="camera-label">Camera · Follow</span></button>
+          <button id="camera-right" class="subtle-button icon-button orbit-button" type="button" aria-label="Turn camera right" title="Turn camera right" data-icon="right"></button>
+        </div>
+        <button id="menu-button" class="subtle-button" type="button" aria-label="Menu" hidden><span data-icon="menu" aria-hidden="true"></span><span>Menu</span></button>
+        <button id="appearance-button" class="subtle-button" type="button" aria-label="Customize player" title="Customize player"><span data-icon="person" aria-hidden="true"></span><span>Customize</span></button>
+        <button id="controls-button" class="subtle-button" type="button" aria-label="Controls"><span data-icon="help" aria-hidden="true"></span><span>Controls</span></button>
+        <button id="sound-button" class="subtle-button icon-button" type="button" aria-label="Mute sound" aria-pressed="false" title="Mute sound"><span data-icon="sound" aria-hidden="true"></span></button>
+      </div>
+    </header>
+
+    <main id="title-screen" class="title-screen">
+      <div class="intro">
+        <h1>Lets<em>Go</em></h1>
+        <p>Explore a cherry-blossom village, then make it your own, brick by brick.</p>
+        <div class="title-actions">
+          <button id="solo-button" class="button primary" type="button" disabled>Play solo <span data-icon="arrow" aria-hidden="true"></span></button>
+          <button id="coop-button" class="button secondary" type="button" disabled><span data-icon="users" aria-hidden="true"></span>Play together</button>
+        </div>
+        <p class="load-message" id="load-message" role="status">Assembling the valley…</p>
+      </div>
+    </main>
+
+    <div id="hud" hidden>
+      <div class="movement-controls">
+        <div class="movement-left">
+          <div id="joystick" class="joystick" aria-label="Drag to move" title="Drag to move" hidden><div id="stick" class="stick" aria-hidden="true" data-icon="move"></div></div>
+          <div id="direction-pad" class="direction-pad" role="group" aria-label="Movement buttons" hidden>
+            <button class="subtle-button" type="button" data-move="ArrowUp" data-icon="up" aria-label="Move forward"></button>
+            <button class="subtle-button" type="button" data-move="ArrowLeft" data-icon="left" aria-label="Move left"></button>
+            <button class="subtle-button" type="button" data-move="ArrowDown" data-icon="down" aria-label="Move backward"></button>
+            <button class="subtle-button" type="button" data-move="ArrowRight" data-icon="right" aria-label="Move right"></button>
+          </div>
+          <span class="movement-label">Move</span>
+        </div>
+        <button id="jump-button" class="subtle-button jump-button" type="button"><span data-icon="up" aria-hidden="true"></span>Jump</button>
+      </div>
+      <div class="build-bar">
+        <div class="build-topline">
+          <div class="selected-piece" id="selected-piece" aria-live="polite"></div>
+          <p class="build-guide" id="build-guide"></p>
+        </div>
+        <div class="build-tools" role="group" aria-label="Building tool">
+          <button class="tool-button explore-tool" id="explore-tool" type="button" aria-pressed="true">Explore</button>
+          <button class="tool-button" id="place-tool" type="button" aria-pressed="false"><span data-icon="plus" aria-hidden="true"></span>Place</button>
+          <button class="tool-button remove-tool" id="remove-tool" type="button" aria-pressed="false"><span data-icon="minus" aria-hidden="true"></span>Remove</button>
+          <button class="tool-button" id="rotate-tool" type="button" aria-label="Rotate brick"><span data-icon="rotate" aria-hidden="true"></span>Rotate</button>
+        </div>
+        <div class="inventory" id="inventory" role="group" aria-label="Building pieces"></div>
+      </div>
+    </div>
+
+    <dialog id="room-dialog" class="panel" aria-labelledby="room-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="room" data-icon="x" aria-label="Close multiplayer"></button>
+        <h2 id="room-title">Play together</h2>
+        <div id="room-idle">
+          <p class="panel-copy">One player creates a room. The other joins with its code.</p>
+          <button id="host-button" class="button primary wide" type="button"><span data-icon="users" aria-hidden="true"></span>Create room</button>
+          <div class="divider"><span>or join a friend</span></div>
+          <form id="join-form" class="join-form" novalidate>
+            <label for="join-code">Room code</label>
+            <div class="join-controls">
+              <input id="join-code" name="code" placeholder="ABK274" spellcheck="false" autocomplete="off" autocapitalize="characters" maxlength="10" />
+              <button class="button secondary" type="submit">Join room</button>
+            </div>
+          </form>
+        </div>
+        <div id="room-active" hidden>
+          <div id="code-area" class="code-area" hidden>
+            <span class="code-label">ROOM CODE</span>
+            <div class="code-row"><output id="room-code" aria-label="Room code"></output><button id="copy-button" class="subtle-button icon-button" type="button" aria-label="Copy room code" title="Copy room code" data-icon="copy"></button></div>
+          </div>
+          <div id="invite-actions" class="invite-actions" hidden>
+            <button id="message-friend" class="button primary" type="button"><span data-icon="message" aria-hidden="true"></span>Message a friend</button>
+            <button id="copy-invite" class="button secondary" type="button">Copy invite link</button>
+          </div>
+          <input id="invite-text" class="invite-text" aria-label="Invite to copy" type="text" readonly hidden />
+          <button id="room-enter" class="button primary wide" type="button" hidden>Enter valley <span data-icon="arrow" aria-hidden="true"></span></button>
+          <button id="leave-room" class="text-button" type="button">Leave room</button>
+        </div>
+        <p id="room-status" class="room-status" role="status" hidden></p>
+      </div>
+    </dialog>
+
+    <dialog id="controls-dialog" class="panel" aria-labelledby="controls-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="controls" data-icon="x" aria-label="Close controls"></button>
+        <h2 id="controls-title">Controls</h2>
+        <dl class="control-list">
+          <div><dt>Move</dt><dd id="move-help">Use the arrow keys or movement buttons</dd></div>
+          <div><dt>Orbit</dt><dd id="orbit-help">Drag with either mouse button</dd></div>
+          <div><dt>Place a brick</dt><dd id="place-help">Choose a brick, then click a surface</dd></div>
+          <div><dt>Remove a brick</dt><dd id="remove-help">Choose Remove, then click a brick</dd></div>
+          <div><dt>Change views</dt><dd>Use the Camera button</dd></div>
+        </dl>
+        <details class="shortcuts" id="shortcuts">
+          <summary>Keyboard shortcuts</summary>
+          <p><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move <kbd>Space</kbd> Jump <kbd>1</kbd>–<kbd>7</kbd> Pick brick <kbd>R</kbd> Rotate <kbd>V</kbd> Camera <kbd>Esc</kbd> Pause</p>
+        </details>
+        <button class="button primary wide" type="button" data-close="controls">Done</button>
+      </div>
+    </dialog>
+
+    <dialog id="pause-dialog" class="panel" aria-labelledby="pause-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="pause" data-icon="x" aria-label="Resume" title="Resume"></button>
+        <h2 id="pause-title">Paused</h2>
+        <div class="pause-actions">
+          <button id="resume-button" class="button primary wide" type="button">Resume <span data-icon="arrow" aria-hidden="true"></span></button>
+          <fieldset class="camera-settings"><legend>Camera view</legend><div id="camera-options" class="option-row"></div></fieldset>
+          <button id="pause-appearance" class="button secondary wide" type="button"><span data-icon="person" aria-hidden="true"></span>Customize player</button>
+          <button id="pause-room" class="button secondary wide" type="button"><span data-icon="users" aria-hidden="true"></span>Room settings</button>
+          <button id="pause-controls" class="button secondary wide" type="button"><span data-icon="help" aria-hidden="true"></span>Controls</button>
+          <div class="pause-links"><button id="respawn-button" class="text-button" type="button">Return to spawn</button><button id="title-button" class="text-button" type="button">Title screen</button></div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="appearance-dialog" class="panel appearance-panel" aria-labelledby="appearance-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="appearance" data-icon="x" aria-label="Close appearance"></button>
+        <h2 id="appearance-title">Customize player</h2>
+        <div class="appearance-layout">
+          <div class="preview-column">
+            <canvas id="avatar-preview" class="avatar-preview" role="img" aria-label="Live preview of your traveler. Drag to turn."></canvas>
+            <div class="option-row preview-modes" role="group" aria-label="Preview zoom">
+              <button type="button" data-preview="body" aria-pressed="true">Full body</button>
+              <button type="button" data-preview="face" aria-pressed="false">Face close-up</button>
+            </div>
+          </div>
+          <div class="appearance-editor">
+            <div class="appearance-tabs" role="tablist" aria-label="Appearance options">
+              <button id="looks-tab" type="button" role="tab" aria-controls="looks-panel" aria-selected="true">Presets</button>
+              <button id="face-tab" type="button" role="tab" aria-controls="face-panel" aria-selected="false" tabindex="-1">Face</button>
+              <button id="hair-tab" type="button" role="tab" aria-controls="hair-panel" aria-selected="false" tabindex="-1">Hair</button>
+              <button id="clothes-tab" type="button" role="tab" aria-controls="clothes-panel" aria-selected="false" tabindex="-1">Clothes</button>
+            </div>
+            <div class="appearance-options">
+              <section id="looks-panel" class="appearance-section" role="tabpanel" aria-labelledby="looks-tab">
+                <div id="preset-options" class="preset-options"></div>
+              </section>
+              <section id="face-panel" class="appearance-section" role="tabpanel" aria-labelledby="face-tab" hidden>
+                <fieldset><legend>Face shape</legend><div id="face-options" class="choice-grid"></div></fieldset>
+                <fieldset><legend>Skin tone <span id="skin-choice" class="current-choice"></span></legend><div id="skin-options" class="swatches"></div></fieldset>
+                <fieldset><legend>Eye color <span id="eyes-choice" class="current-choice"></span></legend><div id="eyes-options" class="swatches"></div></fieldset>
+                <fieldset><legend>Expression</legend><div id="expression-options" class="choice-grid"></div></fieldset>
+                <fieldset><legend>Face details</legend><div id="detail-options" class="choice-grid"></div></fieldset>
+              </section>
+              <section id="hair-panel" class="appearance-section" role="tabpanel" aria-labelledby="hair-tab" hidden>
+                <fieldset><legend>Hairstyle</legend><div id="hair-options" class="choice-grid"></div></fieldset>
+                <fieldset><legend>Hair color <span id="hairColor-choice" class="current-choice"></span></legend><div id="hairColor-options" class="swatches"></div></fieldset>
+                <fieldset><legend>Accessories</legend><div id="accessory-options" class="choice-grid"></div></fieldset>
+              </section>
+              <section id="clothes-panel" class="appearance-section" role="tabpanel" aria-labelledby="clothes-tab" hidden>
+                <fieldset><legend>Clothing style</legend><div id="garment-options" class="choice-grid"></div></fieldset>
+                <fieldset><legend>Clothing color <span id="outfit-choice" class="current-choice"></span></legend><div id="outfit-options" class="swatches"></div></fieldset>
+              </section>
+            </div>
+          </div>
+        </div>
+        <button class="button primary wide" type="button" data-close="appearance">Done</button>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" hidden></div>
+  </div>
+</body>
+</html>
