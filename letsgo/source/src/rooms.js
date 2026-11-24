@@ -1,10 +1,10 @@
 import { Peer } from 'peerjs';
 import { readAppearance } from './appearance.js';
-import { MAX_EDITS } from './bricks.js';
+import { MAX_EDITS, WORLD_SAVE_VERSION } from './bricks.js';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const PROTOCOL = 1;
-const PREFIX = 'brickbloom-v1-';
+const PROTOCOL = 2;
+const PREFIX = `brickbloom-v${PROTOCOL}-`;
 const TIMEOUT = 24000;
 const HEARTBEAT_INTERVAL = 2400;
 const PEER_TIMEOUT = 12000;
@@ -29,7 +29,7 @@ function makeCode() {
 }
 
 function validSnapshot(snapshot) {
-  return snapshot?.version === PROTOCOL && Array.isArray(snapshot.removed) && Array.isArray(snapshot.added) &&
+  return snapshot?.version === WORLD_SAVE_VERSION && Array.isArray(snapshot.removed) && Array.isArray(snapshot.added) &&
     snapshot.removed.length <= MAX_EDITS && snapshot.added.length <= MAX_EDITS;
 }
 
@@ -50,6 +50,7 @@ export function createRooms(events) {
   let ready = false;
   let snapshotSent = false;
   let pendingChanges = [];
+  const guestBricks = new Set();
 
   function report(phase, message = '') {
     state = { ...state, phase, message };
@@ -67,6 +68,7 @@ export function createRooms(events) {
     ready = false;
     snapshotSent = false;
     pendingChanges = [];
+    guestBricks.clear();
     if (announce && connection?.open) {
       try { connection.send({ type: 'leave' }); } catch { /* The peer can already be gone. */ }
     }
@@ -86,6 +88,7 @@ export function createRooms(events) {
     ready = false;
     snapshotSent = false;
     pendingChanges = [];
+    guestBricks.clear();
     clearTimeout(deadline);
     clearInterval(heartbeat);
     connection.close();
@@ -161,13 +164,26 @@ export function createRooms(events) {
         const look = readAppearance(payload);
         if (look) events.appearance(look);
       } else if (isHost && type === 'request') {
+        if (payload?.kind === 'remove' && !guestBricks.has(payload.id)) {
+          send('blocked', 'protected');
+          return;
+        }
         const change = events.request(payload);
-        if (change) send('change', change);
-        else send('blocked');
+        if (!change) {
+          send('blocked');
+        } else if (change.kind === 'place') {
+          guestBricks.add(change.id);
+          send('change', { ...change, placedByGuest: true });
+        } else {
+          guestBricks.delete(change.id);
+          send('change', change);
+        }
       } else if (!isHost && type === 'change') {
-        events.change(payload);
+        if (!events.change(payload)) return;
+        if (payload.kind === 'place' && payload.placedByGuest === true) guestBricks.add(payload.id);
+        else if (payload.kind === 'remove') guestBricks.delete(payload.id);
       } else if (!isHost && type === 'blocked') {
-        events.blocked();
+        events.blocked(payload);
       }
     });
     connection.on('close', () => finishConnection(connection));
@@ -249,8 +265,10 @@ export function createRooms(events) {
     pose(pose) { if (ready) send('pose', pose); },
     appearance(look) { if (ready) send('appearance', look); },
     request(request) { if (ready) send('request', request); },
+    canGuestRemove(id) { return ready && state.role === 'guest' && guestBricks.has(id); },
     broadcast(change) {
       if (state.role !== 'host' || !snapshotSent) return;
+      if (change.kind === 'remove') guestBricks.delete(change.id);
       if (ready) send('change', change);
       else pendingChanges.push(change);
     },

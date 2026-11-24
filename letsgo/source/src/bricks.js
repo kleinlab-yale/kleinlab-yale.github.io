@@ -3,6 +3,7 @@ export const PLATE = 0.17;
 export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: 64, minY: -9, maxY: 105 };
 export const REACH = 13;
 export const MAX_EDITS = 6000;
+export const WORLD_SAVE_VERSION = 1;
 
 export const TONES = {
   turf: '#556941', olive: '#67774b', meadow: '#758256', moss: '#3e593d',
@@ -193,7 +194,7 @@ export class BrickWorld {
   }
 
   snapshot() {
-    return { version: 1, removed: Array.from(this.removed), added: Array.from(this.added.values()) };
+    return { version: WORLD_SAVE_VERSION, removed: Array.from(this.removed), added: Array.from(this.added.values()) };
   }
 
   restore(snapshot) {
@@ -204,7 +205,7 @@ export class BrickWorld {
     this.added.clear();
     this.removed.clear();
     this.nextId = this.starter.size + 1;
-    if (snapshot?.version === 1 && Array.isArray(snapshot.removed) && Array.isArray(snapshot.added)) {
+    if (snapshot?.version === WORLD_SAVE_VERSION && Array.isArray(snapshot.removed) && Array.isArray(snapshot.added)) {
       for (const id of snapshot.removed.slice(0, MAX_EDITS)) {
         if (this.starter.has(id)) this.accept({ kind: 'remove', id });
       }

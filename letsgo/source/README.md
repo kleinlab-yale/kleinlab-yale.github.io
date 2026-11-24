@@ -23,6 +23,8 @@ Use Space to jump, 1–7 to select a brick, R to rotate, V to change the camera,
 
 For two players, choose **Play together**, then **Create room**. **Message a friend** opens the device’s share menu when supported. **Copy invite link** copies a link that fills in the room code for your friend. Your friend can also enter the six-character code manually. Keep the host tab open during play. The host’s browser saves the shared edits. Players need no accounts or keys. The game uses WebRTC and the [shared PeerJS Cloud service](https://peerjs.com/server/cloud) for room discovery and connectivity. Access depends on the service and the players’ networks.
 
+Guests can place bricks and remove the ones they place during that visit. The host can edit the whole world. Guest builds become part of the host’s saved world, and only the host can remove them on a later visit.
+
 ## Host on GitHub Pages
 
 1. Push this project to the `main` branch of a public GitHub repository for free GitHub Pages hosting.

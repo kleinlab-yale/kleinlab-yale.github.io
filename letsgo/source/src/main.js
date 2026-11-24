@@ -12,6 +12,7 @@ import { createAudio } from './audio.js';
 import { district, makeValley } from './valley.js';
 
 const $ = id => document.getElementById(id);
+const GUEST_REMOVE_NOTE = 'You can remove bricks you placed during this visit.';
 const SAVE_KEY = 'brick-and-bloom:valley:1';
 const LOOK_KEY = 'brick-and-bloom:appearance:1';
 const VIEW_KEY = 'brick-and-bloom:view:1';
@@ -261,7 +262,7 @@ function boot() {
     $('leave-room').textContent = phase === 'opening' || (phase === 'syncing' && role === 'guest') ? 'Cancel' : 'Leave room';
     const statuses = {
       opening: role === 'host' ? 'Opening your room…' : 'Finding the host…',
-      waiting: 'Keep this tab open while your friend joins.',
+      waiting: 'Keep this tab open. Your friend can build and remove bricks they place during their visit.',
       syncing: 'Connecting to your friend…',
       connected: '2 players connected.',
     };
@@ -292,6 +293,7 @@ function boot() {
       guestWorld = true;
       world.restore(snapshot);
       resetPlayer();
+      setTool(tool);
     },
     status: state => {
       refreshRoom(state);
@@ -318,9 +320,11 @@ function boot() {
       return change;
     },
     change: change => {
-      if (world.accept(change)) audio.tap(change.kind);
+      if (!world.accept(change)) return false;
+      audio.tap(change.kind);
+      return true;
     },
-    blocked: () => toast('That spot is blocked or out of reach.'),
+    blocked: reason => toast(reason === 'protected' ? GUEST_REMOVE_NOTE : 'That spot is blocked or out of reach.'),
   });
 
   function leaveRoom() {
@@ -328,6 +332,7 @@ function boot() {
       guestWorld = false;
       world.restore(saveCache);
       resetPlayer();
+      setTool(tool);
     }
     rooms.leave();
   }
@@ -347,7 +352,7 @@ function boot() {
     const hints = {
       explore: coarse ? 'Joystick to move · Drag to orbit' : 'Arrow keys to move · Drag to orbit',
       place: `${verb} a surface to place this brick.`,
-      remove: `${verb} the brick you want to remove.`,
+      remove: guestWorld ? `${verb} a brick you placed during this visit.` : `${verb} the brick you want to remove.`,
     };
     $('build-guide').textContent = hints[kind];
   }
@@ -418,8 +423,16 @@ function boot() {
     return graphics.pick(point, REACH + (CAMERAS[view].distance ?? 0) + 4);
   }
 
+  function canRemove(id) {
+    return !guestWorld || rooms.canGuestRemove(id);
+  }
+
   function edit(kind, point) {
     if (screen !== 'play' || performance.now() - lastBuild < 85) return;
+    if (guestWorld && rooms.state.phase !== 'connected') {
+      toast('Rejoin the host to keep building.');
+      return;
+    }
     const hit = pick(point);
     if (!hit || !reachFrom(player, hit.brick)) {
       toast(hit ? 'Move closer to reach that brick.' : 'Choose a nearby brick or surface.');
@@ -436,15 +449,15 @@ function boot() {
       }
       request = { kind, x: brick.x, y: brick.y, z: brick.z, slot: selected, rotated };
     } else {
+      if (!canRemove(hit.brick.id)) {
+        toast(GUEST_REMOVE_NOTE);
+        return;
+      }
       request = { kind, id: hit.brick.id };
     }
     if (guestWorld) {
-      if (rooms.state.phase === 'connected') {
-        sendPose();
-        rooms.request(request);
-      } else {
-        toast('Rejoin the host to keep building.');
-      }
+      sendPose();
+      rooms.request(request);
       return;
     }
     const change = world.apply(request, localBoxes());
@@ -727,7 +740,7 @@ function boot() {
       graphics.playerView(player, CAMERAS[view], orbit, bob, dt);
       if (aimPoint?.touch && now >= flashUntil) aimPoint = null;
       const hit = screen === 'play' && tool !== 'explore' && aimPoint ? pick(aimPoint) : null;
-      const target = hit && reachFrom(player, hit.brick) ? hit : null;
+      const target = hit && (tool !== 'remove' || canRemove(hit.brick.id)) && reachFrom(player, hit.brick) ? hit : null;
       const brick = target && tool === 'place' && !aimPoint.touch ? adjacentBrick(target, shapeFor(selected, rotated)) : null;
       graphics.aim(target, brick, Boolean(brick && reachFrom(player, brick) && world.canPlace(brick, localBoxes())), tool);
     }
