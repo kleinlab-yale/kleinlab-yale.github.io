@@ -6,6 +6,7 @@ import { EYE } from './player.js';
 import { appearancePreview, createTraveler } from './traveler.js';
 import { createWorldObjects } from './world-objects.js';
 import { createHouseObjects } from './house-objects.js';
+import { createAdventureObjects } from './adventure-objects.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
 
 const CHUNK = 18;
@@ -349,6 +350,7 @@ export function createGraphics(canvas, world, compact) {
   const body = chamferBox();
   const objects = createWorldObjects(scene, body);
   const houseObjects = createHouseObjects(scene, body);
+  const adventure = createAdventureObjects(scene, body);
   const meshes = brickMeshes(scene, world, body, lowPower);
   const aim = indicators(scene, body, meshes.studGeometry);
   const traveler = createTraveler(scene, body);
@@ -379,6 +381,7 @@ export function createGraphics(canvas, world, compact) {
 
   return {
     aim,
+    adventure,
     traveler,
     local,
     vessel: objects.vessel,
@@ -458,6 +461,7 @@ export function createGraphics(canvas, world, compact) {
       local.animate(dt);
       objects.animate(reduceMotion ? 0 : time, dt);
       houseObjects.animate(dt, reduceMotion);
+      adventure.animate(reduceMotion ? 0 : time, dt);
       renderer.render(scene, camera);
     },
   };

@@ -10,6 +10,27 @@ export const DOCK = { x: 18.5 * STUD, y: PLATE, z: 62.5 * STUD, launchZ: 68.3 * 
 export const ISLANDS = Object.fromEntries(Object.entries(ISLAND_LAYOUT).map(([key, area]) =>
   [key, { ...area, x: area.gridX * STUD, z: area.gridZ * STUD }]));
 
+export const ROUTES = {
+  home: ['reed', 'lantern', 'shell', 'berry'],
+  shell: ['lantern', 'berry', 'reef'],
+  berry: ['shell', 'reef', 'moon'],
+  reef: ['shell', 'berry', 'moon'],
+  moon: ['reef', 'berry'],
+};
+
+export function harborAt(player) {
+  if (player.y <= SEA_LEVEL || player.y > 2.5) return null;
+  if (dockDistance(player) < 5.5) return 'home';
+  const island = islandAt(player.x, player.z);
+  return player.grounded && island && Object.hasOwn(ROUTES, island) ? island : null;
+}
+
+export function harborReturn(key) {
+  if (key === 'home') return DOCK;
+  const { x, z } = ISLANDS[key];
+  return { x: x + 0.5 * STUD, y: 0, z: z - 4.5 * STUD };
+}
+
 export function validHull(value) { return typeof value === 'string' && /^[012]{35}$/.test(value); }
 
 function cellIndex(x, z) { return x >= 0 && x < HULL_WIDTH && z >= 0 && z < HULL_LENGTH ? z * HULL_WIDTH + x : -1; }
@@ -82,19 +103,32 @@ export function islandAt(x, z) {
 
 export function headingTo(from, target) { return Math.atan2(from.x - target.x, from.z - target.z); }
 
-export function crossingDistance(target) {
-  const dx = target.x - DOCK.x;
-  const dz = target.z - DOCK.launchZ;
+function coastDistance(target, dx, dz) {
   const distance = Math.hypot(dx, dz);
-  const coast = distance / Math.hypot(dx / (target.rx * STUD), dz / (target.rz * STUD));
-  return Math.ceil(distance - coast);
+  return distance / Math.hypot(dx / (target.rx * STUD), dz / (target.rz * STUD));
 }
 
-export function launchVessel(code, destination) {
+function launchPoint(target, origin) {
+  if (origin === 'home') return { x: DOCK.x, z: DOCK.launchZ };
+  const harbor = ISLANDS[origin];
+  const dx = target.x - harbor.x;
+  const dz = target.z - harbor.z;
+  const scale = (coastDistance(harbor, dx, dz) + 0.95) / Math.hypot(dx, dz);
+  return { x: harbor.x + dx * scale, z: harbor.z + dz * scale };
+}
+
+export function crossingDistance(target, origin = 'home') {
+  const start = launchPoint(target, origin);
+  const dx = target.x - start.x;
+  const dz = target.z - start.z;
+  return Math.ceil(Math.hypot(dx, dz) - coastDistance(target, dx, dz));
+}
+
+export function launchVessel(code, destination, origin = 'home') {
   const rating = rateHull(code);
-  if (!rating.launchable || !Object.hasOwn(ISLANDS, destination)) return null;
-  const location = { x: DOCK.x, z: DOCK.launchZ };
-  return { ...location, code, destination, rating, wear: 0, yaw: headingTo(location, ISLANDS[destination]) };
+  if (!rating.launchable || !ROUTES[origin]?.includes(destination)) return null;
+  const location = launchPoint(ISLANDS[destination], origin);
+  return { ...location, code, destination, origin, rating, wear: 0, yaw: headingTo(location, ISLANDS[destination]) };
 }
 
 export function advanceVessel(vessel, world, input, yaw, dt) {

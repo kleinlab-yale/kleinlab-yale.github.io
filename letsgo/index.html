@@ -7,9 +7,9 @@
   <link rel="icon" type="image/png" href="./favicon.png" />
   <meta name="description" content="A touch-friendly 3D brick-building sandbox in a cherry-blossom village. Explore, rebuild, and play with a friend." />
   <title>LetsGo</title>
-  <script type="module" crossorigin src="./assets/index-DldsntS2.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/three-B4YN75pz.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-jG_cPfvc.css">
+  <script type="module" crossorigin src="./assets/index-DFm_GRvy.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/three-DAgPH2oA.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-BvjUCvT1.css">
 </head>
 <body>
   <div id="game" data-screen="title">
@@ -96,6 +96,8 @@
         <button id="tea-action" class="subtle-button" type="button" hidden><span data-icon="tea" aria-hidden="true"></span><span id="tea-action-label">Brew tea</span></button>
         <button id="rescue-pet" class="subtle-button" type="button" hidden><span data-icon="paw" aria-hidden="true"></span><span id="rescue-label">Rescue pet</span></button>
         <button id="prop-action" class="subtle-button" type="button" hidden><span data-icon="object" aria-hidden="true"></span><span id="prop-action-label"></span></button>
+        <button id="trail-action" class="subtle-button" type="button" hidden><span data-icon="journal" aria-hidden="true"></span><span id="trail-action-label"></span></button>
+        <div id="pet-work" class="hull-status" hidden><label id="pet-work-label" for="pet-work-meter">Opening chest</label><progress id="pet-work-meter" max="1" value="0"></progress></div>
         <div id="voyage-direction" class="voyage-direction" hidden><span id="voyage-arrow" data-icon="up" aria-hidden="true"></span><span id="voyage-distance"></span></div>
         <div id="hull-status" class="hull-status" hidden><label for="hull-meter">Hull condition</label><meter id="hull-meter" min="0" max="100" low="25" high="60" optimum="100" value="100"></meter></div>
       </div>
@@ -146,13 +148,23 @@
         <button class="close-button" type="button" data-close="journal" data-icon="x" aria-label="Close journal"></button>
         <h2 id="journal-title">Journal</h2>
         <div class="journal-tabs option-row" role="group" aria-label="Journal pages">
-          <button type="button" data-journal-page="packs" aria-pressed="true">Build packs</button>
+          <button type="button" data-journal-page="story" aria-pressed="true">Story</button>
+          <button type="button" data-journal-page="packs" aria-pressed="false">Build packs</button>
           <button type="button" data-journal-page="pets" aria-pressed="false">Pets</button>
           <button type="button" data-journal-page="islands" aria-pressed="false">Islands</button>
         </div>
-        <section id="journal-packs" aria-label="Build packs"></section>
+        <section id="journal-story" aria-label="Story"></section>
+        <section id="journal-packs" aria-label="Build packs" hidden></section>
         <section id="journal-pets" aria-label="Pets" hidden></section>
         <section id="journal-islands" aria-label="Islands" hidden></section>
+      </div>
+    </dialog>
+
+    <dialog id="adventure-dialog" class="panel" aria-labelledby="adventure-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="adventure" data-icon="x" aria-label="Close interaction"></button>
+        <h2 id="adventure-title"></h2>
+        <div id="adventure-content"></div>
       </div>
     </dialog>
 
@@ -161,7 +173,7 @@
         <button class="close-button" type="button" data-close="voyage" data-icon="x" aria-label="Close island voyage"></button>
         <h2 id="voyage-title">Island voyage</h2>
         <div id="voyage-guide">
-          <p class="panel-copy">Build a bridge or sail to the nearby islands. A seaworthy hull will carry you across open water to Shell Cove and Cloudberry Isle.</p>
+          <p class="panel-copy">Reach the nearby islands by bridge or boat. Start farther crossings from the harbors at Shell Cove, Cloudberry Isle, and the outer islands.</p>
           <ol class="voyage-destinations" id="voyage-destinations"></ol>
           <button id="track-dock" class="button primary wide" type="button">Show dock direction</button>
           <button id="return-dock" class="button secondary wide" type="button" hidden>Return to the south dock</button>
@@ -190,6 +202,7 @@
             </section>
           </div>
           <button id="launch-boat" class="button primary wide" type="button" disabled>Launch boat</button>
+          <button id="harbor-return-home" class="text-button" type="button" hidden>Return to the south dock</button>
         </div>
       </div>
     </dialog>

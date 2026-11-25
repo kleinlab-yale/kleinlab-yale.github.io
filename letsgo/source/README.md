@@ -15,7 +15,7 @@ npm run dev
 
 Use the arrow keys or hold the on-screen movement buttons to walk on a computer. On a touch screen, drag the joystick. Drag the world to orbit your character. On a computer, either mouse button works for dragging. The buttons beside **Camera** turn the view a quarter turn at a time.
 
-On an iPhone, tap **Build** to pick a piece or edit tool. The check mark takes you back to exploring. **Journal** shows build packs, pets, and islands. **Menu** opens camera, audio, player, and room settings. Music and game sounds have separate switches.
+On an iPhone, tap **Build** to pick a piece or edit tool. The check mark takes you back to exploring. **Journal** shows the story, build packs, pets, and islands. **Menu** opens camera, audio, player, and room settings. Music and game sounds have separate switches.
 
 Start in **Explore** to walk and orbit the camera. Select **Place** or pick a brick from the tray, then tap or click a surface to build. Choose **Rotate**, **Paint**, or **Remove** and tap a placed brick to edit it. **Undo** reverses your recent edits. Use **Turn next piece** in **Parts & colors** to orient a part before placing it.
 
@@ -29,9 +29,17 @@ Use Space to jump, 1–7 to select a brick, R to rotate, Z to undo, V to change 
 
 Choose **Island voyage** and **Show dock direction** to find the south dock. At the workshop, load the simple raft or draw connected planks on the hull grid. Sail with the regular movement controls and follow the island marker. Holes and loose planks shorten your range. You can build a bridge to Lantern Island or sail there. Shell Cove and Cloudberry Isle lie across open water beyond the building area. A wider, longer hull reaches Shell Cove, and a reinforced hull reaches Cloudberry Isle. A sinking returns you to the dock with your design saved.
 
-Follow the island markers to rescue Mochi the puppy, Pebble the turtle, and Pip the rabbit. Choose a companion in **Journal → Pets**. Pets follow you on land and ride aboard your boat. Each player's rescues and build pack progress save in their browser and travel with them between solo and co-op games.
+Follow the island markers to rescue Mochi the puppy, Pebble the turtle, Pip the rabbit, Nori the otter, and Juniper the fox. Choose a companion in **Journal → Pets**. Pets follow you on land and ride aboard your boat.
 
 Walk up to the tea counter in the High Pavilion, or build one from **Objects**. Choose **Brew tea**, wait for the tea to steep, then choose **Serve tea**.
+
+## The Lantern Trail
+
+Talk to Keeper Aya in Building Meadow, or open **Journal → Story** and track the current objective. Look for chests around the valley and outlying islands. Examine a chest to see its rewards and required power, then send your active companion to work the lock. The keeper’s supply chest and the Reed drift chest refill with the tide. Spend earned coins in **Journal → Pets** to add three power per level.
+
+Recover the prism at Shell Cove and turn the three rings to match the lantern’s clue. Restoring a lantern lights its signal tower and opens the next route. The harbors on Shell Cove and Cloudberry Isle launch to the outer islands once you have the charts. If a crossing fails, you return to its departure harbor with your hull design saved.
+
+The trail unlocks the **Shipwright Pack** and the **Stargazer Pack**. The Stargazer Pack includes a working wind bell. Step up to the bell or tap it in Explore to ring it. Coins, chest rewards, pets, and story progress save in each player’s browser and follow that player into co-op.
 
 For two players, choose **Play together**, then **Create room**. **Message a friend** opens the device’s share menu when supported. **Copy invite link** copies a link that fills in the room code for your friend. Your friend can also enter the six-character code manually. Keep the host tab open during play. The host’s browser saves the shared edits. Players need no accounts or keys. The game uses WebRTC and the [shared PeerJS Cloud service](https://peerjs.com/server/cloud) for room discovery and connectivity. Access depends on the service and the players’ networks.
 

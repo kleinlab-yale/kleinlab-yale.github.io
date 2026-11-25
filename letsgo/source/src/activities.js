@@ -1,8 +1,8 @@
 import { PLATE, STUD } from './bricks.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
 import { PETS, RESCUE_REACH, followPet, lostPet } from './pets.js';
-import { DOCK, EMPTY_HULL, HULL_WIDTH, ISLANDS, SEA_LEVEL, advanceVessel, crossingDistance, dockDistance, hullPattern,
-  islandAt, launchVessel, rateHull, validHull } from './voyage.js';
+import { DOCK, EMPTY_HULL, HULL_WIDTH, ISLANDS, ROUTES, SEA_LEVEL, advanceVessel, crossingDistance, harborAt,
+  harborReturn, hullPattern, islandAt, launchVessel, rateHull, validHull } from './voyage.js';
 
 const $ = id => document.getElementById(id);
 const BOAT_KEY = 'letsgo:boat-design:1';
@@ -17,7 +17,7 @@ export function objectDistance(player, brick) {
 }
 
 export function createActivities({ world, graphics, getPlayer, openDialog, resume, toast, sound, read, save,
-  progress, achieve, sendTea, use, turnTo }) {
+  progress, achieve, sendTea, use, turnTo, expedition }) {
   const game = $('game');
   const boatGrid = $('boat-grid');
   const destination = $('voyage-destination');
@@ -32,13 +32,13 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   let brush = 1;
   let painting = null;
   let vessel = null;
+  let departure = 'home';
   let tracking = false;
   let stations = {};
   let lastScan = -Infinity;
   let companion = null;
 
-  for (const [key, island] of Object.entries(ISLANDS)) {
-    destination.add(new Option(island.name, key));
+  for (const key of Object.keys(ISLANDS)) {
     const step = document.createElement('li');
     step.id = `${key}-progress`;
     $('voyage-destinations').append(step);
@@ -46,7 +46,20 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   const rescueStep = document.createElement('li');
   rescueStep.id = 'puppy-progress';
   $('voyage-destinations').append(rescueStep);
-  destination.value = Object.keys(ISLANDS).find(key => !progress.visited(key)) ?? 'berry';
+
+  function choices(harbor) {
+    const prior = harbor === departure ? destination.value : '';
+    departure = harbor;
+    destination.replaceChildren();
+    for (const key of ROUTES[departure]) {
+      const available = progress.charted(key);
+      const option = new Option(available ? ISLANDS[key].name : `${ISLANDS[key].name} · chart locked`, key);
+      option.disabled = !available;
+      destination.add(option);
+    }
+    const available = ROUTES[departure].filter(progress.charted);
+    destination.value = available.includes(prior) ? prior : available.find(key => !progress.visited(key)) ?? available[0] ?? '';
+  }
 
   function placeIslandPets() {
     for (const id of Object.keys(PETS)) {
@@ -72,9 +85,9 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     ].filter(Boolean).join(' ');
     $('boat-advice').dataset.warning = String(Boolean(rating.holes || rating.loose));
     const target = ISLANDS[destination.value];
-    const needed = crossingDistance(target);
-    $('destination-range').textContent = `${target.name} is about ${needed} m away. ${rating.launchable && rating.range < needed ? 'Add or reinforce planks for this crossing.' : ''}`;
-    $('launch-boat').disabled = !rating.launchable;
+    const needed = target ? crossingDistance(target, departure) : 0;
+    $('destination-range').textContent = target ? `${target.name} is about ${needed} m away. ${rating.launchable && rating.range < needed ? 'Add or reinforce planks for this crossing.' : ''}` : 'Restore a sea lantern to chart the next crossing.';
+    $('launch-boat').disabled = !rating.launchable || !target || !progress.charted(destination.value);
   }
 
   function design(value) {
@@ -124,15 +137,22 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     graphics.vessel('local', vessel);
   }
 
-  function dock() {
+  function dock(origin = 'home') {
     vessel = null;
-    const player = getPlayer();
-    Object.assign(player, { x: DOCK.x, y: DOCK.y, z: DOCK.z, velocity: 0, grounded: true, moving: false, sprinting: false });
+    const home = harborReturn(origin);
+    let spot = home;
+    for (const [dx, dz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const x = home.x + dx * STUD;
+      const z = home.z + dz * STUD;
+      const y = world.groundBetween(x, z, 0.23, SEA_LEVEL + 0.03, 1.8);
+      if (Number.isFinite(y) && !world.collides(world.playerBox(x, y, z, 0.23, 1.49))) { spot = { x, y, z }; break; }
+    }
+    Object.assign(getPlayer(), spot, { velocity: 0, grounded: true, moving: false, sprinting: false });
     tracking = false;
     updateBoatView();
   }
 
-  function atDock(player) { return !vessel && dockDistance(player) < 5.5 && player.y > SEA_LEVEL; }
+  function atDock(player) { return vessel ? null : harborAt(player); }
 
   function openVoyage() {
     const player = getPlayer();
@@ -140,9 +160,10 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     const island = islandAt(player.x, player.z);
     $('boat-workshop').hidden = !workshop;
     $('voyage-guide').hidden = workshop;
-    $('voyage-title').textContent = workshop ? 'Boat workshop' : 'Island voyage';
+    $('voyage-title').textContent = workshop && workshop !== 'home' ? `${ISLANDS[workshop].name} harbor` : workshop ? 'Boat workshop' : 'Island voyage';
     $('track-dock').hidden = Boolean(vessel || island);
     $('return-dock').hidden = !vessel && !island;
+    $('harbor-return-home').hidden = !workshop || workshop === 'home';
     for (const [key, target] of Object.entries(ISLANDS)) {
       const step = $(`${key}-progress`);
       step.textContent = progress.visited(key) ? `Reached ${target.name}` : `Reach ${target.name}`;
@@ -150,19 +171,21 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     }
     rescueStep.textContent = progress.rescued('mochi') ? 'Mochi rescued' : 'Rescue Mochi';
     rescueStep.dataset.done = String(progress.rescued('mochi'));
-    if (workshop) review();
+    if (workshop) { choices(workshop); review(); }
     openDialog();
   }
 
   $('voyage-button').onclick = openVoyage;
-  $('track-dock').onclick = () => { tracking = true; resume(); };
-  $('return-dock').onclick = () => { dock(); resume(); toast('Back at the south dock.'); };
+  $('track-dock').onclick = () => { tracking = true; expedition.stopTracking(); resume(); };
+  const returnHome = () => { dock(); resume(); toast('Back at the south dock.'); };
+  $('return-dock').onclick = returnHome;
+  $('harbor-return-home').onclick = returnHome;
   $('raft-pattern').onclick = () => design(hullPattern('raft'));
   $('hull-pattern').onclick = () => design(hullPattern('hull'));
   destination.onchange = review;
   $('launch-boat').onclick = () => {
-    if (!atDock(getPlayer())) return;
-    vessel = launchVessel(code, destination.value);
+    if (atDock(getPlayer()) !== departure || !progress.charted(destination.value)) return;
+    vessel = launchVessel(code, destination.value, departure);
     if (!vessel) return;
     tracking = false;
     turnTo(vessel.yaw);
@@ -172,14 +195,9 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   };
 
   function arrive(island) {
-    const first = !progress.visited(island);
     const pet = PET_BY_ISLAND[island];
     const target = !pet || progress.rescued(pet) ? '' : ` Look for ${PETS[pet].name}.`;
     achieve('visit', island, `You reached ${ISLANDS[island].name}.${target}`);
-    if (first) {
-      const next = Object.keys(ISLANDS).find(key => !progress.visited(key));
-      if (next) destination.value = next;
-    }
   }
 
   function move(input, yaw, dt) {
@@ -188,7 +206,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     const outcome = advanceVessel(vessel, world, input, yaw, dt);
     if (outcome.sunk) {
       const message = vessel.rating.holes ? 'Your boat took on water. Fill the holes and try again.' : 'Your hull wore out. Add planks or reinforcement for more range.';
-      dock();
+      dock(vessel.origin);
       toast(message);
     } else if (outcome.shore) {
       Object.assign(player, outcome.shore, { velocity: 0, grounded: true, moving: false, sprinting: false });
@@ -274,25 +292,21 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
 
   propButton.onclick = () => { if (stations.prop) use(stations.prop); };
 
-  function updatePrompts(player, pet, now) {
+  function updatePrompts(player, pet, now, adventureNearby) {
     const canRescue = Boolean(withinRescue(player, pet));
     rescueButton.hidden = !canRescue;
     if (canRescue) updateText($('rescue-label'), `Rescue ${PETS[pet.id].name}`);
-    if (now - lastScan >= 150) {
-      lastScan = now;
-      stations = vessel ? {} : scanStations(player, now);
-    }
     const counter = world.bricks.get(stations.tea);
     const item = world.bricks.get(stations.prop);
     const preferTea = counter && (!item || objectDistance(player, counter) <= objectDistance(player, item));
-    teaButton.hidden = Boolean(vessel || canRescue || !preferTea);
-    propButton.hidden = Boolean(vessel || canRescue || preferTea || !item);
+    teaButton.hidden = Boolean(vessel || canRescue || adventureNearby || !preferTea);
+    propButton.hidden = Boolean(vessel || canRescue || adventureNearby || preferTea || !item);
     if (preferTea) {
       const phase = teaPhase(counter.id, now);
       teaButton.disabled = phase === 'brewing' || phase === 'served';
       updateText($('tea-action-label'), { idle: 'Brew tea', brewing: 'Steeping tea…', ready: 'Serve tea', served: 'Tea served' }[phase]);
     } else if (item) {
-      const label = item.form === 'door' ? (item.active ? 'Close door' : 'Open door') : (item.active ? 'Turn light off' : 'Turn light on');
+      const label = item.form === 'windbell' ? 'Ring wind bell' : item.form === 'door' ? (item.active ? 'Close door' : 'Open door') : (item.active ? 'Turn light off' : 'Turn light on');
       updateText($('prop-action-label'), label);
     }
   }
@@ -305,18 +319,26 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     const player = getPlayer();
     const island = !vessel && player.grounded && player.y < 1.9 ? islandAt(player.x, player.z) : null;
     if (island && !ISLANDS[island].offshore && !progress.visited(island)) arrive(island);
+    const pet = pendingPet(player);
+    if (now - lastScan >= 150) {
+      lastScan = now;
+      stations = vessel ? {} : scanStations(player, now);
+    }
+    const counter = world.bricks.get(stations.tea);
+    const prop = world.bricks.get(stations.prop);
+    const otherReach = Math.min(counter ? objectDistance(player, counter) : Infinity, prop ? objectDistance(player, prop) : Infinity);
+    const adventure = expedition.tick(player, dt, now, Boolean(vessel || withinRescue(player, pet)), otherReach);
     const active = progress.companion;
     if (active) {
-      const pose = followPet(companion, player, world, dt, Boolean(vessel));
-      companion = pose ? { ...pose, id: active } : null;
+      const pose = followPet(companion, player, world, dt, Boolean(vessel), adventure.work);
+      companion = pose ? { ...pose, id: active, working: Boolean(adventure.work) && !pose.moving } : null;
       graphics.pet('local', companion);
     }
     const nearDock = atDock(player);
-    game.dataset.atDock = String(nearDock);
-    updateText($('voyage-button').lastChild, nearDock ? 'Boat workshop' : 'Island voyage');
-    const pet = pendingPet(player);
+    game.dataset.atDock = String(Boolean(nearDock));
+    updateText($('voyage-button').lastChild, nearDock === 'home' ? 'Boat workshop' : nearDock ? 'Harbor workshop' : 'Island voyage');
     const target = vessel ? ISLANDS[vessel.destination] : pet ? { ...pet, name: PETS[pet.id].name } :
-      tracking && !nearDock ? { ...DOCK, name: 'South dock' } : null;
+      tracking && !nearDock ? { ...DOCK, name: 'South dock' } : expedition.waypoint;
     $('voyage-direction').hidden = !target;
     if (target) {
       const distance = Math.round(Math.hypot(target.x - player.x, target.z - player.z));
@@ -324,7 +346,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
       $('voyage-arrow').style.transform = `rotate(${bearing}rad)`;
       updateText($('voyage-distance'), `${target.name} · ${distance} m`);
     }
-    updatePrompts(player, pet, now);
+    updatePrompts(player, pet, now, adventure.nearby);
   }
 
   return {
@@ -332,6 +354,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     get pose() { return vessel ? { code: vessel.code, yaw: vessel.yaw } : null; },
     get companion() { return companion; },
     openVoyage,
+    stopDockTracking() { tracking = false; },
     move,
     tick,
     reset() {
@@ -341,6 +364,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
       tea.clear();
       stations = {};
       lastScan = -Infinity;
+      expedition.reset();
       graphics.pet('local', null);
       placeIslandPets();
       updateBoatView();

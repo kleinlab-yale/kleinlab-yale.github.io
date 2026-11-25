@@ -3,7 +3,7 @@ import { canBuildAt } from './islands.js';
 
 export const STUD = 0.55;
 export const PLATE = 0.17;
-export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: 252, minY: -9, maxY: 105 };
+export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: 403, minY: -9, maxY: 105 };
 export const REACH = 13;
 export const MAX_EDITS = 6000;
 export const WORLD_SAVE_VERSION = 2;
@@ -18,7 +18,7 @@ export const TONES = {
   bark: '#523932', darkBark: '#382c2a', warmBark: '#704c3b', cedar: '#a66d45',
   oak: '#ba885e', redwood: '#8c5140', lacquer: '#a44137', vermilion: '#bb533e',
   redTrim: '#743a35', beam: '#4a3930', shadow: '#303638', ink: '#2d4043',
-  teal: '#405d5b', jade: '#53726e', tile: '#536766', patina: '#6c8380',
+  teal: '#405d5b', jade: '#53726e', tile: '#536766', patina: '#6c8380', blueGray: '#68909c',
   gold: '#c49658', paper: '#ffd397', amber: '#ffba64', milk: '#eadcc5',
   fern: '#476649', sage: '#728665', reed: '#a3a16d', pearl: '#ffffed',
 };

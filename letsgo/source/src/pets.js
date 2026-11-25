@@ -3,15 +3,17 @@ import { ISLAND_LAYOUT } from './islands.js';
 import { SEA_LEVEL } from './voyage.js';
 
 export const RESCUE_REACH = 2.45;
-function pet(name, kind, island, dx, dz) {
+function pet(name, kind, island, dx, dz, power) {
   const { gridX, gridZ } = ISLAND_LAYOUT[island];
-  return { name, kind, island, x: (gridX + dx) * STUD, z: (gridZ + dz) * STUD };
+  return { name, kind, island, x: (gridX + dx) * STUD, z: (gridZ + dz) * STUD, power };
 }
 
 export const PETS = {
-  mochi: pet('Mochi', 'Puppy', 'lantern', 2.5, -5.5),
-  pebble: pet('Pebble', 'Turtle', 'shell', 2.5, -4.5),
-  pip: pet('Pip', 'Rabbit', 'berry', 3.5, -5.5),
+  mochi: pet('Mochi', 'Puppy', 'lantern', 2.5, -5.5, 3),
+  pebble: pet('Pebble', 'Turtle', 'shell', 2.5, -4.5, 5),
+  pip: pet('Pip', 'Rabbit', 'berry', 3.5, -5.5, 7),
+  nori: pet('Nori', 'Otter', 'reef', -4.5, -3.5, 10),
+  juniper: pet('Juniper', 'Fox', 'moon', 2.5, -4.5, 14),
 };
 const RADIUS = 0.15;
 
@@ -42,13 +44,13 @@ function restingSpot(world, player) {
   return null;
 }
 
-export function followPet(previous, player, world, dt, aboard) {
+export function followPet(previous, player, world, dt, aboard, work = null) {
   if (aboard) {
     return { x: player.x - Math.sin(player.yaw) * 0.41, y: player.y,
       z: player.z - Math.cos(player.yaw) * 0.41, yaw: player.yaw, moving: false, aboard: true };
   }
   if (!player.grounded && previous) return { ...previous, moving: false };
-  const spot = restingSpot(world, player);
+  const spot = work ?? restingSpot(world, player);
   if (!spot) return previous && { ...previous, moving: false };
   if (!previous || previous.aboard) return spot;
   const separation = Math.hypot(player.x - previous.x, player.y - previous.y, player.z - previous.z);
@@ -56,7 +58,7 @@ export function followPet(previous, player, world, dt, aboard) {
   const dx = spot.x - previous.x;
   const dz = spot.z - previous.z;
   const distance = Math.hypot(dx, dz);
-  if (distance < 0.16) return { ...previous, moving: false };
+  if (distance < 0.16) return { ...previous, moving: false, yaw: work?.yaw ?? previous.yaw };
   const fraction = Math.min(1, (3.4 + separation * 0.75) * dt / distance);
   const x = previous.x + dx * fraction;
   const z = previous.z + dz * fraction;

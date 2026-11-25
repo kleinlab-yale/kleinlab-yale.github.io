@@ -32,6 +32,9 @@ export function createWorldObjects(scene, body) {
   const turtleSkin = material('#99af7d', 0.45);
   const rabbitFur = material('#d9c9dc', 0.42);
   const rabbitCream = material('#f4e7e6', 0.38);
+  const foxFur = material('#c9784c', 0.44);
+  const otterFur = material('#80543d', 0.48);
+  const earPoint = new THREE.ConeGeometry(0.5, 1, 4);
   const sphere = new THREE.SphereGeometry(0.5, 14, 9);
   const ring = new THREE.TorusGeometry(0.155, 0.022, 7, 18);
   const cylinder = new THREE.CylinderGeometry(0.5, 0.42, 1, 15);
@@ -271,6 +274,44 @@ export function createWorldObjects(scene, body) {
     return { group, body, head, tail, legs };
   }
 
+  function newWildPet(fox, adopted) {
+    const group = new THREE.Group();
+    const body = new THREE.Group();
+    const head = new THREE.Group();
+    const tail = new THREE.Group();
+    group.add(body);
+    body.add(head, tail);
+    const coat = fox ? foxFur : otterFur;
+    const height = fox ? 0.29 : 0.19;
+    box(body, coat, 0, height, 0.025, fox ? 0.31 : 0.35, 0.24, 0.48);
+    box(body, puppyCream, 0, height - 0.025, -0.095, 0.265, 0.185, 0.235);
+    head.position.set(0, height + 0.128, -0.225);
+    box(head, coat, 0, 0.063, 0.018, 0.352, 0.251, 0.277);
+    box(head, puppyCream, 0, -0.007, -0.131, 0.239, 0.127, 0.148);
+    box(head, puppyNose, 0, 0.019, -0.207, 0.077, 0.05, 0.046);
+    for (const side of [-1, 1]) {
+      const ear = mesh(head, fox ? earPoint : sphere, coat, side * 0.131, fox ? 0.251 : 0.17, 0.017,
+        fox ? 0.157 : 0.114, fox ? 0.223 : 0.104, 0.10);
+      ear.rotation.z = -side * 0.19;
+      if (fox) mesh(head, earPoint, puppyTongue, side * 0.133, 0.249, -0.029, 0.09, 0.16, 0.029);
+      mesh(head, sphere, puppyNose, side * 0.097, 0.088, -0.126, 0.047, 0.055, 0.025);
+      mesh(head, sphere, porcelain, side * 0.097 - 0.007, 0.099, -0.138, 0.016, 0.018, 0.008);
+    }
+    if (adopted) box(body, jade, 0, height + 0.075, -0.153, 0.325, 0.048, 0.116);
+    const legs = [];
+    for (const z of [-0.141, 0.158]) for (const x of [-0.103, 0.103]) {
+      const leg = new THREE.Group();
+      leg.position.set(x, height - 0.091, z);
+      box(leg, fox ? caramel : coat, 0, (0.07 - leg.position.y) / 2, -0.018, 0.113, leg.position.y + 0.036, 0.141);
+      body.add(leg);
+      legs.push(leg);
+    }
+    tail.position.set(0, height - 0.007, 0.236);
+    box(tail, coat, 0, fox ? 0.07 : -0.027, 0.133, fox ? 0.18 : 0.124, fox ? 0.173 : 0.077, 0.293).rotation.x = fox ? -0.39 : 0.17;
+    box(tail, fox ? rabbitCream : coat, 0, fox ? 0.143 : -0.045, 0.269, fox ? 0.149 : 0.069, fox ? 0.134 : 0.062, 0.143).rotation.x = fox ? -0.43 : 0.14;
+    return { group, body, head, tail, legs };
+  }
+
   return {
     sync,
     tea(id, action) {
@@ -303,7 +344,8 @@ export function createWorldObjects(scene, body) {
       if (data && current?.id !== data.id) {
         if (current) root.remove(current.group);
         const adopted = !key.startsWith('island-');
-        const model = data.id === 'pip' ? newRabbit(adopted) : data.id === 'pebble' ? newTurtle(adopted) : newPuppy(adopted);
+        const model = data.id === 'mochi' ? newPuppy(adopted) : data.id === 'pebble' ? newTurtle(adopted) :
+          data.id === 'pip' ? newRabbit(adopted) : newWildPet(data.id === 'juniper', adopted);
         current = { ...model, id: data.id, target: null, stride: 0, yaw: 0 };
         root.add(current.group);
         pets.set(key, current);
@@ -359,6 +401,7 @@ export function createWorldObjects(scene, body) {
         body.position.y = Math.abs(swing) * (id === 'pip' ? 0.16 : 0.035) + (target.aboard ? Math.sin(time * 3.4) * 0.024 : 0);
         tail.rotation.y = Math.sin(time * (island ? 4 : 8.6)) * (id === 'mochi' ? 0.51 : 0.12);
         head.rotation.z = Math.sin(time * 1.5) * (island ? 0.13 : 0.05);
+        head.rotation.x = target.working ? Math.sin(time * 21) * 0.29 : 0;
       }
     },
   };

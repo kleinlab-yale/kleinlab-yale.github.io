@@ -127,7 +127,7 @@ function ridge(zBase, shade, side = 0, variant = 0) {
 }
 
 function makeWater(lowPower) {
-  const water = new Reflector(new THREE.PlaneGeometry(402, 402), {
+  const water = new Reflector(new THREE.PlaneGeometry(550, 550), {
     textureWidth: lowPower ? 384 : 768,
     textureHeight: lowPower ? 256 : 448,
     multisample: 0,
@@ -241,7 +241,7 @@ export function dressScene(scene, renderer, lowPower) {
   scene.environment = makeEnvironment(renderer);
   scene.environmentIntensity = 0.63;
   scene.add(ridge(-142, '#77768e', 0, 1.5), ridge(-106, '#656e81', 0, 0.4), ridge(-76, '#526b69', 0, 2.2));
-  scene.add(ridge(-108, '#6b7482', -1.2, 4.4), ridge(-89, '#677b76', 1.32, 3.3), ridge(-166, '#78848c', 3.04, 5.7));
+  scene.add(ridge(-108, '#6b7482', -1.2, 4.4), ridge(-89, '#677b76', 1.32, 3.3), ridge(-248, '#78848c', 3.04, 5.7));
   const light = new THREE.DirectionalLight('#ffdfbe', 2.85);
   light.position.copy(sun.clone().multiplyScalar(62));
   light.castShadow = true;

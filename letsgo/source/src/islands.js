@@ -5,6 +5,8 @@ export const ISLAND_LAYOUT = {
   lantern: { name: 'Lantern Island', gridX: 28, gridZ: 129, rx: 12, rz: 9 },
   shell: { name: 'Shell Cove', gridX: -31, gridZ: 188, rx: 11, rz: 8, offshore: true },
   berry: { name: 'Cloudberry Isle', gridX: -11, gridZ: 236, rx: 12, rz: 9, offshore: true },
+  reef: { name: 'Driftglass Reef', gridX: 43, gridZ: 285, rx: 14, rz: 11, offshore: true },
+  moon: { name: 'Moonbell Isle', gridX: -28, gridZ: 382, rx: 14, rz: 11, offshore: true },
 };
 
 const offshore = Object.values(ISLAND_LAYOUT).filter(island => island.offshore);

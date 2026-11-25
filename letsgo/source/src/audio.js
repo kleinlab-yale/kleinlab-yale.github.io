@@ -121,6 +121,11 @@ export function createAudio(saved, save) {
       for (const [i, note] of [72, 76, 79].entries()) pluck(effects, now + i * 0.09, note, 0.055, 0.56);
       return;
     }
+    if (kind === 'bell') {
+      pluck(effects, now, 81, 0.087, 1.7);
+      pluck(effects, now + 0.028, 88, 0.036, 1.1);
+      return;
+    }
     const note = { place: 394, remove: 252, rotate: 510, paint: 620, use: 435, step: 98 }[kind] ?? 360;
     const amount = kind === 'step' ? 0.023 : 0.081;
     const oscillator = context.createOscillator();

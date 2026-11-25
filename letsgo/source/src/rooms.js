@@ -5,7 +5,7 @@ import { PETS } from './pets.js';
 import { validHull } from './voyage.js';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const PROTOCOL = 4;
+const PROTOCOL = 5;
 const PREFIX = `brickbloom-v${PROTOCOL}-`;
 const TIMEOUT = 24000;
 const HEARTBEAT_INTERVAL = 2400;
@@ -167,7 +167,7 @@ export function createRooms(events) {
           sprinting: payload.sprinting === true, grounded: payload.grounded === true,
           boat: sailing ? { code: boat.code, yaw: boat.yaw } : null,
           pet: companion ? { id: pet.id, x: pet.x, y: pet.y, z: pet.z, yaw: pet.yaw,
-            moving: pet.moving === true, aboard: sailing && pet.aboard === true } : null });
+            moving: pet.moving === true, aboard: sailing && pet.aboard === true, working: !sailing && pet.working === true } : null });
       } else if (type === 'appearance') {
         const look = readAppearance(payload);
         if (look) events.appearance(look);

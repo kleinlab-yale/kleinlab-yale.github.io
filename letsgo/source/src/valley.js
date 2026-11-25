@@ -498,6 +498,54 @@ function buildOuterIslands(world, make) {
   }
 }
 
+function buildLanternTrail(world, make) {
+  for (const key of ['reef', 'moon']) {
+    const { gridX: cx, gridZ: cz, rx, rz } = ISLANDS[key];
+    const reef = key === 'reef';
+    for (let z = cz - rz; z <= cz + rz; z++) {
+      for (let x = cx - rx; x <= cx + rx; x++) {
+        const edge = ((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2;
+        if (edge > 0.91 + noise(x, 42, z) * 0.14) continue;
+        const paving = Math.abs(x - cx) < 3 || Math.abs(z - cz) < 2;
+        const bank = edge > 0.73;
+        const top = bank ? -1 : 0;
+        const colors = reef ? ['teal', 'jade', 'patina', 'reed'] : ['ink', 'shale', 'olive', 'lichen'];
+        const surface = bank ? (reef ? 'sand' : 'shale') : pick(paving ? ['chalk', 'gravel', 'cream'] : colors, noise(x, 32, z));
+        world.seed(x, -7, z, 1, top + 5, 1, reef ? 'sand' : 'soil', false);
+        world.seed(x, top - 2, z, 1, 2, 1, surface);
+        if (!bank && !paving && Math.abs(x - cx) > 7 && noise(x, 24, z) > 0.92) {
+          world.seed(x, 0, z, 1, 1, 1, pick(reef ? ['rose', 'ivory', 'blush'] : ['gold', 'wine', 'petal'], noise(x, 7, z)), true, 'flower');
+        }
+      }
+    }
+    if (reef) {
+      for (const [dx, dz] of [[-8, 3], [7, -3], [9, 4], [-6, -6]]) {
+        for (const [a, b, height] of [[0, 0, 7], [1, 1, 4], [-1, -1, 3]]) {
+          make.post(cx + dx + a, 0, cz + dz + b, 1, height, 1, ['rose', 'salmon', 'ivory']);
+          world.seed(cx + dx + a, height, cz + dz + b, 1, 1, 1, 'blush', true, 'flower');
+        }
+      }
+      make.torii(cx, cz + 5, 0, 8, 11);
+      make.gardenLamp(cx - 6, cz + 1);
+      make.gardenLamp(cx + 5, cz + 5);
+    } else {
+      make.slab(cx - 5, 0, cz + 2, 11, 1, 7, ['stone', 'chalk', 'shale']);
+      const towerZ = cz + 5;
+      for (const [width, bottom, height, tones] of [[7, 1, 3, ['ink', 'teal']], [5, 4, 5, ['chalk', 'blueGray']], [5, 9, 4, ['milk', 'chalk']],
+        [7, 13, 2, ['redTrim', 'beam']], [5, 15, 4, ['paper', 'cream']], [7, 19, 2, ['teal', 'ink']], [3, 21, 3, ['gold', 'ink']]]) {
+        const offset = Math.floor(width / 2);
+        for (let z = towerZ - offset; z <= towerZ + offset; z++) {
+          make.row(cx - offset, bottom, z, width, height, pick(tones, noise(z, 41, bottom)), 'x', true, 3);
+        }
+      }
+      make.gardenLamp(cx - 6, cz);
+      make.gardenLamp(cx + 6, cz);
+      tree(world, cx + 8, cz + 2, 0.44);
+      tree(world, cx - 8, cz + 2, 0.4);
+    }
+  }
+}
+
 export function makeValley() {
   const world = new BrickWorld();
   seedTerrain(world);
@@ -535,6 +583,7 @@ export function makeValley() {
   }
   buildVoyage(world, make);
   buildOuterIslands(world, make);
+  buildLanternTrail(world, make);
   return world;
 }
 

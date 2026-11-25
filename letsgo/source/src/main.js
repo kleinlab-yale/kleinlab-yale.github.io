@@ -15,6 +15,7 @@ import { createAudio } from './audio.js';
 import { createActivities, objectDistance } from './activities.js';
 import { createJournal } from './journal.js';
 import { createProgress } from './progression.js';
+import { createExpedition } from './expedition.js';
 import { district, makeValley } from './valley.js';
 
 const $ = id => document.getElementById(id);
@@ -115,7 +116,7 @@ function boot() {
   let controlsFromPause = false;
   let appearanceFromPause = false;
   const dialogs = { pause: $('pause-dialog'), room: $('room-dialog'), controls: $('controls-dialog'), appearance: $('appearance-dialog'),
-    parts: $('parts-dialog'), voyage: $('voyage-dialog'), journal: $('journal-dialog') };
+    parts: $('parts-dialog'), voyage: $('voyage-dialog'), journal: $('journal-dialog'), adventure: $('adventure-dialog') };
   const compactTools = Array.from(document.querySelectorAll('[data-compact-tool]'));
 
   function toast(message) {
@@ -129,6 +130,15 @@ function boot() {
     const packs = progress.record(action, id);
     if (packs.length || action === 'rescue') audio.tap('reward');
     if (packs.length || message) toast([message, ...packs.map(key => `${BUILD_PACKS[key].name} unlocked.`)].filter(Boolean).join(' '));
+  }
+
+  function celebrate(message, packs) {
+    audio.tap('reward');
+    toast([message, ...packs.map(key => `${BUILD_PACKS[key].name} unlocked.`)].join(' '));
+  }
+
+  function playEditSound(kind, edits) {
+    audio.tap(kind === 'use' && edits[0]?.brick?.form === 'windbell' ? 'bell' : kind);
   }
 
   function save() {
@@ -224,7 +234,7 @@ function boot() {
       return;
     }
     dialogs[name].close();
-    if (name === 'parts' || name === 'voyage' || name === 'journal') enter();
+    if (name === 'parts' || name === 'voyage' || name === 'journal' || name === 'adventure') enter();
     if (name === 'controls' && controlsFromPause) dialogs.pause.showModal();
     if (name === 'appearance' && screen === 'pause') {
       if (appearanceFromPause) dialogs.pause.showModal();
@@ -310,12 +320,12 @@ function boot() {
       if (!remote) return { error: 'blocked' };
       const result = visitor.perform(request, localBoxes(), brick => request?.kind === 'use' ?
         objectDistance(remote, brick) < 3.1 : reachFrom(remote, brick, 1.15));
-      if (result.edits) audio.tap(request.kind);
+      if (result.edits) playEditSound(request.kind, result.edits);
       return result;
     },
     change: (edits, kind, guestEdit) => {
       if (!world.patch(edits)) return false;
-      audio.tap(kind ?? (edits.every(edit => !edit.brick) ? 'remove' : 'place'));
+      playEditSound(kind ?? (edits.every(edit => !edit.brick) ? 'remove' : 'place'), edits);
       if (guestEdit && kind === 'place') achieve('place');
       return true;
     },
@@ -459,11 +469,12 @@ function boot() {
     buildMenu.open(mode, color, kitKey);
   }
 
-  function showJournal() {
-    if (screen !== 'play' && !dialogs.parts.open) return;
+  function showJournal(page) {
+    if (screen !== 'play' && !dialogs.parts.open && !dialogs.adventure.open) return;
     dialogs.parts.close();
+    dialogs.adventure.close();
     setScreen('pause');
-    journal.open();
+    journal.open(page);
     dialogs.journal.showModal();
   }
 
@@ -480,7 +491,7 @@ function boot() {
     pick: () => { setTool('pick'); enter(); },
     turn: () => { turnNext(); enter(); },
     unlocked: progress.unlocked,
-    journal: showJournal,
+    journal: () => showJournal('packs'),
     workshop: () => activities.openVoyage(),
   });
   select(quickParts[0], 'explore');
@@ -515,7 +526,7 @@ function boot() {
       objectDistance(player, brick) < 2.55 : reachFrom(player, brick));
     if (result.edits) {
       rooms.broadcast(result.edits, request.kind);
-      audio.tap(request.kind);
+      playEditSound(request.kind, result.edits);
       if (request.kind === 'place') achieve('place');
     } else {
       if (result.error === 'changed') save();
@@ -562,13 +573,20 @@ function boot() {
     if (brick && PLACEABLE_OBJECTS[brick.form]?.interaction && objectDistance(player, brick) <= 2.5) runEdit({ kind: 'use', id });
   }
 
-  const activities = createActivities({ world, graphics, getPlayer: () => player,
+  const expedition = createExpedition({ world, model: graphics.adventure, getPlayer: () => player, progress,
+    open: () => { setScreen('pause'); dialogs.adventure.showModal(); }, resume: enter,
+    openPets: () => showJournal('pets'), toast, sound: audio.tap, celebrate,
+  });
+  const activities = createActivities({ world, graphics, getPlayer: () => player, expedition,
     openDialog: () => { dialogs.journal.close(); dialogs.parts.close(); setScreen('pause'); dialogs.voyage.showModal(); },
     resume: enter, toast, sound: audio.tap, progress, achieve, use: useProp,
     read: stored, save: remember, sendTea: action => { sendPose(); rooms.tea(action); },
     turnTo: yaw => { orbit.yaw = yaw; orbit.pitch = -0.24; },
   });
-  const journal = createJournal(dialogs.journal, progress, { selectKit: key => showParts('all', key), voyage: activities.openVoyage });
+  const journal = createJournal(dialogs.journal, progress, {
+    selectKit: key => showParts('all', key), voyage: activities.openVoyage, trainSound: () => audio.tap('reward'),
+    track: (type, id) => { activities.stopDockTracking(); expedition.track(type, id); enter(); },
+  });
 
   function resetPlayer() {
     activities.reset();
@@ -717,7 +735,7 @@ function boot() {
   $('open-objects').onclick = () => showParts('objects');
   $('phone-build-button').onclick = () => showParts('all');
   $('phone-explore-button').onclick = () => { setTool('explore'); canvas.focus({ preventScroll: true }); };
-  $('journal-button').onclick = showJournal;
+  $('journal-button').onclick = () => showJournal('story');
   for (const button of compactTools) button.onclick = () => {
     const kind = button.dataset.compactTool;
     if (kind === 'paint' && color === null) {

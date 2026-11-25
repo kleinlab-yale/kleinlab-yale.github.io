@@ -88,6 +88,20 @@ export function createHouseObjects(scene, brickGeometry) {
     return globe;
   }
 
+  function makeBell(group, tone, height) {
+    mesh(group, paint('stone'), 0, 0.069, 0, 0.51, 0.14, 0.49);
+    for (const side of [-1, 1]) mesh(group, paint('beam'), side * 0.205, height / 2, 0, 0.062, height, 0.145);
+    mesh(group, paint('teal'), 0, height - 0.056, 0, 0.535, 0.11, 0.31);
+    const swinging = new THREE.Group();
+    swinging.position.y = height - 0.11;
+    group.add(swinging);
+    mesh(swinging, paint('cream'), 0, -0.08, 0, 0.026, 0.16, 0.026);
+    mesh(swinging, tone, 0, -0.247, 0, 0.279, 0.26, 0.279, round);
+    mesh(swinging, paint('gold'), 0, -0.37, 0, 0.318, 0.055, 0.318, round);
+    mesh(swinging, paint('redTrim'), 0, -0.45, 0, 0.042, 0.18, 0.035);
+    return swinging;
+  }
+
   function create(brick) {
     const group = new THREE.Group();
     const { size: [w, d] } = PLACEABLE_OBJECTS[brick.form];
@@ -95,18 +109,20 @@ export function createHouseObjects(scene, brickGeometry) {
     const tone = paint(brick.tone);
     let door = null;
     let light = null;
+    let bell = null;
     switch (brick.form) {
       case 'door': door = makeDoor(group, tone, height); break;
       case 'window': makeWindow(group, tone, height); break;
       case 'lamp':
       case 'beacon': light = makeLantern(group, brick.form, tone, height); break;
+      case 'windbell': bell = makeBell(group, tone, height); break;
       default: makeFurniture(group, brick.form, tone, height, w * STUD, d * STUD);
     }
     group.position.set((brick.x + brick.w / 2) * STUD, brick.y * PLATE, (brick.z + brick.d / 2) * STUD);
     group.rotation.y = -brick.turn * Math.PI / 2;
     if (door) door.rotation.y = brick.active ? -Math.PI / 2 : 0;
     scene.add(group);
-    return { brick, group, door, light };
+    return { brick, group, door, light, bell, swing: 0 };
   }
 
   return {
@@ -114,6 +130,7 @@ export function createHouseObjects(scene, brickGeometry) {
       for (const [id, item] of placed) {
         const brick = world.bricks.get(id);
         if (sameBrick(item.brick, brick, false)) {
+          if (item.bell && item.brick.active !== brick.active) item.swing = 1.2;
           item.brick = brick;
           continue;
         }
@@ -126,9 +143,14 @@ export function createHouseObjects(scene, brickGeometry) {
     },
     animate(dt, reducedMotion) {
       const weight = reducedMotion ? 1 : 1 - Math.exp(-dt * 13);
-      for (const { brick, door, light } of placed.values()) {
+      for (const item of placed.values()) {
+        const { brick, door, light, bell } = item;
         if (door) door.rotation.y += ((brick.active ? -Math.PI / 2 : 0) - door.rotation.y) * weight;
         if (light) light.material = brick.active ? amber : dim;
+        if (bell && item.swing > 0) {
+          item.swing = Math.max(0, item.swing - dt);
+          bell.rotation.z = reducedMotion ? 0 : Math.sin((1.2 - item.swing) * 20) * item.swing * 0.17;
+        }
       }
     },
   };

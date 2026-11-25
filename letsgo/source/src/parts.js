@@ -7,6 +7,8 @@ export const BUILD_PACKS = {
   furnishings: { name: 'Furnishings Pack', goal: 'Brew and serve blossom tea', contents: 'Couch, chair, dining table and a low bench' },
   garden: { name: 'Garden Lights Pack', goal: 'Rescue Mochi on Lantern Island', contents: 'Switchable porch lamp, path lantern and blossom planter' },
   coastal: { name: 'Coastal Pack', goal: 'Sail to Shell Cove', contents: 'Harbor light, painted buoy and deck railing' },
+  shipwright: { name: 'Shipwright Pack', goal: 'Light the Shell Cove lantern', contents: 'Mooring cleat, covered pier and rope rail' },
+  stargazer: { name: 'Stargazer Pack', goal: 'Restore the lantern trail', contents: 'Working wind bell, star mosaic and observatory arch' },
 };
 
 export const PLACEABLE_OBJECTS = {
@@ -18,6 +20,7 @@ export const PLACEABLE_OBJECTS = {
   table: { name: 'Dining table', size: [3, 2, 4], tone: 'cedar', pack: 'furnishings' },
   lamp: { name: 'Porch lamp', size: [1, 1, 6], tone: 'ink', pack: 'garden', interaction: 'light' },
   beacon: { name: 'Harbor light', size: [2, 2, 8], tone: 'vermilion', pack: 'coastal', interaction: 'light' },
+  windbell: { name: 'Wind bell', size: [1, 1, 8], tone: 'gold', pack: 'stargazer', interaction: 'bell' },
 };
 
 // The order of these seven pieces is part of the original save format.
@@ -115,6 +118,24 @@ export const PARTS = [
   { ...kit('deck-railing', 'Deck railing', 'Structures', [
     section(0, 0, 0, 1, 1, 4, 'cedar'), section(3, 0, 0, 1, 1, 4, 'cedar'), section(0, 4, 0, 4, 1, 1, 'oak', false),
   ]), pack: 'coastal' },
+  { ...kit('cleat', 'Mooring cleat', 'Objects', [
+    section(0, 0, 0, 2, 1, 1, 'ink'), section(0, 1, 0, 1, 1, 1, 'stone'), section(0, 2, 0, 2, 1, 1, 'shale'),
+  ]), pack: 'shipwright' },
+  { ...kit('covered-pier', 'Covered pier section', 'Structures', [
+    section(0, 0, 0, 4, 2, 1, 'oak'), section(0, 1, 0, 1, 1, 7, 'cedar'), section(3, 1, 0, 1, 1, 7, 'cedar'),
+    section(0, 8, 0, 4, 2, 1, 'teal'), section(0, 9, 0, 4, 1, 1, 'ink'),
+  ]), pack: 'shipwright' },
+  { ...kit('rope-rail', 'Rope rail', 'Structures', [
+    section(0, 0, 0, 1, 1, 3, 'beam'), section(3, 0, 0, 1, 1, 3, 'beam'), section(0, 3, 0, 4, 1, 1, 'cream', false),
+  ]), pack: 'shipwright' },
+  { ...kit('star-mosaic', 'Star mosaic', 'Plates & tiles', [
+    section(0, 0, 0, 3, 3, 1, 'ink', false), section(1, 1, 0, 1, 3, 1, 'gold', false),
+    section(0, 1, 1, 1, 1, 1, 'gold', false), section(2, 1, 1, 1, 1, 1, 'gold', false),
+  ]), pack: 'stargazer' },
+  { ...kit('observatory-arch', 'Observatory arch', 'Structures', [
+    section(0, 0, 0, 1, 1, 6, 'blueGray'), section(4, 0, 0, 1, 1, 6, 'blueGray'),
+    section(0, 6, 0, 5, 1, 1, 'ink'), section(1, 7, 0, 3, 1, 1, 'teal'), section(2, 8, 0, 1, 1, 1, 'gold'),
+  ]), pack: 'stargazer' },
 ];
 
 export function matchedPart(brick) {
@@ -159,4 +180,8 @@ export const BUILD_KITS = [
     ['ink', 'gold', 'jade', 'cedar', 'rose', 'blush', 'fern']),
   buildKit('coastal', BUILD_PACKS.coastal.name, ['beacon', 'buoy', 'deck-railing', 'beam-1x7', 'floor', 'paving', 'column'],
     ['vermilion', 'oak', 'milk', 'ink', 'teal', 'sand', 'paper']),
+  buildKit('shipwright', BUILD_PACKS.shipwright.name, ['covered-pier', 'rope-rail', 'cleat', 'floor', 'beam-1x7', 'cedar', 'paving'],
+    ['oak', 'cedar', 'beam', 'teal', 'chalk', 'stone', 'ink']),
+  buildKit('stargazer', BUILD_PACKS.stargazer.name, ['windbell', 'star-mosaic', 'observatory-arch', 'column', 'plate-1x1', 'paving', 'paper'],
+    ['gold', 'blueGray', 'ink', 'patina', 'teal', 'cream', 'ivory']),
 ];

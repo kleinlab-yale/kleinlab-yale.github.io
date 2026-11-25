@@ -531,6 +531,23 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid #f4e2d141; bord
 .journal-status { font-size: 12px; color: #f2cda5; }
 .journal-entry[data-earned='true'] .journal-status { color: #badac1; }
 .journal-entry .subtle-button { min-height: 44px; padding: 0 9px; font-size: 12px; }
+.story-heading { margin: 0 0 8px; font: 400 31px/1.02 'Instrument Serif', Georgia, serif; color: #fbe0c9; }
+.story-steps { margin: 12px 0; padding-left: 22px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.story-steps li { padding: 3px 0; }
+.story-steps [data-done='true'] { color: #aed8bd; }
+.story-steps [aria-current='step'] { color: #ffdbab; font-weight: 750; }
+.treasure-guide { margin-top: 13px; }
+.treasure-guide summary { padding: 6px 0; cursor: pointer; color: #efcaac; font-size: 14px; }
+.treasure-guide[open] summary { margin-bottom: 6px; }
+.coin-balance { display: inline-block; margin: 0 0 10px; padding: 5px 10px; border-radius: 7px; border: 1px solid #e5c28b65; background: #55442c; color: #ffe0a1; font-size: 14px; font-weight: 780; }
+.pet-actions { flex: none; display: grid; justify-items: stretch; gap: 5px; max-width: 116px; }
+.pet-actions button { white-space: normal; }
+.lantern-rings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 10px; }
+.lantern-rings .subtle-button { padding: 4px 6px; min-height: 46px; text-align: center; font-size: 12px; }
+.lantern-feedback { color: #eac5a0; min-height: 2.4em; font-size: 13px; line-height: 1.4; }
+#pet-work-meter { width: 72px; accent-color: #dba865; }
+#trail-action { color: #f7e0b9; }
+#harbor-return-home { display: block; margin: 8px auto 0; padding: 10px 8px; }
 #journal-islands > button { width: 100%; min-height: 44px; margin-bottom: 8px; }
 .kit-heading { flex-wrap: wrap; }
 #parts-journal { margin-left: auto; padding: 6px 2px; }
@@ -605,6 +622,8 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid #f4e2d141; bord
   .journal-entry canvas { width: 42px; }
   .journal-entry { gap: 7px; padding: 8px; }
   #game[data-compact='true'] #parts-journal { margin-left: 0; }
+  .journal-tabs { flex-wrap: nowrap; gap: 4px; }
+  .journal-tabs button { padding-inline: 4px; font-size: 11px; min-height: 44px; }
 }
 
 @media (orientation: landscape) {
