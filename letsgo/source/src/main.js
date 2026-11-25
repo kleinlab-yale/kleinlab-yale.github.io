@@ -7,12 +7,14 @@ import { createCustomizer } from './customize.js';
 import { adjacentBrick, PLATE, REACH, STUD, TONES } from './bricks.js';
 import { createBuildMenu, partButton, toneName } from './build-menu.js';
 import { Builder, PROTECTED_BRICK } from './editor.js';
-import { BUILD_KITS, layoutPart, matchedPart } from './parts.js';
+import { BUILD_KITS, BUILD_PACKS, PLACEABLE_OBJECTS, layoutPart, matchedPart } from './parts.js';
 import { createGraphics } from './graphics.js';
 import { EYE, HEIGHT, movePlayer, RADIUS, spawnPlayer } from './player.js';
 import { createRooms, normalizeCode, validCode } from './rooms.js';
 import { createAudio } from './audio.js';
-import { createActivities } from './activities.js';
+import { createActivities, objectDistance } from './activities.js';
+import { createJournal } from './journal.js';
+import { createProgress } from './progression.js';
 import { district, makeValley } from './valley.js';
 
 const $ = id => document.getElementById(id);
@@ -20,10 +22,13 @@ const SAVE_KEY = 'brick-and-bloom:valley:1';
 const LOOK_KEY = 'brick-and-bloom:appearance:1';
 const VIEW_KEY = 'brick-and-bloom:view:1';
 const KIT_KEY = 'letsgo:build-kit:1';
+const AUDIO_KEY = 'letsgo:audio:1';
 const icons = {
   brick: '<path d="M2.5 11.8 12 6.5l9.5 5.3v5.5L12 22.5l-9.5-5.2zM2.5 11.8 12 17l9.5-5.2M12 17v5.5M7 9.2V6.5l5-2.8 5 2.8v2.7M7 6.5l5 2.8 5-2.8M12 9.3V12"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15.5 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/>',
   menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  journal: '<path d="M12 6c-2.5-2-5.5-2.5-9-2v14c3.5-.5 6.5 0 9 2 2.5-2 5.5-2.5 9-2V4c-3.5-.5-6.5 0-9 2v14M6 8.5l3 .9M6 12l3 .9m6-3.5 3-.9m-3 4.4 3-.9"/>',
+  check: '<path d="m5 12 4 4L19 6"/>',
   camera: '<path d="M3 7h4l1.5-2h7L17 7h4v12H3z"/><circle cx="12" cy="13" r="3.1"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2.5-3 4m0 3h.01"/>',
   person: '<circle cx="12" cy="7" r="4"/><path d="M4 21v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2"/>',
@@ -65,15 +70,20 @@ function boot() {
   const game = $('game');
   const canvas = $('world');
   const coarse = matchMedia('(pointer: coarse)').matches;
+  const compact = matchMedia('(pointer: coarse) and (max-width: 600px), (pointer: coarse) and (max-height: 500px) and (max-width: 950px)');
+  const updateLayout = () => { game.dataset.compact = String(compact.matches); };
+  updateLayout();
+  compact.addEventListener('change', updateLayout);
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const audio = createAudio();
+  const audio = createAudio(stored(AUDIO_KEY), settings => remember(AUDIO_KEY, settings));
   const world = makeValley();
   let saveTimer = 0;
   let saveCache = stored(SAVE_KEY);
   world.restore(saveCache);
+  const progress = createProgress(stored, remember, world.added.size);
   const localEditor = new Builder(world);
   localEditor.restoreHistory(saveCache);
-  const graphics = createGraphics(canvas, world);
+  const graphics = createGraphics(canvas, world, compact);
   let appearance = readAppearance(stored(LOOK_KEY)) ?? { ...DEFAULT_LOOK };
   const storedView = stored(VIEW_KEY);
   let view = Number.isInteger(storedView) && CAMERAS[storedView] ? storedView : 0;
@@ -87,7 +97,7 @@ function boot() {
   let guestWorld = false;
   let screen = 'title';
   const savedKit = stored(KIT_KEY);
-  const initialKit = BUILD_KITS.find(kit => kit.key === savedKit) ?? BUILD_KITS[0];
+  const initialKit = BUILD_KITS.find(kit => kit.key === savedKit && (!BUILD_PACKS[kit.key] || progress.unlocked(kit.key))) ?? BUILD_KITS[0];
   let quickParts = initialKit.parts.slice(0, 7);
   let selected = quickParts[0];
   let turn = 0;
@@ -105,13 +115,20 @@ function boot() {
   let controlsFromPause = false;
   let appearanceFromPause = false;
   const dialogs = { pause: $('pause-dialog'), room: $('room-dialog'), controls: $('controls-dialog'), appearance: $('appearance-dialog'),
-    parts: $('parts-dialog'), voyage: $('voyage-dialog') };
+    parts: $('parts-dialog'), voyage: $('voyage-dialog'), journal: $('journal-dialog') };
+  const compactTools = Array.from(document.querySelectorAll('[data-compact-tool]'));
 
   function toast(message) {
     clearTimeout(toastTimer);
     $('toast').textContent = message;
     $('toast').hidden = false;
-    toastTimer = setTimeout(() => { $('toast').hidden = true; }, 3000);
+    toastTimer = setTimeout(() => { $('toast').hidden = true; }, 3800);
+  }
+
+  function achieve(action, id, message = '') {
+    const packs = progress.record(action, id);
+    if (packs.length || action === 'rescue') audio.tap('reward');
+    if (packs.length || message) toast([message, ...packs.map(key => `${BUILD_PACKS[key].name} unlocked.`)].filter(Boolean).join(' '));
   }
 
   function save() {
@@ -143,12 +160,13 @@ function boot() {
     $('hud').hidden = next !== 'play';
     $('controls-button').hidden = next !== 'title';
     $('menu-button').hidden = next === 'title';
+    $('journal-button').hidden = next === 'title';
     $('camera-controls').hidden = next === 'title';
     $('district').hidden = next === 'title';
     $('room-shortcut').hidden = next === 'title';
     if (next === 'title') {
-      graphics.puppy('local', null);
-      graphics.puppy('friend', null);
+      graphics.pet('local', null);
+      graphics.pet('friend', null);
     }
     if (next !== 'play') {
       keys.clear();
@@ -206,7 +224,7 @@ function boot() {
       return;
     }
     dialogs[name].close();
-    if (name === 'parts' || name === 'voyage') enter();
+    if (name === 'parts' || name === 'voyage' || name === 'journal') enter();
     if (name === 'controls' && controlsFromPause) dialogs.pause.showModal();
     if (name === 'appearance' && screen === 'pause') {
       if (appearanceFromPause) dialogs.pause.showModal();
@@ -284,19 +302,21 @@ function boot() {
       remote = state;
       graphics.traveler.state(screen === 'title' ? null : state);
       graphics.vessel('guest', screen !== 'title' && state?.boat ? { ...state.boat, x: state.x, z: state.z } : null);
-      graphics.puppy('friend', screen === 'title' ? null : state?.puppy);
+      graphics.pet('friend', screen === 'title' ? null : state?.pet);
     },
     appearance: look => graphics.traveler.appearance(look),
     visitor: () => new Builder(world, true),
     request: (request, visitor) => {
       if (!remote) return { error: 'blocked' };
-      const result = visitor.perform(request, localBoxes(), brick => reachFrom(remote, brick, 1.15));
-      if (result.edits) audio.tap(request.kind === 'remove' ? 'remove' : 'place');
+      const result = visitor.perform(request, localBoxes(), brick => request?.kind === 'use' ?
+        objectDistance(remote, brick) < 3.1 : reachFrom(remote, brick, 1.15));
+      if (result.edits) audio.tap(request.kind);
       return result;
     },
-    change: edits => {
+    change: (edits, kind, guestEdit) => {
       if (!world.patch(edits)) return false;
-      audio.tap(edits.every(edit => !edit.brick) ? 'remove' : 'place');
+      audio.tap(kind ?? (edits.every(edit => !edit.brick) ? 'remove' : 'place'));
+      if (guestEdit && kind === 'place') achieve('place');
       return true;
     },
     blocked: error => toast(buildMessage(error)),
@@ -315,7 +335,9 @@ function boot() {
   }
 
   function refreshBuildStatus() {
-    $('undo-build').disabled = guestWorld ? !rooms.canGuestUndo : !localEditor.canUndo;
+    const disabled = guestWorld ? !rooms.canGuestUndo : !localEditor.canUndo;
+    $('undo-build').disabled = disabled;
+    compactTools.find(button => button.dataset.compactTool === 'undo').disabled = disabled;
   }
 
   function buildMessage(error) {
@@ -327,6 +349,8 @@ function boot() {
       nothing: 'There are no more edits to undo.',
       changed: 'Another edit changed that brick. Try Undo again for an earlier edit.',
       restore: 'Clear the spot before restoring that brick.',
+      doorway: 'Step clear of the doorway to close it.',
+      'open-water': 'Open water ahead. Take a boat to the outer islands.',
     };
     return messages[error] ?? messages.blocked;
   }
@@ -336,6 +360,9 @@ function boot() {
     game.dataset.tool = kind;
     for (const action of ['explore', 'place', 'remove', 'rotate', 'paint']) {
       $(`${action}-tool`).setAttribute('aria-pressed', String(kind === action));
+    }
+    for (const button of compactTools) {
+      if (button.dataset.compactTool !== 'undo') button.setAttribute('aria-pressed', String(kind === button.dataset.compactTool));
     }
     for (const [index, button] of Array.from($('inventory').children).entries()) {
       button.setAttribute('aria-pressed', String(kind === 'place' && quickParts[index] === selected));
@@ -352,6 +379,10 @@ function boot() {
       pick: `${verb} a brick to match its shape and color.`,
     };
     $('build-guide').textContent = hints[kind];
+    $('phone-build-guide').hidden = kind === 'explore';
+    $('phone-build-guide').textContent = kind === 'place' ? `Tap a surface to place ${selected.name.toLowerCase()}.` : hints[kind];
+    $('phone-build-label').textContent = kind === 'explore' ? 'Build' : 'Tools';
+    $('phone-explore-button').hidden = kind === 'explore';
     refreshBuildStatus();
   }
 
@@ -419,11 +450,21 @@ function boot() {
     setTool('place');
   }
 
-  function showParts(mode) {
-    if (screen !== 'play') return;
+  function showParts(mode, kitKey) {
+    if (screen !== 'play' && !dialogs.journal.open) return;
+    dialogs.journal.close();
     setScreen('pause');
     dialogs.parts.showModal();
-    buildMenu.open(mode, color);
+    dialogs.parts.scrollTop = 0;
+    buildMenu.open(mode, color, kitKey);
+  }
+
+  function showJournal() {
+    if (screen !== 'play' && !dialogs.parts.open) return;
+    dialogs.parts.close();
+    setScreen('pause');
+    journal.open();
+    dialogs.journal.showModal();
   }
 
   const buildMenu = createBuildMenu(dialogs.parts, initialKit, {
@@ -438,7 +479,9 @@ function boot() {
     paint: () => { setTool('paint'); enter(); },
     pick: () => { setTool('pick'); enter(); },
     turn: () => { turnNext(); enter(); },
-    workshop: () => { enter(); activities.openVoyage(); },
+    unlocked: progress.unlocked,
+    journal: showJournal,
+    workshop: () => activities.openVoyage(),
   });
   select(quickParts[0], 'explore');
 
@@ -468,10 +511,12 @@ function boot() {
       rooms.request(request);
       return;
     }
-    const result = localEditor.perform(request, localBoxes(), brick => reachFrom(player, brick));
+    const result = localEditor.perform(request, localBoxes(), brick => request.kind === 'use' ?
+      objectDistance(player, brick) < 2.55 : reachFrom(player, brick));
     if (result.edits) {
-      rooms.broadcast(result.edits);
-      audio.tap(request.kind === 'remove' ? 'remove' : 'place');
+      rooms.broadcast(result.edits, request.kind);
+      audio.tap(request.kind);
+      if (request.kind === 'place') achieve('place');
     } else {
       if (result.error === 'changed') save();
       toast(buildMessage(result.error));
@@ -482,14 +527,23 @@ function boot() {
   function edit(kind, point) {
     if (screen !== 'play' || activities.sailing) return;
     const hit = pick(point);
+    if (kind === 'explore') {
+      if (hit && PLACEABLE_OBJECTS[hit.brick.form]?.interaction) useProp(hit.brick.id);
+      return;
+    }
     if (!hit || !reachFrom(player, hit.brick)) {
       toast(hit ? 'Move closer to reach that brick.' : 'Choose a nearby brick or surface.');
       return;
     }
     flashUntil = performance.now() + 450;
     if (kind === 'pick') {
+      const part = matchedPart(hit.brick);
+      if (part.pack && !progress.unlocked(part.pack)) {
+        toast(`Earn the ${BUILD_PACKS[part.pack].name} to copy that piece.`);
+        return;
+      }
       color = null;
-      select(matchedPart(hit.brick));
+      select(part);
       return;
     }
     if (kind === 'place') {
@@ -503,11 +557,18 @@ function boot() {
     runEdit({ kind, id: hit.brick.id, tone: color ?? selected.tone });
   }
 
+  function useProp(id) {
+    const brick = world.bricks.get(id);
+    if (brick && PLACEABLE_OBJECTS[brick.form]?.interaction && objectDistance(player, brick) <= 2.5) runEdit({ kind: 'use', id });
+  }
+
   const activities = createActivities({ world, graphics, getPlayer: () => player,
-    openDialog: () => { setScreen('pause'); dialogs.voyage.showModal(); }, resume: enter, toast, sound: audio.tap,
+    openDialog: () => { dialogs.journal.close(); dialogs.parts.close(); setScreen('pause'); dialogs.voyage.showModal(); },
+    resume: enter, toast, sound: audio.tap, progress, achieve, use: useProp,
     read: stored, save: remember, sendTea: action => { sendPose(); rooms.tea(action); },
     turnTo: yaw => { orbit.yaw = yaw; orbit.pitch = -0.24; },
   });
+  const journal = createJournal(dialogs.journal, progress, { selectKit: key => showParts('all', key), voyage: activities.openVoyage });
 
   function resetPlayer() {
     activities.reset();
@@ -580,9 +641,10 @@ function boot() {
   });
   canvas.addEventListener('pointerup', event => {
     if (drag?.id !== event.pointerId) return;
-    if (!drag.moved && drag.button === 0 && event.button === 0 && tool !== 'explore') {
-      aimPoint = { x: event.clientX, y: event.clientY, touch: event.pointerType === 'touch' };
-      edit(tool, aimPoint);
+    if (!drag.moved && drag.button === 0 && event.button === 0) {
+      const point = { x: event.clientX, y: event.clientY, touch: event.pointerType === 'touch' };
+      if (tool !== 'explore') aimPoint = point;
+      edit(tool, point);
     }
     drag = null;
     game.classList.remove('looking');
@@ -598,10 +660,12 @@ function boot() {
     const bounds = joystick.getBoundingClientRect();
     const dx = event.clientX - bounds.left - bounds.width / 2;
     const dz = event.clientY - bounds.top - bounds.height / 2;
-    const length = Math.max(29, Math.hypot(dx, dz));
-    stick.x = dx / length;
-    stick.z = -dz / length;
-    $('stick').style.transform = `translate(${stick.x * 29}px, ${-stick.z * 29}px)`;
+    const travel = bounds.width * 0.26;
+    const distance = Math.hypot(dx, dz);
+    const length = Math.max(travel, distance);
+    stick.x = distance > 3 ? dx / length : 0;
+    stick.z = distance > 3 ? -dz / length : 0;
+    $('stick').style.transform = `translate(${stick.x * travel}px, ${-stick.z * travel}px)`;
   }
   joystick.addEventListener('pointerdown', event => {
     if (stick.id !== null) return;
@@ -651,6 +715,19 @@ function boot() {
   $('undo-build').onclick = () => runEdit({ kind: 'undo' });
   $('open-parts').onclick = () => showParts('all');
   $('open-objects').onclick = () => showParts('objects');
+  $('phone-build-button').onclick = () => showParts('all');
+  $('phone-explore-button').onclick = () => { setTool('explore'); canvas.focus({ preventScroll: true }); };
+  $('journal-button').onclick = showJournal;
+  for (const button of compactTools) button.onclick = () => {
+    const kind = button.dataset.compactTool;
+    if (kind === 'paint' && color === null) {
+      buildMenu.open('colors', color);
+      return;
+    }
+    if (kind === 'undo') runEdit({ kind });
+    else setTool(kind);
+    enter();
+  };
   $('jump-button').onclick = () => { jump = true; };
 
   $('solo-button').onclick = () => { if (rooms.state.role || guestWorld) leaveRoom(); enter(); };
@@ -737,14 +814,22 @@ function boot() {
       window.location.href = 'sms:';
     }
   };
-  $('sound-button').onclick = () => {
-    const enabled = audio.toggle();
+  function refreshAudio() {
+    const { enabled, music, effects } = audio.settings;
     const label = enabled ? 'Mute sound' : 'Unmute sound';
     $('sound-button').setAttribute('aria-label', label);
     $('sound-button').setAttribute('aria-pressed', String(!enabled));
     $('sound-button').title = label;
     drawIcon($('sound-button').firstElementChild, enabled ? 'sound' : 'mute');
-  };
+    $('audio-enabled').checked = enabled;
+    $('audio-music').checked = music;
+    $('audio-effects').checked = effects;
+  }
+  function setAudio(key, value) { audio.set(key, value); refreshAudio(); }
+  $('sound-button').onclick = () => setAudio('enabled', !audio.settings.enabled);
+  for (const key of ['enabled', 'music', 'effects']) $(`audio-${key}`).onchange = event => setAudio(key, event.target.checked);
+  game.addEventListener('click', () => { if (screen !== 'title') audio.resume(); }, { capture: true });
+  refreshAudio();
   for (const button of document.querySelectorAll('[data-close]')) button.onclick = () => closeDialog(button.dataset.close);
   for (const [name, dialog] of Object.entries(dialogs)) {
     dialog.addEventListener('cancel', event => {
@@ -755,7 +840,7 @@ function boot() {
 
   function sendPose() {
     rooms.pose({ x: player.x, y: player.y, z: player.z, yaw: player.yaw,
-      moving: player.moving, sprinting: player.sprinting, grounded: player.grounded, boat: activities.pose, puppy: activities.companion });
+      moving: player.moving, sprinting: player.sprinting, grounded: player.grounded, boat: activities.pose, pet: activities.companion });
   }
 
   let previous = performance.now();
@@ -790,7 +875,7 @@ function boot() {
           audio.tap('step');
           lastStep = now;
         }
-        const location = district(player.x, player.y, player.z);
+        const location = activities.sailing ? 'Open Water' : district(player.x, player.y, player.z);
         if (location !== lastDistrict) $('district').textContent = lastDistrict = location;
       }
       const bob = player.moving && player.grounded && !reduceMotion ? Math.sin(player.bob * 2) * 0.026 : 0;

@@ -1,8 +1,18 @@
 import { STUD } from './bricks.js';
+import { ISLAND_LAYOUT } from './islands.js';
 import { SEA_LEVEL } from './voyage.js';
 
 export const RESCUE_REACH = 2.45;
-const HOME = { x: 30.5 * STUD, z: 123.5 * STUD };
+function pet(name, kind, island, dx, dz) {
+  const { gridX, gridZ } = ISLAND_LAYOUT[island];
+  return { name, kind, island, x: (gridX + dx) * STUD, z: (gridZ + dz) * STUD };
+}
+
+export const PETS = {
+  mochi: pet('Mochi', 'Puppy', 'lantern', 2.5, -5.5),
+  pebble: pet('Pebble', 'Turtle', 'shell', 2.5, -4.5),
+  pip: pet('Pip', 'Rabbit', 'berry', 3.5, -5.5),
+};
 const RADIUS = 0.15;
 
 function groundAt(world, x, z, y) {
@@ -10,13 +20,14 @@ function groundAt(world, x, z, y) {
   return Number.isFinite(ground) && !world.collides(world.playerBox(x, ground, z, RADIUS, 0.63)) ? ground : null;
 }
 
-export function lostPuppy(world) {
+export function lostPet(world, id) {
+  const home = PETS[id];
   for (const offset of [0, -1, 1, -2, 2]) {
-    const x = HOME.x + offset * STUD;
-    const y = groundAt(world, x, HOME.z, 0);
-    if (y !== null) return { x, y, z: HOME.z, yaw: 0, moving: false, aboard: false };
+    const x = home.x + offset * STUD;
+    const y = groundAt(world, x, home.z, 0);
+    if (y !== null) return { x, y, z: home.z, yaw: 0, moving: false, aboard: false };
   }
-  return { ...HOME, y: 0, yaw: 0, moving: false, aboard: false };
+  return { x: home.x, z: home.z, y: 0, yaw: 0, moving: false, aboard: false };
 }
 
 function restingSpot(world, player) {
@@ -31,7 +42,7 @@ function restingSpot(world, player) {
   return null;
 }
 
-export function followPuppy(previous, player, world, dt, aboard) {
+export function followPet(previous, player, world, dt, aboard) {
   if (aboard) {
     return { x: player.x - Math.sin(player.yaw) * 0.41, y: player.y,
       z: player.z - Math.cos(player.yaw) * 0.41, yaw: player.yaw, moving: false, aboard: true };

@@ -2,6 +2,24 @@ function part(key, name, group, w, d, h, tone, studs = true, form = 'brick') {
   return { key, name, group, w, d, h, tone, studs, form };
 }
 
+export const BUILD_PACKS = {
+  house: { name: 'House Pack', goal: 'Place 6 pieces', contents: 'Working door, glass window, shutters and a roof ridge' },
+  furnishings: { name: 'Furnishings Pack', goal: 'Brew and serve blossom tea', contents: 'Couch, chair, dining table and a low bench' },
+  garden: { name: 'Garden Lights Pack', goal: 'Rescue Mochi on Lantern Island', contents: 'Switchable porch lamp, path lantern and blossom planter' },
+  coastal: { name: 'Coastal Pack', goal: 'Sail to Shell Cove', contents: 'Harbor light, painted buoy and deck railing' },
+};
+
+export const PLACEABLE_OBJECTS = {
+  tea: { key: 'tea-counter', name: 'Tea counter', size: [3, 2, 5], tone: 'cedar' },
+  door: { name: 'Cedar door', size: [3, 1, 10], tone: 'cedar', pack: 'house', interaction: 'door' },
+  window: { key: 'glass-window', name: 'Glass window', size: [3, 1, 5], tone: 'ink', pack: 'house' },
+  couch: { name: 'Cushioned couch', size: [4, 2, 5], tone: 'jade', pack: 'furnishings' },
+  chair: { name: 'Dining chair', size: [1, 1, 5], tone: 'oak', pack: 'furnishings' },
+  table: { name: 'Dining table', size: [3, 2, 4], tone: 'cedar', pack: 'furnishings' },
+  lamp: { name: 'Porch lamp', size: [1, 1, 6], tone: 'ink', pack: 'garden', interaction: 'light' },
+  beacon: { name: 'Harbor light', size: [2, 2, 8], tone: 'vermilion', pack: 'coastal', interaction: 'light' },
+};
+
 // The order of these seven pieces is part of the original save format.
 export const QUICK_PARTS = [
   part('terracotta', 'Terracotta brick', 'Bricks', 2, 2, 3, 'vermilion'),
@@ -69,11 +87,39 @@ export const PARTS = [
   kit('flower-pot', 'Potted blossom', 'Garden', [
     section(0, 0, 0, 1, 1, 2, 'redwood', true, 'round'), section(0, 2, 0, 1, 1, 1, 'rose', true, 'flower'),
   ]),
-  part('tea-counter', 'Tea counter', 'Objects', 3, 2, 5, 'cedar', false, 'tea'),
+  ...Object.entries(PLACEABLE_OBJECTS).map(([form, object]) => ({
+    ...part(object.key ?? form, object.name, 'Objects', ...object.size, object.tone, false, form), pack: object.pack,
+  })),
+  { ...kit('shutters', 'Shutter window', 'Structures', [
+    section(0, 0, 0, 4, 1, 1, 'chalk'), section(0, 1, 0, 1, 1, 4, 'vermilion'),
+    section(3, 1, 0, 1, 1, 4, 'vermilion'), section(0, 5, 0, 4, 1, 1, 'beam'),
+  ]), pack: 'house' },
+  { ...kit('roof-ridge', 'Capped roof ridge', 'Structures', [
+    section(0, 0, 0, 5, 3, 1, 'tile'), section(0, 1, 1, 5, 1, 1, 'ink'),
+    section(0, 2, 1, 1, 1, 1, 'gold'), section(4, 2, 1, 1, 1, 1, 'gold'),
+  ]), pack: 'house' },
+  { ...kit('bench', 'Low bench', 'Objects', [
+    section(0, 0, 0, 1, 1, 2, 'beam'), section(2, 0, 0, 1, 1, 2, 'beam'), section(0, 2, 0, 3, 1, 1, 'oak', false),
+  ]), pack: 'furnishings' },
+  { ...kit('path-lantern', 'Path lantern', 'Objects', [
+    section(0, 0, 0, 1, 1, 1, 'stone'), section(0, 1, 0, 1, 1, 2, 'paper', false), section(0, 3, 0, 1, 1, 1, 'jade'),
+  ]), pack: 'garden' },
+  { ...kit('planter', 'Blossom planter', 'Garden', [
+    section(0, 0, 0, 3, 1, 2, 'cedar'), section(0, 2, 0, 1, 1, 1, 'rose', true, 'flower'),
+    section(1, 2, 0, 1, 1, 1, 'blush', true, 'flower'), section(2, 2, 0, 1, 1, 1, 'petal', true, 'flower'),
+  ]), pack: 'garden' },
+  { ...kit('buoy', 'Painted buoy', 'Objects', [
+    section(0, 0, 0, 1, 1, 2, 'vermilion', false, 'round'), section(0, 2, 0, 1, 1, 1, 'milk', false, 'round'),
+    section(0, 3, 0, 1, 1, 1, 'vermilion', true, 'round'),
+  ]), pack: 'coastal' },
+  { ...kit('deck-railing', 'Deck railing', 'Structures', [
+    section(0, 0, 0, 1, 1, 4, 'cedar'), section(3, 0, 0, 1, 1, 4, 'cedar'), section(0, 4, 0, 4, 1, 1, 'oak', false),
+  ]), pack: 'coastal' },
 ];
 
 export function matchedPart(brick) {
-  return { key: 'match', name: brick.form === 'tea' ? 'Tea counter' : 'Matched brick', group: 'Bricks',
+  const object = Object.hasOwn(PLACEABLE_OBJECTS, brick.form) ? PLACEABLE_OBJECTS[brick.form] : null;
+  return { key: 'match', name: object?.name ?? 'Matched brick', group: 'Bricks', pack: object?.pack,
     w: brick.w, d: brick.d, h: brick.h, tone: brick.tone, studs: brick.studs, form: brick.form, turn: brick.turn };
 }
 
@@ -105,4 +151,12 @@ export const BUILD_KITS = [
     ['oak', 'cedar', 'beam', 'redwood', 'jade', 'teal', 'amber', 'chalk']),
   buildKit('tea', 'Tea garden', ['tea-counter', 'floor', 'paper', 'window', 'garden-lamp', 'paving', 'flower-pot'],
     ['oak', 'cedar', 'cream', 'jade', 'petal', 'gold', 'ink']),
+  buildKit('house', BUILD_PACKS.house.name, ['door', 'glass-window', 'shutters', 'roof-ridge', 'paper', 'floor', 'cedar'],
+    ['cedar', 'oak', 'cream', 'ink', 'vermilion', 'tile', 'patina']),
+  buildKit('furnishings', BUILD_PACKS.furnishings.name, ['couch', 'chair', 'table', 'bench', 'floor', 'paving', 'tea-counter'],
+    ['jade', 'oak', 'cedar', 'cream', 'rose', 'sage', 'ink']),
+  buildKit('garden', BUILD_PACKS.garden.name, ['lamp', 'path-lantern', 'planter', 'flower-pot', 'garden-lamp', 'leaf', 'paving'],
+    ['ink', 'gold', 'jade', 'cedar', 'rose', 'blush', 'fern']),
+  buildKit('coastal', BUILD_PACKS.coastal.name, ['beacon', 'buoy', 'deck-railing', 'beam-1x7', 'floor', 'paving', 'column'],
+    ['vermilion', 'oak', 'milk', 'ink', 'teal', 'sand', 'paper']),
 ];

@@ -5,6 +5,8 @@ import { noise } from './valley.js';
 import { EYE } from './player.js';
 import { appearancePreview, createTraveler } from './traveler.js';
 import { createWorldObjects } from './world-objects.js';
+import { createHouseObjects } from './house-objects.js';
+import { PLACEABLE_OBJECTS } from './parts.js';
 
 const CHUNK = 18;
 const GAP = 0.018;
@@ -203,7 +205,7 @@ function brickMeshes(scene, world, bodyGeometry, lowPower) {
     const flowers = [];
     const glowing = [];
     for (const brick of world.query(x0, x0 + CHUNK, z0, z0 + CHUNK)) {
-      if (brick.x < x0 || brick.z < z0 || brick.form === 'tea') continue;
+      if (brick.x < x0 || brick.z < z0 || Object.hasOwn(PLACEABLE_OBJECTS, brick.form)) continue;
       const visible = exposedFaces(world, brick, (x, z, y) => {
         studs.push({ x, z, y, brick });
         if (brick.form === 'flower' || (bloom.has(brick.tone) && noise(x, y + 31, z) > (y < 8 ? 0.45 : 0.935))) flowers.push({ x, z, y, brick });
@@ -330,7 +332,7 @@ function indicators(scene, body, studGeometry) {
   };
 }
 
-export function createGraphics(canvas, world) {
+export function createGraphics(canvas, world, compact) {
   const lowPower = matchMedia('(pointer: coarse)').matches;
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -346,6 +348,7 @@ export function createGraphics(canvas, world) {
   const scenery = dressScene(scene, renderer, lowPower);
   const body = chamferBox();
   const objects = createWorldObjects(scene, body);
+  const houseObjects = createHouseObjects(scene, body);
   const meshes = brickMeshes(scene, world, body, lowPower);
   const aim = indicators(scene, body, meshes.studGeometry);
   const traveler = createTraveler(scene, body);
@@ -365,7 +368,7 @@ export function createGraphics(canvas, world) {
   function resize() {
     const width = Math.max(1, canvas.clientWidth);
     const height = Math.max(1, canvas.clientHeight);
-    renderer.setPixelRatio(scale);
+    renderer.setPixelRatio(compact.matches ? Math.min(scale, 1.12) : scale);
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
@@ -379,7 +382,7 @@ export function createGraphics(canvas, world) {
     traveler,
     local,
     vessel: objects.vessel,
-    puppy: objects.puppy,
+    pet: objects.pet,
     tea: objects.tea,
     preview(canvas) { return appearancePreview(canvas, body); },
     dirty(brick) { meshes.dirty(brick); },
@@ -412,7 +415,7 @@ export function createGraphics(canvas, world) {
         offset.y += view.height;
         const desired = offset.length();
         offset.divideScalar(desired);
-        const obstruction = world.pick(eye, offset, desired);
+        const obstruction = world.pick(eye, offset, desired, true);
         const clear = obstruction ? Math.max(0.06, obstruction.distance - 0.24) : desired;
         if (view !== lastView || clear < followDistance) followDistance = clear;
         else followDistance += (clear - followDistance) * (1 - Math.exp(-dt * 10));
@@ -438,6 +441,7 @@ export function createGraphics(canvas, world) {
     render(time, dt) {
       if (meshes.update() || firstFrame) {
         objects.sync(world);
+        houseObjects.sync(world);
         renderer.shadowMap.needsUpdate = true;
         scenery.refresh();
         firstFrame = false;
@@ -453,6 +457,7 @@ export function createGraphics(canvas, world) {
       traveler.animate(dt);
       local.animate(dt);
       objects.animate(reduceMotion ? 0 : time, dt);
+      houseObjects.animate(dt, reduceMotion);
       renderer.render(scene, camera);
     },
   };

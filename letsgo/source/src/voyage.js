@@ -1,4 +1,5 @@
 import { BOUNDS, PLATE, STUD } from './bricks.js';
+import { ISLAND_LAYOUT } from './islands.js';
 
 export const SEA_LEVEL = -0.43;
 export const HULL_WIDTH = 5;
@@ -6,10 +7,8 @@ export const HULL_LENGTH = 7;
 const CELLS = HULL_WIDTH * HULL_LENGTH;
 export const EMPTY_HULL = '0'.repeat(CELLS);
 export const DOCK = { x: 18.5 * STUD, y: PLATE, z: 62.5 * STUD, launchZ: 68.3 * STUD };
-export const ISLANDS = {
-  reed: { name: 'Reed Islet', x: -5 * STUD, z: 94 * STUD, gridX: -5, gridZ: 94, rx: 9, rz: 7 },
-  lantern: { name: 'Lantern Island', x: 28 * STUD, z: 129 * STUD, gridX: 28, gridZ: 129, rx: 12, rz: 9 },
-};
+export const ISLANDS = Object.fromEntries(Object.entries(ISLAND_LAYOUT).map(([key, area]) =>
+  [key, { ...area, x: area.gridX * STUD, z: area.gridZ * STUD }]));
 
 export function validHull(value) { return typeof value === 'string' && /^[012]{35}$/.test(value); }
 
@@ -83,9 +82,17 @@ export function islandAt(x, z) {
 
 export function headingTo(from, target) { return Math.atan2(from.x - target.x, from.z - target.z); }
 
+export function crossingDistance(target) {
+  const dx = target.x - DOCK.x;
+  const dz = target.z - DOCK.launchZ;
+  const distance = Math.hypot(dx, dz);
+  const coast = distance / Math.hypot(dx / (target.rx * STUD), dz / (target.rz * STUD));
+  return Math.ceil(distance - coast);
+}
+
 export function launchVessel(code, destination) {
   const rating = rateHull(code);
-  if (!rating.launchable) return null;
+  if (!rating.launchable || !Object.hasOwn(ISLANDS, destination)) return null;
   const location = { x: DOCK.x, z: DOCK.launchZ };
   return { ...location, code, destination, rating, wear: 0, yaw: headingTo(location, ISLANDS[destination]) };
 }
@@ -103,9 +110,12 @@ export function advanceVessel(vessel, world, input, yaw, dt) {
   }
   const x = vessel.x + dx;
   const z = vessel.z + dz;
-  const ground = world.groundBetween(x, z, 0.21, SEA_LEVEL + 0.07, 1.05);
+  const island = islandAt(x, z);
+  // A player-built bridge in the channel should not put sailors ashore in open water.
+  const canLand = island || z < DOCK.launchZ - STUD * 2;
+  const ground = canLand ? world.groundBetween(x, z, 0.21, SEA_LEVEL + 0.07, 1.05) : -Infinity;
   if (Number.isFinite(ground) && !world.collides(world.playerBox(x, ground, z, 0.23, 1.49))) {
-    return { shore: { x, y: ground, z }, island: islandAt(x, z) };
+    return { shore: { x, y: ground, z }, island };
   }
   if (x > BOUNDS.maxX * STUD + 9 || x < BOUNDS.minX * STUD - 9 || z > BOUNDS.maxZ * STUD + 3 || z < BOUNDS.minZ * STUD - 10) {
     return { sunk: true };

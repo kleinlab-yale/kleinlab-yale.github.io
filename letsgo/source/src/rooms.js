@@ -1,10 +1,11 @@
 import { Peer } from 'peerjs';
 import { readAppearance } from './appearance.js';
-import { validSnapshot, WORLD_SAVE_VERSION } from './bricks.js';
+import { BOUNDS, STUD, validSnapshot, WORLD_SAVE_VERSION } from './bricks.js';
+import { PETS } from './pets.js';
 import { validHull } from './voyage.js';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const PROTOCOL = 3;
+const PROTOCOL = 4;
 const PREFIX = `brickbloom-v${PROTOCOL}-`;
 const TIMEOUT = 24000;
 const HEARTBEAT_INTERVAL = 2400;
@@ -31,7 +32,7 @@ function makeCode() {
 
 function validPose(pose) {
   return pose && [pose.x, pose.y, pose.z, pose.yaw].every(Number.isFinite) &&
-    Math.abs(pose.x) < 45 && Math.abs(pose.z) < 88 && pose.y > -3 && pose.y < 27 && Math.abs(pose.yaw) <= Math.PI + 0.01;
+    Math.abs(pose.x) < 45 && Math.abs(pose.z) < BOUNDS.maxZ * STUD + 6 && pose.y > -3 && pose.y < 27 && Math.abs(pose.yaw) <= Math.PI + 0.01;
 }
 
 export function createRooms(events) {
@@ -138,7 +139,7 @@ export function createRooms(events) {
         startHeartbeat(connection);
         const queued = pendingChanges;
         pendingChanges = [];
-        for (const edits of queued) send('change', { edits });
+        for (const change of queued) send('change', change);
         if (link === connection) report('connected');
         return;
       }
@@ -160,21 +161,21 @@ export function createRooms(events) {
       } else if (type === 'pose' && validPose(payload)) {
         const boat = payload.boat;
         const sailing = validHull(boat?.code) && /[12]/.test(boat.code) && Number.isFinite(boat.yaw) && Math.abs(boat.yaw) <= Math.PI;
-        const puppy = payload.puppy;
-        const companion = validPose(puppy) && Math.hypot(puppy.x - payload.x, puppy.y - payload.y, puppy.z - payload.z) < 6.5;
+        const pet = payload.pet;
+        const companion = validPose(pet) && Object.hasOwn(PETS, pet.id) && Math.hypot(pet.x - payload.x, pet.y - payload.y, pet.z - payload.z) < 6.5;
         events.pose({ x: payload.x, y: payload.y, z: payload.z, yaw: payload.yaw, moving: payload.moving === true,
           sprinting: payload.sprinting === true, grounded: payload.grounded === true,
           boat: sailing ? { code: boat.code, yaw: boat.yaw } : null,
-          puppy: companion ? { x: puppy.x, y: puppy.y, z: puppy.z, yaw: puppy.yaw,
-            moving: puppy.moving === true, aboard: sailing && puppy.aboard === true } : null });
+          pet: companion ? { id: pet.id, x: pet.x, y: pet.y, z: pet.z, yaw: pet.yaw,
+            moving: pet.moving === true, aboard: sailing && pet.aboard === true } : null });
       } else if (type === 'appearance') {
         const look = readAppearance(payload);
         if (look) events.appearance(look);
       } else if (isHost && type === 'request') {
         const { edits, error } = events.request(payload, visitor);
-        if (edits) send('change', { edits, guest: true, canUndo: visitor.canUndo });
+        if (edits) send('change', { edits, kind: payload.kind, guest: payload.kind !== 'use', canUndo: visitor.canUndo });
         else send('blocked', { error, canUndo: visitor.canUndo });
-      } else if (!isHost && type === 'change' && events.change(payload?.edits)) {
+      } else if (!isHost && type === 'change' && events.change(payload?.edits, payload?.kind, payload?.guest === true)) {
         if (payload.guest === true) {
           for (const { id, brick } of payload.edits) {
             if (brick) guestBricks.add(id);
@@ -273,10 +274,11 @@ export function createRooms(events) {
     get canGuestUndo() { return ready && guestCanUndo; },
     canGuestEdit(id) { return ready && state.role === 'guest' && guestBricks.has(id); },
     tea(action) { if (ready) send('tea', action); },
-    broadcast(edits) {
+    broadcast(edits, kind) {
       if (state.role !== 'host' || !snapshotSent) return;
-      if (ready) send('change', { edits });
-      else pendingChanges.push(edits);
+      const change = { edits, kind };
+      if (ready) send('change', change);
+      else pendingChanges.push(change);
     },
   };
 }

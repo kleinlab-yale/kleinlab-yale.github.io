@@ -1,42 +1,67 @@
 import { PLATE, STUD } from './bricks.js';
-import { RESCUE_REACH, followPuppy, lostPuppy } from './puppy.js';
-import { DOCK, EMPTY_HULL, ISLANDS, SEA_LEVEL, advanceVessel, dockDistance, hullPattern, islandAt, launchVessel,
-  rateHull, validHull } from './voyage.js';
+import { PLACEABLE_OBJECTS } from './parts.js';
+import { PETS, RESCUE_REACH, followPet, lostPet } from './pets.js';
+import { DOCK, EMPTY_HULL, HULL_WIDTH, ISLANDS, SEA_LEVEL, advanceVessel, crossingDistance, dockDistance, hullPattern,
+  islandAt, launchVessel, rateHull, validHull } from './voyage.js';
 
 const $ = id => document.getElementById(id);
 const BOAT_KEY = 'letsgo:boat-design:1';
-const VISITS_KEY = 'letsgo:island-visits:1';
-const PUPPY_KEY = 'letsgo:puppy:1';
 const STEEP_MS = 1700;
 const SERVE_MS = 4500;
+const PET_BY_ISLAND = Object.fromEntries(Object.entries(PETS).map(([id, pet]) => [pet.island, id]));
 
-export function createActivities({ world, graphics, getPlayer, openDialog, resume, toast, sound, read, save, sendTea, turnTo }) {
+export function objectDistance(player, brick) {
+  const x = (brick.x + brick.w / 2) * STUD;
+  const z = (brick.z + brick.d / 2) * STUD;
+  return Math.hypot(x - player.x, z - player.z, brick.y * PLATE - player.y);
+}
+
+export function createActivities({ world, graphics, getPlayer, openDialog, resume, toast, sound, read, save,
+  progress, achieve, sendTea, use, turnTo }) {
   const game = $('game');
   const boatGrid = $('boat-grid');
   const destination = $('voyage-destination');
-  const rescueButton = $('rescue-puppy');
+  const rescueButton = $('rescue-pet');
+  const propButton = $('prop-action');
+  const teaButton = $('tea-action');
   const tileButtons = [];
   const tea = new Map();
+  const islandPets = new Map();
   const saved = read(BOAT_KEY);
-  const previousVisits = read(VISITS_KEY);
-  const visited = new Set(Array.isArray(previousVisits) ? previousVisits.filter(key => Object.hasOwn(ISLANDS, key)) : []);
   let code = validHull(saved) ? saved : EMPTY_HULL;
   let brush = 1;
+  let painting = null;
   let vessel = null;
   let tracking = false;
-  let nearest = null;
-  let lastTeaScan = 0;
-  let rescued = read(PUPPY_KEY) === true;
-  let islandPup = lostPuppy(world);
+  let stations = {};
+  let lastScan = -Infinity;
   let companion = null;
-  if (visited.has('reed')) destination.value = 'lantern';
-  graphics.puppy('island', rescued ? null : islandPup);
+
+  for (const [key, island] of Object.entries(ISLANDS)) {
+    destination.add(new Option(island.name, key));
+    const step = document.createElement('li');
+    step.id = `${key}-progress`;
+    $('voyage-destinations').append(step);
+  }
+  const rescueStep = document.createElement('li');
+  rescueStep.id = 'puppy-progress';
+  $('voyage-destinations').append(rescueStep);
+  destination.value = Object.keys(ISLANDS).find(key => !progress.visited(key)) ?? 'berry';
+
+  function placeIslandPets() {
+    for (const id of Object.keys(PETS)) {
+      const home = { ...lostPet(world, id), id };
+      islandPets.set(id, home);
+      graphics.pet(`island-${id}`, progress.rescued(id) ? null : home);
+    }
+  }
+  placeIslandPets();
 
   function review() {
     for (const [index, tile] of tileButtons.entries()) {
       const value = Number(code[index]);
       tile.dataset.hull = String(value);
-      tile.setAttribute('aria-label', `Row ${Math.floor(index / 5) + 1}, column ${index % 5 + 1}, ${['empty', 'plank', 'reinforced plank'][value]}`);
+      tile.setAttribute('aria-label', `Row ${Math.floor(index / HULL_WIDTH) + 1}, column ${index % HULL_WIDTH + 1}, ${['empty', 'plank', 'reinforced plank'][value]}`);
     }
     const rating = rateHull(code);
     $('boat-range').textContent = `Estimated range ${rating.range} m`;
@@ -47,42 +72,50 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     ].filter(Boolean).join(' ');
     $('boat-advice').dataset.warning = String(Boolean(rating.holes || rating.loose));
     const target = ISLANDS[destination.value];
-    const needed = Math.round(Math.max(1, Math.hypot(target.x - DOCK.x, target.z - DOCK.launchZ) - target.rz * STUD));
-    $('destination-range').textContent = `${target.name} is about ${needed} m from the dock. ${rating.launchable && rating.range < needed ? 'Improve the hull for this crossing.' : ''}`;
+    const needed = crossingDistance(target);
+    $('destination-range').textContent = `${target.name} is about ${needed} m away. ${rating.launchable && rating.range < needed ? 'Add or reinforce planks for this crossing.' : ''}`;
     $('launch-boat').disabled = !rating.launchable;
   }
 
   function design(value) {
+    if (value === code) return;
     code = value;
     save(BOAT_KEY, code);
     review();
   }
 
+  function paintHull(index) {
+    design(code.slice(0, index) + brush + code.slice(index + 1));
+  }
+
   for (let i = 0; i < code.length; i++) {
     const button = document.createElement('button');
     button.type = 'button';
-    button.onclick = () => design(code.slice(0, i) + brush + code.slice(i + 1));
+    button.dataset.cell = String(i);
+    button.onclick = event => { if (event.detail === 0) paintHull(i); };
     tileButtons.push(button);
     boatGrid.append(button);
   }
-  for (const button of document.querySelectorAll('button[data-hull]')) {
+  boatGrid.addEventListener('pointerdown', event => {
+    const cell = event.target.closest('button[data-cell]');
+    if (!cell || event.button !== 0 || painting !== null) return;
+    painting = event.pointerId;
+    boatGrid.setPointerCapture(painting);
+    paintHull(Number(cell.dataset.cell));
+  });
+  boatGrid.addEventListener('pointermove', event => {
+    if (painting !== event.pointerId) return;
+    const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest('button[data-cell]');
+    if (cell && boatGrid.contains(cell)) paintHull(Number(cell.dataset.cell));
+  });
+  boatGrid.addEventListener('lostpointercapture', event => {
+    if (painting === event.pointerId) painting = null;
+  });
+  for (const button of document.querySelectorAll('.boat-brushes button')) {
     button.onclick = () => {
       brush = Number(button.dataset.hull);
-      for (const option of document.querySelectorAll('.boat-brushes button')) {
-        option.setAttribute('aria-pressed', String(option === button));
-      }
+      for (const option of document.querySelectorAll('.boat-brushes button')) option.setAttribute('aria-pressed', String(option === button));
     };
-  }
-
-  function progress() {
-    for (const [key, island] of Object.entries(ISLANDS)) {
-      const step = $(`${key}-progress`);
-      step.textContent = visited.has(key) ? `Reached ${island.name}` : `Reach ${island.name}`;
-      step.dataset.done = String(visited.has(key));
-    }
-    const rescue = $('puppy-progress');
-    rescue.textContent = rescued ? 'Mochi rescued' : 'Rescue Mochi';
-    rescue.dataset.done = String(rescued);
   }
 
   function updateBoatView() {
@@ -99,16 +132,25 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     updateBoatView();
   }
 
+  function atDock(player) { return !vessel && dockDistance(player) < 5.5 && player.y > SEA_LEVEL; }
+
   function openVoyage() {
     const player = getPlayer();
-    const atDock = dockDistance(player) < 5.5 && player.y > SEA_LEVEL && !vessel;
-    $('boat-workshop').hidden = !atDock;
-    $('voyage-guide').hidden = atDock;
-    $('voyage-title').textContent = atDock ? 'Boat workshop' : 'Island voyage';
-    $('track-dock').hidden = Boolean(vessel || islandAt(player.x, player.z));
-    $('return-dock').hidden = !vessel && !islandAt(player.x, player.z);
-    progress();
-    if (atDock) review();
+    const workshop = atDock(player);
+    const island = islandAt(player.x, player.z);
+    $('boat-workshop').hidden = !workshop;
+    $('voyage-guide').hidden = workshop;
+    $('voyage-title').textContent = workshop ? 'Boat workshop' : 'Island voyage';
+    $('track-dock').hidden = Boolean(vessel || island);
+    $('return-dock').hidden = !vessel && !island;
+    for (const [key, target] of Object.entries(ISLANDS)) {
+      const step = $(`${key}-progress`);
+      step.textContent = progress.visited(key) ? `Reached ${target.name}` : `Reach ${target.name}`;
+      step.dataset.done = String(progress.visited(key));
+    }
+    rescueStep.textContent = progress.rescued('mochi') ? 'Mochi rescued' : 'Rescue Mochi';
+    rescueStep.dataset.done = String(progress.rescued('mochi'));
+    if (workshop) review();
     openDialog();
   }
 
@@ -119,7 +161,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   $('hull-pattern').onclick = () => design(hullPattern('hull'));
   destination.onchange = review;
   $('launch-boat').onclick = () => {
-    if (dockDistance(getPlayer()) > 5.5 || vessel) return;
+    if (!atDock(getPlayer())) return;
     vessel = launchVessel(code, destination.value);
     if (!vessel) return;
     tracking = false;
@@ -128,6 +170,17 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     updateBoatView();
     resume();
   };
+
+  function arrive(island) {
+    const first = !progress.visited(island);
+    const pet = PET_BY_ISLAND[island];
+    const target = !pet || progress.rescued(pet) ? '' : ` Look for ${PETS[pet].name}.`;
+    achieve('visit', island, `You reached ${ISLANDS[island].name}.${target}`);
+    if (first) {
+      const next = Object.keys(ISLANDS).find(key => !progress.visited(key));
+      if (next) destination.value = next;
+    }
+  }
 
   function move(input, yaw, dt) {
     if (!vessel) return false;
@@ -141,13 +194,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
       Object.assign(player, outcome.shore, { velocity: 0, grounded: true, moving: false, sprinting: false });
       vessel = null;
       updateBoatView();
-      if (outcome.island) {
-        visited.add(outcome.island);
-        save(VISITS_KEY, [...visited]);
-        if (outcome.island === 'reed' && !visited.has('lantern')) destination.value = 'lantern';
-        toast(outcome.island === 'lantern' && !rescued ? 'You reached Lantern Island. Look for Mochi.' :
-          `You reached ${ISLANDS[outcome.island].name}.`);
-      }
+      if (outcome.island) arrive(outcome.island);
     } else {
       Object.assign(player, { x: vessel.x, y: SEA_LEVEL + 0.26, z: vessel.z, yaw: vessel.yaw,
         velocity: 0, grounded: false, moving: false, sprinting: false });
@@ -157,25 +204,25 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     return true;
   }
 
-  function teaDistance(player, counter) {
-    const x = (counter.x + counter.w / 2) * STUD;
-    const z = (counter.z + counter.d / 2) * STUD;
-    return Math.hypot(x - player.x, z - player.z, counter.y * PLATE - player.y);
-  }
-
-  function findTea(player) {
+  function scanStations(player, now) {
     const x = Math.floor(player.x / STUD);
     const z = Math.floor(player.z / STUD);
-    let best = 3.35;
-    let item = null;
+    const result = {};
+    let bestTea = 3.35;
+    let bestProp = 2.5;
     for (const brick of world.query(x - 7, x + 8, z - 7, z + 8)) {
-      if (brick.form !== 'tea') continue;
-      const distance = teaDistance(player, brick);
-      if (distance >= best) continue;
-      best = distance;
-      item = brick;
+      if (brick.form === 'tea') {
+        const distance = objectDistance(player, brick);
+        if (distance < bestTea) { bestTea = distance; result.tea = brick.id; }
+      } else if (PLACEABLE_OBJECTS[brick.form]?.interaction) {
+        const distance = objectDistance(player, brick);
+        if (distance < bestProp) { bestProp = distance; result.prop = brick.id; }
+      }
     }
-    return item;
+    for (const [id, state] of tea) {
+      if (!world.bricks.has(id) || (state.served && state.until <= now)) tea.delete(id);
+    }
+    return result;
   }
 
   function teaPhase(id, now) {
@@ -187,77 +234,97 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
 
   function setTea(id, action) {
     const now = performance.now();
-    if (action === 'brew') tea.set(id, { until: now + STEEP_MS, served: false });
-    else tea.set(id, { until: now + SERVE_MS, served: true });
+    const served = action === 'serve';
+    tea.set(id, { until: now + (served ? SERVE_MS : STEEP_MS), served });
     graphics.tea(id, action);
   }
 
-  $('tea-action').onclick = () => {
-    if (!nearest || !world.bricks.has(nearest.id)) return;
-    const phase = teaPhase(nearest.id, performance.now());
+  teaButton.onclick = () => {
+    const counter = world.bricks.get(stations.tea);
+    if (!counter || vessel || objectDistance(getPlayer(), counter) > 3.35) return;
+    const phase = teaPhase(counter.id, performance.now());
     if (phase !== 'ready' && phase !== 'idle') return;
     const action = phase === 'ready' ? 'serve' : 'brew';
-    setTea(nearest.id, action);
-    sound('place');
-    sendTea({ id: nearest.id, action });
-    if (action === 'serve') toast('A cup of blossom tea is served.');
+    setTea(counter.id, action);
+    sound('use');
+    sendTea({ id: counter.id, action });
+    if (action === 'serve') achieve('serve', null, 'A cup of blossom tea is served.');
   };
 
-  function canRescue(player) {
-    return !rescued && !vessel && Math.hypot(player.x - islandPup.x, player.y - islandPup.y, player.z - islandPup.z) <= RESCUE_REACH;
+  function pendingPet(player) {
+    const island = islandAt(player.x, player.z);
+    const id = PET_BY_ISLAND[island];
+    return !vessel && id && !progress.rescued(id) ? islandPets.get(id) : null;
+  }
+
+  function withinRescue(player, pet) {
+    return pet && Math.hypot(player.x - pet.x, player.y - pet.y, player.z - pet.z) <= RESCUE_REACH;
   }
 
   rescueButton.onclick = () => {
     const player = getPlayer();
-    if (!canRescue(player)) return;
-    rescued = true;
-    companion = islandPup;
+    const pet = pendingPet(player);
+    if (!withinRescue(player, pet)) return;
+    const { name } = PETS[pet.id];
+    achieve('rescue', pet.id, `${name} rescued! Your new companion is coming with you.`);
+    companion = pet;
     rescueButton.hidden = true;
-    graphics.puppy('island', null);
-    sound('place');
-    const saved = save(PUPPY_KEY, true);
-    toast(saved ? 'Mochi rescued! Your puppy is coming with you.' : 'Mochi is following you for this visit. Browser storage is unavailable.');
+    graphics.pet(`island-${pet.id}`, null);
   };
+
+  propButton.onclick = () => { if (stations.prop) use(stations.prop); };
+
+  function updatePrompts(player, pet, now) {
+    const canRescue = Boolean(withinRescue(player, pet));
+    rescueButton.hidden = !canRescue;
+    if (canRescue) updateText($('rescue-label'), `Rescue ${PETS[pet.id].name}`);
+    if (now - lastScan >= 150) {
+      lastScan = now;
+      stations = vessel ? {} : scanStations(player, now);
+    }
+    const counter = world.bricks.get(stations.tea);
+    const item = world.bricks.get(stations.prop);
+    const preferTea = counter && (!item || objectDistance(player, counter) <= objectDistance(player, item));
+    teaButton.hidden = Boolean(vessel || canRescue || !preferTea);
+    propButton.hidden = Boolean(vessel || canRescue || preferTea || !item);
+    if (preferTea) {
+      const phase = teaPhase(counter.id, now);
+      teaButton.disabled = phase === 'brewing' || phase === 'served';
+      updateText($('tea-action-label'), { idle: 'Brew tea', brewing: 'Steeping tea…', ready: 'Serve tea', served: 'Tea served' }[phase]);
+    } else if (item) {
+      const label = item.form === 'door' ? (item.active ? 'Close door' : 'Open door') : (item.active ? 'Turn light off' : 'Turn light on');
+      updateText($('prop-action-label'), label);
+    }
+  }
+
+  function updateText(node, value) {
+    if (node.textContent !== value) node.textContent = value;
+  }
 
   function tick(now, yaw, dt) {
     const player = getPlayer();
-    rescueButton.hidden = !canRescue(player);
-    if (rescued) {
-      companion = followPuppy(companion, player, world, dt, Boolean(vessel));
-      graphics.puppy('local', companion);
+    const island = !vessel && player.grounded && player.y < 1.9 ? islandAt(player.x, player.z) : null;
+    if (island && !ISLANDS[island].offshore && !progress.visited(island)) arrive(island);
+    const active = progress.companion;
+    if (active) {
+      const pose = followPet(companion, player, world, dt, Boolean(vessel));
+      companion = pose ? { ...pose, id: active } : null;
+      graphics.pet('local', companion);
     }
-    const atDock = dockDistance(player) < 5.5 && !vessel;
-    const voyageLabel = $('voyage-button').lastChild;
-    const dockAction = atDock ? 'Boat workshop' : 'Island voyage';
-    if (voyageLabel.textContent !== dockAction) voyageLabel.textContent = dockAction;
-    const onLantern = !rescued && !vessel && islandAt(player.x, player.z) === 'lantern';
-    const target = vessel ? ISLANDS[vessel.destination] : onLantern ? { ...islandPup, name: 'Mochi' } :
-      tracking && !atDock ? { ...DOCK, name: 'South dock' } : null;
+    const nearDock = atDock(player);
+    game.dataset.atDock = String(nearDock);
+    updateText($('voyage-button').lastChild, nearDock ? 'Boat workshop' : 'Island voyage');
+    const pet = pendingPet(player);
+    const target = vessel ? ISLANDS[vessel.destination] : pet ? { ...pet, name: PETS[pet.id].name } :
+      tracking && !nearDock ? { ...DOCK, name: 'South dock' } : null;
     $('voyage-direction').hidden = !target;
     if (target) {
       const distance = Math.round(Math.hypot(target.x - player.x, target.z - player.z));
       const bearing = Math.atan2(target.x - player.x, player.z - target.z) + yaw;
       $('voyage-arrow').style.transform = `rotate(${bearing}rad)`;
-      const label = $('voyage-distance');
-      const text = `${target.name} · ${distance} m`;
-      if (label.textContent !== text) label.textContent = text;
+      updateText($('voyage-distance'), `${target.name} · ${distance} m`);
     }
-    if (now - lastTeaScan >= 150) {
-      lastTeaScan = now;
-      nearest = vessel ? null : findTea(player);
-      for (const [id, state] of tea) {
-        if (!world.bricks.has(id) || (state.served && state.until <= now)) tea.delete(id);
-      }
-    }
-    const button = $('tea-action');
-    button.hidden = !nearest;
-    if (nearest) {
-      const phase = teaPhase(nearest.id, now);
-      button.disabled = phase === 'brewing' || phase === 'served';
-      const label = $('tea-action-label');
-      const text = { idle: 'Brew tea', brewing: 'Steeping tea…', ready: 'Serve tea', served: 'Tea served' }[phase];
-      if (label.textContent !== text) label.textContent = text;
-    }
+    updatePrompts(player, pet, now);
   }
 
   return {
@@ -269,19 +336,21 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     tick,
     reset() {
       vessel = null;
+      tracking = false;
       companion = null;
-      islandPup = lostPuppy(world);
       tea.clear();
-      graphics.puppy('local', null);
-      graphics.puppy('island', rescued ? null : islandPup);
+      stations = {};
+      lastScan = -Infinity;
+      graphics.pet('local', null);
+      placeIslandPets();
       updateBoatView();
     },
     receiveTea(packet, remote) {
       if (!remote || (packet?.action !== 'brew' && packet?.action !== 'serve')) return;
       const counter = world.bricks.get(packet.id);
-      if (counter?.form !== 'tea' || teaDistance(remote, counter) > 4.1) return;
+      if (counter?.form !== 'tea' || objectDistance(remote, counter) > 4.1) return;
       setTea(packet.id, packet.action);
-      if (packet.action === 'serve' && teaDistance(getPlayer(), counter) < 5) toast('Your friend served blossom tea.');
+      if (packet.action === 'serve' && objectDistance(getPlayer(), counter) < 5) toast('Your friend served blossom tea.');
     },
   };
 }

@@ -1,8 +1,9 @@
-import { QUICK_PARTS } from './parts.js';
+import { PLACEABLE_OBJECTS, QUICK_PARTS } from './parts.js';
+import { canBuildAt } from './islands.js';
 
 export const STUD = 0.55;
 export const PLATE = 0.17;
-export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: 150, minY: -9, maxY: 105 };
+export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: 252, minY: -9, maxY: 105 };
 export const REACH = 13;
 export const MAX_EDITS = 6000;
 export const WORLD_SAVE_VERSION = 2;
@@ -22,21 +23,27 @@ export const TONES = {
   fern: '#476649', sage: '#728665', reed: '#a3a16d', pearl: '#ffffed',
 };
 
-export const FORMS = ['brick', 'round', 'flower', 'tea'];
+const BRICK_FORMS = ['brick', 'round', 'flower'];
 const brickFields = ['id', 'x', 'y', 'z', 'w', 'd', 'h', 'tone', 'studs', 'form', 'turn'];
 
-export function sameBrick(a, b) {
-  return a === b || Boolean(a && b && brickFields.every(field => a[field] === b[field]));
+export function sameBrick(a, b, includeState = true) {
+  return a === b || Boolean(a && b && brickFields.every(field => a[field] === b[field]) &&
+    (!includeState || Boolean(a.active) === Boolean(b.active)));
 }
 
 export function validBrick(brick) {
-  if (!(brick && insideBounds(brick) && Math.max(brick.w, brick.d, brick.h) <= 8 &&
-    Object.hasOwn(TONES, brick.tone) && typeof brick.studs === 'boolean' && FORMS.includes(brick.form) &&
+  if (!(brick && insideBounds(brick) && Object.hasOwn(TONES, brick.tone) && typeof brick.studs === 'boolean' &&
     Number.isInteger(brick.turn) && brick.turn >= 0 && brick.turn <= 3)) return false;
-  if (brick.form !== 'tea') return true;
-  const quarterTurn = brick.turn % 2;
-  return brick.h === 5 && !brick.studs && brick.w === 3 - quarterTurn && brick.d === 2 + quarterTurn;
+  if (!Object.hasOwn(PLACEABLE_OBJECTS, brick.form)) {
+    return BRICK_FORMS.includes(brick.form) && Math.max(brick.w, brick.d, brick.h) <= 8 && brick.active === undefined;
+  }
+  const { size: [w, d, h], interaction } = PLACEABLE_OBJECTS[brick.form];
+  const turned = brick.turn % 2 === 1;
+  return !brick.studs && brick.h === h && brick.w === (turned ? d : w) && brick.d === (turned ? w : d) &&
+    (brick.active === undefined || Boolean(interaction) && typeof brick.active === 'boolean');
 }
+
+const openDoor = brick => brick.form === 'door' && brick.active;
 
 export function validSnapshot(value) {
   return Boolean(value && (value.version === WORLD_SAVE_VERSION || value.version === 1) &&
@@ -106,7 +113,7 @@ export class BrickWorld {
 
   collides(box) {
     for (const brick of this.query(Math.floor(box.x), Math.ceil(box.x + box.w), Math.floor(box.z), Math.ceil(box.z + box.d))) {
-      if (overlaps(brick, box)) return true;
+      if (!openDoor(brick) && overlaps(brick, box)) return true;
     }
     return false;
   }
@@ -120,6 +127,7 @@ export class BrickWorld {
     const bounds = this.playerBox(x, 0, z, radius, 1);
     let ground = -Infinity;
     for (const brick of this.query(Math.floor(bounds.x), Math.ceil(bounds.x + bounds.w), Math.floor(bounds.z), Math.ceil(bounds.z + bounds.d))) {
+      if (openDoor(brick)) continue;
       const top = (brick.y + brick.h) * PLATE;
       if (top < low - epsilon || top > high + epsilon || top <= ground) continue;
       if (brick.x >= bounds.x + bounds.w || brick.x + brick.w <= bounds.x ||
@@ -167,7 +175,7 @@ export class BrickWorld {
   }
 
   canPlace(bricks, players = []) {
-    return this.added.size + bricks.length <= MAX_EDITS && this.hasSpace(bricks, new Set(), players);
+    return this.added.size + bricks.length <= MAX_EDITS && bricks.every(canBuildAt) && this.hasSpace(bricks, new Set(), players);
   }
 
   hasSpace(bricks, replacing, players) {
@@ -177,7 +185,8 @@ export class BrickWorld {
       incoming.push(brick);
       const current = this.bricks.get(brick.id);
       const moved = !current || ['x', 'y', 'z', 'w', 'h', 'd'].some(key => current[key] !== brick[key]);
-      if (moved && players.some(player => overlaps(brick, player))) return false;
+      const closesDoor = current && openDoor(current) && !openDoor(brick);
+      if ((moved || closesDoor) && !openDoor(brick) && players.some(player => overlaps(brick, player))) return false;
       for (const other of this.query(brick.x, brick.x + brick.w, brick.z, brick.z + brick.d)) {
         if (!replacing.has(other.id) && overlaps(brick, other)) return false;
       }
@@ -278,7 +287,7 @@ export class BrickWorld {
     this.onChange?.(null, null);
   }
 
-  pick(origin, direction, distance = REACH) {
+  pick(origin, direction, distance = REACH, throughDoors = false) {
     const endX = origin.x + direction.x * distance;
     const endZ = origin.z + direction.z * distance;
     const results = this.query(Math.floor(Math.min(origin.x, endX) / STUD), Math.floor(Math.max(origin.x, endX) / STUD) + 1,
@@ -286,6 +295,7 @@ export class BrickWorld {
     let closest = distance;
     let target = null;
     for (const brick of results) {
+      if (throughDoors && openDoor(brick)) continue;
       const hit = hitBox(origin, direction, brick, closest);
       if (!hit) continue;
       closest = hit.distance;

@@ -430,7 +430,8 @@ function buildVoyage(world, make) {
     }
     make.row(x, 2, 55, 10, 1, 'lacquer', 'z', true, 2);
   }
-  for (const [key, island] of Object.entries(ISLANDS)) {
+  for (const key of ['reed', 'lantern']) {
+    const island = ISLANDS[key];
     const { gridX: cx, gridZ: cz, rx, rz } = island;
     for (let z = cz - rz; z <= cz + rz; z++) {
       for (let x = cx - rx; x <= cx + rx; x++) {
@@ -459,6 +460,42 @@ function buildVoyage(world, make) {
     }
   }
   world.seed(15, 32, -14, 3, 5, 2, 'cedar', false, 'tea');
+}
+
+function buildOuterIslands(world, make) {
+  for (const key of ['shell', 'berry']) {
+    const { gridX: cx, gridZ: cz, rx, rz } = ISLANDS[key];
+    const cove = key === 'shell';
+    for (let z = cz - rz; z <= cz + rz; z++) {
+      for (let x = cx - rx; x <= cx + rx; x++) {
+        const rim = ((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2;
+        if (rim > 0.94 + noise(x, 48, z) * 0.09) continue;
+        const beach = rim > 0.71;
+        const top = beach ? -1 : 0;
+        const skin = cove ? ['sand', 'chalk', 'cream', 'gravel'] : ['moss', 'fern', 'sage', 'olive'];
+        const paving = Math.abs(x - cx) <= 2;
+        world.seed(x, -7, z, 1, top + 5, 1, cove ? 'sand' : 'soil', false);
+        world.seed(x, top - 2, z, 1, 2, 1,
+          beach ? 'sand' : pick(paving ? ['chalk', 'gravel', 'stone'] : skin, noise(x, 82, z)));
+        if (top === 0 && Math.abs(x - cx) >= 5 && noise(x, 83, z) > 0.89) {
+          world.seed(x, 0, z, 1, 1, 1, pick(cove ? ['ivory', 'rose', 'cream'] : ['blush', 'wine', 'salmon'], noise(x, 16, z)),
+            true, 'flower');
+        }
+      }
+    }
+    if (cove) {
+      for (const dx of [-6, 6]) make.gardenLamp(cx + dx, cz - 1);
+      make.slab(cx - 3, 0, cz + 2, 7, 1, 3, ['chalk', 'shale', 'chalk']);
+      make.post(cx - 1, 1, cz + 3, 3, 10, 3, ['chalk', 'cream', 'redwood', 'chalk']);
+      make.slab(cx - 2, 11, cz + 2, 5, 1, 5, ['beam', 'ink']);
+      make.slab(cx - 1, 12, cz + 3, 3, 2, 3, ['paper'], false);
+      make.slab(cx - 2, 14, cz + 2, 5, 2, 5, ['tile', 'teal']);
+    } else {
+      make.house(cx, cz + 2, 7, 7, 9);
+      for (const dx of [-7, 7]) tree(world, cx + dx, cz + 1, 0.47);
+      for (const dx of [-5, 5]) make.gardenLamp(cx + dx, cz - 4);
+    }
+  }
 }
 
 export function makeValley() {
@@ -497,6 +534,7 @@ export function makeValley() {
     }
   }
   buildVoyage(world, make);
+  buildOuterIslands(world, make);
   return world;
 }
 

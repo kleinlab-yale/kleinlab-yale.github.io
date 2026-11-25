@@ -7,9 +7,9 @@
   <link rel="icon" type="image/png" href="./favicon.png" />
   <meta name="description" content="A touch-friendly 3D brick-building sandbox in a cherry-blossom village. Explore, rebuild, and play with a friend." />
   <title>LetsGo</title>
-  <script type="module" crossorigin src="./assets/index-Bt3zCnhp.js"></script>
+  <script type="module" crossorigin src="./assets/index-DldsntS2.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/three-B4YN75pz.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-c2fU-AH-.css">
+  <link rel="stylesheet" crossorigin href="./assets/index-jG_cPfvc.css">
 </head>
 <body>
   <div id="game" data-screen="title">
@@ -25,6 +25,7 @@
         </div>
       </div>
       <div class="top-actions">
+        <button id="journal-button" class="subtle-button" type="button" aria-label="Journal" hidden><span data-icon="journal" aria-hidden="true"></span><span>Journal</span></button>
         <button id="room-shortcut" class="subtle-button" type="button" hidden><span data-icon="users" aria-hidden="true"></span><span id="room-shortcut-label">Co-op</span></button>
         <div id="camera-controls" class="camera-controls" role="group" aria-label="Camera" hidden>
           <button id="camera-left" class="subtle-button icon-button orbit-button" type="button" aria-label="Turn camera left" title="Turn camera left" data-icon="left"></button>
@@ -83,10 +84,18 @@
           <button class="subtle-button" id="open-objects" type="button"><span data-icon="object" aria-hidden="true"></span>Objects</button>
         </div>
       </div>
+      <div class="phone-build">
+        <p class="build-guide" id="phone-build-guide" hidden></p>
+        <div class="phone-build-actions">
+          <button id="phone-build-button" class="subtle-button" type="button" aria-haspopup="dialog"><span data-icon="brick" aria-hidden="true"></span><span id="phone-build-label">Build</span></button>
+          <button id="phone-explore-button" class="subtle-button icon-button" type="button" data-icon="check" aria-label="Finish building" hidden></button>
+        </div>
+      </div>
       <div id="activity" class="activity">
         <button id="voyage-button" class="subtle-button" type="button"><span data-icon="boat" aria-hidden="true"></span>Island voyage</button>
         <button id="tea-action" class="subtle-button" type="button" hidden><span data-icon="tea" aria-hidden="true"></span><span id="tea-action-label">Brew tea</span></button>
-        <button id="rescue-puppy" class="subtle-button" type="button" hidden><span data-icon="paw" aria-hidden="true"></span>Rescue Mochi</button>
+        <button id="rescue-pet" class="subtle-button" type="button" hidden><span data-icon="paw" aria-hidden="true"></span><span id="rescue-label">Rescue pet</span></button>
+        <button id="prop-action" class="subtle-button" type="button" hidden><span data-icon="object" aria-hidden="true"></span><span id="prop-action-label"></span></button>
         <div id="voyage-direction" class="voyage-direction" hidden><span id="voyage-arrow" data-icon="up" aria-hidden="true"></span><span id="voyage-distance"></span></div>
         <div id="hull-status" class="hull-status" hidden><label for="hull-meter">Hull condition</label><meter id="hull-meter" min="0" max="100" low="25" high="60" optimum="100" value="100"></meter></div>
       </div>
@@ -96,7 +105,18 @@
       <div class="panel-inner">
         <button class="close-button" type="button" data-close="parts" data-icon="x" aria-label="Close parts"></button>
         <h2 id="parts-title">Parts &amp; colors</h2>
-        <div class="kit-heading"><label for="kit-select">Build kit</label><select id="kit-select"></select></div>
+        <div class="compact-tools option-row" role="group" aria-label="Building tools">
+          <button type="button" data-compact-tool="place" aria-pressed="false">Place</button>
+          <button type="button" data-compact-tool="remove" aria-pressed="false">Remove</button>
+          <button type="button" data-compact-tool="rotate" aria-pressed="false">Rotate</button>
+          <button type="button" data-compact-tool="paint" aria-pressed="false">Paint</button>
+          <button type="button" data-compact-tool="undo" disabled>Undo</button>
+        </div>
+        <div class="compact-parts-tabs option-row" role="group" aria-label="Parts and colors pages">
+          <button type="button" data-parts-page="pieces" aria-pressed="true">Pieces</button>
+          <button type="button" data-parts-page="colors" aria-pressed="false">Colors</button>
+        </div>
+        <div class="kit-heading"><label for="kit-select">Build kit</label><select id="kit-select"></select><button id="parts-journal" class="text-button" type="button">Build packs</button></div>
         <div class="parts-layout">
           <section class="parts-shelf" aria-label="Parts">
             <div id="part-groups" class="part-groups" role="group" aria-label="Part groups"></div>
@@ -121,13 +141,28 @@
       </div>
     </dialog>
 
+    <dialog id="journal-dialog" class="panel journal-panel" aria-labelledby="journal-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="journal" data-icon="x" aria-label="Close journal"></button>
+        <h2 id="journal-title">Journal</h2>
+        <div class="journal-tabs option-row" role="group" aria-label="Journal pages">
+          <button type="button" data-journal-page="packs" aria-pressed="true">Build packs</button>
+          <button type="button" data-journal-page="pets" aria-pressed="false">Pets</button>
+          <button type="button" data-journal-page="islands" aria-pressed="false">Islands</button>
+        </div>
+        <section id="journal-packs" aria-label="Build packs"></section>
+        <section id="journal-pets" aria-label="Pets" hidden></section>
+        <section id="journal-islands" aria-label="Islands" hidden></section>
+      </div>
+    </dialog>
+
     <dialog id="voyage-dialog" class="panel workshop-panel" aria-labelledby="voyage-title">
       <div class="panel-inner">
         <button class="close-button" type="button" data-close="voyage" data-icon="x" aria-label="Close island voyage"></button>
         <h2 id="voyage-title">Island voyage</h2>
         <div id="voyage-guide">
-          <p class="panel-copy">Mochi, a lost puppy, is waiting on Lantern Island. Build a boat at the south dock and test it on the shorter crossing to Reed Islet.</p>
-          <ol class="voyage-destinations"><li id="reed-progress">Reach Reed Islet</li><li id="lantern-progress">Reach Lantern Island</li><li id="puppy-progress">Rescue Mochi</li></ol>
+          <p class="panel-copy">Build a bridge or sail to the nearby islands. A seaworthy hull will carry you across open water to Shell Cove and Cloudberry Isle.</p>
+          <ol class="voyage-destinations" id="voyage-destinations"></ol>
           <button id="track-dock" class="button primary wide" type="button">Show dock direction</button>
           <button id="return-dock" class="button secondary wide" type="button" hidden>Return to the south dock</button>
         </div>
@@ -146,7 +181,7 @@
               <h3 id="boat-range">Range 0 m</h3>
               <p id="boat-advice" class="panel-copy"></p>
               <label for="voyage-destination">Destination</label>
-              <select id="voyage-destination"><option value="reed">Reed Islet</option><option value="lantern">Lantern Island</option></select>
+              <select id="voyage-destination"></select>
               <p id="destination-range" class="panel-copy"></p>
               <div class="boat-patterns">
                 <button id="raft-pattern" class="text-button" type="button">Load a simple raft</button>
@@ -223,6 +258,11 @@
           <button id="pause-appearance" class="button secondary wide" type="button"><span data-icon="person" aria-hidden="true"></span>Customize player</button>
           <button id="pause-room" class="button secondary wide" type="button"><span data-icon="users" aria-hidden="true"></span>Room settings</button>
           <button id="pause-controls" class="button secondary wide" type="button"><span data-icon="help" aria-hidden="true"></span>Controls</button>
+          <fieldset class="audio-settings"><legend>Audio</legend>
+            <label><input id="audio-enabled" type="checkbox" /> Sound</label>
+            <label><input id="audio-music" type="checkbox" /> Music</label>
+            <label><input id="audio-effects" type="checkbox" /> Game sounds</label>
+          </fieldset>
           <div class="pause-links"><button id="respawn-button" class="text-button" type="button">Return to spawn</button><button id="title-button" class="text-button" type="button">Title screen</button></div>
         </div>
       </div>

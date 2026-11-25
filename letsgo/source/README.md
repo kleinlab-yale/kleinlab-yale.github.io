@@ -15,17 +15,21 @@ npm run dev
 
 Use the arrow keys or hold the on-screen movement buttons to walk on a computer. On a touch screen, drag the joystick. Drag the world to orbit your character. On a computer, either mouse button works for dragging. The buttons beside **Camera** turn the view a quarter turn at a time.
 
+On an iPhone, tap **Build** to pick a piece or edit tool. The check mark takes you back to exploring. **Journal** shows build packs, pets, and islands. **Menu** opens camera, audio, player, and room settings. Music and game sounds have separate switches.
+
 Start in **Explore** to walk and orbit the camera. Select **Place** or pick a brick from the tray, then tap or click a surface to build. Choose **Rotate**, **Paint**, or **Remove** and tap a placed brick to edit it. **Undo** reverses your recent edits. Use **Turn next piece** in **Parts & colors** to orient a part before placing it.
 
 Open **Parts & colors** and choose a **Build kit**. Shrine & treehouse, Blossom tree, Boat & dock, and Tea garden load matching materials and populate your quick tray. Pick a color for new bricks or choose **Paint placed bricks** to recolor existing ones. **Show all colors** opens the full palette. **Match a brick in the world** copies the shape and color of any brick you tap. Open **Objects** for the tea counter, lanterns, and the boat workshop.
+
+Earn the House Pack by placing six pieces, the Furnishings Pack by serving blossom tea, the Garden Lights Pack by rescuing Mochi, and the Coastal Pack by sailing to Shell Cove. Open each earned pack from the journal or the build kit picker. Tap placed doors and lights in Explore, or walk up and use their interaction button.
 
 Use **Camera** to cycle between third person, wide, and first person. **Customize** in the top bar opens presets and separate controls for your character’s face, hair, and clothes. Drag the preview to turn your character, or switch to Face close-up to see your expression. Your appearance is saved in your browser and shared with your co-op partner.
 
 Use Space to jump, 1–7 to select a brick, R to rotate, Z to undo, V to change the camera, and Escape to pause.
 
-Choose **Island voyage** and **Show dock direction** to find the south dock. At the workshop, load the simple raft or connect your own planks on the hull grid. Sail with the regular movement controls and follow the island marker. Holes and loose planks shorten your range. Reinforce a connected hull to reach Lantern Island. A sinking returns you to the dock with your design saved. You can use the return button after reaching either island.
+Choose **Island voyage** and **Show dock direction** to find the south dock. At the workshop, load the simple raft or draw connected planks on the hull grid. Sail with the regular movement controls and follow the island marker. Holes and loose planks shorten your range. You can build a bridge to Lantern Island or sail there. Shell Cove and Cloudberry Isle lie across open water beyond the building area. A wider, longer hull reaches Shell Cove, and a reinforced hull reaches Cloudberry Isle. A sinking returns you to the dock with your design saved.
 
-Follow the marker on Lantern Island and choose **Rescue Mochi** near the lost puppy. Mochi follows you on land and rides aboard your boat. Each player’s rescue saves in their browser and travels with them between solo and co-op games.
+Follow the island markers to rescue Mochi the puppy, Pebble the turtle, and Pip the rabbit. Choose a companion in **Journal → Pets**. Pets follow you on land and ride aboard your boat. Each player's rescues and build pack progress save in their browser and travel with them between solo and co-op games.
 
 Walk up to the tea counter in the High Pavilion, or build one from **Objects**. Choose **Brew tea**, wait for the tea to steep, then choose **Serve tea**.
 

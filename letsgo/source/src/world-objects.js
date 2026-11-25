@@ -11,7 +11,7 @@ export function createWorldObjects(scene, body) {
   scene.add(root);
   const counters = new Map();
   const vessels = new Map();
-  const puppies = new Map();
+  const pets = new Map();
   const oak = material(TONES.oak);
   const cedar = material(TONES.redwood);
   const dark = material(TONES.darkBark);
@@ -27,6 +27,11 @@ export function createWorldObjects(scene, body) {
   const puppyNose = material('#231f22', 0.22);
   const puppyTongue = material('#cc807b', 0.43);
   const gold = material('#e9b76b', 0.28);
+  const shell = material('#496c53', 0.36);
+  const shellPlate = material('#72946d', 0.39);
+  const turtleSkin = material('#99af7d', 0.45);
+  const rabbitFur = material('#d9c9dc', 0.42);
+  const rabbitCream = material('#f4e7e6', 0.38);
   const sphere = new THREE.SphereGeometry(0.5, 14, 9);
   const ring = new THREE.TorusGeometry(0.155, 0.022, 7, 18);
   const cylinder = new THREE.CylinderGeometry(0.5, 0.42, 1, 15);
@@ -138,7 +143,7 @@ export function createWorldObjects(scene, body) {
     return { group, code, x: 0, z: 0, yaw: 0, placed: false };
   }
 
-  function newPuppy(key) {
+  function newPuppy(adopted) {
     const group = new THREE.Group();
     const body = new THREE.Group();
     group.add(body);
@@ -161,7 +166,7 @@ export function createWorldObjects(scene, body) {
       mesh(head, sphere, puppyNose, side * 0.111, 0.073, -0.127, 0.055, 0.077, 0.027);
       mesh(head, sphere, porcelain, side * 0.111 - 0.009, 0.09, -0.141, 0.021, 0.025, 0.01);
     }
-    if (key !== 'island') {
+    if (adopted) {
       box(body, jade, 0, 0.327, -0.157, 0.347, 0.052, 0.144);
       const tag = mesh(body, cylinder, gold, 0, 0.29, -0.232, 0.073, 0.02, 0.073);
       tag.rotation.x = Math.PI / 2;
@@ -185,8 +190,85 @@ export function createWorldObjects(scene, body) {
     box(tail, biscuit, 0, 0.159, 0.154, 0.085, 0.135, 0.081).rotation.x = 0.12;
     box(tail, puppyCream, 0, 0.221, 0.133, 0.088, 0.063, 0.081);
     body.add(tail);
-    root.add(group);
-    return { group, body, head, legs, tail, target: null, stride: 0, yaw: 0 };
+    return { group, body, head, legs, tail };
+  }
+
+  function newTurtle(adopted) {
+    const group = new THREE.Group();
+    const body = new THREE.Group();
+    const head = new THREE.Group();
+    const tail = new THREE.Group();
+    group.add(body);
+    body.add(head, tail);
+    box(body, puppyCream, 0, 0.124, 0.02, 0.40, 0.11, 0.48);
+    mesh(body, sphere, shell, 0, 0.207, 0.038, 0.478, 0.27, 0.537);
+    mesh(body, cylinder, shellPlate, 0, 0.34, 0.038, 0.151, 0.033, 0.151);
+    for (const [x, z] of [[-0.132, 0.038], [0.132, 0.038], [-0.057, -0.106], [0.057, -0.106], [-0.057, 0.181], [0.057, 0.181]]) {
+      mesh(body, cylinder, shellPlate, x, 0.301, z, 0.09, 0.027, 0.09);
+    }
+    head.position.set(0, 0.155, -0.245);
+    box(head, turtleSkin, 0, 0.011, -0.055, 0.255, 0.193, 0.236);
+    box(head, puppyCream, 0, -0.053, -0.089, 0.236, 0.044, 0.168);
+    for (const x of [-0.081, 0.081]) {
+      mesh(head, sphere, puppyNose, x, 0.043, -0.164, 0.044, 0.057, 0.029);
+      mesh(head, sphere, porcelain, x - 0.006, 0.059, -0.172, 0.017, 0.018, 0.011);
+    }
+    if (adopted) box(head, jade, 0, -0.02, 0.055, 0.155, 0.087, 0.042);
+    tail.position.z = 0.254;
+    box(tail, turtleSkin, 0, 0.114, 0.058, 0.08, 0.081, 0.167).rotation.x = 0.16;
+    const legs = [];
+    for (const z of [-0.135, 0.17]) {
+      for (const x of [-0.159, 0.159]) {
+        const leg = new THREE.Group();
+        leg.position.set(x, 0.09, z);
+        box(leg, turtleSkin, Math.sign(x) * 0.027, -0.045, 0, 0.147, 0.088, 0.149);
+        body.add(leg);
+        legs.push(leg);
+      }
+    }
+    return { group, body, head, tail, legs };
+  }
+
+  function newRabbit(adopted) {
+    const group = new THREE.Group();
+    const body = new THREE.Group();
+    const head = new THREE.Group();
+    const tail = new THREE.Group();
+    group.add(body);
+    body.add(head, tail);
+    box(body, rabbitFur, 0, 0.239, 0.051, 0.344, 0.33, 0.429);
+    box(body, rabbitCream, 0, 0.219, -0.139, 0.288, 0.265, 0.105);
+    head.position.set(0, 0.396, -0.185);
+    box(head, rabbitFur, 0, 0.05, 0.012, 0.349, 0.278, 0.279);
+    box(head, rabbitCream, 0, -0.045, -0.126, 0.236, 0.102, 0.097);
+    box(head, puppyTongue, 0, 0.004, -0.18, 0.058, 0.035, 0.025);
+    for (const side of [-1, 1]) {
+      const ear = new THREE.Group();
+      ear.position.set(side * 0.102, 0.159, 0.022);
+      ear.rotation.z = -side * 0.16;
+      ear.rotation.x = side === -1 ? -0.12 : 0.17;
+      box(ear, rabbitFur, 0, 0.147, 0, 0.116, 0.337, 0.095);
+      box(ear, puppyTongue, 0, 0.166, -0.048, 0.069, 0.24, 0.025);
+      head.add(ear);
+      mesh(head, sphere, puppyNose, side * 0.099, 0.063, -0.13, 0.047, 0.061, 0.027);
+      mesh(head, sphere, porcelain, side * 0.099 - 0.007, 0.077, -0.141, 0.017, 0.023, 0.009);
+    }
+    if (adopted) {
+      const ribbon = box(head, jade, 0.08, 0.183, -0.026, 0.146, 0.043, 0.07);
+      ribbon.rotation.z = -0.35;
+    }
+    mesh(tail, sphere, rabbitCream, 0, 0.226, 0.281, 0.142, 0.148, 0.138);
+    const legs = [];
+    for (const z of [-0.13, 0.161]) {
+      for (const x of [-0.105, 0.105]) {
+        const leg = new THREE.Group();
+        leg.position.set(x, 0.136, z);
+        box(leg, rabbitCream, 0, -0.075, -0.033, 0.117, 0.123, 0.193);
+        body.add(leg);
+        legs.push(leg);
+      }
+    }
+    return { group, body, head, tail, legs };
   }
 
   return {
@@ -215,12 +297,16 @@ export function createWorldObjects(scene, body) {
         current.placed = true;
       }
     },
-    puppy(key, data) {
-      let current = puppies.get(key);
+    pet(key, data) {
+      let current = pets.get(key);
       if (!current && !data) return;
-      if (!current) {
-        current = newPuppy(key);
-        puppies.set(key, current);
+      if (data && current?.id !== data.id) {
+        if (current) root.remove(current.group);
+        const adopted = !key.startsWith('island-');
+        const model = data.id === 'pip' ? newRabbit(adopted) : data.id === 'pebble' ? newTurtle(adopted) : newPuppy(adopted);
+        current = { ...model, id: data.id, target: null, stride: 0, yaw: 0 };
+        root.add(current.group);
+        pets.set(key, current);
       }
       const { group } = current;
       if (data && (!current.target || Math.hypot(data.x - group.position.x, data.z - group.position.z) > 4)) {
@@ -252,23 +338,27 @@ export function createWorldObjects(scene, body) {
         position.y = SEA_LEVEL + 0.024 * Math.sin(time * 3.4);
         rotation.set(Math.sin(time * 2.8) * 0.024, vessel.yaw, Math.cos(time * 2.6) * 0.017);
       }
-      for (const [key, puppy] of puppies) {
-        const { group, body, head, legs, tail, target } = puppy;
+      for (const [key, pet] of pets) {
+        const { group, body, head, legs, tail, target, id } = pet;
         if (!target) continue;
         const weight = 1 - Math.exp(-Math.min(0.1, dt) * 16);
         const advance = key === 'friend' && !target.aboard ? weight : 1;
         group.position.x += (target.x - group.position.x) * advance;
         group.position.y += (target.y - group.position.y) * advance;
         group.position.z += (target.z - group.position.z) * advance;
-        const turn = target.yaw - puppy.yaw;
-        puppy.yaw += Math.atan2(Math.sin(turn), Math.cos(turn)) * weight;
-        group.rotation.y = puppy.yaw;
-        puppy.stride += (Number(target.moving) - puppy.stride) * weight;
-        const swing = Math.sin(time * 16) * puppy.stride;
-        for (const [i, leg] of legs.entries()) leg.rotation.x = swing * (i === 0 || i === 3 ? 0.49 : -0.49);
-        body.position.y = Math.abs(swing) * 0.035 + (target.aboard ? Math.sin(time * 3.4) * 0.024 : 0);
-        tail.rotation.y = Math.sin(time * (key === 'island' ? 4 : 8.6)) * 0.51;
-        head.rotation.z = Math.sin(time * 1.5) * (key === 'island' ? 0.13 : 0.05);
+        const turn = target.yaw - pet.yaw;
+        pet.yaw += Math.atan2(Math.sin(turn), Math.cos(turn)) * weight;
+        group.rotation.y = pet.yaw;
+        pet.stride += (Number(target.moving) - pet.stride) * weight;
+        const island = key.startsWith('island-');
+        const swing = Math.sin(time * (id === 'pip' ? 11 : 16)) * pet.stride;
+        for (const [i, leg] of legs.entries()) {
+          const phase = id === 'pip' ? i < 2 : i === 0 || i === 3;
+          leg.rotation.x = swing * (phase ? 0.49 : -0.49);
+        }
+        body.position.y = Math.abs(swing) * (id === 'pip' ? 0.16 : 0.035) + (target.aboard ? Math.sin(time * 3.4) * 0.024 : 0);
+        tail.rotation.y = Math.sin(time * (island ? 4 : 8.6)) * (id === 'mochi' ? 0.51 : 0.12);
+        head.rotation.z = Math.sin(time * 1.5) * (island ? 0.13 : 0.05);
       }
     },
   };

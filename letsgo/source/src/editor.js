@@ -1,4 +1,6 @@
 import { MAX_PATCH, TONES, sameBrick, validBrick } from './bricks.js';
+import { canBuildAt } from './islands.js';
+import { PLACEABLE_OBJECTS } from './parts.js';
 
 const UNDO_LIMIT = 64;
 export const PROTECTED_BRICK = 'You can change bricks you placed during this visit.';
@@ -6,7 +8,9 @@ export const PROTECTED_BRICK = 'You can change bricks you placed during this vis
 function toBrick(value, id) {
   if (!validBrick(value)) return null;
   const { x, y, z, w, d, h, tone, studs, form, turn } = value;
-  return { id, x, y, z, w, d, h, tone, studs, form, turn };
+  const brick = { id, x, y, z, w, d, h, tone, studs, form, turn };
+  if (PLACEABLE_OBJECTS[form]?.interaction) brick.active = false;
+  return brick;
 }
 
 function validEdit(edit) {
@@ -44,12 +48,17 @@ export class Builder {
       if (!Array.isArray(request.bricks) || request.bricks.length === 0 || request.bricks.length > MAX_PATCH) return { error: 'blocked' };
       const bricks = request.bricks.map((value, i) => toBrick(value, this.world.nextId + i));
       if (bricks.some(brick => !brick || !reachable(brick))) return { error: 'blocked' };
+      if (!bricks.every(canBuildAt)) return { error: 'open-water' };
       const edits = bricks.map(brick => ({ id: brick.id, brick }));
       return this.commit(edits, boxes);
     }
 
     const target = this.world.bricks.get(request.id);
     if (!target || !reachable(target)) return { error: 'blocked' };
+    if (request.kind === 'use' && PLACEABLE_OBJECTS[target.form]?.interaction) {
+      const edits = [{ id: target.id, brick: { ...target, active: !target.active } }];
+      return this.world.patch(edits, boxes) ? { edits } : { error: 'doorway' };
+    }
     if (!this.canEdit(target.id)) return { error: 'protected' };
     let brick;
     switch (request.kind) {
@@ -59,8 +68,9 @@ export class Builder {
         brick = { ...target, tone: request.tone };
         break;
       case 'rotate':
-        if (target.w === target.d && target.form !== 'flower' && target.form !== 'tea') return { error: 'square' };
+        if (target.w === target.d && target.form !== 'flower' && !PLACEABLE_OBJECTS[target.form]) return { error: 'square' };
         brick = { ...target, w: target.d, d: target.w, turn: (target.turn + 1) % 4 };
+        if (!canBuildAt(brick)) return { error: 'open-water' };
         break;
       default: return { error: 'blocked' };
     }
@@ -79,14 +89,19 @@ export class Builder {
   undo(boxes) {
     const last = this.history.at(-1);
     if (!last) return { error: 'nothing' };
-    if (last.edits.some(({ id, brick }) => !sameBrick(this.world.bricks.get(id) ?? null, brick))) {
+    if (last.edits.some(({ id, brick }) => !sameBrick(this.world.bricks.get(id) ?? null, brick, false))) {
       this.history.pop();
       return { error: 'changed' };
     }
-    if (!this.world.patch(last.previous, boxes)) return { error: 'restore' };
+    const restore = last.previous.map(edit => {
+      const current = this.world.bricks.get(edit.id);
+      if (!edit.brick || current?.active === undefined) return edit;
+      return { ...edit, brick: { ...edit.brick, active: current.active } };
+    });
+    if (!this.world.patch(restore, boxes)) return { error: 'restore' };
     this.history.pop();
-    this.track(last.previous);
-    return { edits: last.previous };
+    this.track(restore);
+    return { edits: restore };
   }
 
   track(edits) {
