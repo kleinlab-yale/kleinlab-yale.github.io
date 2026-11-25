@@ -532,6 +532,14 @@ input{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
 .zz{animation:zzz 2.2s ease-in-out infinite}@keyframes zzz{0%,100%{transform:translateY(0);opacity:.6}50%{transform:translateY(-8px);opacity:1}}
 .wig{animation:wig .5s ease-in-out infinite;transform-origin:120px 150px}
 .mlabel.xv.mine{background:#ffd23f;color:#35252d}
+/* ---------- the Christmas decoration drawer ---------- */
+#tray .xdt{margin-bottom:6px}#tray .xdt .tab{height:40px;padding:0 15px;font-size:19px}
+#tray .xdt .tab.wt{background:#fff3c4}#tray .xdt .tab.wt.on{background:#e63946;color:#fff}
+#tray .xdt .tab.bx{background:#e3f8ea}#tray .xdt .tab.bx.on{background:#2bb673;color:#fff}#tray .xdt .tab b{background:#e63946;color:#fff;border-radius:10px;padding:0 7px;font-size:15px}
+#tray .xdtt{font-size:20px;margin:0 6px 4px}
+#tray .xdrow .slot{touch-action:pan-x}
+#xbox.nudge{animation:nudge 1s ease-in-out infinite}@keyframes nudge{0%,100%{transform:scale(1)}50%{transform:scale(1.25) rotate(-8deg)}}
+.infl{transform-origin:120px 310px;animation:inflsw 3.2s ease-in-out infinite}@keyframes inflsw{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
 
 </style>
 </head>
@@ -3321,6 +3329,178 @@ const XPROPS={field:[['xpine',1250,640]]};
   return so.apply(this,arguments)}}
 /* the Snow Machine makes it snow in any room it's switched on in */
 {const h0=xHud;window.xHud=function(){h0();$stage.classList.toggle('snowin',!!(XMAS()&&SID&&S&&S.ents.some(e=>e.t==='xsnowm'&&e.s.on)))}}
+
+/* =====================================================================
+   THE CHRISTMAS DECORATION DRAWER — during the Christmas event the
+   Christmas box button opens a drawer full of decorations that never
+   run out: trees, ornaments, LOTS of lights, wreaths, stockings,
+   garlands, blow-ups… plus a tab of special things for whichever world
+   you are in (a boba tree in Boba Bay, a hay-bale tree on the farm,
+   a coral tree under the sea, an ice tree at the North Pole).
+   Drag a decoration up out of the drawer, or tap it to put it in the
+   room. Works in every place, in every world. Things put up stay.
+   ===================================================================== */
+const bulb=(x,y,k,r=0,s=1,i=0)=>`<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">`+R(-3.500,-13,7,8,2,'#4a4e69')+`<path d="M0 -6 Q9 -4 7 8 Q4 16 0 18 Q-4 16 -7 8 Q-9 -4 0 -6Z" fill="${k}" stroke="${INK}" stroke-width="2.400" class="tw" style="animation-delay:-${(i*.37%2).toFixed(2)}s"/>`+`<path d="M-3 0 Q-3 -3 0 -3" fill="none" stroke="#fff" stroke-width="2" opacity=".8"/></g>`;
+const LSETS=[['#ff5c7a','#ffd23f','#56d39a','#3a86ff','#d58bff'],['#fff3a8','#ffe08a'],[XRED,XGRN],['#7ad3ff','#ffffff'],['#ff8fb1','#b48cf0']];
+const LSN=['Rainbow','Warm white','Red and green','Icy blue','Pink and purple'];
+const lightTap=(e,n)=>{e.s.m=((e.s.m|0)+1)%(n||LSETS.length);redraw(e);sfx.magic();const a=absXY(e);sparkle(a.x,a.y-TD(e).h*.6,5);say(e,(LSN[e.s.m]||'Twinkle')+'!',1200);dirty()};
+const XL=(r,dy)=>({xl:1,light:e=>e.s.off?null:{dx:0,dy:dy,r:r}});
+
+/* ---------- ornaments ---------- */
+const XORN=['Snowflake','Bell','Heart','Gingerbread','Mini Present','Icicle','Pinecone','Boba','Corn','Shell','Penguin'];
+D('xorn','Ornament',50,62,'item',{a:XRED},(e,c)=>{const v=(e.s.v|0)%XORN.length;let o=hit(50,62)+R(20,0,10,9,3,'#ffd23f');switch(v){
+ case 0:o+=[0,60,120].map(r=>L('M25 14 L25 56 M19 19 L25 25 L31 19 M19 51 L25 45 L31 51','#bfe8ff',5,0,` transform="rotate(${r} 25 35)"`)).join('')+C(25,35,5,'#ffffff');break;
+ case 1:o+=P('M25 10 Q12 12 12 30 L10 44 L40 44 L38 30 Q38 12 25 10Z','#ffd23f')+C(25,48,5,'#e6a800')+R(16,22,18,4,2,XRED,0,NO);break;
+ case 2:o+=P(heartP(25,36,17),'#ff5c7a')+P(heartP(20,30,4),'#fff',0,' opacity=".7"'+NO);break;
+ case 3:o+=C(25,18,8,'#c98b5c')+P('M17 25 L33 25 L42 32 L39 38 L32 35 L33 45 L37 54 L30 57 L25 48 L20 57 L13 54 L17 45 L18 35 L11 38 L8 32Z','#c98b5c')+C(22,17,1.600,INK)+C(28,17,1.600,INK)+L('M14 34 L18 36 M36 34 L32 36','#fff',2,0,NO);break;
+ case 4:o+=R(10,24,30,28,4,'#3a86ff')+R(8,18,34,9,3,lt('#3a86ff',.2))+R(22,18,6,34,0,'#ffd23f')+P('M25 18 Q14 8 13 14 Q14 20 25 18 Q36 20 37 14 Q36 8 25 18Z','#ffd23f');break;
+ case 5:o+=P('M13 10 L37 10 L25 60Z','#dff2ff')+L('M19 14 L24 40','#fff',3,0,NO);break;
+ case 6:o+=E(25,36,13,20,'#8a5a3c')+[[25,20],[18,28],[32,28],[25,36],[18,44],[32,44],[25,52]].map(([x,y])=>P(`M${x-5} ${y} Q${x} ${y+6} ${x+5} ${y}`,'none',0,' fill="none" stroke="#c9935a" stroke-width="2.400"'+NO)).join('')+E(32,10,7,4,'#2e9e6b',0,rot(20,32,10));break;
+ case 7:o+=P('M12 16 L38 16 L34 58 L16 58Z','#fff3e3')+R(10,12,30,8,4,'#ff8fb1')+L('M28 14 L33 2','#ff5c7a',4)+[[19,50],[26,52],[32,49],[22,44],[29,44]].map(([x,y])=>C(x,y,3.400,'#5a3a2a',0,NO)).join('');break;
+ case 8:o+=E(25,36,10,20,'#f6c445')+[[22,24],[28,24],[22,32],[28,32],[22,40],[28,40],[25,48]].map(([x,y])=>C(x,y,2.200,'#e0a92a',0,NO)).join('')+P('M15 50 Q8 30 18 18 Q16 36 25 56Z','#56c596')+P('M35 50 Q42 30 32 18 Q34 36 25 56Z','#3fae6a');break;
+ case 9:o+=P('M25 56 Q6 50 8 28 Q14 12 25 14 Q36 12 42 28 Q44 50 25 56Z','#ffb3c7')+L('M25 54 L25 18 M25 54 L15 22 M25 54 L35 22',dk('#ffb3c7',.15),2.400,0,NO);break;
+ default:o+=E(25,38,15,19,'#3d4a66')+E(25,42,9,14,'#ffffff',0,NO)+C(25,22,11,'#3d4a66')+E(25,24,7,6,'#ffffff',0,NO)+C(22,22,1.800,INK)+C(28,22,1.800,INK)+P('M23 26 L27 26 L25 29Z','#ffb400')+R(15,30,20,5,2.500,XRED,0,NO)}
+ return o},{orn:1,nm:e=>XORN[(e.s.v|0)%XORN.length]+' Ornament'});
+
+/* ---------- lights, lots of lights ---------- */
+D('xlstr','Big Bulb Lights',460,96,'furn',{a:'#2e6b3a'},(e,c)=>{const k=LSETS[(e.s.m|0)%LSETS.length];let o=L('M6 14 Q120 72 230 34 Q340 -4 454 52',c.a,4,'a');
+  [[26,26],[70,46],[116,54],[162,50],[208,40],[254,30],[300,24],[346,28],[392,36],[434,46]].forEach(([x,y],i)=>o+=e.s.off?bulb(x,y+8,'#d8d8e6',(i%2?14:-14),1.200):bulb(x,y+8,k[i%k.length],(i%2?14:-14),1.200,i));return o},
+ Object.assign({mt:'wall',tap(e){lightTap(e)}},XL(260,-48)));
+D('xicicle','Icicle Lights',440,120,'furn',{a:'#e8eef7'},(e,c)=>{let o=L('M4 12 L436 12','#8d99ae',4);for(let i=0;i<18;i++){const x=14+i*24,h=[46,74,58,96,62,84][i%6];o+=`<path d="M${x-4} 12 L${x+4} 12 L${x} ${12+h}Z" fill="${e.s.off?'#e1e7f0':'#eaf8ff'}" stroke="${INK}" stroke-width="2.200" ${e.s.off?'':`class="tw" style="animation-delay:-${(i*.53%2).toFixed(2)}s"`}/>`}return o},
+ Object.assign({mt:'wall',tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.click();updLights();dirty()}},XL(240,-60)));
+D('xlsnow','Light-up Snowflake',150,150,'furn',{a:'#bfe8ff'},(e,c)=>{const k=e.s.off?'#dfe7f0':c.a;return(e.s.off?'':C(75,75,70,'#eaf8ff',0,' opacity=".5" class="np"'))+[0,60,120].map(r=>L('M75 10 L75 140 M58 24 L75 42 L92 24 M58 126 L75 108 L92 126',k,9,'a',` transform="rotate(${r} 75 75)"`)).join('')+C(75,75,12,'#ffffff')+(e.s.off?'':[0,60,120,180,240,300].map((r,i)=>C(75+62*Math.sin(r*Math.PI/180),75-62*Math.cos(r*Math.PI/180),5,'#ffffff',0,` class="tw" style="animation-delay:-${i*.3}s"`)).join(''))},
+ Object.assign({mt:'wall',tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.click();updLights();dirty()}},XL(170,-75)));
+D('xlstar','Light-up Star',150,150,'furn',{a:'#ffd23f'},(e,c)=>{const pts=star5(75,78,70,30);let o=(e.s.off?'':C(75,78,68,'#fff8d0',0,' opacity=".5" class="np"'))+P(pts,e.s.off?'#efe6c0':c.a,'a')+P(star5(75,78,34,15),'#fff8d6',0,NO);
+  if(!e.s.off)for(let i=0;i<10;i++){const a=(i*36-90)*Math.PI/180,r=i%2?32:70;o+=C(75+r*Math.cos(a),78+r*Math.sin(a),5,'#ffffff',0,` class="tw" style="animation-delay:-${i*.27}s"`)}return o},
+ Object.assign({mt:'wall',tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.click();updLights();dirty()}},XL(170,-78)));
+D('xltree','Light Tree',170,270,'furn',{a:'#2e9e6b'},(e,c)=>{const k=LSETS[(e.s.m|0)%LSETS.length];let o=sh(170,270,.34)+R(78,226,14,40,4,'#8a5a3c')+P('M85 30 L150 226 Q85 238 20 226Z',c.a,'a',' opacity=".35"');
+  o+=L('M85 34 L112 70 L58 104 L128 140 L40 176 L144 212 L26 226',INK,7)+L('M85 34 L112 70 L58 104 L128 140 L40 176 L144 212 L26 226','#4a4e69',3,0,NO);
+  [[112,70],[58,104],[128,140],[40,176],[144,212],[26,226],[98,52],[85,87],[93,122],[84,158],[92,194],[85,219]].forEach(([x,y],i)=>o+=C(x,y,7,e.s.off?'#d8d8e6':k[i%k.length],0,e.s.off?'':` class="tw" style="animation-delay:-${(i*.41%2).toFixed(2)}s"`));
+  return o+P(star5(85,26,22,10),e.s.off?'#efe6c0':'#ffd23f')},
+ Object.assign({tap(e){if(e.s.off){e.s.off=0;redraw(e);sfx.click();updLights();dirty();return}lightTap(e)}},XL(200,-140)));
+D('xldeer','Light-up Reindeer',230,220,'furn',{a:'#ffffff'},(e,c)=>{const g=e.s.off?'#c9cfdb':'#fff8d6',W2=e.s.off?3:6;const path='M40 120 Q40 90 70 88 L150 88 Q176 88 178 112 L178 120 M60 120 L56 206 M90 120 L94 206 M150 120 L146 206 M172 120 L178 206 M178 112 L194 72 M194 72 L190 40 Q200 30 214 40 L210 58 L194 72 M196 38 L186 6 M190 22 L172 16 M204 38 L214 8 M210 22 L226 18 M40 120 L178 120';
+  let o=sh(230,220,.36)+L(path,INK,W2+5)+L(path,g,W2,0,NO)+C(214,52,6,e.s.off?'#d8d8e6':XRED);
+  if(!e.s.off)[[70,88],[110,88],[150,88],[58,160],[92,160],[148,160],[176,160],[194,72],[186,6],[214,8],[40,120],[178,120]].forEach(([x,y],i)=>o+=C(x,y,4.200,'#ffffff',0,` class="tw" style="animation-delay:-${(i*.3%2).toFixed(1)}s"`));return o},
+ Object.assign({tap(e){anim(e,'hop',420);sfx.jingle()}},XL(200,-110)));
+D('xlcane','Candy Cane Lights',240,120,'furn',{a:XRED},(e,c)=>{let o=sh(240,120,.4);[40,120,200].forEach((x,i)=>{const d=`M${x} 116 L${x} 40 Q${x} 18 ${x+18} 18 Q${x+34} 18 ${x+34} 36`;o+=L(d,INK,16)+L(d,'#ffffff',10)+L(d,c.a,10,'a',' stroke-dasharray="9 9"')+(e.s.off?'':C(x+34,40,7,'#fff8d0',0,` class="tw" style="animation-delay:-${i*.5}s"`))});return o},
+ Object.assign({tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.click();updLights();dirty()}},XL(150,-60)));
+D('xlantern','Lantern',80,110,'item',{a:'#2e6b3a'},(e,c)=>sh(80,110,.34)+L('M40 2 Q28 2 28 14 M40 2 Q52 2 52 14',INK,4)+R(22,14,36,12,5,c.a,'a')+R(16,24,48,70,10,'#fff8d6')+(e.s.off?'':C(40,60,16,'#ffe08a',0,' class="np tw"'))+R(36,52,8,24,3,'#ffffff')+P('M40 40 Q45 47 40 52 Q35 47 40 40Z','#ffb400')+L('M16 46 L64 46 M16 72 L64 72 M28 24 L28 94 M52 24 L52 94',c.a,3,'a',NO)+R(12,92,56,12,5,c.a,'a'),
+ Object.assign({tt:1,tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.click();updLights();dirty()}},XL(150,-60)));
+D('xwcandle','Window Candle',54,110,'item',{a:'#ffffff'},(e,c)=>sh(54,110,.34)+(e.s.off?'':C(27,18,16,'#fff8d0',0,' opacity=".7" class="np tw"'))+P('M27 6 Q35 18 27 28 Q19 18 27 6Z',e.s.off?'#e6e6ee':'#ffd23f')+R(19,28,16,62,6,c.a,'a')+R(8,86,38,18,7,XRED)+E(18,90,9,6,XGRN,0,rot(-20,18,90))+E(36,90,9,6,XGRN,0,rot(20,36,90))+C(27,92,5,XRED),
+ Object.assign({tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.click();updLights();dirty()}},XL(130,-90)));
+
+/* ---------- things to hang up ---------- */
+D('xgarland','Pine Garland',470,120,'furn',{a:'#2e8b57',b:XRED},(e,c)=>{let o='';for(let i=0;i<=22;i++){const t=i/22,x=12+446*t,y=18+Math.sin(t*Math.PI*2)*-14+Math.sin(t*Math.PI)*46;o+=C(x,y,17,i%2?c.a:dk(c.a,.08),'a')}o=U(o,6);
+  [[60,52],[150,78],[235,64],[320,78],[410,52]].forEach(([x,y],i)=>o+=C(x,y+8,6,i%2?'#ffd23f':XRED)+C(x+14,y-4,5,i%2?XRED:'#ffd23f'));
+  return o+[[12,18],[235,52],[458,18]].map(([x,y])=>P(`M${x} ${y} Q${x-26} ${y-20} ${x-28} ${y} Q${x-24} ${y+14} ${x} ${y} Q${x+24} ${y+14} ${x+28} ${y} Q${x+26} ${y-20} ${x} ${y}Z`,c.b,'b')+P(`M${x-4} ${y+2} L${x-14} ${y+40} L${x-4} ${y+34} L${x} ${y+42} L${x+4} ${y+2}Z`,c.b,'b')+C(x,y,6,dk(c.b,.15),'b')).join('')},{mt:'wall'});
+D('xbow','Big Bow',130,130,'furn',{a:XRED},(e,c)=>P('M65 44 Q20 0 10 30 Q6 60 65 50 Q124 60 120 30 Q110 0 65 44Z',c.a,'a')+P('M58 50 L30 126 L48 112 L58 128 L66 52Z',c.a,'a')+P('M72 50 L100 126 L82 112 L72 128 L64 52Z',dk(c.a,.08),'a')+C(65,47,13,dk(c.a,.15),'a')+L('M30 24 Q40 34 52 40 M100 24 Q90 34 78 40',lt(c.a,.35),3,0,NO),{mt:'wall'});
+D('xbells','Sleigh Bells',110,180,'furn',{a:'#8a5a3c',b:'#ffd23f'},(e,c)=>R(42,4,26,172,12,c.a,'a')+L('M55 4 L55 176',dk(c.a,.2),2,0,NO)+[30,64,98,132].map((y,i)=>C(55,y+10,15,c.b,'b')+L(`M46 ${y+12} L64 ${y+12}`,dk(c.b,.25),2.400,0,NO)+C(55,y+18,3,INK)).join('')+P('M55 4 Q30 -6 26 8 Q32 18 55 10 Q78 18 84 8 Q80 -6 55 4Z',XRED),
+ {mt:'wall',tap(e){anim(e,'shake',500);sfx.jingle();const a=absXY(e);sparkle(a.x,a.y-90,4)}});
+D('xbanner','Merry Christmas Banner',470,120,'furn',{a:XRED},(e,c)=>{let o=L('M6 12 Q235 50 464 12','#8a5a3c',4);'MERRY XMAS!'.split('').forEach((ch,i)=>{const t=(i+.5)/11,x=6+458*t,y=12+(1-(2*t-1)**2)*30;if(ch===' ')return;
+  o+=P(`M${x-19} ${y} L${x+19} ${y} L${x+19} ${y+50} L${x} ${y+64} L${x-19} ${y+50}Z`,[XRED,XGRN,'#ffd23f'][i%3])+`<text x="${x}" y="${y+40}" font-size="30" font-weight="800" text-anchor="middle" fill="${i%3===2?XRED:'#fff'}" class="np">${ch}</text>`});return o},{mt:'wall'});
+D('xsnowfl','Paper Snowflake',120,120,'furn',{a:'#ffffff'},(e,c)=>C(60,60,52,c.a,'a')+[0,60,120].map(r=>L('M60 14 L60 106','#c9dff2',6,0,` transform="rotate(${r} 60 60)"`)).join('')+[0,60,120,180,240,300].map(r=>C(60+30*Math.sin(r*Math.PI/180),60-30*Math.cos(r*Math.PI/180),6,'#c9dff2',0,NO)).join('')+C(60,60,9,'#c9dff2',0,NO),{mt:'wall'});
+
+/* ---------- big decorations ---------- */
+D('xskirt','Tree Skirt',320,90,'furn',{a:XRED,b:'#ffffff'},(e,c)=>E(160,48,156,38,c.b,'b')+E(160,46,140,30,c.a,'a')+E(160,46,40,10,dk(c.a,.15),'a',NO)+[[70,40],[250,40],[120,62],[200,62],[160,26]].map(([x,y])=>P(star5(x,y,9,4),'#ffd23f',0,NO)).join(''),{mt:'rug'});
+D('xpoins','Poinsettia',140,160,'furn',{a:XRED},(e,c)=>sh(140,160,.36)+P('M34 106 L106 106 L96 156 L44 156Z','#ffd23f')+R(28,98,84,14,6,dk('#ffd23f',.12))+[[-60,46,28],[60,94,28],[0,70,34],[180,70,104],[-30,42,58],[30,98,58],[120,52,92],[240,88,92]].map(([r,x,y])=>E(x,y,24,11,'#2e8b57',0,rot(r,x,y))).join('')
+  +[0,72,144,216,288].map(r=>E(70+24*Math.cos(r*Math.PI/180),62+24*Math.sin(r*Math.PI/180),20,10,c.a,'a',rot(r,70+24*Math.cos(r*Math.PI/180),62+24*Math.sin(r*Math.PI/180)))).join('')+[[66,58],[74,60],[70,66]].map(([x,y])=>C(x,y,4,'#ffd23f')).join(''));
+D('xnut','Nutcracker',120,250,'furn',{a:XRED,b:'#1e3a8a'},(e,c)=>{const op=tr(e).busy;return sh(120,250,.32)+R(30,214,26,32,6,'#35252d')+R(64,214,26,32,6,'#35252d')+R(30,150,60,70,8,c.b,'b')+R(26,90,68,68,12,c.a,'a')+L('M60 92 L60 156',('#ffd23f'),5)+[104,120,136].map(y=>C(60,y,3.500,'#ffd23f')).join('')
+  +R(12,94,18,58,9,c.a,'a')+R(90,94,18,58,9,c.a,'a')+C(21,154,9,'#f6d2b6')+C(99,154,9,'#f6d2b6')+R(34,40,52,52,10,'#f6d2b6')+C(48,58,4,INK)+C(72,58,4,INK)+C(40,66,4,'#ff9cc0',0,NO)+C(80,66,4,'#ff9cc0',0,NO)
+  +P(`M36 ${op?78:72} L84 ${op?78:72} L84 ${op?100:92} Q60 ${op?110:102} 36 ${op?100:92}Z`,'#ffffff')+R(46,70,28,6,3,INK)+R(32,2,56,44,8,'#35252d')+R(32,32,56,10,4,'#ffd23f')+P(star5(60,16,8,3.500),'#ffd23f')},
+ {tap(e){if(tr(e).busy)return;tr(e).busy=1;redraw(e);sfx.chomp();say(e,pick(['Clack clack!','Attention!','Crack!','I guard the tree!']),1400);later(e,500,()=>{tr(e).busy=0;redraw(e)})}});
+D('xinfl','Blow-up Snowman',240,320,'furn',{a:'#ffffff',b:XRED},(e,c)=>{const on=!!e.s.on,v=e.s.v|0;if(!on)return sh(240,320,.4)+P('M30 314 Q40 270 90 276 Q120 250 150 278 Q210 270 214 314Z',v?'#3d4a66':c.a,'a')+C(150,296,8,v?'#ffb400':'#ff8552')+R(186,302,30,14,5,'#8d99ae')+L('M186 306 Q170 300 160 304','#8d99ae',4);
+  if(v)return sh(240,320,.4)+R(186,302,30,14,5,'#8d99ae')+`<g class="infl">`+E(120,206,92,108,'#3d4a66')+E(120,222,64,86,'#ffffff')+E(26,200,22,56,'#3d4a66',0,rot(24,26,200))+E(214,200,22,56,'#3d4a66',0,rot(-24,214,200))+C(120,84,62,'#3d4a66')+E(120,96,44,38,'#ffffff')+C(100,84,8,INK)+C(140,84,8,INK)+C(103,81,3,'#fff')+C(143,81,3,'#fff')
+   +P('M108 102 L132 102 L120 118Z','#ffb400')+R(56,136,128,22,11,c.b,'b')+R(150,146,22,52,8,c.b,'b')+E(92,310,26,10,'#ffb400')+E(148,310,26,10,'#ffb400')+P('M74 30 Q120 -20 166 30 Z',c.b,'b')+C(120,6,10,'#ffffff')+`</g>`;
+  return sh(240,320,.4)+R(186,302,30,14,5,'#8d99ae')+`<g class="infl">`+C(120,236,80,c.a,'a')+C(120,124,58,c.a,'a')+[200,228,256].map(y=>C(120,y,7,INK)).join('')+C(100,112,7,INK)+C(140,112,7,INK)+P('M120 126 L170 136 L120 144Z','#ff8552')+L('M98 150 Q120 164 142 150',INK,5)
+   +R(66,164,108,22,11,c.b,'b')+R(140,170,24,56,8,c.b,'b')+R(76,52,88,16,6,'#35252d')+R(90,6,60,52,8,'#35252d')+R(90,40,60,10,0,c.b,'b')+L('M44 214 L4 176 M196 214 L236 176','#8a5a3c',8)+`</g>`},
+ {nm:e=>(e.s.v?'Blow-up Penguin':'Blow-up Snowman'),tap(e){e.s.on=e.s.on?0:1;redraw(e);sfx[e.s.on?'whoosh':'boing']();anim(e,e.s.on?'pop':'land',360);if(e.s.on){star('inflate');const a=absXY(e);sparkle(a.x,a.y-200,6);say(e,'Whooooosh — ta-da!',1600)}dirty()},
+  light:e=>e.s.on?{dx:0,dy:-160,r:200}:null,xl:1});
+D('xdpres','Present Pile',170,120,'item',{a:XRED,b:'#3a86ff'},(e,c)=>sh(170,120,.4)+R(10,52,70,64,8,c.a,'a')+R(40,52,10,64,0,'#ffd23f')+R(6,44,78,14,6,lt(c.a,.2),'a')+P('M45 44 Q30 26 26 38 Q30 48 45 44 Q60 48 64 38 Q60 26 45 44Z','#ffd23f')
+  +R(90,70,66,46,8,c.b,'b')+R(118,70,10,46,0,'#ffffff')+R(86,62,74,12,5,lt(c.b,.2),'b')+R(46,8,56,46,8,XGRN)+R(70,8,8,46,0,XRED)+R(42,2,64,12,5,lt(XGRN,.2))+P('M74 2 Q62 -12 58 0 Q62 8 74 2 Q86 8 90 0 Q86 -12 74 2Z',XRED),
+ {tap(e){anim(e,'shake',500);sfx.squeak();say(e,pick(['Not until Christmas morning!','Rattle rattle… what could it be?','Shake shake!']),1800)}});
+D('xsign','North Pole Sign',150,250,'furn',{a:'#ffffff',b:XRED},(e,c)=>{let o=sh(150,250,.3)+R(64,40,20,206,8,c.a,'a');for(let i=0;i<9;i++)o+=P(`M64 ${56+i*21} L84 ${44+i*21} L84 ${54+i*21} L64 ${66+i*21}Z`,c.b,'b',NO);
+  return o+P('M10 18 L120 18 L144 40 L120 62 L10 62Z','#8a5a3c')+`<text x="72" y="47" font-size="20" font-weight="800" text-anchor="middle" fill="#fff" class="np">NORTH POLE</text>`+P('M30 70 L140 70 L140 106 L30 106 L8 88Z','#a8714a')+`<text x="80" y="95" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" class="np">TO SANTA</text>`+C(74,12,12,'#ffd23f')},
+ {tap(e){anim(e,'wig',300);sfx.jingle();say(e,XMAS()?'Find the North Pole signpost on the map!':'See you next Christmas!',2200)}});
+
+/* ---------- special trees and things for each world ---------- */
+function treeAccept(e,it,p){if(!TD(it).orn)return false;const d=TD(e),a=absXY(e),hh=TD(it).h,top=-(d.h-30);let dy=clamp(p.y-a.y+hh/2,top+40,-50),half=d.w*.42*((dy-top)/(-top)),dx=clamp(p.x-a.x,-half,half);
+ if(it.t==='xstar'){dx=0;dy=top+8}attach(it,e,'orn',dx,dy,'go');sfx.pop();if(kidsOf(e).length>=5)star('xtree');return true}
+const treeTap=e=>{e.s.on=e.s.on?0:1;redraw(e);sfx.magic();if(e.s.on){const a=absXY(e);sparkle(a.x,a.y-TD(e).h*.55,8)}updLights();dirty()};
+const twk=(pts,on,cols)=>on?pts.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="7" fill="${(cols||XCOL)[i%(cols||XCOL).length]}" class="np tw" style="animation-delay:-${(i*.37).toFixed(2)}s"/>`).join(''):'';
+D('xbobt','Boba Tree',240,360,'furn',{a:'#ff9cc0',b:'#fff3e3'},(e,c)=>sh(240,360,.36)+P('M70 300 L170 300 L160 356 L80 356Z',c.b,'b')+R(62,290,116,18,8,'#ff7aa8')+[[92,336],[110,344],[130,338],[148,344],[104,322],[138,324]].map(([x,y])=>C(x,y,7,'#5a3a2a',0,NO)).join('')
+  +P('M120 70 L214 284 Q120 302 26 284Z',c.a,'a')+P('M120 70 L188 204 Q120 218 52 204Z',lt(c.a,.15),'a')+[[78,268],[118,276],[160,268],[96,226],[146,228],[120,180],[100,140],[138,150]].map(([x,y])=>C(x,y,8,'#5a3a2a')).join('')+L('M120 74 L146 0','#ff5c7a',12)+twk([[70,250],[176,252],[120,236],[86,196],[156,196],[120,120]],e.s.on),
+ {xm:1,xl:1,accept:treeAccept,tap:treeTap,light:e=>e.s.on?{dx:0,dy:-190,r:220}:null});
+D('xhayt','Hay Bale Tree',260,340,'furn',{a:'#f2c14e'},(e,c)=>{let o=sh(260,340,.42);[[10,250,240,86],[40,170,180,82],[70,94,120,78],[96,28,68,68]].forEach(([x,y,w,h])=>{o+=R(x,y,w,h,14,c.a,'a')+L(`M${x+w*.33} ${y+4} L${x+w*.33} ${y+h-4} M${x+w*.66} ${y+4} L${x+w*.66} ${y+h-4}`,dk(c.a,.2),4,0,NO)+L(`M${x+12} ${y+h*.4} l18 4 M${x+w-30} ${y+h*.6} l18 -4`,dk(c.a,.12),3,0,NO)});
+  return o+L('M10 268 Q130 300 250 268 M40 186 Q130 214 220 186 M70 110 Q130 130 190 110','#2e8b57',5)+twk([[40,282],[90,292],[150,292],[210,282],[64,200],[130,210],[196,200],[96,122],[164,122]],e.s.on)+P(star5(130,24,28,12),'#ffd23f')},
+ {xm:1,xl:1,accept:treeAccept,tap:treeTap,light:e=>e.s.on?{dx:0,dy:-180,r:230}:null});
+D('xbstar','Barn Star',150,150,'furn',{a:'#c0392b'},(e,c)=>P(star5(75,76,70,30),c.a,'a')+P(star5(75,76,52,22),dk(c.a,.15),'a',NO)+[0,72,144,216,288].map((r,i)=>e.s.off?'':C(75+56*Math.cos((r-90)*Math.PI/180),76+56*Math.sin((r-90)*Math.PI/180),6,'#fff3a8',0,` class="tw" style="animation-delay:-${i*.4}s"`)).join('')+C(75,76,8,'#8a5a3c'),
+ Object.assign({mt:'wall',tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.click();updLights();dirty()}},XL(170,-76)));
+D('xcorlt','Coral Christmas Tree',240,320,'furn',{a:'#2e9e6b'},(e,c)=>sh(240,320,.38)+`<g>`+xCoralTree(120,316,2.300).replace(/ class="np"/g,'').replace(/ class="tw"[^/]*\/>/g,e.s.on?'$&':'/>')+`</g>`,
+ {xm:1,xl:1,accept:treeAccept,tap:treeTap,light:e=>e.s.on?{dx:0,dy:-170,r:220}:null});
+D('xbublt','Bubble Lights',460,110,'furn',{a:'#2bb7a3'},(e,c)=>{let o=L('M6 14 Q120 62 230 30 Q340 0 454 46',c.a,7,'a');[[30,28],[80,46],[132,50],[184,42],[236,30],[288,22],[340,22],[392,30],[436,40]].forEach(([x,y],i)=>{const k=LSETS[0][i%5];
+  o+=R(x-6,y+8,12,10,3,'#4a4e69')+R(x-8,y+16,16,42,8,e.s.off?'#e1e7f0':lt(k,.55))+(e.s.off?'':`<g class="np bub">`+C(x,y+48,3,'#ffffff')+C(x+2,y+36,2.400,'#ffffff')+C(x-1,y+26,2,'#ffffff')+`</g>`)});return o},
+ Object.assign({mt:'wall',tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.bubble?sfx.bubble():sfx.click();updLights();dirty()}},XL(250,-54)));
+D('xicet','Ice Crystal Tree',230,340,'furn',{a:'#bfe8ff'},(e,c)=>sh(230,340,.36)+R(102,296,26,40,6,'#9fb7cf')+P('M115 20 L210 300 Q115 316 20 300Z',c.a,'a',' opacity=".9"')+P('M115 20 L160 300 Q115 308 70 300Z','#e8f7ff',0,NO)+L('M115 60 L80 130 M115 110 L160 190 M115 170 L60 250 M115 220 L178 280','#ffffff',4,0,' opacity=".9"'+NO)+P('M115 20 L134 70 L96 70Z','#ffffff',0,NO)
+  +twk([[84,140],[150,170],[70,240],[166,250],[115,110],[115,200],[96,280],[140,286]],e.s.on,['#7ad3ff','#ffffff','#b48cf0','#56f0b0'])+P(star5(115,22,24,10),'#ffffff'),
+ {xm:1,xl:1,accept:treeAccept,tap:treeTap,light:e=>e.s.on?{dx:0,dy:-180,r:230}:null});
+D('xaurl','Northern Lights String',460,96,'furn',{a:'#3d4a66'},(e,c)=>{let o=L('M6 14 Q120 72 230 34 Q340 -4 454 52',c.a,4,'a');const k=['#56f0b0','#7ad3ff','#b48cf0','#56f0b0','#ff9cc0'];
+  [[26,26],[70,46],[116,54],[162,50],[208,40],[254,30],[300,24],[346,28],[392,36],[434,46]].forEach(([x,y],i)=>o+=e.s.off?bulb(x,y+8,'#d8d8e6',(i%2?14:-14),1.200):bulb(x,y+8,k[i%5],(i%2?14:-14),1.200,i));return o},
+ Object.assign({mt:'wall',tap(e){e.s.off=e.s.off?0:1;redraw(e);sfx.magic();updLights();dirty()}},XL(260,-48)));
+D('xsted','Santa Teddy',100,120,'toy',{a:'#c98f5a'},(e,c)=>sh(100,120,.34)+C(26,30,13,c.a,'a')+C(74,30,13,c.a,'a')+E(50,90,32,28,XRED)+R(18,104,64,12,6,'#ffffff')+C(50,48,28,c.a,'a')+E(50,58,13,10,lt(c.a,.5),'a',NO)+C(40,46,3.600,INK)+C(60,46,3.600,INK)+E(50,54,5,3.600,INK)
+  +P('M24 34 Q34 6 58 6 Q76 8 82 26 Q70 18 64 26 Q70 34 76 34Z',XRED)+R(20,28,62,10,5,'#ffffff')+C(84,24,7,'#ffffff')+R(46,78,8,26,2,'#ffffff',0,NO),{tap(e){anim(e,'hop',420);sfx.squeak();hearts(e,2)}});
+XM.add('xorn');for(const t of['xlstr','xicicle','xlsnow','xlstar','xltree','xldeer','xlcane','xlantern','xwcandle','xgarland','xbow','xbells','xbanner','xsnowfl','xskirt','xpoins','xnut','xinfl','xdpres','xsign','xbobt','xhayt','xbstar','xcorlt','xbublt','xicet','xaurl','xsted','lights'])XM.add(t);
+
+/* ---------- the drawer ---------- */
+const XDS=(t,o,nm)=>({t,o:o||null,nm});
+const XDRAW=[
+ ['Trees & ornaments',[XDS('xtree'),XDS('xtree',{c:{a:'#ff9cc0'}},'Pink Tree'),XDS('xtree',{c:{a:'#dff2ff'}},'Snowy Tree'),XDS('xstar'),XDS('xskirt'),
+   XDS('bauble',{c:{a:XRED},s:{k:1}},'Red Ornament'),XDS('bauble',{c:{a:'#ffd23f'},s:{k:1}},'Gold Ornament'),XDS('bauble',{c:{a:'#3a86ff'},s:{k:1}},'Blue Ornament'),XDS('bauble',{c:{a:'#ff8fb1'},s:{k:1}},'Pink Ornament'),XDS('bauble',{c:{a:'#9b6bff'},s:{k:1}},'Purple Ornament'),XDS('bauble',{c:{a:'#dfe5ee'},s:{k:1}},'Silver Ornament'),
+   ...[0,1,2,3,4,5,6].map(v=>XDS('xorn',{s:{v}})),XDS('cane')]],
+ ['Lights',[XDS('xlstr'),XDS('xlstr',{s:{m:1}},'Warm White Lights'),XDS('xlstr',{s:{m:2}},'Red & Green Lights'),XDS('lights'),XDS('xicicle'),XDS('xlsnow'),XDS('xlstar'),XDS('xltree'),XDS('xldeer'),XDS('xlcane'),XDS('xlantern'),XDS('xwcandle')]],
+ ['Hang up',[XDS('wreath'),XDS('wreath',{c:{b:'#ffd23f'}},'Golden Bow Wreath'),XDS('xgarland'),XDS('stocking'),XDS('stocking',{c:{a:XGRN}},'Green Stocking'),XDS('stocking',{c:{a:'#3a86ff'}},'Blue Stocking'),XDS('stocking',{c:{a:'#ff8fb1'}},'Pink Stocking'),XDS('xbow'),XDS('xbow',{c:{a:'#ffd23f'}},'Gold Bow'),XDS('xbells'),XDS('xbanner'),XDS('xsnowfl')]],
+ ['Big stuff',[XDS('snowman'),XDS('xinfl',{s:{on:1}}),XDS('xinfl',{s:{on:1,v:1}}),XDS('xnut'),XDS('xnut',{c:{a:'#2e8b57',b:XRED}},'Green Nutcracker'),XDS('xpoins'),XDS('xpoins',{c:{a:'#ffffff'}},'White Poinsettia'),XDS('xdpres'),XDS('xsign'),XDS('xsted')]]];
+const XWORLD=[['Boba Bay',[XDS('xbobt',{s:{on:1}}),XDS('xorn',{s:{v:7}}),XDS('xsted'),XDS('xlstr',{s:{m:4}},'Pink & Purple Lights')]],
+ ['Clover Farm',[XDS('xhayt',{s:{on:1}}),XDS('xbstar'),XDS('xorn',{s:{v:8}}),XDS('xlantern',{c:{a:XRED}},'Barn Lantern')]],
+ ['Coral Cove',[XDS('xcorlt',{s:{on:1}}),XDS('xbublt'),XDS('xorn',{s:{v:9}}),XDS('xlstr',{s:{m:3}},'Sea Glow Lights')]],
+ ['North Pole',[XDS('xicet',{s:{on:1}}),XDS('xaurl'),XDS('xorn',{s:{v:10}}),XDS('xlsnow',{c:{a:'#b48cf0'}},'Aurora Snowflake')]]];
+let XTAB=0;
+function xdThumb(e){const d=TD(e);if(d.w<d.h*2.2)return thumb(e);let s='';try{s=outline(d.draw(e,e.c))}catch(_){}const vh=d.h+24,vw=Math.round(vh*1.15);return`<svg class="th" viewBox="-10 -14 ${vw} ${vh}">${s}</svg>`} // long strings of lights: show a close-up of one end
+const xdWorld=()=>{const sc=SID&&SC[SID];return sc?(sc.w|0):(G.world|0)};
+function xdTabs(){const w=XWORLD[xdWorld()]||XWORLD[0];return[...XDRAW,[w[0]+' ✦',w[1],1],['My Christmas box',null]]}
+function xdMake(it,gh){const o=it.o?JSON.parse(JSON.stringify(it.o)):{};o.s=Object.assign({xm:1},o.s||{});if(!gh&&it.t==='xinfl')o.s.on=0;return mk(it.t,0,0,o,gh)} // a blow-up comes out flat: tap it to blow it up
+/* a decoration comes out of the drawer: bells and stickers for decorating */
+function xdTook(){const x=xState();x.dk=(x.dk|0)+1;if(x.dk>=10)star('decker');if(x.dk%4===0)bell('deco');dirty()}
+function xdCheck(){if(S&&S.ents.filter(e=>TD(e).xl&&!e.s.off).length>=6)star('lightup')}
+function xdPlace(it){const e0=xdMake(it),d=TD(e0),ft=SC[SID].floor[0],x=rnd(420,1180),y=d.mt==='wall'?rnd(240,400):d.mt==='rug'?ft+150:260;
+ if(NET.mir){const p={x:Math.round(x),y:Math.round(y-d.h/2)};NET.send({t:'unpack',a:[e0],p});NET.send({t:'drop',p,res:{pack:false,trash:false,xbox:false,ids:[]}});sfx.pop();xdTook();return} // in my friend's place: they put it in
+ if(S.ents.length>170){toast('So much stuff! Tidy up a bit first.');usfx('nope');return}
+ e0.x=x;e0.y=y;S.ents.push(e0);IDX.set(e0.id,e0);mountE(e0);if(NET.peer)e0.ow=myNo();anim(e0,'pop',300);sfx.pop();setTimeout(()=>{if(byId(e0.id)&&!tr(e0).drag){place(e0);setTimeout(xdCheck,600)}},220);xdTook();dirty()}
+function xdDrag(it,ev,p){const e0=xdMake(it);
+ if(NET.mir){if(NET.drag)return;const P={e:null,p0:p,p,tg:$stage,drag:true,cx:ev.clientX,cy:ev.clientY};PTR.set(ev.pointerId,P);NET.drag={id:null,P,off:null};NET.send({t:'unpack',a:[e0],p});sfx.pick();dragUI(true);xdTook();return}
+ if(S.ents.length>170){toast('So much stuff! Tidy up a bit first.');usfx('nope');return}
+ e0.x=p.x;e0.y=p.y+TD(e0).h/2;S.ents.push(e0);IDX.set(e0.id,e0);mountE(e0);if(NET.peer)e0.ow=myNo();
+ const P={e:e0,p0:p,p,tg:$stage,drag:false,off:{x:0,y:TD(e0).h/2},cx:ev.clientX,cy:ev.clientY};PTR.set(ev.pointerId,P);beginDrag(P);xdTook();setTimeout(xdCheck,1500);dirty()}
+{const o0=openTray;window.openTray=function(k){const x=xState();if(k==='xbox'&&TRAY!=='xbox'&&G.xbox.length>(x.bseen|0))XTAB=xdTabs().length-1;return o0.apply(this,arguments)}} // new things in the box: show the box first
+{const r0=renderTray;window.renderTray=function(){r0.apply(this,arguments);if(TRAY!=='xbox'||!XMAS()||!SID)return;const t=$('#tray'),tabs=xdTabs();if(XTAB>=tabs.length)XTAB=0;const cur=tabs[XTAB];if(!cur[1]){const x=xState();if((x.bseen|0)!==G.xbox.length){x.bseen=G.xbox.length;dirty()}}
+  const bar=`<div class="tabs xdt">`+tabs.map((c,i)=>`<button class="tab${i===XTAB?' on':''}${c[2]?' wt':''}${c[1]?'':' bx'}" data-xt="${i}">${c[0]}${!c[1]&&G.xbox.length?` <b>${G.xbox.length}</b>`:''}</button>`).join('')+`</div>`;
+  if(!cur[1]){t.insertAdjacentHTML('afterbegin',bar)}  // "My Christmas box": the box as it was
+  else t.innerHTML=bar+`<div class="tt xdtt">Christmas decorations <small>drag one out — or tap it — as many as you like!</small></div><div class="row scroll xdrow">`+cur[1].map((it,i)=>{const e=xdMake(it,true);return`<div class="slot" data-xd="${i}">${xdThumb(e)}<em>${it.nm||nameOf(e)}</em></div>`}).join('')+`</div>`;
+  t.querySelector('.xdt').onclick=ev=>{const b=ev.target.closest('[data-xt]');if(!b)return;ev.stopPropagation();XTAB=+b.dataset.xt;sfx.click();renderTray()};
+  if(!cur[1])return;
+  t.querySelectorAll('[data-xd]').forEach(sl=>sl.addEventListener('pointerdown',ev=>{if(ev.button>0)return;ev.stopPropagation();ac();const it=cur[1][+sl.dataset.xd],x0=ev.clientX,y0=ev.clientY,id=ev.pointerId;let done=false;
+   const off=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',cn)};
+   const row=sl.parentNode,rt=row.getBoundingClientRect(),sl0=row.scrollLeft;let lx=x0;
+   const mv=e2=>{if(e2.pointerId!==id||done)return;const dx=e2.clientX-x0,dy=e2.clientY-y0;
+    if((dy<-10&&-dy>Math.abs(dx)*.5)||e2.clientY<rt.top-6){done=true;off();try{$stage.setPointerCapture(id)}catch(_){}xdDrag(it,e2,spt(e2));return} // up and out of the drawer: a decoration to drag
+    if(e2.pointerType==='mouse'&&Math.abs(dx)>8){row.scrollLeft=sl0-dx}};  // sideways with a mouse: scroll the drawer (fingers scroll it by themselves)
+   const up=e2=>{if(e2.pointerId!==id)return;off();if(done)return;const dx=e2.clientX-x0,dy=e2.clientY-y0;if(Math.hypot(dx,dy)<12)xdPlace(it)};
+   const cn=e2=>{if(e2.pointerId===id)off()};
+   window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',cn)}))}}
+/* stickers and a Jingle Bell source for decorating */
+STK.push(['decker','Deck the Halls','Take 10 decorations out of the Christmas drawer.','xmas'],['lightup','Light It Up!','Put up 6 Christmas lights in one place.','xmas'],['inflate','Whoosh!','Blow up a giant blow-up snowman or penguin.','xmas']);
+XB.deco=[1,3,'Decorating'];XWAYS.splice(1,0,['deco','Decorate with the Christmas drawer (every 4 things)']);
+/* the first time at Christmas: show where the decorations are */
+{const so=scOpen;window.scOpen=function(id,st,o){const r=so.apply(this,arguments);if(XMAS()&&!(o&&o.mir)&&!G.flags.xdtip&&$xbox){G.flags.xdtip=1;dirty();setTimeout(()=>{if(!SID)return;$xbox.classList.add('nudge');toast('NEW! Tap the Christmas present button for a drawer full of decorations — lights, ornaments, stockings, wreaths and more!',7000);setTimeout(()=>$xbox&&$xbox.classList.remove('nudge'),7000)},1400)}return r}}
 
 /* =====================================================================
    THE NORTH POLE — a fourth world that is open to everybody during the
