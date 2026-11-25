@@ -40,6 +40,7 @@
       <div class="intro">
         <h1>Lets<em>Go</em></h1>
         <p>Explore a cherry-blossom village, then make it your own, brick by brick.</p>
+        <div class="christmas-notice" id="christmas-notice" hidden><span aria-hidden="true">✧</span> Christmas in Blossom Valley <small>Through Dec 25</small></div>
         <div class="title-actions">
           <button id="solo-button" class="button primary" type="button" disabled>Play solo <span data-icon="arrow" aria-hidden="true"></span></button>
           <button id="coop-button" class="button secondary" type="button" disabled><span data-icon="users" aria-hidden="true"></span>Play together</button>
@@ -65,6 +66,7 @@
       <div class="build-bar">
         <div class="build-topline">
           <div class="selected-piece" id="selected-piece" aria-live="polite"></div>
+          <button id="turn-piece" class="subtle-button" type="button" hidden><span data-icon="rotate" aria-hidden="true"></span>Turn piece</button>
           <p class="build-guide" id="build-guide"></p>
         </div>
         <div class="build-tools" role="group" aria-label="Building tool">
@@ -82,7 +84,10 @@
         </div>
       </div>
       <div class="phone-build">
-        <p class="build-guide" id="phone-build-guide" hidden></p>
+        <div class="phone-build-preview">
+          <p class="build-guide" id="phone-build-guide" hidden></p>
+          <button id="phone-turn-piece" class="subtle-button icon-button" type="button" data-icon="rotate" aria-label="Turn piece" hidden></button>
+        </div>
         <div class="phone-build-actions">
           <button id="phone-build-button" class="subtle-button" type="button" aria-haspopup="dialog"><span data-icon="brick" aria-hidden="true"></span><span id="phone-build-label">Build</span></button>
           <button id="phone-explore-button" class="subtle-button icon-button" type="button" data-icon="check" aria-label="Finish building" hidden></button>

@@ -21,6 +21,7 @@ export const TONES = {
   teal: '#405d5b', jade: '#53726e', tile: '#536766', patina: '#6c8380', blueGray: '#68909c',
   gold: '#c49658', paper: '#ffd397', amber: '#ffba64', milk: '#eadcc5',
   fern: '#476649', sage: '#728665', reed: '#a3a16d', pearl: '#ffffed',
+  pine: '#25523f', cranberry: '#a13242', snow: '#edf4f8', frost: '#adccd7', brass: '#d5a653', gingerbread: '#b07849',
 };
 
 const BRICK_FORMS = ['brick', 'round', 'flower'];

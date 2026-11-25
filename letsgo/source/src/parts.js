@@ -1,8 +1,11 @@
+import { CHRISTMAS_OBJECTS, CHRISTMAS_PACKS } from './christmas.js';
+
 function part(key, name, group, w, d, h, tone, studs = true, form = 'brick') {
   return { key, name, group, w, d, h, tone, studs, form };
 }
 
 export const BUILD_PACKS = {
+  ...CHRISTMAS_PACKS,
   house: { name: 'House Pack', goal: 'Place 6 pieces', contents: 'Working door, glass window, shutters and a roof ridge' },
   furnishings: { name: 'Furnishings Pack', goal: 'Brew and serve blossom tea', contents: 'Couch, chair, dining table and a low bench' },
   garden: { name: 'Garden Lights Pack', goal: 'Rescue Mochi on Lantern Island', contents: 'Switchable porch lamp, path lantern and blossom planter' },
@@ -21,6 +24,7 @@ export const PLACEABLE_OBJECTS = {
   lamp: { name: 'Porch lamp', size: [1, 1, 6], tone: 'ink', pack: 'garden', interaction: 'light' },
   beacon: { name: 'Harbor light', size: [2, 2, 8], tone: 'vermilion', pack: 'coastal', interaction: 'light' },
   windbell: { name: 'Wind bell', size: [1, 1, 8], tone: 'gold', pack: 'stargazer', interaction: 'bell' },
+  ...CHRISTMAS_OBJECTS,
 };
 
 // The order of these seven pieces is part of the original save format.
@@ -164,6 +168,9 @@ function buildKit(key, name, keys, colors) {
 
 export const BUILD_KITS = [
   buildKit('all', 'All parts', QUICK_PARTS.map(part => part.key), []),
+  ...Object.entries(CHRISTMAS_PACKS).map(([key, pack]) => buildKit(key, pack.name,
+    Object.keys(CHRISTMAS_OBJECTS).filter(form => pack.season === 'keepsake' || CHRISTMAS_OBJECTS[form].pack === key),
+    ['pine', 'cranberry', 'snow', 'brass', 'frost', 'gingerbread', 'cream', 'vermilion', 'jade'])),
   buildKit('treehouse', 'Shrine & treehouse', ['cedar', 'floor', 'eave', 'stairs', 'arch', 'paper', 'window', 'column', 'corner', 'garden-lamp'],
     ['cedar', 'oak', 'beam', 'warmBark', 'lacquer', 'vermilion', 'teal', 'tile', 'ink', 'cream']),
   buildKit('blossoms', 'Blossom tree', ['trunk', 'canopy', 'blossom', 'petal', 'leaf', 'plate-4x4', 'flower-pot'],

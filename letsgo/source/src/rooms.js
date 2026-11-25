@@ -5,7 +5,7 @@ import { PETS } from './pets.js';
 import { validHull } from './voyage.js';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const PROTOCOL = 5;
+const PROTOCOL = 6;
 const PREFIX = `brickbloom-v${PROTOCOL}-`;
 const TIMEOUT = 24000;
 const HEARTBEAT_INTERVAL = 2400;
@@ -45,6 +45,7 @@ export function createRooms(events) {
   let lastMessage = 0;
   let attempts = 0;
   let ready = false;
+  let visitor = null;
   let snapshotSent = false;
   let pendingChanges = [];
   const guestBricks = new Set();
@@ -64,6 +65,7 @@ export function createRooms(events) {
     peer = null;
     link = null;
     ready = false;
+    visitor = null;
     snapshotSent = false;
     pendingChanges = [];
     guestBricks.clear();
@@ -85,6 +87,7 @@ export function createRooms(events) {
     if (connection !== link) return;
     link = null;
     ready = false;
+    visitor = null;
     snapshotSent = false;
     pendingChanges = [];
     guestBricks.clear();
@@ -119,7 +122,7 @@ export function createRooms(events) {
   function bind(connection) {
     link = connection;
     ready = false;
-    const visitor = state.role === 'host' ? events.visitor() : null;
+    visitor = state.role === 'host' ? events.visitor() : null;
     deadline = setTimeout(() => finishConnection(connection, 'The connection timed out. Check that both networks allow browser multiplayer.'), TIMEOUT);
     connection.on('open', () => {
       if (connection !== link) return;
@@ -176,9 +179,9 @@ export function createRooms(events) {
         if (edits) send('change', { edits, kind: payload.kind, guest: payload.kind !== 'use', canUndo: visitor.canUndo });
         else send('blocked', { error, canUndo: visitor.canUndo });
       } else if (!isHost && type === 'change' && events.change(payload?.edits, payload?.kind, payload?.guest === true)) {
-        if (payload.guest === true) {
+        if (payload.guest === true || payload.kind === 'pack') {
           for (const { id, brick } of payload.edits) {
-            if (brick) guestBricks.add(id);
+            if (brick && payload.guest === true) guestBricks.add(id);
             else guestBricks.delete(id);
           }
           guestCanUndo = payload.canUndo === true;
@@ -275,8 +278,12 @@ export function createRooms(events) {
     canGuestEdit(id) { return ready && state.role === 'guest' && guestBricks.has(id); },
     tea(action) { if (ready) send('tea', action); },
     broadcast(edits, kind) {
+      if (kind === 'pack') {
+        visitor?.forgetPackedDecorations();
+        visitor?.track(edits);
+      }
       if (state.role !== 'host' || !snapshotSent) return;
-      const change = { edits, kind };
+      const change = { edits, kind, canUndo: visitor?.canUndo };
       if (ready) send('change', change);
       else pendingChanges.push(change);
     },

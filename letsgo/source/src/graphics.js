@@ -14,6 +14,7 @@ const GAP = 0.018;
 const STUD_HEIGHT = 0.062;
 const lights = new Set(['paper', 'amber']);
 const bloom = new Set(['petal', 'rose', 'blush', 'ivory', 'wine']);
+const grass = new Set(['turf', 'olive', 'meadow', 'moss', 'fern', 'sage', 'lichen']);
 const colorByTone = Object.fromEntries(Object.entries(TONES).map(([name, hex]) => [name, new THREE.Color(hex)]));
 
 function chamferBox() {
@@ -176,6 +177,16 @@ function brickMeshes(scene, world, bodyGeometry, lowPower) {
   const dirty = new Set();
   const object = new THREE.Object3D();
   const brickColor = new THREE.Color();
+  let winter = false;
+
+  function tint(brick, shade, stud = false) {
+    brickColor.copy(colorByTone[brick.tone]);
+    if (winter && world.starter.get(brick.id)?.tone === brick.tone) {
+      if (grass.has(brick.tone) && brick.y + brick.h <= 5) brickColor.lerp(colorByTone.snow, 0.8);
+      else if (stud && brick.y > 16 && bloom.has(brick.tone)) brickColor.lerp(colorByTone.snow, 0.38);
+    }
+    return brickColor.multiplyScalar(shade);
+  }
 
   function batch(geometry, material, count, shadow) {
     const mesh = new THREE.InstancedMesh(geometry, material, count);
@@ -221,8 +232,7 @@ function brickMeshes(scene, world, bodyGeometry, lowPower) {
         dimensions(object, brick);
         mesh.setMatrixAt(index, object.matrix);
         if (material === bodyMaterial) {
-          brickColor.copy(colorByTone[brick.tone]).multiplyScalar(0.92 + noise(brick.x, brick.y, brick.z) * 0.16);
-          mesh.setColorAt(index, brickColor);
+          mesh.setColorAt(index, tint(brick, 0.92 + noise(brick.x, brick.y, brick.z) * 0.16));
         }
       }
       meshes.push(mesh);
@@ -248,8 +258,7 @@ function brickMeshes(scene, world, bodyGeometry, lowPower) {
         object.position.set((x + 0.5) * STUD, y * PLATE + STUD_HEIGHT * 0.39, (z + 0.5) * STUD);
         object.updateMatrix();
         mesh.setMatrixAt(index, object.matrix);
-        brickColor.copy(colorByTone[brick.tone]).multiplyScalar(0.94 + noise(brick.x, brick.y, brick.z) * 0.16);
-        mesh.setColorAt(index, brickColor);
+        mesh.setColorAt(index, tint(brick, 0.94 + noise(brick.x, brick.y, brick.z) * 0.16, true));
       }
       meshes.push(mesh);
     }
@@ -262,6 +271,11 @@ function brickMeshes(scene, world, bodyGeometry, lowPower) {
   markAll();
   return {
     studGeometry,
+    christmas(active) {
+      if (winter === active) return;
+      winter = active;
+      markAll();
+    },
     dirty(brick) {
       if (!brick) return markAll();
       for (let z = Math.floor((brick.z - 8) / CHUNK); z <= Math.floor((brick.z + brick.d + 1) / CHUNK); z++) {
@@ -389,6 +403,7 @@ export function createGraphics(canvas, world, compact) {
     tea: objects.tea,
     preview(canvas) { return appearancePreview(canvas, body); },
     dirty(brick) { meshes.dirty(brick); },
+    christmas(active) { scenery.christmas(active); meshes.christmas(active); },
     overview(time) {
       local.state(null);
       lastView = null;
@@ -460,7 +475,7 @@ export function createGraphics(canvas, world, compact) {
       traveler.animate(dt);
       local.animate(dt);
       objects.animate(reduceMotion ? 0 : time, dt);
-      houseObjects.animate(dt, reduceMotion);
+      houseObjects.animate(dt, reduceMotion, time);
       adventure.animate(reduceMotion ? 0 : time, dt);
       renderer.render(scene, camera);
     },

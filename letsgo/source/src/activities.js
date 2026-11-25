@@ -306,7 +306,9 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
       teaButton.disabled = phase === 'brewing' || phase === 'served';
       updateText($('tea-action-label'), { idle: 'Brew tea', brewing: 'Steeping tea…', ready: 'Serve tea', served: 'Tea served' }[phase]);
     } else if (item) {
-      const label = item.form === 'windbell' ? 'Ring wind bell' : item.form === 'door' ? (item.active ? 'Close door' : 'Open door') : (item.active ? 'Turn light off' : 'Turn light on');
+      const prompts = PLACEABLE_OBJECTS[item.form].prompts;
+      const label = prompts ? prompts[item.active ? 0 : 1] : item.form === 'windbell' ? 'Ring wind bell' :
+        item.form === 'door' ? (item.active ? 'Close door' : 'Open door') : (item.active ? 'Turn light off' : 'Turn light on');
       updateText($('prop-action-label'), label);
     }
   }

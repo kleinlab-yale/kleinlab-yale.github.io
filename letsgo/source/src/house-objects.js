@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { PLATE, STUD, TONES, sameBrick } from './bricks.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
+import { isChristmasPiece } from './christmas.js';
+import { createChristmasModels } from './christmas-models.js';
 
 export function createHouseObjects(scene, brickGeometry) {
   const placed = new Map();
@@ -23,6 +25,7 @@ export function createHouseObjects(scene, brickGeometry) {
     group.add(piece);
     return piece;
   }
+  const makeChristmas = createChristmasModels(mesh, paint);
 
   function makeDoor(group, tone, height) {
     for (const sign of [-1, 1]) mesh(group, paint('beam'), sign * 0.77, height / 2, 0, 0.11, height, 0.43);
@@ -110,7 +113,9 @@ export function createHouseObjects(scene, brickGeometry) {
     let door = null;
     let light = null;
     let bell = null;
-    switch (brick.form) {
+    let christmas = null;
+    if (isChristmasPiece(brick)) christmas = makeChristmas(group, brick);
+    else switch (brick.form) {
       case 'door': door = makeDoor(group, tone, height); break;
       case 'window': makeWindow(group, tone, height); break;
       case 'lamp':
@@ -122,7 +127,7 @@ export function createHouseObjects(scene, brickGeometry) {
     group.rotation.y = -brick.turn * Math.PI / 2;
     if (door) door.rotation.y = brick.active ? -Math.PI / 2 : 0;
     scene.add(group);
-    return { brick, group, door, light, bell, swing: 0 };
+    return { brick, group, door, light, bell, christmas, swing: 0 };
   }
 
   return {
@@ -135,16 +140,18 @@ export function createHouseObjects(scene, brickGeometry) {
           continue;
         }
         scene.remove(item.group);
+        item.group.traverse(piece => { if (piece.isInstancedMesh) piece.dispose(); });
         placed.delete(id);
       }
       for (const brick of world.bricks.values()) {
         if (brick.form !== 'tea' && Object.hasOwn(PLACEABLE_OBJECTS, brick.form) && !placed.has(brick.id)) placed.set(brick.id, create(brick));
       }
     },
-    animate(dt, reducedMotion) {
+    animate(dt, reducedMotion, time) {
       const weight = reducedMotion ? 1 : 1 - Math.exp(-dt * 13);
       for (const item of placed.values()) {
-        const { brick, door, light, bell } = item;
+        const { brick, door, light, bell, christmas } = item;
+        christmas?.(brick.active, weight, reducedMotion ? 0 : time);
         if (door) door.rotation.y += ((brick.active ? -Math.PI / 2 : 0) - door.rotation.y) * weight;
         if (light) light.material = brick.active ? amber : dim;
         if (bell && item.swing > 0) {

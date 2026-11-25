@@ -1,5 +1,7 @@
 import { TONES } from './bricks.js';
 import { BUILD_KITS, BUILD_PACKS, PARTS, layoutPart } from './parts.js';
+import { drawChristmasIcon } from './christmas-icons.js';
+import { isChristmasPiece } from './christmas.js';
 
 export function toneName(tone) {
   const spaced = tone.replace(/([a-z])([A-Z])/g, '$1 $2');
@@ -35,6 +37,10 @@ export function partIcon(part, turn = 0, tone = null) {
   image.height = 82;
   image.setAttribute('aria-hidden', 'true');
   const painter = image.getContext('2d');
+  if (isChristmasPiece(part)) {
+    drawChristmasIcon(painter, part.form, tone ?? part.tone, (part.turn ?? 0) + turn);
+    return image;
+  }
   const layout = layoutPart(part, turn, tone);
   const scale = Math.min(20, 86 / (layout.w + layout.d), 69 / ((layout.w + layout.d) * 0.45 + layout.h / 3));
   const iso = (x, y, z) => [56 + (x - layout.w / 2 - z + layout.d / 2) * scale,
@@ -113,20 +119,18 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
   let group = 'All';
   let tone = null;
 
-  for (const option of BUILD_KITS) {
-    const element = document.createElement('option');
-    element.value = option.key;
-    element.textContent = option.name;
-    kitSelect.append(element);
-  }
-  kitSelect.value = kit.key;
-
   function updateAvailability() {
-    for (const option of kitSelect.options) {
-      const item = BUILD_KITS.find(kit => kit.key === option.value);
+    kitSelect.replaceChildren();
+    for (const item of BUILD_KITS) {
+      if (!callbacks.visible(item.key)) continue;
+      const option = document.createElement('option');
+      option.value = item.key;
       option.disabled = Boolean(BUILD_PACKS[item.key] && !callbacks.unlocked(item.key));
       option.textContent = option.disabled ? `${item.name} (locked)` : item.name;
+      kitSelect.append(option);
     }
+    if (!callbacks.visible(kit.key)) selectKit(callbacks.visible('christmas') ? 'christmas' : 'all', true);
+    kitSelect.value = kit.key;
   }
 
   function phonePage(page) {
@@ -154,7 +158,7 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
   }
 
   function parts() {
-    const source = group === 'Objects' ? PARTS : kit.key === 'all' ? PARTS : kit.parts;
+    const source = kit.key === 'all' || group === 'Objects' && !BUILD_PACKS[kit.key]?.season ? PARTS : kit.parts;
     grid.replaceChildren();
     for (const part of source) {
       if ((group !== 'All' && part.group !== group) || part.pack && !callbacks.unlocked(part.pack)) continue;
@@ -188,14 +192,14 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
     }
   }
 
-  function selectKit(value) {
+  function selectKit(value, keepTool = false) {
     const next = BUILD_KITS.find(item => item.key === value);
-    if (!next || BUILD_PACKS[value] && !callbacks.unlocked(value)) return;
+    if (!next || !callbacks.visible(value) || BUILD_PACKS[value] && !callbacks.unlocked(value)) return;
     kit = next;
     kitSelect.value = kit.key;
     allColors.checked = false;
     tone = null;
-    callbacks.kit(kit);
+    callbacks.kit(kit, keepTool);
     showGroups();
     filter('All');
     palette();
@@ -210,6 +214,10 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
   dialog.querySelector('#parts-journal').onclick = callbacks.journal;
 
   return {
+    refresh() {
+      updateAvailability();
+      if (dialog.open) parts();
+    },
     open(mode, selectedTone, kitKey) {
       updateAvailability();
       if (kitKey) selectKit(kitKey);

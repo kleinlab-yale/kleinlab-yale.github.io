@@ -1,7 +1,7 @@
 import { BEACONS, CHESTS } from './adventure-data.js';
 import { ISLAND_LAYOUT } from './islands.js';
-import { BUILD_PACKS } from './parts.js';
 import { PETS } from './pets.js';
+import { christmasActive, CHRISTMAS_END, CHRISTMAS_PACKS } from './christmas.js';
 
 export const PROGRESS_KEY = 'letsgo:progress:1';
 export const HOUSE_GOAL = 6;
@@ -23,6 +23,7 @@ export function createProgress(read, save, existingBuilds) {
   let companion = pets.has(stored?.companion) ? stored.companion : pets.values().next().value ?? null;
   let coins = Number.isSafeInteger(stored?.coins) ? Math.max(0, Math.min(MAX_COINS, stored.coins)) : 0;
   let metKeeper = stored?.metKeeper === true;
+  let christmasKit = stored?.christmasKit === true;
   const lit = validKeys(stored?.beacons, BEACONS);
   const cacheTimes = {};
   const levels = {};
@@ -46,13 +47,13 @@ export function createProgress(read, save, existingBuilds) {
 
   function write() {
     save(PROGRESS_KEY, { placements, teaServed, islands: [...islands], pets: [...pets], companion,
-      coins, metKeeper, beacons: [...lit], chests: { ...cacheTimes }, levels: { ...levels } });
+      coins, metKeeper, christmasKit, beacons: [...lit], chests: { ...cacheTimes }, levels: { ...levels } });
   }
 
   function addCoins(amount) { coins = Math.min(MAX_COINS, coins + amount); }
 
   function record(action, id) {
-    const before = Object.keys(BUILD_PACKS).filter(key => earned[key]());
+    const before = Object.keys(earned).filter(key => earned[key]());
     if (action === 'place' && placements < HOUSE_GOAL) placements++;
     else if (action === 'serve' && !teaServed) teaServed = true;
     else if (action === 'visit' && Object.hasOwn(ISLAND_LAYOUT, id) && !islands.has(id)) islands.add(id);
@@ -62,7 +63,7 @@ export function createProgress(read, save, existingBuilds) {
       companion = id;
     } else return [];
     write();
-    return Object.keys(BUILD_PACKS).filter(key => !before.includes(key) && earned[key]());
+    return Object.keys(earned).filter(key => !before.includes(key) && earned[key]());
   }
 
   function petStats(id) {
@@ -88,7 +89,18 @@ export function createProgress(read, save, existingBuilds) {
 
   return {
     record,
-    unlocked: key => Object.hasOwn(earned, key) && earned[key](),
+    unlocked: key => Object.hasOwn(CHRISTMAS_PACKS, key) ? christmasKit : Object.hasOwn(earned, key) && earned[key](),
+    packVisible(key, now = Date.now()) {
+      if (!Object.hasOwn(CHRISTMAS_PACKS, key)) return true;
+      return CHRISTMAS_PACKS[key].season === 'event' ? christmasActive(now) : christmasKit && now >= CHRISTMAS_END;
+    },
+    claimChristmas(now = Date.now()) {
+      if (christmasKit || !christmasActive(now)) return false;
+      christmasKit = true;
+      write();
+      return true;
+    },
+    get hasChristmasKit() { return christmasKit; },
     visited: key => islands.has(key),
     rescued: id => pets.has(id),
     get placements() { return placements; },
@@ -125,11 +137,11 @@ export function createProgress(read, save, existingBuilds) {
       if (!Object.hasOwn(BEACONS, id) || lit.has(id) || missingRelics(id).length) return null;
       const beacon = BEACONS[id];
       if (!Array.isArray(symbols) || symbols.length !== beacon.answer.length || beacon.answer.some((value, i) => value !== symbols[i])) return null;
-      const before = Object.keys(BUILD_PACKS).filter(key => earned[key]());
+      const before = Object.keys(earned).filter(key => earned[key]());
       lit.add(id);
       addCoins(beacon.coins);
       write();
-      return Object.keys(BUILD_PACKS).filter(key => !before.includes(key) && earned[key]());
+      return Object.keys(earned).filter(key => !before.includes(key) && earned[key]());
     },
     choose(id) {
       if (!pets.has(id) || id === companion) return false;

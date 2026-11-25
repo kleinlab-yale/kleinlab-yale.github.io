@@ -235,6 +235,48 @@ function makePetals(lowPower) {
   return { mesh, update };
 }
 
+function makeSnow(lowPower) {
+  const positions = [];
+  for (let i = 0; i < (lowPower ? 430 : 810); i++) positions.push(noise(i, 15), noise(i, 16), noise(i, 17));
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const material = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    uniforms: { time: { value: 0 }, pixels: { value: 1 } },
+    vertexShader: `
+      uniform float time;
+      uniform float pixels;
+      varying float opacity;
+      void main() {
+        float speed = 0.39 + position.x * 0.73;
+        vec3 field = vec3(48.0, 18.0, 48.0);
+        vec3 drift = vec3(time * 0.22 + sin(time * 0.67 + position.z * 27.0) * 0.44,
+          -time * speed, cos(time * 0.58 + position.x * 37.0) * 0.6);
+        vec3 range = mod(position * field + drift - cameraPosition + vec3(24.0, 5.0, 24.0), field);
+        vec3 world = cameraPosition + range - vec3(24.0, 5.0, 24.0);
+        vec4 view = viewMatrix * vec4(world, 1.0);
+        float depth = -view.z;
+        gl_Position = projectionMatrix * view;
+        gl_PointSize = pixels * clamp((10.0 + position.y * 15.0) / max(0.7, depth), 1.1, 6.8);
+        opacity = (0.38 + position.z * 0.35) * smoothstep(0.9, 2.2, depth) * (1.0 - smoothstep(13.0, 24.0, depth));
+        opacity *= smoothstep(0.0, 1.3, range.y) * (1.0 - smoothstep(16.0, 18.0, range.y));
+      }
+    `,
+    fragmentShader: `
+      varying float opacity;
+      void main() {
+        float edge = 1.0 - smoothstep(0.16, 0.5, length(gl_PointCoord - vec2(0.5)));
+        gl_FragColor = vec4(0.96, 0.98, 1.0, edge * opacity);
+      }
+    `,
+  });
+  const snow = new THREE.Points(geometry, material);
+  snow.frustumCulled = false;
+  snow.visible = false;
+  return snow;
+}
+
 export function dressScene(scene, renderer, lowPower) {
   scene.fog = new THREE.FogExp2(mist, fogDensity);
   makeSky(scene);
@@ -256,12 +298,18 @@ export function dressScene(scene, renderer, lowPower) {
   scene.add(light, new THREE.HemisphereLight('#ffeee7', '#78918b', 0.94), fill);
   const water = makeWater(lowPower);
   const petals = makePetals(lowPower);
-  scene.add(water, petals.mesh);
+  const snow = makeSnow(lowPower);
+  scene.add(water, petals.mesh, snow);
   return {
     refresh() { water.refresh = true; },
+    christmas(active) { snow.visible = active; petals.mesh.visible = !active; },
     update(time) {
       water.material.uniforms.time.value = time;
-      petals.update(time);
+      if (petals.mesh.visible) petals.update(time);
+      if (snow.visible) {
+        snow.material.uniforms.time.value = time;
+        snow.material.uniforms.pixels.value = renderer.getPixelRatio();
+      }
     },
   };
 }

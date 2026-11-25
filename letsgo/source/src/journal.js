@@ -4,6 +4,7 @@ import { BUILD_KITS, BUILD_PACKS } from './parts.js';
 import { partIcon } from './build-menu.js';
 import { PETS } from './pets.js';
 import { HOUSE_GOAL } from './progression.js';
+import { christmasActive } from './christmas.js';
 
 function element(tag, text, className) {
   const item = document.createElement(tag);
@@ -32,6 +33,12 @@ export function createJournal(dialog, progress, { selectKit, voyage, track, trai
   const pages = Array.from(dialog.querySelectorAll('[data-journal-page]'));
 
   function renderStory(panel) {
+    if (christmasActive()) {
+      const event = entry('Christmas in Blossom Valley', 'Decorate with three free packs through December 25.', 'Christmas event');
+      event.classList.add('christmas-entry');
+      event.append(action('See packs', () => open('packs')));
+      panel.append(event);
+    }
     const done = step => step.type === 'keeper' ? progress.metKeeper : step.type === 'chest' ? progress.opened(step.id) : progress.lit(step.id);
     const next = STORY_STEPS.find(step => !done(step));
     panel.append(element('h3', 'The Lantern Trail', 'story-heading'));
@@ -60,10 +67,13 @@ export function createJournal(dialog, progress, { selectKit, voyage, track, trai
   }
 
   function renderPacks(panel) {
+    if (christmasActive()) panel.append(element('p', 'On December 26, your holiday pieces are packed away and the full collection stays available in your Christmas Kit.', 'christmas-copy'));
     for (const [key, pack] of Object.entries(BUILD_PACKS)) {
+      if (!progress.packVisible(key)) continue;
       const unlocked = progress.unlocked(key);
       const goal = key === 'house' ? `${pack.goal} · ${progress.placements}/${HOUSE_GOAL}` : pack.goal;
-      const row = entry(pack.name, pack.contents, unlocked ? 'Unlocked' : goal);
+      const row = entry(pack.name, pack.contents, pack.season === 'event' ? 'Free through December 25' : unlocked ? 'Unlocked' : goal);
+      if (pack.season) row.classList.add('christmas-entry');
       row.dataset.earned = String(unlocked);
       const kit = BUILD_KITS.find(item => item.key === key);
       row.prepend(partIcon(kit.parts[0]));
@@ -110,7 +120,9 @@ export function createJournal(dialog, progress, { selectKit, voyage, track, trai
   }
 
   const render = { story: renderStory, packs: renderPacks, pets: renderPets, islands: renderIslands };
+  let currentPage = 'story';
   function open(name = 'story') {
+    currentPage = name;
     for (const button of pages) {
       const key = button.dataset.journalPage;
       const panel = dialog.querySelector(`#journal-${key}`);
@@ -124,5 +136,5 @@ export function createJournal(dialog, progress, { selectKit, voyage, track, trai
   }
 
   for (const button of pages) button.onclick = () => open(button.dataset.journalPage);
-  return { open };
+  return { open, refresh() { if (dialog.open) open(currentPage); } };
 }

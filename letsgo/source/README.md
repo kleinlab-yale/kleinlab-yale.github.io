@@ -17,7 +17,7 @@ Use the arrow keys or hold the on-screen movement buttons to walk on a computer.
 
 On an iPhone, tap **Build** to pick a piece or edit tool. The check mark takes you back to exploring. **Journal** shows the story, build packs, pets, and islands. **Menu** opens camera, audio, player, and room settings. Music and game sounds have separate switches.
 
-Start in **Explore** to walk and orbit the camera. Select **Place** or pick a brick from the tray, then tap or click a surface to build. Choose **Rotate**, **Paint**, or **Remove** and tap a placed brick to edit it. **Undo** reverses your recent edits. Use **Turn next piece** in **Parts & colors** to orient a part before placing it.
+Start in **Explore** to walk and orbit the camera. Pick a brick and tap or click a top or side to snap it in place. Rectangular bricks follow the direction of the brick or row you tap. Use **Turn piece** while placing to set your own orientation, or select the piece again to resume automatic alignment. Choose **Rotate**, **Paint**, or **Remove** and tap a placed brick to edit it. **Undo** reverses your recent edits.
 
 Open **Parts & colors** and choose a **Build kit**. Shrine & treehouse, Blossom tree, Boat & dock, and Tea garden load matching materials and populate your quick tray. Pick a color for new bricks or choose **Paint placed bricks** to recolor existing ones. **Show all colors** opens the full palette. **Match a brick in the world** copies the shape and color of any brick you tap. Open **Objects** for the tea counter, lanterns, and the boat workshop.
 
@@ -32,6 +32,12 @@ Choose **Island voyage** and **Show dock direction** to find the south dock. At 
 Follow the island markers to rescue Mochi the puppy, Pebble the turtle, Pip the rabbit, Nori the otter, and Juniper the fox. Choose a companion in **Journal → Pets**. Pets follow you on land and ride aboard your boat.
 
 Walk up to the tea counter in the High Pavilion, or build one from **Objects**. Choose **Brew tea**, wait for the tea to steep, then choose **Serve tea**.
+
+## Christmas in Blossom Valley
+
+Play from November 25 through December 25, 2026, Eastern time, to receive three free packs in **Journal → Build packs**. Choose the Christmas Tree, Holiday Home, or Winter Village pack for 21 decorations. Use **Explore** to open presents, switch lights on or off, light the fireplace and candles, and ring a jingle bell.
+
+Starting December 26, the game packs away holiday pieces the next time you play your world. All the seasonal pieces stay available in your **Christmas Kit**. You can place them again at any time. In co-op, the host’s save contains the shared decorations and each player keeps their own kit.
 
 ## The Lantern Trail
 

@@ -4,7 +4,7 @@ import '@fontsource/instrument-serif/latin-400-italic.css';
 import './style.css';
 import { CAMERAS, DEFAULT_LOOK, readAppearance } from './appearance.js';
 import { createCustomizer } from './customize.js';
-import { adjacentBrick, PLATE, REACH, STUD, TONES } from './bricks.js';
+import { MAX_PATCH, PLATE, REACH, STUD, TONES } from './bricks.js';
 import { createBuildMenu, partButton, toneName } from './build-menu.js';
 import { Builder, PROTECTED_BRICK } from './editor.js';
 import { BUILD_KITS, BUILD_PACKS, PLACEABLE_OBJECTS, layoutPart, matchedPart } from './parts.js';
@@ -17,6 +17,9 @@ import { createJournal } from './journal.js';
 import { createProgress } from './progression.js';
 import { createExpedition } from './expedition.js';
 import { district, makeValley } from './valley.js';
+import { christmasActive, CHRISTMAS_END, isChristmasPiece } from './christmas.js';
+import { snapPlacement } from './snapping.js';
+import { canBuildAt } from './islands.js';
 
 const $ = id => document.getElementById(id);
 const SAVE_KEY = 'brick-and-bloom:valley:1';
@@ -80,6 +83,7 @@ function boot() {
   const world = makeValley();
   let saveTimer = 0;
   let saveCache = stored(SAVE_KEY);
+  let christmasPacked = saveCache?.christmasPacked === true;
   world.restore(saveCache);
   const progress = createProgress(stored, remember, world.added.size);
   const localEditor = new Builder(world);
@@ -98,10 +102,12 @@ function boot() {
   let guestWorld = false;
   let screen = 'title';
   const savedKit = stored(KIT_KEY);
-  const initialKit = BUILD_KITS.find(kit => kit.key === savedKit && (!BUILD_PACKS[kit.key] || progress.unlocked(kit.key))) ?? BUILD_KITS[0];
+  const initialKit = BUILD_KITS.find(kit => kit.key === savedKit && progress.packVisible(kit.key) && (!BUILD_PACKS[kit.key] || progress.unlocked(kit.key))) ?? BUILD_KITS[0];
   let quickParts = initialKit.parts.slice(0, 7);
   let selected = quickParts[0];
   let turn = 0;
+  let manualTurn = false;
+  let suggestedTurn = 0;
   let color = null;
   let tool = 'explore';
   let jump = false;
@@ -112,6 +118,8 @@ function boot() {
   let lastPose = 0;
   let lastStep = 0;
   let lastDistrict = '';
+  let lastSeasonCheck = 0;
+  let winter;
   let roomPanelFromPause = false;
   let controlsFromPause = false;
   let appearanceFromPause = false;
@@ -138,14 +146,18 @@ function boot() {
   }
 
   function playEditSound(kind, edits) {
-    audio.tap(kind === 'use' && edits[0]?.brick?.form === 'windbell' ? 'bell' : kind);
+    if (kind === 'pack') return;
+    const brick = edits[0]?.brick;
+    if (kind === 'use' && brick?.form === 'wrappedGift' && brick.active) audio.tap('gift');
+    else if (kind === 'use' && ['windbell', 'jingleBell'].includes(brick?.form)) audio.tap('bell');
+    else audio.tap(kind);
   }
 
   function save() {
     if (guestWorld) return;
     clearTimeout(saveTimer);
     saveTimer = 0;
-    saveCache = { ...world.snapshot(), undo: localEditor.history };
+    saveCache = { ...world.snapshot(), undo: localEditor.history, christmasPacked };
     if (!remember(SAVE_KEY, saveCache)) toast('Browser storage is unavailable. Keep this tab open to keep your changes.');
   }
 
@@ -197,6 +209,7 @@ function boot() {
     for (const dialog of Object.values(dialogs)) dialog.close();
     audio.start();
     setScreen('play');
+    refreshChristmas();
     canvas.focus({ preventScroll: true });
   }
 
@@ -317,6 +330,7 @@ function boot() {
     appearance: look => graphics.traveler.appearance(look),
     visitor: () => new Builder(world, true),
     request: (request, visitor) => {
+      refreshChristmas();
       if (!remote) return { error: 'blocked' };
       const result = visitor.perform(request, localBoxes(), brick => request?.kind === 'use' ?
         objectDistance(remote, brick) < 3.1 : reachFrom(remote, brick, 1.15));
@@ -324,6 +338,7 @@ function boot() {
       return result;
     },
     change: (edits, kind, guestEdit) => {
+      if (kind === 'pack' && Array.isArray(edits) && edits.length === 0) return true;
       if (!world.patch(edits)) return false;
       playEditSound(kind ?? (edits.every(edit => !edit.brick) ? 'remove' : 'place'), edits);
       if (guestEdit && kind === 'place') achieve('place');
@@ -342,6 +357,37 @@ function boot() {
       setTool(tool);
     }
     rooms.leave();
+    refreshChristmas();
+  }
+
+  function packChristmas(now) {
+    if (now < CHRISTMAS_END || christmasPacked || guestWorld) return;
+    christmasPacked = true;
+    const removals = Array.from(world.added.values()).filter(isChristmasPiece).map(({ id }) => ({ id, brick: null }));
+    localEditor.forgetPackedDecorations();
+    for (let i = 0; i < removals.length; i += MAX_PATCH) {
+      const edits = removals.slice(i, i + MAX_PATCH);
+      if (world.patch(edits)) rooms.broadcast(edits, 'pack');
+    }
+    if (!removals.length) rooms.broadcast([], 'pack');
+    if (saveCache || removals.length || progress.hasChristmasKit) save();
+    refreshBuildStatus();
+    if (removals.length) toast('Christmas decorations packed away. Look for your Christmas Kit in Build packs.');
+  }
+
+  function refreshChristmas(now = Date.now()) {
+    const active = christmasActive(now);
+    const claimed = (screen !== 'title' || rooms.state.role === 'host' && rooms.state.phase === 'connected') && progress.claimChristmas(now);
+    if (active !== winter || claimed) {
+      winter = active;
+      $('christmas-notice').hidden = !active;
+      graphics.christmas(active);
+      audio.christmas(active);
+      buildMenu.refresh();
+      journal.refresh();
+    }
+    if (claimed && screen === 'play') toast('Three Christmas packs unlocked. Find them in Journal → Build packs.');
+    packChristmas(now);
   }
 
   function refreshBuildStatus() {
@@ -378,11 +424,13 @@ function boot() {
       button.setAttribute('aria-pressed', String(kind === 'place' && quickParts[index] === selected));
     }
     $('selected-piece').hidden = kind !== 'place' && kind !== 'paint';
+    const canTurn = selected.w !== selected.d || selected.blocks || selected.form === 'flower' || Object.hasOwn(PLACEABLE_OBJECTS, selected.form);
+    $('turn-piece').hidden = $('phone-turn-piece').hidden = kind !== 'place' || !canTurn;
     const verb = coarse ? 'Tap' : 'Click';
     const guestHint = guestWorld ? ' you placed this visit' : '';
     const hints = {
       explore: coarse ? 'Joystick to move · Drag to orbit' : 'Arrow keys to move · Drag to orbit',
-      place: `${verb} a surface to place this piece.`,
+      place: `${verb} a top or side to snap this piece in place.`,
       remove: `${verb} a brick${guestHint} to remove it.`,
       rotate: `${verb} a brick${guestHint} to turn it.`,
       paint: `${verb} a brick${guestHint} to paint it.`,
@@ -448,13 +496,16 @@ function boot() {
   function select(part, kind = 'place') {
     selected = part;
     turn = 0;
+    suggestedTurn = 0;
+    manualTurn = part.turn !== undefined;
     showSelected();
     refreshTray();
     setTool(kind);
   }
 
   function turnNext() {
-    turn = (turn + 1) % 4;
+    turn = ((manualTurn ? turn : suggestedTurn) + 1) % 4;
+    manualTurn = true;
     showSelected();
     refreshTray();
     setTool('place');
@@ -462,6 +513,7 @@ function boot() {
 
   function showParts(mode, kitKey) {
     if (screen !== 'play' && !dialogs.journal.open) return;
+    refreshChristmas();
     dialogs.journal.close();
     setScreen('pause');
     dialogs.parts.showModal();
@@ -471,6 +523,7 @@ function boot() {
 
   function showJournal(page) {
     if (screen !== 'play' && !dialogs.parts.open && !dialogs.adventure.open) return;
+    refreshChristmas();
     dialogs.parts.close();
     dialogs.adventure.close();
     setScreen('pause');
@@ -479,11 +532,11 @@ function boot() {
   }
 
   const buildMenu = createBuildMenu(dialogs.parts, initialKit, {
-    kit: kit => {
+    kit: (kit, keepTool) => {
       color = null;
       quickParts = kit.parts.slice(0, 7);
       remember(KIT_KEY, kit.key);
-      select(quickParts[0]);
+      select(quickParts[0], keepTool ? tool : 'place');
     },
     part: part => { select(part); enter(); },
     color: tone => { color = tone; showSelected(); refreshTray(); },
@@ -491,6 +544,7 @@ function boot() {
     pick: () => { setTool('pick'); enter(); },
     turn: () => { turnNext(); enter(); },
     unlocked: progress.unlocked,
+    visible: progress.packVisible,
     journal: () => showJournal('packs'),
     workshop: () => activities.openVoyage(),
   });
@@ -505,14 +559,16 @@ function boot() {
   }
 
   function placement(hit) {
-    const layout = layoutPart(selected, turn, color);
-    const anchor = adjacentBrick(hit, layout);
-    const blocks = layout.blocks.map(block => ({ ...block, x: anchor.x + block.x, y: anchor.y + block.y, z: anchor.z + block.z }));
-    return { ...anchor, blocks };
+    const boxes = localBoxes();
+    const plan = snapPlacement(world, hit, { part: selected, turn, tone: color, manual: manualTurn },
+      blocks => blocks.every(block => reachFrom(player, block)) && world.canPlace(blocks, boxes));
+    suggestedTurn = plan.turn;
+    return plan;
   }
 
   function runEdit(request) {
     if (activities.sailing) return;
+    refreshChristmas();
     if (guestWorld) {
       if (rooms.state.phase !== 'connected') {
         toast('Rejoin the host to keep building.');
@@ -558,7 +614,17 @@ function boot() {
       return;
     }
     if (kind === 'place') {
-      runEdit({ kind, bricks: placement(hit).blocks });
+      const plan = placement(hit);
+      if (!plan.allowed) {
+        toast(buildMessage(plan.blocks.every(canBuildAt) ? 'blocked' : 'open-water'));
+        return;
+      }
+      if (turn !== plan.turn) {
+        turn = plan.turn;
+        showSelected();
+        refreshTray();
+      }
+      runEdit({ kind, bricks: plan.blocks });
       return;
     }
     if (!canEdit(hit.brick.id)) {
@@ -747,6 +813,7 @@ function boot() {
     enter();
   };
   $('jump-button').onclick = () => { jump = true; };
+  for (const id of ['turn-piece', 'phone-turn-piece']) $(id).onclick = () => { turnNext(); canvas.focus({ preventScroll: true }); };
 
   $('solo-button').onclick = () => { if (rooms.state.role || guestWorld) leaveRoom(); enter(); };
   $('coop-button').onclick = showRoom;
@@ -867,6 +934,10 @@ function boot() {
     const elapsed = (now - previous) * 0.001;
     const dt = Math.min(0.07, elapsed);
     previous = now;
+    if (now - lastSeasonCheck >= 1000) {
+      lastSeasonCheck = now;
+      refreshChristmas();
+    }
     if (screen === 'title') {
       graphics.overview(time);
     } else {
@@ -903,7 +974,7 @@ function boot() {
       const editable = hit && (['place', 'pick'].includes(tool) || canEdit(hit.brick.id));
       const target = hit && editable && reachFrom(player, hit.brick) ? hit : null;
       const brick = target && tool === 'place' && !aimPoint.touch ? placement(target) : null;
-      graphics.aim(target, brick, Boolean(brick && brick.blocks.every(block => reachFrom(player, block)) && world.canPlace(brick.blocks, localBoxes())), tool);
+      graphics.aim(target, brick, brick?.allowed === true, tool);
     }
     if (rooms.state.phase === 'connected' && now - lastPose >= 66) {
       lastPose = now;
@@ -919,6 +990,7 @@ function boot() {
     toast('Graphics paused. Reload the page to reopen the valley.');
     if (screen === 'play') showPause();
   });
+  refreshChristmas();
   graphics.overview(0);
   graphics.render(0, 0);
   $('solo-button').disabled = false;

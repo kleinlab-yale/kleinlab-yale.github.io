@@ -9,6 +9,16 @@ const PHRASES = [
   { low: [41, 48, 57], tune: [[0, 69], [2.5, 72], [4, 76], [6, 74]] },
   { low: [43, 50, 60], tune: [[0, 67], [2, 62], [4, 64], [6, 67], [7, 72]] },
 ];
+const WINTER_PHRASES = [
+  { low: [48, 55, 64], tune: [[0, 79], [1.5, 76], [2.5, 72], [4, 74], [5.5, 76], [6.5, 79]] },
+  { low: [45, 52, 60], tune: [[0.5, 81], [2, 79], [4, 76], [6, 72]] },
+  { low: [41, 48, 65], tune: [[0, 77], [1.5, 76], [3, 72], [4.5, 69], [6, 72]] },
+  { low: [43, 50, 62], tune: [[0.5, 74], [2, 79], [3.5, 76], [5, 74], [6.5, 67]] },
+  { low: [48, 55, 64], tune: [[0, 72], [1.5, 76], [2.5, 79], [4, 84], [6.5, 81]] },
+  { low: [40, 47, 59], tune: [[0, 79], [1.5, 76], [3, 71], [5.5, 74]] },
+  { low: [41, 48, 57], tune: [[0, 72], [2, 69], [4, 77], [6, 76]] },
+  { low: [43, 50, 60], tune: [[0, 74], [2, 67], [4, 72], [6, 76]] },
+];
 
 export function createAudio(saved, save) {
   let context;
@@ -18,6 +28,7 @@ export function createAudio(saved, save) {
   let noise;
   let nextPhrase = 0;
   let phraseIndex = 0;
+  let winter = false;
   let timer = 0;
   const settings = { enabled: saved?.enabled !== false, music: saved?.music !== false, effects: saved?.effects !== false };
 
@@ -41,15 +52,16 @@ export function createAudio(saved, save) {
     const now = context.currentTime;
     if (nextPhrase < now - 0.04) nextPhrase = now + 0.08;
     if (nextPhrase > now + 0.36) return;
-    const { low, tune } = PHRASES[phraseIndex];
+    const phrases = winter ? WINTER_PHRASES : PHRASES;
+    const { low, tune } = phrases[phraseIndex];
     for (const [i, note] of low.entries()) {
       pluck(music, nextPhrase + i * BEAT * 0.38, note, 0.076 / (i * 0.33 + 1), 3.7 - i * 0.52);
     }
     for (const [i, [beat, note]] of tune.entries()) {
-      pluck(music, nextPhrase + beat * BEAT, note, i ? 0.079 : 0.097, 1.85);
+      pluck(music, nextPhrase + beat * BEAT, note, winter ? 0.062 : i ? 0.079 : 0.097, winter ? 2.3 : 1.85);
     }
     nextPhrase += BEAT * 8;
-    phraseIndex = (phraseIndex + 1) % PHRASES.length;
+    phraseIndex = (phraseIndex + 1) % phrases.length;
   }
 
   function levels() {
@@ -117,8 +129,9 @@ export function createAudio(saved, save) {
   function tap(kind) {
     if (context?.state !== 'running' || !settings.enabled || !settings.effects || document.hidden) return;
     const now = context.currentTime + 0.005;
-    if (kind === 'reward') {
-      for (const [i, note] of [72, 76, 79].entries()) pluck(effects, now + i * 0.09, note, 0.055, 0.56);
+    if (kind === 'reward' || kind === 'gift') {
+      const notes = kind === 'gift' ? [76, 79, 84, 88] : [72, 76, 79];
+      for (const [i, note] of notes.entries()) pluck(effects, now + i * 0.09, note, 0.055, 0.56);
       return;
     }
     if (kind === 'bell') {
@@ -145,6 +158,7 @@ export function createAudio(saved, save) {
   document.addEventListener('visibilitychange', levels);
   return {
     start,
+    christmas(active) { if (winter !== active) { winter = active; phraseIndex = 0; } },
     resume() { if (context && context.state !== 'running') start(); },
     tap,
     get settings() { return { ...settings }; },

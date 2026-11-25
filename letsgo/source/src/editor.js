@@ -1,6 +1,7 @@
 import { MAX_PATCH, TONES, sameBrick, validBrick } from './bricks.js';
 import { canBuildAt } from './islands.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
+import { isChristmasPiece } from './christmas.js';
 
 const UNDO_LIMIT = 64;
 export const PROTECTED_BRICK = 'You can change bricks you placed during this visit.';
@@ -9,7 +10,7 @@ function toBrick(value, id) {
   if (!validBrick(value)) return null;
   const { x, y, z, w, d, h, tone, studs, form, turn } = value;
   const brick = { id, x, y, z, w, d, h, tone, studs, form, turn };
-  if (PLACEABLE_OBJECTS[form]?.interaction) brick.active = false;
+  if (PLACEABLE_OBJECTS[form]?.interaction) brick.active = form === 'festiveTree' || form === 'fairyLights';
   return brick;
 }
 
@@ -27,6 +28,13 @@ export class Builder {
 
   get canUndo() { return this.history.length > 0; }
   canEdit(id) { return this.owned === null || this.owned.has(id); }
+
+  forgetPackedDecorations() {
+    this.history = this.history.flatMap(({ edits, previous }) => {
+      const keep = edits.map((edit, i) => !isChristmasPiece(edit.brick) && !isChristmasPiece(previous[i].brick));
+      return keep.some(Boolean) ? [{ edits: edits.filter((_, i) => keep[i]), previous: previous.filter((_, i) => keep[i]) }] : [];
+    });
+  }
 
   restoreHistory(snapshot) {
     if (Array.isArray(snapshot?.undo)) {
