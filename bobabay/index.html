@@ -523,6 +523,15 @@ input{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
 #leaves i svg{display:block;animation:leafs 2.6s ease-in-out infinite alternate}
 @keyframes leaff{0%{transform:translate(0,0)}100%{transform:translate(-160px,980px)}}
 @keyframes leafs{0%{transform:rotate(-40deg) translateX(-18px)}100%{transform:rotate(50deg) translateX(18px)}}
+/* ---------- the North Pole ---------- */
+.wsw.np{background:#dff3ff}.wsw.np svg{filter:none}
+.aurora{animation:aur 9s ease-in-out infinite alternate}
+@keyframes aur{0%{transform:translateX(-30px);opacity:.75}100%{transform:translateX(30px);opacity:1}}
+.npole.wave .sp-in{animation:wig .6s}
+.beltmv{animation:beltm 1s linear infinite}@keyframes beltm{to{stroke-dashoffset:-40}}
+.zz{animation:zzz 2.2s ease-in-out infinite}@keyframes zzz{0%,100%{transform:translateY(0);opacity:.6}50%{transform:translateY(-8px);opacity:1}}
+.wig{animation:wig .5s ease-in-out infinite;transform-origin:120px 150px}
+.mlabel.xv.mine{background:#ffd23f;color:#35252d}
 
 </style>
 </head>
@@ -1427,14 +1436,14 @@ const SPOTS=[
  {id:'pets',n:'Pet Shop',x:1356,y:540},{id:'park',n:'Sunny Park',x:700,y:836},{id:'beach',n:'Shell Beach',x:150,y:826,need:6},
  {id:'tree',n:'Treehouse',x:1420,y:800,secret:'tree'},{id:'castle',n:'Cloud Castle',x:1216,y:150,need:22}];
 const XA={}; // extra map art (Christmas-only places)
-const spotOpen=s=>s.sneed?seaStars()>=s.sneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.sst|0)>=s.sneed):s.fneed?farmStars()>=s.fneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.fst|0)>=s.fneed):s.duo?!!NET.peer:s.need?Math.max(stars(),NET.peer?NET.frStars:0)>=s.need:s.secret?!!(G.flags[s.secret]||(NET.peer&&NET.frFlags[s.secret])):true; // with a friend, a place opens if either of you has unlocked it
+const spotOpen=s=>s.pneed?npStars()>=s.pneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.nst|0)>=s.pneed):s.sneed?seaStars()>=s.sneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.sst|0)>=s.sneed):s.fneed?farmStars()>=s.fneed||!!(NET.peer&&NET.frFlags&&(NET.frFlags.fst|0)>=s.fneed):s.duo?!!NET.peer:s.need?Math.max(stars(),NET.peer?NET.frStars:0)>=s.need:s.secret?!!(G.flags[s.secret]||(NET.peer&&NET.frFlags[s.secret])):true; // with a friend, a place opens if either of you has unlocked it
 function mapSpots(){const two=!!NET.peer,mine=NET.role==='guest'?'home2':'home',fr=NET.role==='guest'?'home':'home2',out=[];
  for(const s of SPOTS){if(s.hm){const g=NET.role==='guest';out.push(Object.assign({},s,{id:g?s.id+'2':s.id,art:s.id,mine:1,x:s.x+(two?s.dx||0:0)}));if(two)out.push(Object.assign({},s,{id:g?s.id:s.id+'2',n:s.n2,art:s.id+'f',x:s.x+(s.dx2||150)}));continue} // a second home (the pineapple): mine, and my friend's next to it
   if(s.id!=='home'){out.push(s);continue}out.push(Object.assign({},s,{id:mine,art:'home',x:two?690:s.x}));if(two)out.push({id:fr,n:'Friend\'s House',art:'home2',x:962,y:628})}return out.filter(s=>(s.w||0)===(G.world||0)&&(!s.xm||XMAS()))} // only the places of the world whose map is showing
 const HOUSE0={w:'#ffe3ea',r:'#ff7d9a'},HOUSE2={w:'#e3f0ff',r:'#5b9bf0'};
 function houseCol(art,h){h=h||HOUSE0;const w=hexOk(h.w)?h.w:HOUSE0.w,r=hexOk(h.r)?h.r:HOUSE0.r; // walls, side wall, roof and trim all follow the two chosen colours
  return art.replace(/#ffe3ea/g,'~w').replace(/#f4b6c6/g,'~s').replace(/#ff7d9a/g,'~r').replace(/#ff9cb2/g,'~t').replace(/~w/g,w).replace(/~s/g,mix(w,r,.3)).replace(/~r/g,r).replace(/~t/g,lt(r,.25))}
-function mapSVG(){if((G.world||0)===1)return farmMap();if((G.world||0)===2)return seaMap();
+function mapSVG(){if((G.world||0)===3){if(XMAS())return npMap();G.world=0}if((G.world||0)===1)return farmMap();if((G.world||0)===2)return seaMap();
  const box=(w,h,d,f,sd,r)=>P(`M0 0 L${w} 0 L${w} ${-h} L0 ${-h}Z`,f)+P(`M${w} 0 L${w+d} ${-d/2} L${w+d} ${-h-d/2} L${w} ${-h}Z`,sd)+(r?P(`M0 ${-h} L${d} ${-h-d/2} L${w+d} ${-h-d/2} L${w} ${-h}Z`,r):'');
  const slab=(w,d)=>P(`M-20 14 L${w+24} 14 L${w+d+36} ${-d/2-2} L${d-8} ${-d/2-2}Z`,'#f7efe4')+P(`M-20 14 L${w+24} 14 L${w+24} 22 L-20 22Z`,'#dccfbe',0,NO);
  const win=(x,y,w,h,k='#cfeeff')=>R(x,y,w,h,Math.min(w,h)/3.2,k)+L(`M${x+w/2} ${y+2} L${x+w/2} ${y+h-2} M${x+2} ${y+h/2} L${x+w-2} ${y+h/2}`,'#fff',3);
@@ -2025,7 +2034,7 @@ const farmOpen=()=>farmSelf()||!!(NET.peer&&NET.frFlags&&NET.frFlags.farm);   //
 const farmStars=()=>STK.filter(s=>s[3]==='farm'&&G.st[s[0]]).length;
 function farmMigrate(){if(!G.flags.fv2){for(const k of['field','barn','fyard','orchard'])delete G.sc[k];G.flags.fv2=1;dirty()} // the first, simpler farm is rebuilt
  if(!G.st.fgrow&&G.flags.crops&&Object.keys(G.flags.crops).length){G.st.fgrow=Date.now();dirty()} // this sticker used to share its name with the 'grow' potion sticker
- if((G.world||0)===2&&!seaOpen())G.world=1;if((G.world||0)===1&&!farmOpen())G.world=0}
+ if((G.world||0)===3&&!XMAS())G.world=0;if((G.world||0)===2&&!seaOpen())G.world=1;if((G.world||0)===1&&!farmOpen())G.world=0}
 /* the signposts on the maps: Boba Bay ⇄ Clover Farm ⇄ Coral Cove */
 function wswHTML(){const w=G.world||0,fd=FARMREQ.filter(r=>r[0]()).length,sd=SEAREQ.filter(r=>r[0]()).length;
  const back=(id,to,x,y,nm)=>`<button class="wsw back" id="${id}" data-w="${to}" style="left:${x}px;top:${y}px">${IC.left}<span>${nm}</span></button>`;
@@ -3230,7 +3239,7 @@ D('xdeer','Comet the Reindeer',250,250,'furn',{a:'#a8714a',b:'#5a3b2a'},(e,c)=>s
   +R(100,74,64,30,8,'#2bb673')+R(96,98,72,10,5,'#ffd23f')+L('M58 68 Q88 92 96 82',XRED,8)+[[66,74],[80,84]].map(([x,y])=>C(x,y,6,'#ffd23f')).join('')+`</g>`,
  {seats:[[0,-128]],mag:1,sat(){sfx.jingle()},
   accept(e,it){if(!['carrot','apple','corn','hay','cookie','ginger'].includes(it.t))return false;rm(it);sfx.chomp();anim(e,'chomp',220);hearts(e,4);setTimeout(()=>sfx.jingle(),300);say(e,pick(['Mmm! Thank you!','Jingle jingle — yum!','Now I can fly all night!']),2200);star('reindeer');bell('deer',e);return true},
-  tap(e){const t=tr(e);if(t.busy||e.par)return;const r=kidIn(e,'seat0'),a=absXY(e);sfx.jingle();if(!r){anim(e,'hop',420);say(e,pick(['Hi, I\'m Comet! Got a carrot?','Hop on my back!','I\'m practising for Christmas Eve!']),2400);return}
+  tap(e){const t=tr(e);if(t.busy||e.par)return;const r=kidIn(e,'seat0'),a=absXY(e);sfx.jingle();if(!r){anim(e,'hop',420);say(e,pick(['Hi, I\'m '+(e.s.dn||'Comet')+'! Got a carrot?','Hop on my back!','I\'m practising for Christmas Eve!']),2400);return}
    const dir=e.x<W/2?1:-1,sid=SID,x0=e.x;t.busy=1;setFace(r,'laugh',3000);if(!!e.flip!==(dir>0)){e.flip=dir>0;redraw(e)}sparkle(a.x,a.y-150,8);
    glide(e,dir>0?W-220:220,e.y,1400,()=>{e.flip=!e.flip;redraw(e);sfx.jingle();glide(e,x0,e.y,1400,()=>{tr(e).busy=0})});setTimeout(()=>{if(SID===sid&&byId(e.id))tr(e).busy=0},3200)}});
 
@@ -3312,6 +3321,332 @@ const XPROPS={field:[['xpine',1250,640]]};
   return so.apply(this,arguments)}}
 /* the Snow Machine makes it snow in any room it's switched on in */
 {const h0=xHud;window.xHud=function(){h0();$stage.classList.toggle('snowin',!!(XMAS()&&SID&&S&&S.ents.some(e=>e.t==='xsnowm'&&e.s.on)))}}
+
+/* =====================================================================
+   THE NORTH POLE — a fourth world that is open to everybody during the
+   Christmas event (25 November – 25 December). A signpost on every map
+   leads there. Like the other worlds it has its own sticker ladder:
+   Santa's House, the Toy Workshop, Penguin Point and your own Igloo are
+   open from the start; the Reindeer Stable, Mrs. Claus' Bakery and the
+   Sledding Hill open as North Pole stickers are earned.
+   Chains: parts → toy machine → gift wrap → Santa's sack ·
+           ice fishing → feed the penguins → a polar bear cub wakes up ·
+           magic reindeer food → a flying reindeer ·
+           cookie tray → decorating table → a treat for Santa.
+   After Christmas the North Pole closes until next year; things taken
+   home (and your igloo) are kept.
+   ===================================================================== */
+WORLDS.push('North Pole');
+const NPW=3,npStars=()=>STK.filter(s=>s[3]==='np'&&G.st[s[0]]).length;
+const npS=()=>{const g=G.np=G.np&&typeof G.np==='object'?G.np:{};g.toys=g.toys&&typeof g.toys==='object'?g.toys:{};return g};
+STKG.np=['North Pole','#3a86ff'];
+STK.push(['pole','Top of the World','Touch the North Pole on the North Pole map.','np'],['nicelist','On the Nice List','Ask Santa to check his Nice List.','np'],['letter','Dear Santa','Write Santa a letter and send it.','np'],
+ ['maketoy','Toy Maker','Make a toy at the elves\' toy machine.','np'],['toymaster','Master Toymaker','Make 5 different toys at the toy machine.','np'],['belt','Conveyor Ride','Send something along the workshop conveyor belt.','np'],['sackfull','Sack Packer','Fill Santa\'s sack with 5 presents.','np'],
+ ['icefish','Ice Fishing','Catch a fish through the ice at Penguin Point.','np'],['pengfeed','Fishy Snack','Feed a penguin a fish.','np'],['slide','Belly Slide','Slide down the ice slide.','np'],['pengslide','Penguin Slide','Send a penguin down the ice slide.','np'],['bearfriend','Snow Buddy','Make friends with a sleepy polar bear cub.','np'],
+ ['igloo','Home Sweet Igloo','Visit your very own igloo.','np'],['deercare','Shiny Coat','Brush a reindeer in the stable.','np'],['deerfly','Reindeer Flight','Give a reindeer magic food, hop on, and fly!','np'],
+ ['cookieart','Cookie Artist','Ice a cookie and add sprinkles at Mrs. Claus\' Bakery.','np'],['cookiegift','Sweet Treat','Give a decorated cookie to Santa or Mrs. Claus.','np'],['sled','Zoom!','Ride a sled down the Sledding Hill.','np'],['angel','Snow Angel','Lie down in the snow and make a snow angel.','np'],['wish','Wish Upon a Star','Tap the wishing star over the Sledding Hill.','np']);
+/* Jingle Bells for North Pole fun (see the Christmas bell track) */
+Object.assign(XB,{npnice:[1,1,'The Nice List'],npletter:[2,1,'A letter to Santa'],nptoy:[1,4,'Toys for Santa'],npsack:[3,1,'Santa\'s sack'],nppeng:[1,4,'Penguin friends'],npdeer:[1,3,'A reindeer flight'],npcookie:[1,3,'Cookie decorating'],npsled:[1,2,'Sledding']});
+XWAYS.push(['npnice','Ask Santa to check the Nice List'],['npletter','Send Santa a letter'],['nptoy','Make a toy at the Toy Workshop'],['npsack','Fill Santa\'s sack with 5 presents'],['nppeng','Fish and feed the penguins'],['npdeer','Fly a reindeer'],['npcookie','Decorate a cookie at the bakery'],['npsled','Ride a sled down the hill']);
+{const ok0=xwOk;window.xwOk=k=>k==='npdeer'?npStars()>=3:k==='npcookie'?npStars()>=6:k==='npsled'?npStars()>=10:ok0(k)}
+Object.assign(XWLOCK,{npdeer:'opens with 3 North Pole stickers',npcookie:'opens with 6 North Pole stickers',npsled:'opens with 10 North Pole stickers'});
+IC.flake='<svg viewBox="0 0 24 24"><g stroke="#3a86ff" stroke-width="2.400" stroke-linecap="round"><path d="M12 2 L12 22 M3.300 7 L20.700 17 M3.300 17 L20.700 7"/><path d="M9 4 L12 6.500 L15 4 M9 20 L12 17.500 L15 20 M3.500 10.500 L6 8.500 L5 5 M18.500 13.500 L18 17 L20.500 19 M3.500 13.500 L6 15.500 L5 19 M18.500 10.500 L18 7 L20.500 5" fill="none"/></g></svg>';
+Object.assign(sfx,{whee(){tone(500,.5,{to:1300,type:'triangle',vol:.1})},honk(){tone(620,.08,{type:'square',vol:.06});tone(560,.1,{type:'square',vol:.06,at:.1})},crank(){[0,1,2,3].forEach(i=>tone(300+i*40,.05,{type:'square',vol:.05,at:i*.09}))}});
+
+/* ---------- getting there: a signpost on every map while it's Christmas ---------- */
+{const w0=wswHTML;window.wswHTML=function(){const w=G.world||0;
+  if(w===NPW)return`<button class="wsw back" id="wsw" data-w="0" style="left:60px;top:794px">${IC.left}<span>Boba Bay</span></button>`;
+  return w0()+(XMAS()?`<button class="wsw np" id="wswn" data-w="3" style="left:440px;top:24px">${IC.flake}<span>North Pole</span>${IC.right}</button>`:'')}}
+{const s0=worldSwitch;window.worldSwitch=function(to){if(to!==NPW)return s0(to);if(!XMAS()){toast('The North Pole is only open at Christmas time (25 November – 25 December).');usfx('nope');return}
+  G.world=NPW;usfx('jingle');dirty();showMap();const m=$('#map');m.classList.remove('wfade');void m.offsetWidth;m.classList.add('wfade');
+  if(!G.flags.npv){G.flags.npv=1;dirty();setTimeout(()=>toast('Welcome to the NORTH POLE! Visit Santa, the elves\' toy workshop, the penguins — and your very own igloo.',7000),700)}}}
+{const t0=seaMapTap;window.seaMapTap=function(el){if(el.dataset.sea!=='pole')return t0(el);usfx('jingle');el.classList.remove('wave');void el.getBoundingClientRect();el.classList.add('wave');sparkle(830,560,10);if(!G.st.pole){star('pole');setTimeout(()=>!SID&&showMap(),1200)}}}
+/* a new place opens when enough North Pole stickers are earned */
+{const s0=star;window.star=function(id){const had=!!G.st[id];s0(id);if(had)return;const def=STK.find(s=>s[3]==='np'&&s[0]===id);
+  if(def){const n=npStars();for(const sp of SPOTS)if(sp.pneed===n)setTimeout(()=>{toast('New at the North Pole: '+sp.n+' is open!',5200);usfx('chest')},2200)}}}
+
+/* ---------- the North Pole map ---------- */
+const npPine=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})">`+outline(R(-6,-16,12,18,3,'#8a5a3c')+P('M0 -112 L40 -46 Q0 -36 -40 -46Z','#2e8b57')+P('M0 -82 L52 -12 Q0 0 -52 -12Z','#2a7d4f'),4.500)+P('M-28 -52 Q0 -42 28 -52 L18 -66 Q0 -58 -18 -66Z','#fff',0,NO)+P('M-38 -16 Q0 -6 38 -16 L26 -32 Q0 -22 -26 -32Z','#fff',0,NO)+P('M0 -112 L12 -92 Q0 -86 -12 -92Z','#fff',0,NO)+`</g>`;
+const npCane=(x,y,h=70)=>`<g class="np">`+L(`M${x} ${y} L${x} ${y-h} Q${x} ${y-h-18} ${x+16} ${y-h-18} Q${x+30} ${y-h-18} ${x+30} ${y-h-4}`,INK,12)+L(`M${x} ${y} L${x} ${y-h} Q${x} ${y-h-18} ${x+16} ${y-h-18} Q${x+30} ${y-h-18} ${x+30} ${y-h-4}`,'#fff',7)+L(`M${x} ${y} L${x} ${y-h} Q${x} ${y-h-18} ${x+16} ${y-h-18} Q${x+30} ${y-h-18} ${x+30} ${y-h-4}`,XRED,7,0,' stroke-dasharray="7 7"')+`</g>`;
+const npPeng=(x,y,s=1,f=0)=>`<g transform="translate(${x} ${y}) scale(${f?-s:s} ${s})">`+outline(E(0,-24,15,22,'#3d4a66')+E(-3,-56,11,11,'#3d4a66'),4)+E(2,-20,9,15,'#fff')+E(-1,-55,6,6,'#fff')+C(1,-57,2,INK)+P('M6 -56 L15 -53 L6 -50Z','#ffb400')+E(-4,0,6,3,'#ffb400')+E(7,0,6,3,'#ffb400')+`</g>`;
+function npMap(){let o=SVGO+`<defs><linearGradient id="nsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25336e"/><stop offset=".55" stop-color="#5b7ec9"/><stop offset="1" stop-color="#bfe0f7"/></linearGradient>`
+  +`<linearGradient id="naur" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#56f0b0" stop-opacity="0"/><stop offset=".3" stop-color="#56f0b0"/><stop offset=".65" stop-color="#7ad3ff"/><stop offset="1" stop-color="#d58bff" stop-opacity="0"/></linearGradient></defs><rect width="1600" height="900" fill="url(#nsky)"/>`;
+ o+=[[90,60],[260,130],[420,40],[610,110],[760,40],[930,140],[1110,60],[1260,120],[1450,50],[1540,170],[340,210],[700,200],[1010,230],[180,250]].map(([x,y],i)=>C(x,y,i%3?2.200:3.400,'#fff',0,` class="tw" style="animation-delay:-${(i*.37).toFixed(2)}s"`)).join('');
+ o+=`<g class="aurora">`+L('M-60 210 Q200 90 420 170 Q640 250 860 130 Q1080 20 1300 140 Q1480 230 1680 120','url(#naur)',70,0,' opacity=".45"')+L('M-60 270 Q260 170 520 230 Q760 290 1000 190 Q1240 100 1680 200','url(#naur)',38,0,' opacity=".35"')+`</g>`;
+ o+=P('M-40 400 L110 250 L210 340 L340 210 L470 330 L600 240 L740 360 L880 250 L1000 330 L1120 230 L1260 340 L1380 260 L1500 320 L1640 250 L1640 440 L-40 440Z','#e8f3ff',0,NP)+P('M110 250 L150 290 L120 300 L90 280Z M340 210 L380 250 L345 262 L310 245Z M880 250 L920 290 L885 300 L850 285Z M1120 230 L1160 270 L1125 282 L1090 266Z','#ffffff',0,NO)
+  +L('M-40 400 L110 250 L210 340 L340 210 L470 330 L600 240 L740 360 L880 250 L1000 330 L1120 230 L1260 340 L1380 260 L1500 320 L1640 250','#9cb9dc',5,0,NP);
+ // the snowy land and the frozen sea
+ o+=`<path d="M-40 380 Q300 330 620 370 Q900 400 1160 360 Q1400 330 1640 370 L1640 940 L-40 940Z" fill="#f7fbff" stroke="#b7d3ee" stroke-width="5"/>`;
+ o+=`<path d="M1010 940 Q1040 760 1180 700 Q1330 640 1640 660 L1640 940Z" fill="#9fd8f5" stroke="#6fb5dc" stroke-width="5"/>`+[[1250,760,70,16],[1480,720,60,14],[1540,860,80,18],[1150,880,60,14]].map(([x,y,rx,ry])=>E(x,y,rx,ry,'#e6f6ff',0,' stroke="#9cc8e3" stroke-width="4"')).join('')
+  +outline(P('M1430 690 L1470 600 L1500 640 L1530 590 L1570 690Z','#ffffff')+P('M1300 680 L1325 630 L1352 680Z','#ffffff'),4);
+ o+=[[180,560,90],[620,520,70],[1000,560,100],[300,820,110],[860,900,120]].map(([x,y,r])=>E(x,y,r,r*.18,'#e3eefb',0,NP)).join('');
+ const RD='M-40 800 C200 790 300 690 470 660 C620 636 700 700 800 690 C930 680 960 560 1080 520 C1180 490 1250 520 1300 470';o+=L(RD,'#bfe0f2',58,0,NP)+L(RD,'#eaf7ff',46,0,NP);
+ o+=L('M800 690 C820 740 700 790 640 820 M1080 520 C1100 600 1090 660 1080 700 M1180 600 C1260 680 1320 740 1380 790','#bfe0f2',40,0,NP)+L('M800 690 C820 740 700 790 640 820 M1080 520 C1100 600 1090 660 1080 700 M1180 600 C1260 680 1320 740 1380 790','#eaf7ff',30,0,NP);
+ [[60,520,1.100],[150,480,.8],[560,420,.7],[980,420,.7],[1400,470,.8],[1500,500,1],[90,700,1.200],[980,860,.9],[260,640,.8],[700,600,.6]].forEach(([x,y,s])=>o+=npPine(x,y,s));
+ [[600,690],[990,700],[340,690],[1180,560],[740,840]].forEach(([x,y])=>o+=npCane(x,y,56));
+ o+=npPeng(1255,712,.8)+npPeng(1530,800,.75,1)+npPeng(1460,880,.7);
+ // elf cottages
+ const cot=(x,y,k)=>`<g transform="translate(${x} ${y})">`+outline(R(-28,-40,56,40,4,k)+P('M-36 -36 L0 -66 L36 -36Z','#e63946'),4)+P('M-36 -36 L0 -66 L36 -36 L30 -32 Q0 -52 -30 -32Z','#fff',0,NO)+R(-8,-22,16,22,6,'#8a5a3c')+R(14,-30,10,10,2,'#ffe08a')+`</g>`;
+ o+=cot(1010,420,'#7ad3ff')+cot(1330,400,'#ffb74d')+cot(620,440,'#9b6bff');
+ // THE pole
+ let pole=R(-9,-190,18,190,8,'#ffffff');for(let i=0;i<9;i++)pole+=P(`M-9 ${-8-i*21} L9 ${-20-i*21} L9 ${-10-i*21} L-9 ${2-i*21}Z`,XRED,0,NO);
+ o+=`<g class="npole spot" data-sea="pole" transform="translate(830 772)"><g class="sp-in">`+E(0,0,56,14,'#ffffff')+outline(pole+C(0,-202,20,'#ffd23f')+R(-70,-136,140,32,9,'#fff6ee'),5)+C(-6,-208,6,'#fff3a8',0,NO)
+  +`<text x="0" y="-113" font-size="19" font-weight="800" text-anchor="middle" fill="${XRED}" class="np">NORTH POLE</text><circle r="80" cy="-100" fill="transparent"/></g></g>`;
+ const A={};
+ A.npsanta=R(-100,-104,200,104,6,'#b5713f')+L('M-100 -78 L100 -78 M-100 -52 L100 -52 M-100 -26 L100 -26','#8a5232',4)+R(52,-196,26,60,4,'#9a5a3a')+P('M-124 -96 L0 -196 L124 -96Z','#e63946')
+  +P('M-124 -96 L0 -196 L124 -96 L112 -84 Q90 -100 70 -86 Q46 -104 22 -88 Q0 -106 -24 -88 Q-46 -104 -70 -86 Q-92 -100 -112 -84Z','#ffffff')+R(46,-200,38,13,6,'#ffffff')
+  +P('M-20 0 L-20 -52 Q-20 -72 0 -72 Q20 -72 20 -52 L20 0Z','#2e8b57')+C(12,-30,3.500,'#ffd23f')+R(-84,-80,42,34,6,'#ffe08a')+R(42,-80,42,34,6,'#ffe08a')+L('M-63 -80 L-63 -46 M-84 -63 L-42 -63 M63 -80 L63 -46 M42 -63 L84 -63','#b5713f',3)
+  +R(-48,-138,96,28,9,'#fff6ee')+C(66,-216,8,'#ffffff')+C(80,-232,11,'#ffffff');
+ A.npwork=R(-122,-118,244,118,6,'#2e8b57')+P('M-138 -110 L-102 -176 L102 -176 L138 -110Z','#e63946')+R(-104,-186,208,16,8,'#ffffff')+R(-42,-84,84,84,8,'#ffd23f')+L('M-42 -84 L42 0 M42 -84 L-42 0','#c99a00',4)
+  +R(-104,-96,46,34,6,'#ffe08a')+R(58,-96,46,34,6,'#ffe08a')+R(-62,-160,124,30,10,'#fff6ee')+P(star5(-118,-196,16,10),'#b7c0d3')+C(-118,-196,6,'#8d99ae')+R(98,-34,34,34,5,'#3a86ff')+R(110,-34,10,34,0,'#ffffff')+R(82,-58,30,26,5,'#ff8fb1')+R(92,-58,10,26,0,'#ffd23f')
+  +C(90,-204,9,'#ff8fb1')+C(104,-222,11,'#ffd23f')+C(84,-238,9,'#7ad3ff');
+ A.nigloo=P('M-98 0 Q-98 -120 0 -124 Q98 -120 98 0Z','#f4fbff')+L('M-94 -32 L94 -32 M-82 -64 L82 -64 M-58 -94 L58 -94 M-50 0 L-50 -32 M60 0 L60 -32 M-20 -32 L-20 -64 M40 -32 L40 -64 M-60 -32 L-60 -64 M0 -64 L0 -94 M-30 -94 L-24 -116 M30 -94 L24 -116','#bfe0f2',3)
+  +P('M-38 0 L-38 -36 Q-38 -64 0 -64 Q38 -64 38 -36 L38 0Z','#e6f4fb')+P('M-23 0 L-23 -30 Q-23 -47 0 -47 Q23 -47 23 -30 L23 0Z','#2b3f7a')+L('M0 -124 L0 -164',INK,3)+P('M0 -164 L28 -156 L0 -148Z','#ff5c7a');
+ A.nigloof=A.nigloo.replace('#ff5c7a','#3a86ff').replace('#2b3f7a','#3b2f6a');
+ A.nppeng=P('M-30 -14 L6 -118 L36 -60 L58 -96 L86 -14Z','#f2fbff')+L('M6 -118 L-2 -70 M58 -96 L52 -50','#cfe8f7',3)+E(0,-6,126,22,'#e3f4ff')+E(-56,-8,22,7,'#2b6fa8')+npPeng(-14,-6,1)+npPeng(26,-12,.85,1)+npPeng(-90,-10,.8);
+ A.npstable=R(-104,-96,208,96,6,'#a0522d')+P('M-120 -88 L-62 -150 L62 -150 L120 -88Z','#6b3a24')+R(-64,-160,128,14,7,'#ffffff')+R(-36,-72,72,72,6,'#e6c98e')+L('M-36 -72 L36 0 M36 -72 L-36 0','#b98a52',4)
+  +R(52,-74,38,28,6,'#ffe08a')+R(-90,-74,38,28,6,'#ffe08a')+L('M-14 -160 L-30 -196 M-24 -180 L-42 -186 M14 -160 L30 -196 M24 -180 L42 -186','#8a5a3c',6)+R(84,-30,50,30,6,'#f2c94c')+L('M92 -22 L126 -22 M92 -10 L126 -10','#c9a032',3);
+ A.npstable0=A.npstable;
+ A.npbake=R(-98,-100,196,100,8,'#c98b5c')+P('M-114 -92 L0 -172 L114 -92Z','#8a4b2e')+L('M-112 -92 Q-100 -80 -88 -92 Q-76 -80 -64 -92 Q-52 -80 -40 -92 Q-28 -80 -16 -92 Q-4 -80 8 -92 Q20 -80 32 -92 Q44 -80 56 -92 Q68 -80 80 -92 Q92 -80 104 -92','#ffffff',7)
+  +[[-50,-118,XRED],[0,-136,'#2bb673'],[50,-118,'#ffd23f'],[-24,-106,'#3a86ff'],[26,-106,'#ff8fb1']].map(([x,y,k])=>C(x,y,7,k)).join('')+R(-22,-60,44,60,20,'#e63946')+C(-62,-58,16,'#fff3a8')+C(62,-58,16,'#fff3a8')
+  +C(0,-192,24,'#d9a066')+[[-8,-200],[8,-196],[0,-184],[-12,-186],[12,-184]].map(([x,y])=>C(x,y,3,'#6b4226')).join('')+L('M-98 -2 L-98 -100 M98 -2 L98 -100','#ffffff',6);
+ A.nphill=P('M-130 0 Q-110 -40 -66 -110 Q-24 -166 30 -158 Q92 -126 130 0Z','#f4fbff')+L('M-40 -132 Q0 -90 70 -20 M-22 -140 Q20 -96 86 -26','#bfe0f2',4)+R(66,-26,56,14,6,XRED)+L('M60 -8 L124 -8 Q134 -8 132 -18','#8a5a3c',4)
+  +L('M30 -158 L30 -204',INK,3)+P('M30 -204 L58 -196 L30 -188Z','#3a86ff')+npPine(-96,-4,.45)+npPine(-60,4,.38);
+ for(const sp of mapSpots().sort((a,b)=>a.y-b.y)){const open=spotOpen(sp),ak=sp.art||sp.id;o+=`<g class="spot${open?'':' locked'}" data-go="${sp.id}" transform="translate(${sp.x} ${sp.y})"><g class="sp-in">${outline(A[ak]||'',5)}${ak==='npsanta'?`<text x="0" y="-117" font-size="17" font-weight="800" text-anchor="middle" fill="${XRED}" class="np">SANTA</text>`:ak==='npwork'?`<text x="0" y="-138" font-size="19" font-weight="800" text-anchor="middle" fill="#2e8b57" class="np">TOYS</text>`:''}</g><circle r="100" cy="-70" fill="transparent"/></g>`}
+ return o+'</svg>'}
+SPOTS.push({id:'npsanta',n:'Santa\'s House',x:800,y:470,w:NPW,xm:1},{id:'npwork',n:'Toy Workshop',x:1230,y:470,w:NPW,xm:1},{id:'nigloo',n:'My Igloo',n2:'Friend\'s Igloo',hm:1,dx:-90,dx2:150,x:400,y:600,w:NPW,xm:1},
+ {id:'nppeng',n:'Penguin Point',x:1390,y:820,w:NPW,xm:1},{id:'npstable',n:'Reindeer Stable',x:1050,y:720,w:NPW,xm:1,pneed:3},{id:'npbake',n:'Mrs. Claus\' Bakery',x:600,y:840,w:NPW,xm:1,pneed:6},{id:'nphill',n:'Sledding Hill',x:290,y:380,w:NPW,xm:1,pneed:10});
+
+/* ---------- people of the North Pole ---------- */
+CH.npsanta={c:{a:SKIN[1],b:'#ffffff',c:XRED,d:XRED,e:'#35252d',t:XRED},s:{hs:0,of:3,xs:4,beard:1,npc:2}};
+CH.mrsclaus={c:{a:SKIN[0],b:'#fafafa',c:XRED,d:'#ffffff',e:'#35252d'},s:{hs:2,of:4,gl:1,npc:7,nn:'Mrs. Claus'}};
+CH.elfpip={c:{a:SKIN[2],b:'#6b4226',c:XGRN,d:XRED,e:'#35252d'},s:{hs:5,of:0,xs:5,fr:1,npc:6,nn:'Elf Pip'}};
+CH.elftin={c:{a:SKIN[0],b:'#ffd23f',c:XGRN,d:XRED,e:'#35252d'},s:{hs:1,of:0,xs:5,lash:1,npc:6,nn:'Elf Tinsel'}};
+{const n1=T.char.nm;T.char.nm=e=>typeof e.s.nn==='string'&&e.s.nn?e.s.nn:n1(e)}
+{const g0=goofy;window.goofy=function(e){const n=e.s.npc,sc=SC[SID]||{};
+  if(n===6){anim(e,'hop',420);sfx.honk();say(e,pick(['Wheel + wood block makes a toy car!','Fluff + button eyes makes a teddy!','Bolts + spring makes a rocket!','Wrap the toys, then pop them in Santa\'s sack!','Spring + wood block makes a surprise box!','Bolts + button eyes makes a robot!']),3200);return}
+  if(n===7){anim(e,'hop',420);sfx.yum();say(e,pick(['Put a cookie on the table, then tap the icing bags!','Sprinkles make everything better, dear.','Santa adores a decorated cookie!','There\'s hot cocoa on the stove — help yourself!']),3200);return}
+  if(n===2&&sc.np){anim(e,'hop',420);sfx.yum();say(e,pick(['Ho ho ho! Shall I check my Nice List?','Write me a letter at my desk, and pop it in the mailbox!','The elves are so busy in the workshop!','Have you met the penguins yet? Ho ho!']),3200);return}
+  g0(e)}}
+{const a0=T.char.accept;T.char.accept=function(ch,it,p){const n=ch.s.npc;
+  if(it.t==='npletter'&&n===2&&!tr(ch).busy){npReadLetter(ch,it,ch);return true}
+  if(it.t==='npcookie'&&it.s.ic&&(n===2||n===7)){star('cookiegift');bell('npcookie',ch);later(ch,600,()=>say(ch,n===2?'Ho ho ho! My very favourite kind!':'Oh, how beautiful! You\'re a real baker!',2600))}
+  return a0.call(this,ch,it,p)}}
+
+/* ---------- backgrounds ---------- */
+function npSky(n){return`<defs><linearGradient id="naur2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#56f0b0" stop-opacity="0"/><stop offset=".35" stop-color="#56f0b0"/><stop offset=".7" stop-color="#7ad3ff"/><stop offset="1" stop-color="#d58bff" stop-opacity="0"/></linearGradient></defs>`
+ +`<g class="aurora np" opacity="${n?.85:.3}">`+L('M-60 200 Q240 70 520 160 Q800 250 1080 110 Q1340 0 1680 120','url(#naur2)',80)+L('M-60 270 Q300 160 600 230 Q900 300 1200 190 Q1460 110 1680 210','url(#naur2)',44)+`</g>`}
+function npOut(st,kind){const n=st.night,b=st.bg;let o=SVGO+skyG(n?'#141c4a':b.sky,n?'#3d4f9a':'#eef8ff')+`<rect data-p="sky" width="1600" height="660" fill="url(#sky)"/>`+npSky(n)+(n?nstars():cloud(140,120,1.100)+cloud(1220,90,.8));
+ o+=P('M0 480 L130 340 L250 430 L400 300 L540 420 L700 320 L860 440 L1010 330 L1150 430 L1300 310 L1460 410 L1600 350 L1600 660 L0 660Z',n?'#8fa4d4':'#e8f2ff',0,NP+NO)
+  +P('M130 340 L170 384 L140 392 L104 372Z M400 300 L444 344 L410 356 L372 336Z M1010 330 L1052 372 L1018 384 L982 366Z M1300 310 L1342 352 L1306 364 L1270 346Z','#ffffff',0,NP+NO);
+ if(kind==='peng')o+=P('M0 560 Q400 530 800 552 Q1200 574 1600 546 L1600 640 L0 640Z',n?'#3d6fa8':'#7fcdf0',0,NP+NO)+`<g class="np">`+outline(P('M180 560 L230 460 L262 510 L296 444 L340 560Z','#f4fbff')+P('M1200 556 L1236 486 L1270 530 L1300 470 L1340 556Z','#f4fbff')+P('M760 556 L790 520 L820 556Z','#f4fbff'),4)+`</g>`
+  +L('M60 580 q20 -8 40 0 M520 590 q20 -8 40 0 M980 584 q20 -8 40 0 M1420 592 q20 -8 40 0','#fff',4,0,' opacity=".7" class="np"');
+ if(kind==='hill')o+=`<g class="np">`+outline(P('M-20 640 L-20 330 Q160 300 360 380 Q640 500 1060 640Z','#ffffff'),5)+L('M40 352 Q300 380 620 520 Q800 590 1000 626 M80 346 Q340 378 660 520 Q830 590 1030 628','#cfe4f5',4)+npPine(120,350,.6)+npPine(220,360,.5)+`</g>`;
+ o+=P('M0 610 Q400 580 800 600 Q1200 620 1600 594 L1600 900 L0 900Z',b.ground,'ground')+[[150,720,110],[560,700,80],[880,840,120],[1250,720,90],[420,860,100],[1480,800,80]].map(([x,y,r])=>E(x,y,r,r*.16,n?'#c7d3ee':'#e3eefb',0,NP+NO)).join('');
+ return o+'</svg>'}
+{const r0=roomBg;window.roomBg=function(st,sc){const o=r0(st,sc);return sc.npdeco?o.replace(/<\/svg>$/,sc.npdeco(st)+'</svg>'):o}}
+const plate=(x,y,t,k='#fff6ee',tc='#8a5a3c')=>`<g class="np">`+outline(R(x-62,y-20,124,40,10,k),4)+`<text x="${x}" y="${y+8}" font-size="22" font-weight="800" text-anchor="middle" fill="${tc}">${t}</text></g>`;
+
+/* ---------- Santa's House: the Nice List, a letter to Santa ---------- */
+D('nplist','Nice List',180,280,'furn',{a:'#8a5a3c',b:'#fff6dc'},(e,c)=>{const op=e.s.open;let o=sh(180,280,.42)+`<rect x="10" y="0" width="160" height="276" fill="transparent" class="hit"/>`+L('M40 276 L70 100 M140 276 L110 100 M90 276 L90 120',c.a,9,'a');
+  o+=R(26,op?40:56,128,op?190:40,8,c.b,'b')+R(18,op?28:48,144,22,11,dk(c.b,.12),'b')+(op?'':`<text x="90" y="${op?72:80}" font-size="15" font-weight="800" text-anchor="middle" fill="${XRED}" class="np">NICE LIST</text>`)+(op?R(18,224,144,20,10,dk(c.b,.12),'b')+`<text x="90" y="72" font-size="17" font-weight="800" text-anchor="middle" fill="${XRED}" class="np">NICE LIST</text>`+[96,116,136,156,176].map(y=>L(`M40 ${y} L${120+(y%3)*8} ${y}`,'#c9b48a',3,0,NO)).join(''):'');
+  if(e.s.ok)o+=P(star5(122,176,34,16),'#ffd23f')+`<text x="122" y="181" font-size="11" font-weight="800" text-anchor="middle" fill="${XRED}" class="np">NICE</text>`;return o},
+ {tap(e){const t=tr(e),a=absXY(e);if(t.busy)return;if(e.s.ok){anim(e,'wig',300);sfx.jingle();say(e,'You\'re on the Nice List — in gold!',2200);return}
+   t.busy=1;e.s.open=1;redraw(e);sfx.pop();say(e,'Let me see… checking the list… checking it twice…',2400);
+   later(e,2000,()=>{t.busy=0;e.s.ok=1;redraw(e);sfx.star();anim(e,'land',260);confetti(a.x,a.y-200,18);say(e,'YES! You\'re on the NICE LIST!',2600);star('nicelist');bell('npnice',e);dirty()})}});
+const WISH=['teddy','robot','car','rocket','dino','drum','ball','jackbox'];
+const wishPic=(t,x,y,k)=>T[t]?`<g transform="translate(${x-T[t].w*k/2} ${y-T[t].h*k}) scale(${k})" class="np">`+outline(T[t].draw({s:{},c:Object.assign({},T[t].c)},Object.assign({},T[t].c)).replace(/<ellipse[^>]*rgba[^>]*>/,''),5)+`</g>`:'';
+D('npdesk','Letter Desk',300,220,'fix',{a:'#a8714a'},(e,c)=>{const w=WISH[(e.s.w|0)%WISH.length];return sh(300,220,.46)+R(24,110,16,106,6,dk(c.a,.15),'a')+R(260,110,16,106,6,dk(c.a,.15),'a')+R(6,96,288,24,10,c.a,'a')+R(40,120,220,40,8,dk(c.a,.08),'a')
+  +`<g data-b="pic">`+R(40,6,150,96,10,'#fff6ee')+`<text x="115" y="26" font-size="14" font-weight="800" text-anchor="middle" fill="${XRED}" class="np">I wish for…</text>`+wishPic(w,115,96,.55)+`<rect x="40" y="6" width="150" height="96" fill="transparent"/></g>`
+  +`<g data-b="pen">`+R(206,58,50,40,10,'#35252d')+P('M232 60 Q218 10 250 -8 Q246 30 236 60Z','#ffffff')+L('M236 60 L242 0','#d8d8e6',2,0,NO)+`<rect x="200" y="-10" width="70" height="110" fill="transparent"/></g>`},
+ {fx:1,tap(e,tg){const b=tg&&tg.closest&&tg.closest('[data-b]');if(b&&b.dataset.b==='pic'){e.s.w=((e.s.w|0)+1)%WISH.length;redraw(e);sfx.pop();say(e,'I wish for… '+T[WISH[e.s.w]].n.toLowerCase()+'! (Tap the pen to write it.)',2000);dirty();return}
+   if(S.ents.filter(k=>k.t==='npletter').length>=4){say(e,'Send those letters first!');sfx.nope();return}anim(e,'land',240);sfx.zip();const w=WISH[(e.s.w|0)%WISH.length],l=popTo('npletter',e,150,{s:{w}});later(e,300,()=>say(e,'A letter for Santa! Give it to him — or pop it in his mailbox.',2800))}});
+D('npletter','Letter to Santa',96,66,'item',{a:'#fff6ee',b:XRED},(e,c)=>sh(96,66,.32)+R(6,8,84,54,6,c.a,'a')+L('M6 10 L48 40 L90 10',dk(c.a,.2),3,0,NO)+P(heartP(48,40,9),c.b,'b')+(T[e.s.w]?wishPic(e.s.w,74,58,.2):''),
+ {tap(e){anim(e,'wig',300);sfx.pop();say(e,'Give me to Santa, or put me in his mailbox!',2200)}});
+function npReadLetter(who,lt,src){const w=T[lt.s.w]?lt.s.w:'teddy',sid=SID;rm(lt);sfx.zip();tr(who).busy=1;say(who,who.t==='char'?'A letter! Let\'s see… a '+T[w].n.toLowerCase()+'? Ho ho ho!':'Whoosh! Off it goes to Santa…',2600);
+ setTimeout(()=>{if(SID!==sid||!byId(who.id))return;tr(who).busy=0;const g=popTo('xgift',src,140,{c:{a:pick([XRED,XGRN,'#3a86ff','#9b6bff']),b:'#ffd23f'},s:{it:{t:w,c:Object.assign({},T[w].c),s:{}}}});sparkle(g.x,g.y-60,8);sfx.chest();
+  say(who,who.t==='char'?'Here you are — an early present from me!':'A present came back from Santa!',2800);star('letter');bell('npletter',who);dirty()},2400)}
+D('npmail','Santa\'s Mailbox',120,230,'fix',{a:XRED},(e,c)=>sh(120,230,.36)+R(52,140,16,86,5,'#5a3b2a')+R(10,20,100,130,26,c.a,'a')+R(10,20,100,22,11,dk(c.a,.15),'a')+R(28,62,64,10,5,'#35252d')+`<text x="60" y="104" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" class="np">SANTA</text>`+P(heartP(60,122,8),'#ffd23f')+R(4,8,112,16,8,'#ffffff'),
+ {fx:1,accept(e,it){if(it.t!=='npletter'||tr(e).busy)return false;anim(e,'shake',400);npReadLetter(e,it,e);return true},tap(e){anim(e,'wig',300);say(e,'Letters for Santa go in here!')}});
+
+/* ---------- the Toy Workshop: parts → toy machine → gift wrap → Santa's sack ---------- */
+const PARTS=[['wheel','Wheel'],['block','Wood Block'],['fluff','Fluff'],['spring','Spring'],['eyes','Button Eyes'],['bolts','Bolts']];
+function partIcon(k,x,y,s=1){switch(k){
+ case'wheel':return C(x,y,16*s,'#35252d')+C(x,y,7*s,'#b7c0d3');
+ case'block':return R(x-15*s,y-15*s,30*s,30*s,5*s,'#ffb74d')+L(`M${x-6*s} ${y+7*s} L${x} ${y-7*s} L${x+6*s} ${y+7*s} M${x-3*s} ${y+2*s} L${x+3*s} ${y+2*s}`,'#c0581f',2.400*s,0,NO);
+ case'fluff':return U(C(x-8*s,y+3*s,10*s,'#ffe3f1')+C(x+8*s,y+3*s,10*s,'#ffe3f1')+C(x,y-7*s,11*s,'#ffe3f1'),3);
+ case'spring':return L(`M${x-14*s} ${y+13*s} L${x+14*s} ${y+7*s} L${x-14*s} ${y} L${x+14*s} ${y-7*s} L${x-14*s} ${y-13*s}`,'#8d99ae',4.500*s);
+ case'eyes':return C(x-9*s,y,8*s,'#35252d')+C(x+9*s,y,8*s,'#35252d')+C(x-10*s,y-2*s,1.800*s,'#fff',0,NO)+C(x+8*s,y-2*s,1.800*s,'#fff',0,NO);
+ default:return P(`M${x-14*s} ${y} L${x-7*s} ${y-12*s} L${x+7*s} ${y-12*s} L${x+14*s} ${y} L${x+7*s} ${y+12*s} L${x-7*s} ${y+12*s}Z`,'#b7c0d3')+C(x,y,5*s,'#8d99ae')}}
+D('nppart','Toy Part',70,70,'item',{a:'#fff'},(e,c)=>sh(70,70,.3)+partIcon(PARTS[(e.s.k|0)%6][0],35,38,1.500),{nm:e=>PARTS[(e.s.k|0)%6][1],tap(e){anim(e,'wig',300);sfx.pop()}});
+D('npparts','Toy Parts',310,230,'fix',{a:'#c98f5a',b:'#e63946'},(e,c)=>{let o=sh(310,230,.46)+R(4,30,302,196,14,c.a,'a')+R(40,0,230,40,14,c.b,'b')+`<text x="155" y="29" font-size="22" font-weight="800" text-anchor="middle" fill="#fff" class="np">TOY PARTS</text>`;
+  PARTS.forEach(([k],i)=>{const cx=56+(i%3)*99,cy=82+Math.floor(i/3)*82;o+=R(cx-44,cy-34,88,70,10,lt(c.a,.45))+partIcon(k,cx,cy,1.300)+`<rect x="${cx-46}" y="${cy-36}" width="92" height="74" fill="transparent" data-b="${i}"/>`});return o},
+ {fx:1,disp(e,pt){let i=((e.s.i|0)+1)%6;if(pt){const a=absXY(e),lx=pt.x-(a.x-155),ly=pt.y-(a.y-230),cx=Math.round((lx-56)/99),cy=ly<126?0:1;if(cx>=0&&cx<3)i=cy*3+cx}e.s.i=i;return{t:'nppart',o:{s:{k:i}}}},
+  tap(e,tg){const b=tg&&tg.closest&&tg.closest('[data-b]'),i=b?+b.dataset.b:((e.s.i|0)+1)%6;e.s.i=i;if(S.ents.filter(k=>k.t==='nppart'&&!k.par).length>=12){say(e,'Lots of parts out already — make something!');sfx.nope();return}
+   anim(e,'land',240);sfx.pop();const it=popTo('nppart',e,rnd(-100,100),{s:{k:i}});say(e,nameOf(it)+'!',1100)}});
+const TOYREC={'block+wheel':'car','eyes+fluff':'teddy','block+spring':'jackbox','bolts+eyes':'robot','bolts+spring':'rocket','fluff+wheel':'dino'};
+D('npmach','Toy Machine',300,300,'fix',{a:'#3a86ff',b:'#ffd23f'},(e,c)=>{const ps=(e.s.p||[]).slice(0,2),busy=tr(e).busy;return sh(300,300,.46)+`<rect x="10" y="0" width="290" height="296" fill="transparent" class="hit"/>`
+  +P('M70 6 L210 6 L176 70 L104 70Z','#b7c0d3')+ps.map((k,i)=>partIcon(PARTS[k][0],116+i*48,38,1.100)).join('')+R(30,64,220,200,20,c.a,'a')+R(30,64,220,26,13,dk(c.a,.15),'a')
+  +`<g class="np${busy?' spinfast':''}" style="transform-origin:96px 150px">`+P(star5(96,150,40,26),'#ffd23f')+C(96,150,14,'#e6a800')+`</g><g class="np${busy?' spinfast':''}" style="transform-origin:180px 196px">`+P(star5(180,196,30,20),'#ff8fb1')+C(180,196,10,'#e0608f')+`</g>`
+  +R(150,96,80,40,10,'#e8f7ff')+C(170,116,6,busy?'#56d39a':'#d8d8e6')+C(190,116,6,ps.length>0?'#ffd23f':'#d8d8e6')+C(210,116,6,ps.length>1?'#ff5c7a':'#d8d8e6')+R(40,238,80,30,8,'#35252d')+`<text x="140" y="256" font-size="15" font-weight="800" text-anchor="middle" fill="#fff" class="np">${ps.length}/2</text>`
+  +L(`M250 160 L284 ${busy?170:110}`,'#8d99ae',10)+C(284,busy?170:110,15,c.b,'b')+R(66,266,168,30,10,dk(c.a,.25),'a')},
+ {fx:1,accept(e,it){if(it.t!=='nppart'||tr(e).busy)return false;const ps=e.s.p=(e.s.p||[]);if(ps.length>=2){say(e,'Two parts make one toy — pull the lever!');return false}ps.push((it.s.k|0)%6);rm(it);redraw(e);sfx.drop();anim(e,'land',220);
+   say(e,ps.length<2?'One more part!':'Ready! Pull the lever!',1800);dirty();return true},
+  tap(e){const ps=e.s.p||[];if(tr(e).busy)return;if(ps.length<2){anim(e,'wig',300);sfx.nope();say(e,'Put in TWO parts from the parts box, then pull my lever!',2600);return}
+   const ks=ps.map(i=>PARTS[i][0]).sort().join('+'),toy=TOYREC[ks]||pick(['ball','drum','duck']),sid=SID,who=ACTOR;e.s.p=[];sfx.crank();say(e,'Clank… whirr… clunk!',1600);
+   busyMaker(e,1700,()=>asActor(who,()=>{const t=popTo(toy,e,-180);sfx.ding();sparkle(t.x,t.y-60,8);say(e,(TOYREC[ks]?'A ':'A surprise ')+T[toy].n.toLowerCase()+'!',2200);const g=npS();if(!who){g.toys[toy]=1}star('maketoy');bell('nptoy',e);if(Object.keys(npS().toys).length>=5)star('toymaster');dirty()}));dirty()}});
+D('nprecipe','Toy Recipes',340,270,'furn',{a:'#fff6dc',b:'#e63946'},(e,c)=>{let o=R(0,0,340,270,14,c.a,'a')+R(0,0,340,40,14,c.b,'b')+`<text x="170" y="28" font-size="20" font-weight="800" text-anchor="middle" fill="#fff" class="np">TOY RECIPES</text>`;
+  Object.entries(TOYREC).forEach(([ks,toy],i)=>{const [p1,p2]=ks.split('+'),y=62+i*36;o+=partIcon(p1,40,y,.8)+`<text x="66" y="${y+7}" font-size="20" font-weight="800" text-anchor="middle" fill="#8a5a3c" class="np">+</text>`+partIcon(p2,92,y,.8)+`<text x="124" y="${y+7}" font-size="20" font-weight="800" text-anchor="middle" fill="#8a5a3c" class="np">=</text>`+wishPic(toy,170,y+16,.3)+`<text x="208" y="${y+6}" font-size="15" font-weight="700" fill="#8a5a3c" class="np">${T[toy].n}</text>`});return o},{mt:'wall'});
+D('npbelt','Conveyor Belt',560,110,'fix',{a:'#4a4e69',b:'#ffd23f'},(e,c)=>sh(560,110,.48)+R(20,60,16,46,5,'#8d99ae')+R(524,60,16,46,5,'#8d99ae')+R(270,60,20,46,5,'#8d99ae')+R(0,20,560,46,23,c.a,'a')
+  +`<path d="M24 26 L536 26" stroke="${c.b}" stroke-width="5" stroke-dasharray="18 22" class="np beltmv"/>`+[30,140,250,360,470,530].map(x=>C(x,43,12,'#b7c0d3')+C(x,43,4,'#4a4e69',0,NO)).join(''),
+ {fx:1,accept(e,it){const d=TD(it);if(!['toy','item','food','drink','hat'].includes(d.k)||d.w>200||tr(it).busy||tr(e).busy&&tr(e).busy>3)return false;const a=absXY(e),sid=SID;if(it.par)unpar(it);
+   it.x=a.x-240;it.y=a.y-62;posE(it);tr(it).busy=1;tr(e).busy=(tr(e).busy|0)+1;sfx.crank();star('belt');
+   glide(it,a.x+250,a.y-62,1800,()=>{if(SID!==sid)return;tr(e).busy=Math.max(0,(tr(e).busy|0)-1);if(!byId(it.id))return;tr(it).busy=0;rm(it);const n=popOut(it.t,a.x+300,a.y-70,{c:it.c,s:it.s},120);sfx.pop()});return true},
+  tap(e,tg,p){sfx.crank();anim(e,'shake',300)}});
+D('npsack','Santa\'s Sack',220,240,'fix',{a:'#c0392b',b:'#ffd23f'},(e,c)=>{const n=clamp(e.s.n|0,0,5),k=1+n*.05;return sh(220,240,.44)+`<g transform="translate(110 236) scale(${k}) translate(-110 -236)">`
+  +P('M30 230 Q6 150 50 90 L170 90 Q214 150 190 230Z',c.a,'a')+P('M50 90 Q80 60 70 30 Q110 50 150 30 Q140 60 170 90Z',dk(c.a,.12),'a')+L('M56 92 Q110 108 164 92',c.b,8,'b')+(n?[[80,60,'#3a86ff'],[120,46,'#2bb673'],[146,70,'#ff8fb1'],[100,74,'#ffd23f'],[64,40,'#9b6bff']].slice(0,n).map(([x,y,k2])=>R(x-14,y-14,28,24,4,k2)+R(x-3,y-14,6,24,0,'#fff')).join(''):'')+`</g>`
+  +R(64,170,92,40,10,'#fff6ee')+`<text x="110" y="198" font-size="22" font-weight="800" text-anchor="middle" fill="${XRED}" class="np">${n}/5</text>`},
+ {fx:1,accept(e,it){if(!(it.t==='xgift'||TD(it).k==='toy')||tr(e).busy||it.t==='npparts')return false;const n=(e.s.n|0)+1,a=absXY(e),sid=SID;rm(it);e.s.n=Math.min(5,n);redraw(e);anim(e,'land',260);sfx.drop();
+   say(e,it.t==='xgift'?(n<5?'A present for a good girl or boy! '+n+' of 5.':''):(n<5?'A toy — but wrapped is even better! '+n+' of 5.':''),2400);
+   if(n>=5){star('sackfull');bell('npsack',e);hushed(()=>sfx.jingle());confetti(a.x,a.y-200,24);say(e,'The sack is FULL! The elves will take it to Santa\'s sleigh!',3200);tr(e).busy=1;setTimeout(()=>{if(SID!==sid||!byId(e.id))return;e.s.n=0;tr(e).busy=0;redraw(e);dirty()},3800)}dirty();return true},
+  tap(e){anim(e,'wig',300);say(e,'Fill me with 5 presents — wrap toys at the gift bench first!',2600)}});
+
+/* ---------- Penguin Point: ice fishing → penguins → a polar bear cub; the ice slide ---------- */
+D('npfish','Ice Fishing Hole',270,190,'fix',{a:'#8d6a4f'},(e,c)=>{const st=e.s.st|0;return sh(270,190,.4)+`<rect x="0" y="40" width="270" height="148" fill="transparent" class="hit"/>`+E(120,150,110,34,'#e8f7ff')+E(120,150,74,22,'#2b6fa8')+E(108,144,30,7,'#4c8fc6',0,NO)
+  +R(222,60,12,126,5,c.a,'a')+L('M228 64 Q170 20 120 40',c.a,6,'a')+L(`M120 40 L120 ${st?150:110}`,'#35252d',2,0,NO)+(st===2?`<g class="np wig">`+C(120,150,9,XRED)+C(120,146,4,'#fff')+`</g><text x="150" y="110" font-size="40" font-weight="800" fill="${XRED}" class="np">!</text>`:st===1?C(120,148,8,XRED)+C(120,144,3.500,'#fff'):C(120,110,7,XRED))
+  +R(196,170,60,16,6,'#b7c0d3')},
+ {fx:1,tap(e){const st=e.s.st|0,a=absXY(e),sid=SID;
+   if(st===0){e.s.st=1;redraw(e);sfx.drop();say(e,'Plop! The line is in… now wait for a nibble.',2200);setTimeout(()=>{if(SID!==sid||!byId(e.id)||(e.s.st|0)!==1)return;e.s.st=2;redraw(e);sfx.boing();say(e,'Something is biting! TAP!',1800)},rnd(1300,2400));return}
+   if(st===1){anim(e,'wig',300);say(e,'Shh… be patient!',1200);return}
+   e.s.st=0;redraw(e);sfx.whoosh();puff(a.x-15,a.y-40,'#bfe8ff',6);const got=Math.random()<.88?'fish':'boot';const it=popTo(got,e,-170);say(e,got==='fish'?'A fish! The penguins will LOVE this.':'An old boot? Ha! Try again.',2400);if(got==='fish'){star('icefish');bell('nppeng',e)}dirty()}});
+D('npslide','Ice Slide',440,330,'fix',{a:'#bfe8ff',b:'#8fd0f0'},(e,c)=>sh(440,330,.46)+L('M340 70 L340 326 M410 70 L410 326','#9fb7cf',10)+[110,150,190,230,270,310].map(y=>L(`M340 ${y} L410 ${y}`,'#9fb7cf',7)).join('')+R(300,52,130,22,10,c.b,'b')
+  +L('M110 230 L110 326 M210 140 L210 326','#9fb7cf',9)+L('M330 72 Q220 90 140 210 Q100 290 14 306',INK,54)+L('M330 72 Q220 90 140 210 Q100 290 14 306',c.a,44,'a')+L('M320 64 Q214 82 132 200 Q92 278 10 294','#ffffff',8,0,' opacity=".8"'+NO)+`<path d="M330 72 Q220 90 140 210 Q100 290 14 306" fill="none" stroke="transparent" stroke-width="54" class="hit"/>`,
+ {fx:1,accept(e,it){const k=TD(it).k;if(k!=='char'&&k!=='pet')return false;if(tr(it).busy||it.s.pose==='sleep')return false;const a=absXY(e),sid=SID;if(it.par)unpar(it);tr(it).busy=1;
+   const pts=[[a.x+110,a.y-262],[a.x-20,a.y-170],[a.x-120,a.y-60],[a.x-210,a.y-20]],go=i=>{if(SID!==sid||!byId(it.id))return;if(i>=pts.length){it.y=Math.min(a.y+4,SC[SID].floor[1]);tr(it).busy=0;place(it);if(k==='char')setFace(it,'laugh',1600);sparkle(it.x,it.y-30,5);reachSoon(it);return}
+    const[x,y]=pts[i];if(i===1){sfx.whee();if(k==='char'){setFace(it,'laugh',2200);say(it,pick(['Wheeeee!','Belly slide!','Zoooom!']),1600)}else say(it,'Peep peep!',1200)}glide(it,x,y,i===0?520:330,()=>go(i+1))};
+   go(0);if(k==='pet'&&it.s.sp==='penguin'){star('pengslide');bell('nppeng',it)}else if(k==='char')star('slide');return true},
+  tap(e,tg,p){sfx.skate();sparkle(p.x,p.y,4)}});
+D('npcave','Ice Cave',330,260,'fix',{a:'#e8f7ff'},(e,c)=>{const b=npS().bear|0;let o=sh(330,260,.46)+P('M10 256 Q0 70 165 34 Q330 70 320 256Z',c.a,'a')+L('M40 90 Q90 50 150 50','#ffffff',10,0,' opacity=".8"'+NO)+L('M60 230 L80 170 M260 220 L246 160 M120 70 L130 110','#cfe8f7',4,0,NO)+P('M92 256 Q92 150 165 136 Q238 150 238 256Z','#2b3f7a');
+  if(b===0)o+=`<g class="np zz">`+`<text x="190" y="128" font-size="30" font-weight="800" fill="#7ad3ff">z</text><text x="216" y="104" font-size="24" font-weight="800" fill="#7ad3ff">z</text><text x="236" y="84" font-size="18" font-weight="800" fill="#7ad3ff">z</text></g>`;
+  if(b===1)o+=C(126,192,14,'#ffffff')+C(204,192,14,'#ffffff')+C(126,192,6,'#ffb3c7',0,NO)+C(204,192,6,'#ffb3c7',0,NO)+C(165,218,40,'#ffffff')+E(165,232,18,13,'#f1f4fa',0,NO)+C(150,210,4.500,INK)+C(180,210,4.500,INK)+E(165,226,7,5,INK)+L('M158 236 Q165 241 172 236',INK,2.400);
+  return o},
+ {fx:1,accept(e,it){const g=npS();if(it.t!=='fish'||(g.bear|0)!==1)return false;const a=absXY(e),sid=SID;rm(it);sfx.chomp();g.bear=2;redraw(e);hushed(()=>sfx.chest());
+   const cub=spawn('pet',a.x,a.y-10,petO('polar'));anim(cub,'pop',320);setFree(cub,clamp(a.x+200,120,W-120),Math.min(a.y+30,SC[SID].floor[1]),'put');hearts(cub,5);confetti(a.x,a.y-160,26);
+   setTimeout(()=>{if(SID===sid&&byId(cub.id))say(cub,'Grr-yum! Can I be your friend?',2600)},800);star('bearfriend');star('pet_polar');toast('A polar bear cub wants to be your friend! Take it home in your backpack.',6000);dirty();return true},
+  tap(e){const b=npS().bear|0;anim(e,'wig',300);sfx.squeak();say(e,b===0?'Zzz… something big and fluffy is snoring in here. Maybe a fishy smell would wake it up?':b===1?'A polar bear cub is peeking out! It looks hungry — give it a fish!':'This is where your polar bear cub used to nap.',3200)}});
+PETS.polar={n:'Polar Bear Cub',a:'#ffffff',b:'#eef2f8',snd:'squeak',fav:'fish',r:9};
+{const p0=petSVG;window.petSVG=function(e){if(e.s.sp!=='polar')return p0(e);const a=e.c.a,b=e.c.b,f=tr(e).face||(e.s.zz?'sleep':'');
+ const eye=x=>f==='sleep'?L(`M${x-5} 44 Q${x} 49 ${x+5} 44`,INK,3):f==='yum'?L(`M${x-5} 46 Q${x} 39 ${x+5} 46`,INK,3):C(x,44,4.600,INK)+C(x+1.500,42.500,1.700,'#fff');
+ return E(55,96,34,6,'rgba(30,10,60,.13)',0,NP)+C(84,80,7,a,'a')+E(55,74,32,23,a,'a')+E(40,94,11,6,b,'b')+E(70,94,11,6,b,'b')+E(55,80,19,14,b,'b',NO)+C(31,22,10,a,'a')+C(79,22,10,a,'a')+C(31,22,5,'#ffc9d8',0,NO)+C(79,22,5,'#ffc9d8',0,NO)
+  +C(55,44,30,a,'a')+E(55,55,14,10,b,'b',NO)+eye(44)+eye(66)+E(55,51,6,4.500,INK)+L('M50 58 Q55 62 60 58',INK,2.400)+C(35,54,4.500,'#ff7d9a',0,' opacity=".5" class="np"')+C(75,54,4.500,'#ff7d9a',0,' opacity=".5" class="np"')}}
+/* feeding penguins wakes up the cub */
+{const e0=eat;window.eat=function(who,it){if(who&&it&&TD(who).k==='pet'&&who.s.sp==='penguin'&&it.t==='fish'){const g=npS();g.pf=(g.pf|0)+1;star('pengfeed');bell('nppeng',who);
+   if(g.pf>=3&&!(g.bear|0)){g.bear=1;const cv=S&&S.ents.find(k=>k.t==='npcave');if(cv){later(cv,1400,()=>{redraw(cv);anim(cv,'shake',500);sfx.squeak();say(cv,'Sniff sniff… a polar bear cub wakes up! It smells fish!',3200)})}}dirty()}
+  return e0.apply(this,arguments)}}
+
+/* ---------- My Igloo: a home at the North Pole ---------- */
+D('npicechair','Ice Chair',150,170,'furn',{a:'#cdeeff',b:'#ff8fb1'},(e,c)=>sh(150,170,.42)+R(14,10,122,96,18,c.a,'a')+L('M30 40 L120 40 M30 70 L120 70',lt(c.a,.5),3,0,NO)+R(6,96,138,70,14,dk(c.a,.06),'a')+R(20,86,110,26,13,c.b,'b')+L('M40 130 L110 130','#ffffff',4,0,' opacity=".7"'+NO),{seats:[[0,-88]]});
+D('nplamp','Snowflake Lamp',100,210,'furn',{a:'#bfe8ff'},(e,c)=>sh(100,210,.36)+R(44,70,12,130,6,'#9fb7cf')+E(50,202,30,8,'#9fb7cf')+C(50,52,40,e.s.on?'#fff8d0':lt(c.a,.3),'a')+`<g transform="translate(50 52)">`+[0,60,120].map(r=>L(`M0 -32 L0 32 M-8 -26 L0 -18 L8 -26 M-8 26 L0 18 L8 26`,e.s.on?'#ffb400':'#7ab8e8',4,0,` transform="rotate(${r})"`)).join('')+`</g>`,
+ {tt:1,s:{on:0},tap(e){e.s.on=e.s.on?0:1;redraw(e);sfx.click();updLights();dirty()},light:e=>e.s.on?{dx:0,dy:-160,r:240}:null});
+D('npfurrug','Cozy Rug',320,90,'furn',{a:'#f4f0e8',b:'#bfe8ff'},(e,c)=>E(160,48,156,40,c.a,'a')+E(160,46,118,28,c.b,'b')+E(160,46,80,18,c.a,'a',NO)+[20,60,100,140,180,220,260,300].map(x=>L(`M${x} ${x<160?60:60} l-4 ${x%40?10:6}`,dk(c.a,.15),3,0,NO)).join(''),{mt:'rug'});
+D('npwin','Ice Window',220,200,'furn',{a:'#cdeeff'},(e,c)=>{const n=S&&S.night;return C(110,100,96,c.a,'a')+C(110,100,78,n?'#1d2a63':'#9fd8f5')+(n?L('M40 90 Q80 60 120 80 Q160 100 190 70','#56f0b0',10,0,' opacity=".7" class="np"')+C(70,60,2.500,'#fff')+C(150,50,2.500,'#fff'):C(150,64,14,'#fff8d0'))
+  +P('M50 150 Q110 120 170 150 Q150 178 110 178 Q70 178 50 150Z','#ffffff',0,NO)+L('M110 22 L110 178 M32 100 L188 100',lt(c.a,.4),5)},{mt:'wall'});
+D('npplush','Penguin Plush',84,96,'toy',{a:'#3d4a66',b:'#ffffff'},(e,c)=>sh(84,96,.34)+E(42,60,30,32,c.a,'a')+E(14,62,8,16,dk(c.a,.15),'a',rot(20,14,62))+E(70,62,8,16,dk(c.a,.15),'a',rot(-20,70,62))+E(42,66,19,24,c.b,'b',NO)+C(42,30,22,c.a,'a')+E(42,34,15,12,c.b,'b',NO)
+  +C(35,30,3.500,INK)+C(49,30,3.500,INK)+P('M38 36 L46 36 L42 42Z','#ffb400')+E(30,92,10,5,'#ffb400')+E(54,92,10,5,'#ffb400')+R(20,48,44,8,4,XRED),{tap(e){anim(e,'hop',420);sfx.squeak()}});
+SC.nigloo={n:'My Igloo',w:NPW,xm:1,np:1,in:1,home:1,igloo:1,hspot:'nigloo',floor:[650,872],bg:{wall:'#eef8ff',floor:'#d9eefa',trim:'#9fd4ef'},pat:{wall:5,floor:3},arrive:[760,856],
+ enter(){star('igloo');xSanta()},
+ npdeco(st){const wh=SC.nigloo.floor[0]-30;return`<g class="np"><path d="M0 0 L0 ${wh+60} Q30 150 380 70 Q800 -14 1220 70 Q1570 150 1600 ${wh+60} L1600 0Z" fill="#f7fcff" stroke="#bcdcf0" stroke-width="6"/>`
+  +L('M0 300 Q60 150 250 100 M1600 300 Q1540 150 1350 100 M0 480 Q30 300 120 220 M1600 480 Q1570 300 1480 220',`#d4e9f7`,5)+L('M200 120 L220 150 M420 74 L430 104 M640 40 L646 70 M960 40 L954 70 M1180 74 L1170 104 M1400 120 L1380 150 M60 260 L100 270 M1540 260 L1500 270','#d4e9f7',5)+`</g>`},
+ init(a){a.put('npwin',800,300);a.put('npfurrug',760,866);a.put('fireplace',1000,770,{c:{a:'#e3f2fb',b:'#9fb7cf'}});a.put('npicechair',520,800);a.put('nplamp',320,800);a.put('bed',1290,800,{c:{a:'#7ab8e8',b:'#ffffff',c:'#ffffff'}});
+  a.put('npplush',650,884);a.put('stocking',960,500,{c:{a:XGRN}});a.put('candle',1060,520)}};
+HOMES.push('nigloo');SC.nigloo2=Object.assign(Object.create(SC.nigloo),{own:2,base:'nigloo'});
+XHOMES.nigloo=['Next stop: the next igloo… ho ho ho!','Jingle, jingle… sleigh bells right outside the igloo!'];
+function npCat(){const i=CAT.findIndex(c=>c[0]==='North Pole');if(XMAS()&&i<0)CAT.push(['North Pole',['npicechair','nplamp','npfurrug','npwin','npplush','npsled']]);else if(!XMAS()&&i>=0){CAT.splice(i,1);if(CTAB>=CAT.length)CTAB=0}}
+{const r0=renderTray;window.renderTray=function(){npCat();return r0.apply(this,arguments)}}
+
+/* ---------- Reindeer Stable: brush them, and magic food makes them fly ---------- */
+D('npoat','Magic Reindeer Food',62,66,'food',{a:'#c9a2ff'},(e,c)=>sh(62,66,.32)+P('M10 20 L52 20 L56 62 L6 62Z',c.a,'a')+P('M10 20 Q31 4 52 20',dk(c.a,.15),'a')+L('M18 22 L44 22',XRED,4,0,NO)+P(star5(31,42,10,4.500),'#ffd23f')+C(18,52,2.500,'#fff',0,NO)+C(46,30,2.500,'#fff',0,NO),{food:{col:'#c9a2ff',r:'yum',pet:1},nm:()=>'Magic Reindeer Food'});
+D('npoats','Magic Food Sack',150,170,'fix',{a:'#9b6bff'},(e,c)=>sh(150,170,.4)+P('M20 166 Q4 100 30 60 L120 60 Q146 100 130 166Z',c.a,'a')+P('M30 60 Q50 30 40 10 Q75 26 110 10 Q100 30 120 60Z',dk(c.a,.15),'a')+L('M36 62 Q75 76 114 62','#ffd23f',7)
+  +`<text x="75" y="118" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" class="np">MAGIC</text>`+[[44,138],[100,140],[74,96],[112,104]].map(([x,y])=>P(star5(x,y,8,3.500),'#fff3a8')).join(''),
+ {fx:1,disp(){return{t:'npoat'}},tap(e){if(S.ents.filter(k=>k.t==='npoat'&&!k.par).length>=5){say(e,'Feed those to the reindeer first!');sfx.nope();return}anim(e,'land',240);sfx.magic();popTo('npoat',e,rnd(-110,110));say(e,'Sparkly magic food — reindeer can FLY after eating it!',2600)}});
+{const d=T.xdeer,n0=d.nm,a0=d.accept,t0=d.tap,dr=d.draw;
+ d.nm=e=>e.s.dn?e.s.dn+' the Reindeer':n0?n0(e):d.n;
+ d.draw=(e,c)=>dr(e,c)+(e.s.magic?`<g class="np tw">`+[[30,60],[220,90],[120,10],[60,200],[200,200]].map(([x,y])=>P(star5(x,y,10,4),'#fff3a8')).join('')+`</g>`:'');
+ d.accept=function(e,it,p){if(it.t==='npoat'){rm(it);sfx.chomp();anim(e,'chomp',220);setTimeout(()=>sfx.magic(),300);e.s.magic=1;redraw(e);const a=absXY(e);sparkle(a.x,a.y-150,10);say(e,'Ooh… I feel all floaty! Hop on and tap me!',2800);dirty();return true}
+   if(it.t==='brush'){groom(e,it);say(e,pick(['Ahh, that\'s the spot!','So shiny!','Brush brush — lovely!']),1800);star('deercare');return true}
+   return a0.call(this,e,it,p)};
+ d.tap=function(e,tg,p){if(!e.s.magic||tr(e).busy||e.par)return t0.call(this,e,tg,p);const t=tr(e),r=kidIn(e,'seat0'),sid=SID,x0=e.x,y0=e.y,dir=e.x<W/2?1:-1;t.busy=1;sfx.jingle();if(r){setFace(r,'laugh',4500);say(r,'We\'re FLYING!',2000)}
+   const iv=setInterval(()=>{if(SID!==sid||!byId(e.id)){clearInterval(iv);return}const a=absXY(e);sparkle(a.x-60*dir,a.y-60,3)},200);
+   glide(e,x0,y0-230,700,()=>glide(e,clamp(x0+dir*520,260,W-260),y0-330,1000,()=>glide(e,clamp(x0+dir*220,260,W-260),y0-180,800,()=>glide(e,x0,y0,700,()=>{clearInterval(iv);t.busy=0;e.s.magic=0;redraw(e);anim(e,'land',260);sfx.jingle();if(r)star('deerfly');bell('npdeer',e);dirty()}))));
+   setTimeout(()=>{if(SID===sid&&byId(e.id)&&t.busy){clearInterval(iv);t.busy=0;e.x=x0;e.y=y0;posE(e)}},4200)}}
+SC.npstable={n:'Reindeer Stable',w:NPW,xm:1,np:1,in:1,floor:[650,872],bg:{wall:'#b07a4f',floor:'#e6c98e',trim:'#6b3a24'},pat:{wall:1,floor:1},arrive:[800,866],
+ npdeco(){return`<g class="np">`+L('M565 260 L565 640 M1035 260 L1035 640','#6b3a24',22)+L('M565 260 L565 640 M1035 260 L1035 640','#8a5232',14)+`</g>`+plate(330,380,'DASHER')+plate(800,380,'COMET')+plate(1270,380,'PRANCER')},
+ init(a){a.put('xdeer',330,800,{c:{a:'#b07a4f',b:'#5a3b2a'},s:{dn:'Dasher'}});a.put('xdeer',800,800,{s:{dn:'Comet'}});a.put('xdeer',1270,800,{c:{a:'#8f5f3d',b:'#4a2e1e'},s:{dn:'Prancer'}});
+  a.put('npoats',565,880);a.put('haybale',1035,882);a.put('hay',1110,890);a.put('brush',150,890);a.put('carrot',990,770)}};
+
+/* ---------- Mrs. Claus' Bakery: decorate cookies ---------- */
+const CKN=['Gingerbread Friend','Star Cookie','Tree Cookie','Snowman Cookie','Heart Cookie'],ICING=['#ffffff','#ff8fb1','#7ad3ff','#56d39a','#ffd23f'];
+function ckShape(k,col,ex){switch(k|0){case 0:return C(0,-22,12,col,0,ex)+P('M0 -12 Q-12 -12 -16 -4 L-30 0 Q-36 6 -30 10 L-16 8 L-18 30 Q-18 36 -12 36 L-6 36 L0 24 L6 36 L12 36 Q18 36 18 30 L16 8 L30 10 Q36 6 30 0 L16 -4 Q12 -12 0 -12Z',col,0,ex);
+ case 1:return P(star5(0,2,36,16),col,0,ex);case 2:return P('M0 -36 L22 -6 L12 -6 L28 18 L6 18 L6 34 L-6 34 L-6 18 L-28 18 L-12 -6 L-22 -6Z',col,0,ex);case 3:return C(0,-16,13,col,0,ex)+C(0,14,21,col,0,ex);default:return P(heartP(0,4,30),col,0,ex)}}
+function cookieArt(k,x,y,s,ic,sp,cb){let o=`<g transform="translate(${x} ${y}) scale(${s})">`+ckShape(k,'#d9a066');
+ if(hexOk(ic))o+=`<g transform="scale(.74)">`+ckShape(k,ic,NO)+`</g>`;else o+=(k|0)===0?C(-4,-24,2.200,'#35252d',0,NO)+C(4,-24,2.200,'#35252d',0,NO):'';
+ if(sp)o+=[[-10,-4,XRED],[8,2,'#3a86ff'],[-4,12,'#ffd23f'],[12,-14,'#2bb673'],[-14,18,'#9b6bff'],[4,-20,'#ff8fb1']].map(([a,b,k2])=>R(a-3,b-1.500,6,3,1.500,k2,0,NO+rot(a*7,a,b))).join('');
+ if(cb)o+=[[0,-6],[0,6],[0,18]].map(([a,b],i)=>C(a,b,3.800,[XRED,'#2bb673','#3a86ff'][i],0,NO)).join('');return o+`</g>`}
+F('npcookie','Cookie',84,84,{a:'#d9a066'},(e,c)=>sh(84,84,.34)+cookieArt(e.s.k,42,46,1,e.s.ic,e.s.sp,e.s.cb),{r:'yum'},{nm:e=>(e.s.ic?'Decorated ':'')+CKN[(e.s.k|0)%5]});
+D('nptray','Cookie Tray',320,190,'fix',{a:'#b7c0d3',b:'#e63946'},(e,c)=>{let o=sh(320,190,.44)+R(40,96,14,90,6,'#8a5a3c')+R(266,96,14,90,6,'#8a5a3c')+R(0,40,320,62,12,c.a,'a')+R(8,48,304,46,8,dk(c.a,.1),'a')+R(70,0,180,34,12,c.b,'b')+`<text x="160" y="25" font-size="18" font-weight="800" text-anchor="middle" fill="#fff" class="np">FRESH COOKIES</text>`;
+  for(let i=0;i<5;i++){const cx=38+i*61;o+=cookieArt(i,cx,70,.62)+`<rect x="${cx-30}" y="36" width="60" height="64" fill="transparent" data-b="${i}"/>`}return o},
+ {fx:1,disp(e,pt){let i=((e.s.i|0)+1)%5;if(pt){const a=absXY(e),cx=Math.round((pt.x-(a.x-160)-38)/61);if(cx>=0&&cx<5)i=cx}e.s.i=i;return{t:'npcookie',o:{s:{k:i}}}},
+  tap(e,tg){const b=tg&&tg.closest&&tg.closest('[data-b]'),i=b?+b.dataset.b:((e.s.i|0)+1)%5;e.s.i=i;if(S.ents.filter(k=>k.t==='npcookie'&&!k.par).length>=10){say(e,'So many cookies! Decorate those first.');sfx.nope();return}
+   anim(e,'land',240);sfx.pop();const it=popTo('npcookie',e,rnd(-110,110),{s:{k:i}});say(e,CKN[i]+'!',1200)}});
+D('npdeco','Decorating Table',460,300,'fix',{a:'#fff6ee',b:'#e9b08a'},(e,c)=>{let o=sh(460,300,.46)+R(14,0,432,112,14,'#ffe3ea')+R(14,100,432,14,6,c.b,'b')+R(30,188,18,108,7,c.b,'b')+R(412,188,18,108,7,c.b,'b')+R(4,170,452,26,12,c.a,'a')+R(16,192,428,14,6,dk(c.a,.08),'a')+L('M40 114 L40 172 M420 114 L420 172',c.b,8,'b');
+  ICING.forEach((k,i)=>{const x=36+i*44;o+=`<g data-b="i${i}">`+P(`M${x-16} 32 L${x+16} 32 L${x+3} 92 L${x-3} 92Z`,k)+R(x-16,24,32,14,6,dk(k,.15))+L(`M${x} 92 L${x} 104`,k,5)+`<rect x="${x-21}" y="16" width="42" height="96" fill="transparent"/></g>`});
+  o+=`<g data-b="sp">`+R(270,36,44,70,10,'#ffe3f1')+R(268,26,48,16,8,'#ff8fb1')+[[280,60,XRED],[296,52,'#3a86ff'],[288,76,'#ffd23f'],[302,84,'#2bb673'],[284,92,'#9b6bff']].map(([x,y,k])=>R(x-4,y-2,8,4,2,k,0,NO)).join('')+`<text x="292" y="20" font-size="12" font-weight="800" text-anchor="middle" fill="#8a5a3c" class="np">SPRINKLES</text><rect x="262" y="10" width="62" height="100" fill="transparent"/></g>`;
+  o+=`<g data-b="cb">`+R(346,46,60,60,16,'#e8f7ff')+R(350,36,52,14,7,'#9fd4ef')+[[362,70,XRED],[380,66,'#2bb673'],[394,80,'#3a86ff'],[370,88,'#ffd23f']].map(([x,y,k])=>C(x,y,7,k,0,NO)).join('')+`<text x="376" y="26" font-size="12" font-weight="800" text-anchor="middle" fill="#8a5a3c" class="np">CANDY</text><rect x="338" y="10" width="76" height="100" fill="transparent"/></g>`;return o},
+ {fx:1,surf:[[-200,200,-122]],tap(e,tg){const b=tg&&tg.closest&&tg.closest('[data-b]'),ck=kidsOf(e).filter(k=>k.t==='npcookie'),a=absXY(e);if(!b){anim(e,'wig',300);say(e,'Put a cookie on the table, then tap an icing bag, the sprinkles or the candy!',3000);return}
+   if(!ck.length){sfx.nope();say(e,'Put a cookie on the table first!',1800);return}const k=b.dataset.b;
+   for(const c of ck){if(k[0]==='i')c.s.ic=ICING[+k.slice(1)];else if(k==='sp'){if(!c.s.ic){say(e,'Icing first — so the sprinkles stick!',2000);sfx.nope();return}c.s.sp=1}else if(k==='cb')c.s.cb=1;redraw(c);const q=absXY(c);sparkle(q.x,q.y-40,4)}
+   sfx[k==='sp'?'zip':'pop']();anim(e,'land',200);if(ck.some(c=>c.s.ic&&c.s.sp)){star('cookieart');for(const c of ck)if(c.s.ic&&c.s.sp&&!c.s.dn){c.s.dn=1;bell('npcookie',e)}say(e,pick(['Beautiful!','A masterpiece!','Santa will love it!']),1600)}dirty()}});
+D('npcocoa','Cocoa Pot',150,210,'fix',{a:'#e63946'},(e,c)=>sh(150,210,.4)+R(10,150,130,56,10,'#4a4e69')+C(40,178,10,'#ff8552')+C(110,178,10,'#ff8552')+R(30,70,90,84,20,c.a,'a')+R(22,60,106,20,10,dk(c.a,.15),'a')+L('M120 90 Q150 100 140 130',INK,8)+L('M120 90 Q150 100 140 130',c.a,4,'a')
+  +`<g class="np">`+L('M56 50 Q46 34 58 18 M80 46 Q70 30 82 12 M102 50 Q92 34 104 18','#ffffff',4,0,' opacity=".8"')+`</g>`+P(heartP(75,114,10),'#fff6ee'),
+ {fx:1,disp(){return{t:'cup',o:{s:{fill:1,col:'#8a5a44',nm:'Hot Cocoa',fx:'yum',cream:1}}}},tap(e){if(S.ents.filter(k=>k.t==='cup'&&!k.par).length>=6){say(e,'Drink those first!');sfx.nope();return}anim(e,'land',240);sfx.pour();popTo('cup',e,-130,{s:{fill:1,col:'#8a5a44',nm:'Hot Cocoa',fx:'yum',cream:1}});say(e,'Hot cocoa with whipped cream!',1600)}});
+
+/* ---------- Sledding Hill: sleds, snow angels and a wishing star ---------- */
+D('npsled','Sled',240,120,'furn',{a:XRED,b:'#ffd23f'},(e,c)=>sh(240,120,.44)+R(20,44,190,30,12,dk(c.a,.15),'a')+R(28,26,174,26,10,c.a,'a'),
+ {front:(e,c)=>L('M10 106 L196 106 Q232 106 226 70 Q222 52 206 56',INK,13)+L('M10 106 L196 106 Q232 106 226 70 Q222 52 206 56',c.b,7,'b')+L('M50 76 L50 104 M170 76 L170 104',INK,9)+L('M50 76 L50 104 M170 76 L170 104',c.b,4,'b')+R(14,68,194,18,9,c.a,'a'),
+  under:['seat0','seat1'],seats:[[-50,-46],[40,-46]],mag:1,sat(){sfx.pop()},
+  tap(e){const t=tr(e);if(t.busy||e.par)return;const rs=[0,1].map(i=>kidIn(e,'seat'+i)).filter(Boolean),sid=SID,x0=e.x,y0=e.y,hill=SID==='nphill';if(!rs.length){anim(e,'hop',420);sfx.boing();say(e,'Sit someone on the sled, then tap it!',2200);return}
+   t.busy=1;for(const r of rs)setFace(r,'laugh',4000);const done=()=>{t.busy=0;e.x=x0;e.y=y0;posE(e);dirty()};
+   const iv=setInterval(()=>{if(SID!==sid||!byId(e.id)){clearInterval(iv);return}const a=absXY(e);puff(a.x-100,a.y-6,'#ffffff',2)},160);
+   if(hill){sfx.whoosh();glide(e,200,430,900,()=>{sfx.whee();say(rs[0],pick(['Wheeeee!','Hold on!','ZOOOOM!']),1800);glide(e,700,560,700,()=>glide(e,1080,650,500,()=>glide(e,1300,860,500,()=>{clearInterval(iv);anim(e,'land',260);puff(e.x,e.y-20,'#ffffff',10);star('sled');bell('npsled',e);setTimeout(()=>{if(SID===sid&&byId(e.id))glide(e,x0,y0,1200,done)},700)})))})}
+   else{sfx.whee();const x1=clamp(x0+(x0<W/2?600:-600),200,W-200);glide(e,x1,y0,900,()=>{clearInterval(iv);anim(e,'land',260);setTimeout(()=>{if(SID===sid&&byId(e.id))glide(e,x0,y0,900,done)},500)})}
+   setTimeout(()=>{clearInterval(iv);if(SID===sid&&byId(e.id)&&t.busy)done()},6500)}});
+D('npangel','Fresh Snow',340,96,'fix',{a:'#ffffff'},(e,c)=>{let o=E(170,52,166,40,c.a,'a')+E(170,50,150,32,'#f2f8ff',0,NO);for(const[i,x]of(e.s.a||[]).slice(-4).entries())o+=`<g transform="translate(${clamp(+x||0,40,300)} 50)" class="np">`+E(0,0,34,20,'#dbe9f7')+P('M-34 -4 Q-56 -26 -40 -34 Q-20 -24 -14 -8Z M34 -4 Q56 -26 40 -34 Q20 -24 14 -8Z','#dbe9f7')+C(0,-26,12,'#dbe9f7')+`</g>`;return o},
+ {fx:1,mt:'rug',accept(e,it){if(TD(it).k!=='char'||tr(it).busy||it.s.pose==='sleep')return false;const a=absXY(e),sid=SID,x=clamp(it.x,a.x-130,a.x+130);if(it.par)unpar(it);it.x=x;it.y=a.y-10;posE(it);tr(it).busy=1;setFace(it,'laugh',2600);sfx.whoosh();
+   [0,1,2,3].forEach(i=>setTimeout(()=>{if(SID===sid&&byId(it.id)){anim(it,'wig',300);puff(it.x,it.y-20,'#ffffff',3)}},i*350));
+   setTimeout(()=>{if(SID!==sid||!byId(e.id))return;tr(it).busy=0;const al=e.s.a=(e.s.a||[]);al.push(Math.round(x-(a.x-170)));if(al.length>4)al.shift();redraw(e);if(byId(it.id)){it.x=clamp(x+150,100,W-100);place(it);say(it,'A snow angel!',1800)}sparkle(x,a.y-40,6);star('angel');bell('npsled',e);dirty()},1500);return true},
+  tap(e,tg,p){sfx.skate();puff(p.x,p.y,'#ffffff',4);say(e,'Lie someone down in the snow to make a snow angel!',2400)}});
+D('npwish','Wishing Star',130,130,'fix',{a:'#ffd23f'},(e,c)=>`<circle cx="65" cy="65" r="62" fill="#fff8d0" opacity=".35" class="np"/>`+P(star5(65,65,50,22),c.a,'a')+C(52,58,4,INK)+C(78,58,4,INK)+L('M56 74 Q65 82 74 74',INK,3)+C(44,70,5,'#ff9cc0',0,' opacity=".6" class="np"')+C(86,70,5,'#ff9cc0',0,' opacity=".6" class="np"'),
+ {pin:1,tap(e){const t=tr(e),sid=SID,x0=e.x,y0=e.y;if(t.busy)return;t.busy=1;sfx.magic();say(e,'Make a wish!',1800);const iv=setInterval(()=>{if(SID!==sid||!byId(e.id)){clearInterval(iv);return}const a=absXY(e);sparkle(a.x,a.y-60,2)},120);
+   glide(e,clamp(x0-700,120,W-120),y0+60,1100,()=>glide(e,x0,y0,900,()=>{clearInterval(iv);t.busy=0;anim(e,'hop',420);star('wish');confetti(x0,y0-60,14)}));setTimeout(()=>{clearInterval(iv);if(SID===sid&&byId(e.id)&&t.busy){t.busy=0;e.x=x0;e.y=y0;posE(e)}},2600)}});
+
+/* ---------- the places ---------- */
+SC.npsanta={n:'Santa\'s House',w:NPW,xm:1,np:1,in:1,floor:[650,872],bg:{wall:'#e9c8a0',floor:'#c98f5a',trim:'#2e8b57'},pat:{wall:1,floor:1},nav:{r:'npbake'},arrive:[640,866],
+ init(a){a.put('window',300,330,{c:{a:'#fffaf3',b:XRED}});a.put('wreath',800,250);a.put('clock',1110,190,{c:{a:'#ffd23f'}});a.put('fireplace',260,770,{c:{a:'#e9d6c0',b:'#8a5a44'}});a.put('stocking',200,560);a.put('stocking',300,560,{c:{a:XGRN}});
+  const ch=a.put('armchair',470,800,{c:{a:XRED,b:'#ffd23f'}});const s=a.sit(ch,0,CH.npsanta);if(s)a.give(s,'hat','head',{s:{v:X0}});
+  a.put('nplist',700,820);a.put('npdesk',960,800);a.put('npmail',1170,800);const tr0=a.put('xtree',1420,700,{s:{on:1}});
+  [[-60,-120,XRED],[50,-150,'#ffd23f'],[-20,-230,'#3a86ff'],[70,-80,'#9b6bff']].forEach(([dx,dy,k])=>{const b=a.put('bauble',0,0,{c:{a:k},s:{k:1}});b.par=tr0.id;b.slot='orn';b.dx=dx;b.dy=dy});a.put('present',1330,890);a.put('present',1500,890,{c:{a:XGRN,b:XRED}})}};
+SC.npwork={n:'Toy Workshop',w:NPW,xm:1,np:1,in:1,floor:[650,872],bg:{wall:'#ffe9c7',floor:'#c98f5a',trim:XRED},pat:{wall:4,floor:1},arrive:[760,866],
+ init(a){a.put('nprecipe',580,340);a.put('window',1080,320,{c:{a:'#fffaf3',b:'#2e8b57'}});a.put('npparts',170,790);a.put('npmach',500,800);a.put('xwrap',1000,760);a.put('npsack',1340,800);a.put('npbelt',860,868);
+  const e1=a.put('char',720,700,CH.elfpip);a.give(e1,'hat','head',{s:{v:X0+1}});const e2=a.put('char',1170,690,CH.elftin);a.give(e2,'hat','head',{s:{v:X0+1}})}};
+SC.nppeng={n:'Penguin Point',w:NPW,xm:1,np:1,floor:[620,872],land:90,bg:{sky:'#8fc8f2',ground:'#f2f9ff'},pat:{},arrive:[760,860],draw:st=>npOut(st,'peng'),
+ init(a){a.put('npcave',190,760);a.put('npfish',600,870);a.put('npslide',1230,830);for(const[x,y]of[[400,880],[820,850],[930,890],[1010,850]])a.put('pet',x,y,petO('penguin'));a.put('fish',700,888);a.put('fish',470,760)}};
+SC.npbake={n:'Mrs. Claus\' Bakery',w:NPW,xm:1,np:1,in:1,floor:[650,872],bg:{wall:'#ffe9f0',floor:'#fff6ee',trim:XRED},pat:{wall:8,floor:2},nav:{l:'npsanta'},arrive:[900,866],
+ init(a){a.put('window',1330,330,{c:{a:'#fffaf3',b:'#ff8fb1'}});a.put('clock',800,250,{c:{a:'#ff8fb1'}});const ws=a.put('wshelf',330,330);a.on(ws,'jar',-60);a.on(ws,'jar',20,{c:{a:'#ffd23f'}});
+  a.put('nptray',200,790);const dt=a.put('npdeco',640,812);a.on(dt,'npcookie',-90,{s:{k:0}});a.on(dt,'npcookie',60,{s:{k:1}});a.put('npcocoa',1010,790);a.put('char',1210,870,CH.mrsclaus)}};
+SC.nphill={n:'Sledding Hill',w:NPW,xm:1,np:1,floor:[620,872],land:90,bg:{sky:'#a8d4f5',ground:'#f7fbff'},pat:{},arrive:[880,860],draw:st=>npOut(st,'hill'),
+ init(a){const s1=a.put('npsled',360,860);a.sit(s1,0,CH.kid);a.put('npsled',640,880,{c:{a:'#3a86ff',b:'#ffffff'}});a.put('npangel',1050,890);a.put('npwish',1180,260);a.put('xsnow',1390,750);a.put('sball',1270,770,{s:{sz:0}})}};
+/* the North Pole closes after Christmas: don't stay in a place that has gone */
+{const so=scOpen;window.scOpen=function(id,st,o){if(SC[id]&&SC[id].np&&!XMAS()&&!(o&&o.mir)){G.world=0;setTimeout(()=>{toast('The North Pole is closed until next Christmas!');toMap()},50)}return so.apply(this,arguments)}}
 
 /* =====================================================================
    THANKSGIVING — a small autumn update, from 1 November until the
@@ -3521,7 +3856,7 @@ function netApart(){ // we are no longer connected: sort out where I am, and who
  updHud();saveG()}
 
 /* ---------- walking around ---------- */
-function netAt(){NET.send({t:'at',id:NET.here,stars:stars(),flags:{tree:G.flags.tree?1:0,farm:farmSelf()?1:0,fst:farmStars(),pb:G.flags.pbest|0,sea:seaSelf()?1:0,sst:seaStars(),bb:G.flags.bbest|0,palace:G.flags.palace?1:0}})}
+function netAt(){NET.send({t:'at',id:NET.here,stars:stars(),flags:{tree:G.flags.tree?1:0,farm:farmSelf()?1:0,fst:farmStars(),pb:G.flags.pbest|0,sea:seaSelf()?1:0,sst:seaStars(),nst:npStars(),bb:G.flags.bbest|0,palace:G.flags.palace?1:0}})}
 function myAvSnap(){ // a copy of my avatar (and what it wears and holds), to send ahead to where I am going
  if(NET.mir)return NET.myAv?clone(NET.myAv):null;const f=avFind();if(!f||f.at==='pack')return null;
  const g=clone(f.at==='trav'?f.ents:grpOf(f.e,f.ents));for(const k of g)delete k._t;g[0].par=null;g[0].slot=null;return g}
@@ -3853,7 +4188,7 @@ function showHint(){const c=STK.filter(s=>!G.st[s[0]]);showModal(c.length?`<h2>T
 /* ---------- map & title ---------- */
 const BALLOON=`<svg viewBox="0 0 120 190"><path d="M60 4 Q112 4 112 60 Q112 100 74 128 L46 128 Q8 100 8 60 Q8 4 60 4Z" fill="#ff7aa8"/><path d="M60 4 Q84 30 74 128 L46 128 Q36 30 60 4Z" fill="#ffd23f"/><path d="M48 128 L50 150 M72 128 L70 150" stroke="#8a5a44" stroke-width="3"/><rect x="42" y="148" width="36" height="26" rx="6" fill="#c9a27a"/><g class="gf"><rect x="46" y="132" width="28" height="22" rx="4" fill="#7ad3ff"/><rect x="57" y="132" width="6" height="22" fill="#fff"/><path d="M60 132 Q50 120 48 128 Q50 134 60 132 Q70 134 72 128 Q70 120 60 132Z" fill="#fff"/></g></svg>`;
 function showMap(){farmMigrate();const m=$('#map');m.className='ui on';$stage.classList.add('onmap');let html=mapSVG();
- for(const s of mapSpots()){const open=spotOpen(s);if(s.secret&&!open&&!s.why)continue;html+=`<div class="mlabel${open?'':' lk'}${(s.art==='home'||s.mine)&&NET.peer?' mine':''}${s.xm?' xv':''}" style="left:${s.x}px;top:${s.y+12}px">${open?'':IC.lock}<span>${open?s.n:(s.lk||s.n)}</span>${!open&&s.sneed?`<b>${s.sneed}</b>${IC.shellic}`:!open&&s.fneed?`<b>${s.fneed}</b>${IC.clover}`:!open&&s.need?`<b>${s.need}</b>${IC.star}`:!open&&s.duo?IC.duo:''}</div>`;
+ for(const s of mapSpots()){const open=spotOpen(s);if(s.secret&&!open&&!s.why)continue;html+=`<div class="mlabel${open?'':' lk'}${(s.art==='home'||s.mine)&&NET.peer?' mine':''}${s.xm?' xv':''}" style="left:${s.x}px;top:${s.y+12}px">${open?'':IC.lock}<span>${open?s.n:(s.lk||s.n)}</span>${!open&&s.pneed?`<b>${s.pneed}</b>${IC.flake}`:!open&&s.sneed?`<b>${s.sneed}</b>${IC.shellic}`:!open&&s.fneed?`<b>${s.fneed}</b>${IC.clover}`:!open&&s.need?`<b>${s.need}</b>${IC.star}`:!open&&s.duo?IC.duo:''}</div>`;
   if(s.art==='home')html+=`<button class="hbrush" id="hpaint" style="left:${s.x+72}px;top:${s.y-4}px" aria-label="Paint my house">${IC.brush}</button>`}
  const ready=G.daily.last!==dayN();html+=`<button class="gbal${ready?' ready':''}" id="gbal">${outline(BALLOON,5)}<span>${ready?'Gift!':'Tomorrow'}</span></button><div class="mtitle">${WORLDS[G.world||0]}</div>${wswHTML()}<div class="mfr" id="mfr" style="display:none">${IC.duo}<span>Friend is here!</span></div>`;
  m.innerHTML=html;showMap.sig=mapSig();netMark();updHud();
@@ -3868,7 +4203,7 @@ function openHouse(){const hs=Object.assign({},HOUSE0,G.house),row=(k,list)=>lis
  $('#hok').onclick=closeModal}
 /* the map is only redrawn when something on it really changed — otherwise a tap could get lost while a friend's news arrives */
 function mapSig(){return JSON.stringify([G.world||0,farmOpen(),seaOpen(),!!G.st.manta,G.house,NET.frHouse,!!NET.peer,NET.role,mapSpots().map(s=>s.id+(spotOpen(s)?1:0)),!!G.st.whale,G.daily.last===dayN()])}
-function netMark(){const el=$('#mfr');if(!el)return;let s=NET.peer&&NET.there?mapSpots().find(x=>x.id===netSpot(NET.there)):null;if(!s&&NET.peer&&NET.there){const tw=(SC[NET.there]&&SC[NET.there].w)||0,cw=G.world||0,w=$(cw===1&&tw===2?'#wsw2':cw===2&&tw===0?'#wsw0':'#wsw');if(w)s={x:w.offsetLeft+w.offsetWidth/2,y:w.offsetTop-96}} // friend is in the other world: point at the signpost
+function netMark(){const el=$('#mfr');if(!el)return;let s=NET.peer&&NET.there?mapSpots().find(x=>x.id===netSpot(NET.there)):null;if(!s&&NET.peer&&NET.there){const tw=(SC[NET.there]&&SC[NET.there].w)||0,cw=G.world||0,w=$(tw===3&&cw!==3?'#wswn':cw===1&&tw===2?'#wsw2':cw===2&&tw===0?'#wsw0':'#wsw');if(w)s={x:w.offsetLeft+w.offsetWidth/2,y:w.offsetTop-96}} // friend is in the other world: point at the signpost
  if(!s){el.style.display='none';return}el.style.display='';el.style.left=s.x+'px';el.style.top=(s.y+50)+'px'}
 function mapPing(){if(SID||!$('#map').classList.contains('on'))return;if(showMap.sig!==mapSig())showMap();else netMark()}
 function hideMap(){const m=$('#map');m.className='ui';m.innerHTML='';m.onclick=null;$stage.classList.remove('onmap')}
