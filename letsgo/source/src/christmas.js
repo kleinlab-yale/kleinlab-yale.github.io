@@ -6,7 +6,7 @@ export function christmasActive(now = Date.now()) {
 }
 
 export const CHRISTMAS_PACKS = {
-  'christmas-tree': { name: 'Christmas Tree Pack', season: 'event', contents: 'Lighted fir, wrapped gift, ornament, gold star, garland, candy cane and ribbon bow' },
+  'christmas-tree': { name: 'Christmas Tree Pack', season: 'event', contents: 'Outdoor and indoor trees, wrapped gift, ornament, gold star, garland, candy cane and ribbon bow' },
   'holiday-home': { name: 'Holiday Home Pack', season: 'event', contents: 'Wreath, stocking, fireplace, string lights, candles, snowflake and holiday rug' },
   'winter-village': { name: 'Winter Village Pack', season: 'event', contents: 'Snowman, gingerbread house, sleigh, toy train, jingle bell, reindeer and toy drum' },
   christmas: { name: 'Christmas Kit', season: 'keepsake', contents: 'Your full holiday collection, ready to place again' },
@@ -18,12 +18,13 @@ function decoration(name, size, tone, pack, prompts) {
 
 export const CHRISTMAS_OBJECTS = {
   festiveTree: decoration('Christmas tree', [5, 5, 24], 'pine', 'christmas-tree', ['Turn tree lights off', 'Turn tree lights on']),
-  wrappedGift: decoration('Wrapped gift', [2, 2, 5], 'cranberry', 'christmas-tree', ['Close gift', 'Open gift']),
-  bauble: decoration('Round ornament', [1, 1, 4], 'cranberry', 'christmas-tree'),
-  starTopper: decoration('Star topper', [2, 1, 5], 'brass', 'christmas-tree'),
-  pineGarland: decoration('Pine garland', [4, 1, 3], 'pine', 'christmas-tree'),
-  candyCane: decoration('Candy cane', [1, 1, 7], 'cranberry', 'christmas-tree'),
-  ribbonBow: decoration('Ribbon bow', [2, 1, 4], 'cranberry', 'christmas-tree'),
+  indoorTree: decoration('Indoor Christmas tree', [2, 2, 7], 'pine', 'christmas-tree', ['Turn tree lights off', 'Turn tree lights on']),
+  wrappedGift: { ...decoration('Wrapped gift', [1, 1, 3], 'cranberry', 'christmas-tree', ['Close gift', 'Open gift']), previousSize: [2, 2, 5] },
+  bauble: { ...decoration('Round ornament', [1, 1, 2], 'cranberry', 'christmas-tree'), previousSize: [1, 1, 4] },
+  starTopper: { ...decoration('Star topper', [1, 1, 3], 'brass', 'christmas-tree'), previousSize: [2, 1, 5] },
+  pineGarland: { ...decoration('Pine garland', [2, 1, 2], 'pine', 'christmas-tree'), previousSize: [4, 1, 3] },
+  candyCane: { ...decoration('Candy cane', [1, 1, 3], 'cranberry', 'christmas-tree'), previousSize: [1, 1, 7] },
+  ribbonBow: { ...decoration('Ribbon bow', [1, 1, 2], 'cranberry', 'christmas-tree'), previousSize: [2, 1, 4] },
   holidayWreath: decoration('Holly wreath', [2, 1, 6], 'pine', 'holiday-home'),
   stocking: decoration('Christmas stocking', [1, 1, 5], 'cranberry', 'holiday-home'),
   fireplace: decoration('Holiday fireplace', [5, 2, 10], 'redTrim', 'holiday-home', ['Put out fire', 'Light the fireplace']),
@@ -42,4 +43,8 @@ export const CHRISTMAS_OBJECTS = {
 
 export function isChristmasPiece(brick) {
   return Boolean(brick && Object.hasOwn(CHRISTMAS_OBJECTS, brick.form));
+}
+
+export function isChristmasTree(brick) {
+  return brick?.form === 'festiveTree' || brick?.form === 'indoorTree';
 }

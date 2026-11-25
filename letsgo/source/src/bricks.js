@@ -1,5 +1,6 @@
 import { PLACEABLE_OBJECTS, QUICK_PARTS } from './parts.js';
 import { canBuildAt } from './islands.js';
+import { isChristmasTree } from './christmas.js';
 
 export const STUD = 0.55;
 export const PLATE = 0.17;
@@ -32,15 +33,27 @@ export function sameBrick(a, b, includeState = true) {
     (!includeState || Boolean(a.active) === Boolean(b.active)));
 }
 
+function matchesSize(brick, [w, d, h]) {
+  const turned = brick.turn % 2 === 1;
+  return brick.h === h && brick.w === (turned ? d : w) && brick.d === (turned ? w : d);
+}
+
+export function resizeSavedDecoration(brick) {
+  const object = PLACEABLE_OBJECTS[brick?.form];
+  if (!object?.previousSize || !matchesSize(brick, object.previousSize) || !insideBounds(brick)) return brick;
+  const [width, depth, h] = object.size;
+  const [w, d] = brick.turn % 2 === 1 ? [depth, width] : [width, depth];
+  return { ...brick, x: brick.x + Math.floor((brick.w - w) / 2), z: brick.z + Math.floor((brick.d - d) / 2), w, d, h };
+}
+
 export function validBrick(brick) {
   if (!(brick && insideBounds(brick) && Object.hasOwn(TONES, brick.tone) && typeof brick.studs === 'boolean' &&
     Number.isInteger(brick.turn) && brick.turn >= 0 && brick.turn <= 3)) return false;
   if (!Object.hasOwn(PLACEABLE_OBJECTS, brick.form)) {
     return BRICK_FORMS.includes(brick.form) && Math.max(brick.w, brick.d, brick.h) <= 8 && brick.active === undefined;
   }
-  const { size: [w, d, h], interaction } = PLACEABLE_OBJECTS[brick.form];
-  const turned = brick.turn % 2 === 1;
-  return !brick.studs && brick.h === h && brick.w === (turned ? d : w) && brick.d === (turned ? w : d) &&
+  const { size, variants, interaction } = PLACEABLE_OBJECTS[brick.form];
+  return !brick.studs && (matchesSize(brick, size) || Boolean(variants?.some(variant => matchesSize(brick, variant.size)))) &&
     (brick.active === undefined || Boolean(interaction) && typeof brick.active === 'boolean');
 }
 
@@ -176,7 +189,22 @@ export class BrickWorld {
   }
 
   canPlace(bricks, players = []) {
-    return this.added.size + bricks.length <= MAX_EDITS && bricks.every(canBuildAt) && this.hasSpace(bricks, new Set(), players);
+    return this.added.size + bricks.length <= MAX_EDITS && bricks.every(canBuildAt) &&
+      bricks.every(brick => !isChristmasTree(brick) || this.hasBase(brick)) && this.hasSpace(bricks, new Set(), players);
+  }
+
+  hasBase(brick) {
+    for (const support of this.at(brick.x + Math.floor(brick.w / 2), brick.z + Math.floor(brick.d / 2))) {
+      if (support.id !== brick.id && support.y + support.h === brick.y &&
+        (support.form === 'brick' || support.form === 'round' || support.form === 'holidayRug' ||
+          brick.form === 'indoorTree' && support.form === 'table')) return true;
+    }
+    return false;
+  }
+
+  canMove(brick, players) {
+    return this.added.has(brick.id) && canBuildAt(brick) &&
+      (!isChristmasTree(brick) || this.hasBase(brick)) && this.hasSpace([brick], new Set([brick.id]), players);
   }
 
   hasSpace(bricks, replacing, players) {
@@ -270,7 +298,7 @@ export class BrickWorld {
         if (changed.length) this.patch(changed.map(brick => ({ id: brick.id, brick })), [], MAX_EDITS);
       }
       for (const saved of snapshot.added) {
-        const brick = snapshot.version === 1 ? legacyBrick(saved) : saved;
+        const brick = snapshot.version === 1 ? legacyBrick(saved) : resizeSavedDecoration(saved);
         if (validBrick(brick) && brick.id >= this.originalNextId && !this.bricks.has(brick.id)) {
           const edits = [{ id: brick.id, brick }];
           if (snapshot.version === 1) {
@@ -288,7 +316,7 @@ export class BrickWorld {
     this.onChange?.(null, null);
   }
 
-  pick(origin, direction, distance = REACH, throughDoors = false) {
+  pick(origin, direction, distance = REACH, throughDoors = false, ignoredId = null) {
     const endX = origin.x + direction.x * distance;
     const endZ = origin.z + direction.z * distance;
     const results = this.query(Math.floor(Math.min(origin.x, endX) / STUD), Math.floor(Math.max(origin.x, endX) / STUD) + 1,
@@ -296,7 +324,7 @@ export class BrickWorld {
     let closest = distance;
     let target = null;
     for (const brick of results) {
-      if (throughDoors && openDoor(brick)) continue;
+      if (brick.id === ignoredId || throughDoors && openDoor(brick)) continue;
       const hit = hitBox(origin, direction, brick, closest);
       if (!hit) continue;
       closest = hit.distance;

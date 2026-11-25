@@ -6,6 +6,7 @@ import { createChristmasModels } from './christmas-models.js';
 
 export function createHouseObjects(scene, brickGeometry) {
   const placed = new Map();
+  let moving = null;
   const surfaces = new Map();
   const paint = tone => {
     if (!surfaces.has(tone)) surfaces.set(tone, new THREE.MeshStandardMaterial({ color: TONES[tone], roughness: 0.56 }));
@@ -27,21 +28,33 @@ export function createHouseObjects(scene, brickGeometry) {
   }
   const makeChristmas = createChristmasModels(mesh, paint);
 
-  function makeDoor(group, tone, height) {
-    for (const sign of [-1, 1]) mesh(group, paint('beam'), sign * 0.77, height / 2, 0, 0.11, height, 0.43);
-    mesh(group, paint('beam'), 0, height - 0.045, 0, 1.56, 0.09, 0.43);
-    const panel = new THREE.Group();
-    panel.position.x = -0.71;
-    group.add(panel);
-    mesh(panel, tone, 0.71, height * 0.477, 0, 1.40, height * 0.91, 0.137);
-    for (const row of [0.35, 0.69]) {
-      for (const face of [-1, 1]) mesh(panel, paint('redwood'), 0.71, height * row, face * 0.073, 1.27, 0.085, 0.032);
+  function position(group, { w, d }, { x, y, z }) {
+    group.position.set((x + w / 2) * STUD, y * PLATE, (z + d / 2) * STUD);
+  }
+
+  function makeDoor(group, tone, height, width) {
+    const opening = width - 0.24;
+    const double = width >= 4 * STUD;
+    const panelWidth = opening / (double ? 2 : 1) - 0.016;
+    for (const sign of [-1, 1]) mesh(group, paint('beam'), sign * (width / 2 - 0.059), height / 2, 0, 0.11, height, 0.43);
+    mesh(group, paint('beam'), 0, height - 0.045, 0, width - 0.02, 0.09, 0.43);
+    const panels = [];
+    for (const hinge of double ? [-1, 1] : [-1]) {
+      const panel = new THREE.Group();
+      const inward = -hinge;
+      panel.position.x = hinge * opening / 2;
+      group.add(panel);
+      mesh(panel, tone, inward * panelWidth / 2, height * 0.477, 0, panelWidth, height * 0.91, 0.137);
+      for (const row of [0.35, 0.69]) {
+        for (const face of [-1, 1]) mesh(panel, paint('redwood'), inward * panelWidth / 2, height * row, face * 0.073, panelWidth - 0.105, 0.085, 0.032);
+      }
+      for (const face of [-1, 1]) {
+        mesh(panel, paint('gold'), inward * (panelWidth - 0.125), height * 0.5, face * 0.101, 0.09, 0.09, 0.081);
+        mesh(panel, paint('gold'), inward * 0.094, height * 0.31, face * 0.08, 0.133, 0.06, 0.039);
+      }
+      panels.push({ panel, openAngle: hinge * Math.PI / 2 });
     }
-    for (const face of [-1, 1]) {
-      mesh(panel, paint('gold'), 1.24, height * 0.5, face * 0.101, 0.09, 0.09, 0.081);
-      mesh(panel, paint('gold'), 0.12, height * 0.31, face * 0.08, 0.15, 0.06, 0.039);
-    }
-    return panel;
+    return panels;
   }
 
   function makeWindow(group, tone, height) {
@@ -116,21 +129,27 @@ export function createHouseObjects(scene, brickGeometry) {
     let christmas = null;
     if (isChristmasPiece(brick)) christmas = makeChristmas(group, brick);
     else switch (brick.form) {
-      case 'door': door = makeDoor(group, tone, height); break;
+      case 'door': door = makeDoor(group, tone, height, (brick.turn % 2 ? brick.d : brick.w) * STUD); break;
       case 'window': makeWindow(group, tone, height); break;
       case 'lamp':
       case 'beacon': light = makeLantern(group, brick.form, tone, height); break;
       case 'windbell': bell = makeBell(group, tone, height); break;
       default: makeFurniture(group, brick.form, tone, height, w * STUD, d * STUD);
     }
-    group.position.set((brick.x + brick.w / 2) * STUD, brick.y * PLATE, (brick.z + brick.d / 2) * STUD);
+    position(group, brick, brick);
     group.rotation.y = -brick.turn * Math.PI / 2;
-    if (door) door.rotation.y = brick.active ? -Math.PI / 2 : 0;
+    if (door && brick.active) for (const { panel, openAngle } of door) panel.rotation.y = openAngle;
     scene.add(group);
     return { brick, group, door, light, bell, christmas, swing: 0 };
   }
 
   return {
+    movePreview(brick, destination) {
+      const item = brick && destination ? placed.get(brick.id) : null;
+      if (moving && moving !== item) position(moving.group, moving.brick, moving.brick);
+      moving = item;
+      if (moving) position(moving.group, moving.brick, destination);
+    },
     sync(world) {
       for (const [id, item] of placed) {
         const brick = world.bricks.get(id);
@@ -152,7 +171,7 @@ export function createHouseObjects(scene, brickGeometry) {
       for (const item of placed.values()) {
         const { brick, door, light, bell, christmas } = item;
         christmas?.(brick.active, weight, reducedMotion ? 0 : time);
-        if (door) door.rotation.y += ((brick.active ? -Math.PI / 2 : 0) - door.rotation.y) * weight;
+        if (door) for (const { panel, openAngle } of door) panel.rotation.y += ((brick.active ? openAngle : 0) - panel.rotation.y) * weight;
         if (light) light.material = brick.active ? amber : dim;
         if (bell && item.swing > 0) {
           item.swing = Math.max(0, item.swing - dt);

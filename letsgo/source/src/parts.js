@@ -4,9 +4,16 @@ function part(key, name, group, w, d, h, tone, studs = true, form = 'brick') {
   return { key, name, group, w, d, h, tone, studs, form };
 }
 
+const DOOR_VARIANTS = [
+  { key: 'narrow-door', name: 'Narrow cedar door', size: [2, 1, 9] },
+  { key: 'short-door', name: 'Short cedar door', size: [3, 1, 9] },
+  { key: 'tall-door', name: 'Tall cedar door', size: [3, 1, 12] },
+  { key: 'wide-door', name: 'Wide double door', size: [4, 1, 10] },
+];
+
 export const BUILD_PACKS = {
   ...CHRISTMAS_PACKS,
-  house: { name: 'House Pack', goal: 'Place 6 pieces', contents: 'Working door, glass window, shutters and a roof ridge' },
+  house: { name: 'House Pack', goal: 'Place 6 pieces', contents: 'Five working door sizes, glass and lattice windows, shutters, roof tiles, eaves and a ridge' },
   furnishings: { name: 'Furnishings Pack', goal: 'Brew and serve blossom tea', contents: 'Couch, chair, dining table and a low bench' },
   garden: { name: 'Garden Lights Pack', goal: 'Rescue Mochi on Lantern Island', contents: 'Switchable porch lamp, path lantern and blossom planter' },
   coastal: { name: 'Coastal Pack', goal: 'Sail to Shell Cove', contents: 'Harbor light, painted buoy and deck railing' },
@@ -16,7 +23,7 @@ export const BUILD_PACKS = {
 
 export const PLACEABLE_OBJECTS = {
   tea: { key: 'tea-counter', name: 'Tea counter', size: [3, 2, 5], tone: 'cedar' },
-  door: { name: 'Cedar door', size: [3, 1, 10], tone: 'cedar', pack: 'house', interaction: 'door' },
+  door: { name: 'Cedar door', size: [3, 1, 10], variants: DOOR_VARIANTS, tone: 'cedar', pack: 'house', interaction: 'door' },
   window: { key: 'glass-window', name: 'Glass window', size: [3, 1, 5], tone: 'ink', pack: 'house' },
   couch: { name: 'Cushioned couch', size: [4, 2, 5], tone: 'jade', pack: 'furnishings' },
   chair: { name: 'Dining chair', size: [1, 1, 5], tone: 'oak', pack: 'furnishings' },
@@ -97,6 +104,7 @@ export const PARTS = [
   ...Object.entries(PLACEABLE_OBJECTS).map(([form, object]) => ({
     ...part(object.key ?? form, object.name, 'Objects', ...object.size, object.tone, false, form), pack: object.pack,
   })),
+  ...DOOR_VARIANTS.map(({ key, name, size }) => ({ ...part(key, name, 'Objects', ...size, 'cedar', false, 'door'), pack: 'house' })),
   { ...kit('shutters', 'Shutter window', 'Structures', [
     section(0, 0, 0, 4, 1, 1, 'chalk'), section(0, 1, 0, 1, 1, 4, 'vermilion'),
     section(3, 1, 0, 1, 1, 4, 'vermilion'), section(0, 5, 0, 4, 1, 1, 'beam'),
@@ -144,7 +152,8 @@ export const PARTS = [
 
 export function matchedPart(brick) {
   const object = Object.hasOwn(PLACEABLE_OBJECTS, brick.form) ? PLACEABLE_OBJECTS[brick.form] : null;
-  return { key: 'match', name: object?.name ?? 'Matched brick', group: 'Bricks', pack: object?.pack,
+  const variant = object?.variants?.find(({ size: [w, , h] }) => w === (brick.turn % 2 ? brick.d : brick.w) && h === brick.h);
+  return { key: 'match', name: variant?.name ?? object?.name ?? 'Matched brick', group: 'Bricks', pack: object?.pack,
     w: brick.w, d: brick.d, h: brick.h, tone: brick.tone, studs: brick.studs, form: brick.form, turn: brick.turn };
 }
 
@@ -179,7 +188,8 @@ export const BUILD_KITS = [
     ['oak', 'cedar', 'beam', 'redwood', 'jade', 'teal', 'amber', 'chalk']),
   buildKit('tea', 'Tea garden', ['tea-counter', 'floor', 'paper', 'window', 'garden-lamp', 'paving', 'flower-pot'],
     ['oak', 'cedar', 'cream', 'jade', 'petal', 'gold', 'ink']),
-  buildKit('house', BUILD_PACKS.house.name, ['door', 'glass-window', 'shutters', 'roof-ridge', 'paper', 'floor', 'cedar'],
+  buildKit('house', BUILD_PACKS.house.name, ['door', 'glass-window', 'shutters', 'roof-ridge', 'paper', 'floor', 'cedar',
+    'narrow-door', 'short-door', 'tall-door', 'wide-door', 'window', 'slate', 'eave'],
     ['cedar', 'oak', 'cream', 'ink', 'vermilion', 'tile', 'patina']),
   buildKit('furnishings', BUILD_PACKS.furnishings.name, ['couch', 'chair', 'table', 'bench', 'floor', 'paving', 'tea-counter'],
     ['jade', 'oak', 'cedar', 'cream', 'rose', 'sage', 'ink']),

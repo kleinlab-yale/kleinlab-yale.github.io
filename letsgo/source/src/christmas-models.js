@@ -100,8 +100,9 @@ export function createChristmasModels(mesh, paint) {
           }
         }
       }
-      mesh(group, brass, 0, 0.878, 0, 0.032, 0.09, 0.032, cylinder);
-      const topper = mesh(group, bulbsOn[0], 0, 0.936, 0, 0.22, 0.16, 0.29, star);
+      mesh(group, tone, 0, 0.861, 0, 0.155, 0.124, 0.155, taper);
+      mesh(group, brass, 0, 0.907, 0, 0.024, 0.062, 0.024, cylinder);
+      const topper = mesh(group, bulbsOn[0], 0, 0.945, 0, 0.154, 0.11, 0.21, star);
       const strands = bulbStrands(group, lights);
       return active => { switchBulbs(strands, active); topper.material = active ? bulbsOn[0] : brass; };
     },
@@ -126,10 +127,10 @@ export function createChristmasModels(mesh, paint) {
       };
     },
     bauble(group, tone) {
-      mesh(group, tone, 0, 0.46, 0, 0.83, 0.81, 0.83, ball);
-      mesh(group, brass, 0, 0.489, 0, 0.844, 0.078, 0.844, cylinder);
-      mesh(group, brass, 0, 0.847, 0, 0.29, 0.135, 0.29, cylinder);
-      mesh(group, brass, 0, 0.949, 0, 0.19, 0.16, 0.17, ring);
+      mesh(group, tone, 0, 0.333, 0, 0.405, 0.656, 0.405, ball);
+      mesh(group, brass, 0, 0.345, 0, 0.414, 0.063, 0.414, cylinder);
+      mesh(group, brass, 0, 0.682, 0, 0.148, 0.175, 0.148, cylinder);
+      mesh(group, brass, 0, 0.857, 0, 0.171, 0.267, 0.14, ring);
     },
     starTopper(group, tone) {
       mesh(group, brass, 0, 0.075, 0, 0.12, 0.15, 0.26, cylinder);
@@ -146,13 +147,13 @@ export function createChristmasModels(mesh, paint) {
       bow(group, red, 0, 0.51, 0.36, 0.22);
     },
     candyCane(group, tone) {
-      mesh(group, [tone, snow], 0, 0, 0, 1.33, 0.99, 1.5, cane);
-      mesh(group, snow, 0.253, 0.074, 0, 0.13, 0.095, 0.145, ball);
-      mesh(group, tone, -0.426, 0.753, 0, 0.133, 0.098, 0.146, ball);
+      mesh(group, [tone, snow], 0, 0, 0, 0.77, 0.99, 0.84, cane);
+      mesh(group, tone, 0.146, 0.074, 0, 0.076, 0.096, 0.082, ball);
+      mesh(group, snow, -0.246, 0.751, 0, 0.076, 0.096, 0.082, ball);
     },
     ribbonBow(group, tone) {
       mesh(group, brass, 0, 0.534, -0.078, 0.18, 0.21, 0.3, cylinder);
-      bow(group, tone, 0, 0.546, 0.08, 0.78);
+      bow(group, tone, 0, 0.546, 0.08, 0.64);
     },
     holidayWreath(group, tone) {
       mesh(group, pine, 0, 0.52, 0, 0.97, 0.97, 0.88, ring);
@@ -368,7 +369,8 @@ export function createChristmasModels(mesh, paint) {
     const [w, d, h] = CHRISTMAS_OBJECTS[brick.form].size;
     model.scale.set(w * STUD, h * PLATE, d * STUD);
     group.add(model);
-    const animate = models[brick.form](model, paint(brick.tone));
+    const form = brick.form === 'indoorTree' ? 'festiveTree' : brick.form;
+    const animate = models[form](model, paint(brick.tone));
     model.traverse(piece => { if (piece.isMesh && !piece.isInstancedMesh) piece.castShadow = true; });
     animate?.(brick.active, 1, 0);
     return animate;

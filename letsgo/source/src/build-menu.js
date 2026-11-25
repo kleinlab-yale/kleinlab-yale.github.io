@@ -1,7 +1,7 @@
 import { TONES } from './bricks.js';
 import { BUILD_KITS, BUILD_PACKS, PARTS, layoutPart } from './parts.js';
 import { drawChristmasIcon } from './christmas-icons.js';
-import { isChristmasPiece } from './christmas.js';
+import { isChristmasPiece, isChristmasTree } from './christmas.js';
 
 export function toneName(tone) {
   const spaced = tone.replace(/([a-z])([A-Z])/g, '$1 $2');
@@ -114,6 +114,7 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
   const swatches = dialog.querySelector('#brick-colors');
   const allColors = dialog.querySelector('#show-all-tones');
   const colorStatus = dialog.querySelector('#chosen-color');
+  const houseHelp = dialog.querySelector('#house-build-help');
   const phoneTabs = Array.from(dialog.querySelectorAll('[data-parts-page]'));
   let kit = initialKit;
   let group = 'All';
@@ -158,6 +159,7 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
   }
 
   function parts() {
+    houseHelp.hidden = kit.key !== 'house';
     const source = kit.key === 'all' || group === 'Objects' && !BUILD_PACKS[kit.key]?.season ? PARTS : kit.parts;
     grid.replaceChildren();
     for (const part of source) {
@@ -167,7 +169,8 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
       const title = document.createElement('strong');
       title.textContent = part.name;
       const size = document.createElement('small');
-      size.textContent = `${part.w} × ${part.d} studs`;
+      if (part.form === 'door' || part.form === 'window') size.textContent = `${part.w} studs wide · ${part.h} plates high`;
+      else size.textContent = `${part.w} × ${part.d} studs${isChristmasTree(part) ? ` · ${part.h} plates high` : ''}`;
       button.append(partIcon(part, 0, tone), title, size);
       button.onclick = () => callbacks.part(part);
       grid.append(button);

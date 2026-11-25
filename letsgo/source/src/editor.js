@@ -1,7 +1,7 @@
-import { MAX_PATCH, TONES, sameBrick, validBrick } from './bricks.js';
+import { MAX_PATCH, TONES, resizeSavedDecoration, sameBrick, validBrick } from './bricks.js';
 import { canBuildAt } from './islands.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
-import { isChristmasPiece } from './christmas.js';
+import { isChristmasPiece, isChristmasTree } from './christmas.js';
 
 const UNDO_LIMIT = 64;
 export const PROTECTED_BRICK = 'You can change bricks you placed during this visit.';
@@ -10,13 +10,17 @@ function toBrick(value, id) {
   if (!validBrick(value)) return null;
   const { x, y, z, w, d, h, tone, studs, form, turn } = value;
   const brick = { id, x, y, z, w, d, h, tone, studs, form, turn };
-  if (PLACEABLE_OBJECTS[form]?.interaction) brick.active = form === 'festiveTree' || form === 'fairyLights';
+  if (PLACEABLE_OBJECTS[form]?.interaction) brick.active = isChristmasTree(brick) || form === 'fairyLights';
   return brick;
 }
 
 function validEdit(edit) {
   return Boolean(edit && Number.isSafeInteger(edit.id) &&
     (edit.brick === null || (validBrick(edit.brick) && edit.brick.id === edit.id)));
+}
+
+function restoreEdit(edit) {
+  return edit?.brick ? { ...edit, brick: resizeSavedDecoration(edit.brick) } : edit;
 }
 
 export class Builder {
@@ -40,8 +44,9 @@ export class Builder {
     if (Array.isArray(snapshot?.undo)) {
       this.history = snapshot.undo.slice(-UNDO_LIMIT).filter(item =>
         Array.isArray(item?.edits) && Array.isArray(item?.previous) && item.edits.length > 0 &&
-        item.edits.length <= MAX_PATCH && item.edits.length === item.previous.length &&
-        item.edits.every((edit, i) => validEdit(edit) && validEdit(item.previous[i]) && edit.id === item.previous[i].id));
+        item.edits.length <= MAX_PATCH && item.edits.length === item.previous.length)
+        .map(({ edits, previous }) => ({ edits: edits.map(restoreEdit), previous: previous.map(restoreEdit) }))
+        .filter(item => item.edits.every((edit, i) => validEdit(edit) && validEdit(item.previous[i]) && edit.id === item.previous[i].id));
       return;
     }
     this.history = Array.from(this.world.removed).filter(id => id > 0).slice(-UNDO_LIMIT).map(id => ({
@@ -57,6 +62,7 @@ export class Builder {
       const bricks = request.bricks.map((value, i) => toBrick(value, this.world.nextId + i));
       if (bricks.some(brick => !brick || !reachable(brick))) return { error: 'blocked' };
       if (!bricks.every(canBuildAt)) return { error: 'open-water' };
+      if (bricks.some(brick => isChristmasTree(brick) && !this.world.hasBase(brick))) return { error: 'tree-base' };
       const edits = bricks.map(brick => ({ id: brick.id, brick }));
       return this.commit(edits, boxes);
     }
@@ -71,6 +77,15 @@ export class Builder {
     let brick;
     switch (request.kind) {
       case 'remove': brick = null; break;
+      case 'move':
+        if (!this.world.added.has(target.id)) return { error: 'placed-piece' };
+        if (['x', 'y', 'z', 'turn'].some(field => target[field] !== request.from?.[field])) return { error: 'moved' };
+        brick = { ...target, x: request.x, y: request.y, z: request.z };
+        if (sameBrick(brick, target)) return { error: 'same-spot' };
+        if (!validBrick(brick) || !reachable(brick)) return { error: 'blocked' };
+        if (!canBuildAt(brick)) return { error: 'open-water' };
+        if (isChristmasTree(brick) && !this.world.hasBase(brick)) return { error: 'tree-base' };
+        break;
       case 'paint':
         if (!Object.hasOwn(TONES, request.tone) || target.tone === request.tone) return { error: 'color' };
         brick = { ...target, tone: request.tone };

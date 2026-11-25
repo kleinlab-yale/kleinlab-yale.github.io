@@ -17,7 +17,7 @@ import { createJournal } from './journal.js';
 import { createProgress } from './progression.js';
 import { createExpedition } from './expedition.js';
 import { district, makeValley } from './valley.js';
-import { christmasActive, CHRISTMAS_END, isChristmasPiece } from './christmas.js';
+import { christmasActive, CHRISTMAS_END, isChristmasPiece, isChristmasTree } from './christmas.js';
 import { snapPlacement } from './snapping.js';
 import { canBuildAt } from './islands.js';
 
@@ -194,9 +194,8 @@ function boot() {
       keys.clear();
       padPointers.clear();
       jump = false;
-      drag = null;
+      clearDrag();
       aimPoint = null;
-      game.classList.remove('looking');
       stick.id = null;
       stick.x = stick.z = 0;
       $('stick').style.transform = '';
@@ -406,15 +405,21 @@ function boot() {
       changed: 'Another edit changed that brick. Try Undo again for an earlier edit.',
       restore: 'Clear the spot before restoring that brick.',
       doorway: 'Step clear of the doorway to close it.',
+      'tree-base': 'Set the tree on a clear, solid surface.',
+      'door-fit': 'Tap the floor in the doorway and choose a door that fits the opening.',
+      'placed-piece': 'Choose a piece someone placed here to move it.',
+      moved: 'That piece moved or turned. Pick it up again.',
+      'same-spot': 'That piece is already here.',
       'open-water': 'Open water ahead. Take a boat to the outer islands.',
     };
     return messages[error] ?? messages.blocked;
   }
 
   function setTool(kind) {
+    if (kind !== tool && drag?.piece) clearDrag();
     tool = kind;
     game.dataset.tool = kind;
-    for (const action of ['explore', 'place', 'remove', 'rotate', 'paint']) {
+    for (const action of ['explore', 'place', 'move', 'remove', 'rotate', 'paint']) {
       $(`${action}-tool`).setAttribute('aria-pressed', String(kind === action));
     }
     for (const button of compactTools) {
@@ -428,17 +433,21 @@ function boot() {
     $('turn-piece').hidden = $('phone-turn-piece').hidden = kind !== 'place' || !canTurn;
     const verb = coarse ? 'Tap' : 'Click';
     const guestHint = guestWorld ? ' you placed this visit' : '';
+    const tree = isChristmasTree(selected);
+    const door = selected.form === 'door';
+    const placeHint = door ? `${verb} the floor in the doorway.` : `${verb} a top or side to snap this piece in place.`;
     const hints = {
       explore: coarse ? 'Joystick to move · Drag to orbit' : 'Arrow keys to move · Drag to orbit',
-      place: `${verb} a top or side to snap this piece in place.`,
+      place: tree ? `${verb} a clear, solid surface to set down the tree.` : placeHint,
+      move: `Drag a placed piece${guestHint} to a new spot.`,
       remove: `${verb} a brick${guestHint} to remove it.`,
-      rotate: `${verb} a brick${guestHint} to turn it.`,
+      rotate: `${verb} a piece${guestHint} to turn it. Drag a placed piece to move it.`,
       paint: `${verb} a brick${guestHint} to paint it.`,
       pick: `${verb} a brick to match its shape and color.`,
     };
     $('build-guide').textContent = hints[kind];
     $('phone-build-guide').hidden = kind === 'explore';
-    $('phone-build-guide').textContent = kind === 'place' ? `Tap a surface to place ${selected.name.toLowerCase()}.` : hints[kind];
+    $('phone-build-guide').textContent = kind === 'place' && !tree && !door ? `Tap a surface to place ${selected.name.toLowerCase()}.` : hints[kind];
     $('phone-build-label').textContent = kind === 'explore' ? 'Build' : 'Tools';
     $('phone-explore-button').hidden = kind === 'explore';
     refreshBuildStatus();
@@ -550,8 +559,8 @@ function boot() {
   });
   select(quickParts[0], 'explore');
 
-  function pick(point) {
-    return graphics.pick(point, REACH + (CAMERAS[view].distance ?? 0) + 4);
+  function pick(point, ignoredId = null) {
+    return graphics.pick(point, REACH + (CAMERAS[view].distance ?? 0) + 4, ignoredId);
   }
 
   function canEdit(id) {
@@ -564,6 +573,34 @@ function boot() {
       blocks => blocks.every(block => reachFrom(player, block)) && world.canPlace(blocks, boxes));
     suggestedTurn = plan.turn;
     return plan;
+  }
+
+  function cannotPlace(plan) {
+    if (plan.blocks.some(block => !canBuildAt(block))) return 'open-water';
+    if (plan.blocks.some(isChristmasTree)) return 'tree-base';
+    if (plan.blocks.some(block => block.form === 'door')) return 'door-fit';
+    return 'blocked';
+  }
+
+  function movePlacement(gesture, point) {
+    if (activities.sailing || document.elementFromPoint(point.x, point.y) !== canvas) return null;
+    const { piece, grab, part, grounded } = gesture;
+    const hit = pick({ x: point.x + grab.x, y: point.y + grab.y }, piece.id);
+    if (!hit || !reachFrom(player, hit.brick)) return null;
+    const boxes = localBoxes();
+    const sideY = grounded ? piece.y : null;
+    const plan = snapPlacement(world, hit, { part, turn: 0, manual: true, centered: true, sideY }, ([block]) => {
+      const destination = { ...piece, x: block.x, y: block.y, z: block.z };
+      return reachFrom(player, destination) && world.canMove(destination, boxes) &&
+        (hit.axis === 'y' || !grounded || world.hasBase(destination));
+    });
+    return { hit, plan };
+  }
+
+  function clearDrag() {
+    drag = null;
+    game.classList.remove('looking', 'dragging-piece');
+    graphics.movePreview(null);
   }
 
   function runEdit(request) {
@@ -616,7 +653,7 @@ function boot() {
     if (kind === 'place') {
       const plan = placement(hit);
       if (!plan.allowed) {
-        toast(buildMessage(plan.blocks.every(canBuildAt) ? 'blocked' : 'open-water'));
+        toast(buildMessage(cannotPlace(plan)));
         return;
       }
       if (turn !== plan.turn) {
@@ -691,7 +728,7 @@ function boot() {
     }
   });
   window.addEventListener('keyup', event => keys.delete(event.code));
-  window.addEventListener('blur', () => { keys.clear(); padPointers.clear(); });
+  window.addEventListener('blur', () => { keys.clear(); padPointers.clear(); clearDrag(); });
   canvas.addEventListener('contextmenu', event => event.preventDefault());
   canvas.addEventListener('wheel', event => {
     if (screen !== 'play' || event.deltaY === 0) return;
@@ -701,7 +738,26 @@ function boot() {
   }, { passive: false });
   canvas.addEventListener('pointerdown', event => {
     if (screen !== 'play' || (event.button !== 0 && event.button !== 2) || drag) return;
-    drag = { id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false };
+    const point = { x: event.clientX, y: event.clientY };
+    const gesture = { id: event.pointerId, button: event.button, ...point, moved: false };
+    if ((tool === 'move' || tool === 'rotate') && event.button === 0 && !activities.sailing) {
+      const hit = pick(point);
+      if (hit && world.added.has(hit.brick.id)) {
+        const piece = hit.brick;
+        if (!canEdit(piece.id) || !reachFrom(player, piece)) {
+          toast(!canEdit(piece.id) ? PROTECTED_BRICK : 'Move closer to reach that piece.');
+          return;
+        }
+        const base = graphics.projectBase(piece);
+        // Keep the bottom under the grab point when the player touches the middle of a tall prop.
+        gesture.piece = piece;
+        gesture.part = matchedPart(piece);
+        gesture.grounded = world.hasBase(piece);
+        gesture.grab = { x: base.x - point.x, y: base.y - point.y };
+        aimPoint = null;
+      }
+    }
+    drag = gesture;
     canvas.setPointerCapture(event.pointerId);
   });
   canvas.addEventListener('pointermove', event => {
@@ -718,6 +774,10 @@ function boot() {
     drag.x = event.clientX;
     drag.y = event.clientY;
     aimPoint = null;
+    if (drag.piece) {
+      game.classList.add('dragging-piece');
+      return;
+    }
     game.classList.add('looking');
     const sensitivity = event.pointerType === 'touch' ? 0.0052 : 0.006;
     orbit.yaw = angle(orbit.yaw - dx * sensitivity);
@@ -725,17 +785,23 @@ function boot() {
   });
   canvas.addEventListener('pointerup', event => {
     if (drag?.id !== event.pointerId) return;
-    if (!drag.moved && drag.button === 0 && event.button === 0) {
-      const point = { x: event.clientX, y: event.clientY, touch: event.pointerType === 'touch' };
+    const point = { x: event.clientX, y: event.clientY, touch: event.pointerType === 'touch' };
+    if (drag.piece && drag.moved) {
+      const preview = movePlacement(drag, point);
+      if (!preview?.plan.allowed) toast(buildMessage(preview ? cannotPlace(preview.plan) : 'blocked'));
+      else {
+        const { x, y, z } = preview.plan;
+        const { id, x: oldX, y: oldY, z: oldZ, turn } = drag.piece;
+        if (x !== oldX || y !== oldY || z !== oldZ) runEdit({ kind: 'move', id, from: { x: oldX, y: oldY, z: oldZ, turn }, x, y, z });
+      }
+    } else if (tool !== 'move' && !drag.moved && drag.button === 0 && event.button === 0) {
       if (tool !== 'explore') aimPoint = point;
       edit(tool, point);
     }
-    drag = null;
-    game.classList.remove('looking');
+    clearDrag();
   });
   canvas.addEventListener('lostpointercapture', event => {
-    if (drag?.id === event.pointerId) drag = null;
-    game.classList.remove('looking');
+    if (drag?.id === event.pointerId) clearDrag();
   });
   canvas.addEventListener('pointerleave', event => { if (event.pointerType !== 'touch') aimPoint = null; });
 
@@ -793,6 +859,7 @@ function boot() {
   }
   $('explore-tool').onclick = () => setTool('explore');
   $('place-tool').onclick = () => setTool('place');
+  $('move-tool').onclick = () => setTool('move');
   $('remove-tool').onclick = () => setTool('remove');
   $('rotate-tool').onclick = () => setTool('rotate');
   $('paint-tool').onclick = () => { if (color === null) showParts('colors'); else setTool('paint'); };
@@ -970,11 +1037,13 @@ function boot() {
       const bob = player.moving && player.grounded && !reduceMotion ? Math.sin(player.bob * 2) * 0.026 : 0;
       graphics.playerView(player, CAMERAS[view], orbit, bob, dt);
       if (aimPoint?.touch && now >= flashUntil) aimPoint = null;
+      const moving = screen === 'play' && drag?.piece && drag.moved ? movePlacement(drag, drag) : null;
       const hit = screen === 'play' && !activities.sailing && tool !== 'explore' && aimPoint ? pick(aimPoint) : null;
-      const editable = hit && (['place', 'pick'].includes(tool) || canEdit(hit.brick.id));
+      const editable = hit && (['place', 'pick'].includes(tool) || canEdit(hit.brick.id)) && (tool !== 'move' || world.added.has(hit.brick.id));
       const target = hit && editable && reachFrom(player, hit.brick) ? hit : null;
-      const brick = target && tool === 'place' && !aimPoint.touch ? placement(target) : null;
-      graphics.aim(target, brick, brick?.allowed === true, tool);
+      const brick = moving?.plan ?? (target && tool === 'place' && !aimPoint.touch ? placement(target) : null);
+      graphics.movePreview(drag?.piece, moving?.plan.allowed ? brick : null);
+      graphics.aim(moving?.hit ?? target, brick, brick?.allowed === true, tool);
     }
     if (rooms.state.phase === 'connected' && now - lastPose >= 66) {
       lastPose = now;

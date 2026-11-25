@@ -67,7 +67,9 @@ export function drawChristmasIcon(ctx, form, tone, turn) {
     ctx.scale(-1, 1);
   }
   switch (form) {
+    case 'indoorTree':
     case 'festiveTree':
+      if (form === 'indoorTree') { ctx.translate(11, 14); ctx.scale(0.8, 0.8); }
       brick(50, 60, 13, 12, 4, '#9c6340');
       for (const [y, width] of [[59, 29], [48, 24], [36, 19], [24, 13]]) {
         path([[56, y - 20], [56 + width, y], [56, y + 8], [56 - width, y]], color);

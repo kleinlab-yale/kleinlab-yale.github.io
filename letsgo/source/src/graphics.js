@@ -77,7 +77,8 @@ function fullyCovered(world, x, z, from, to) {
   while (covered < to) {
     let next = covered;
     for (const neighbor of world.at(x, z)) {
-      if (neighbor.y <= covered && neighbor.y + neighbor.h > next) next = neighbor.y + neighbor.h;
+      // Round pieces and custom models reserve build space without covering the whole face.
+      if (neighbor.form === 'brick' && neighbor.y <= covered && neighbor.y + neighbor.h > next) next = neighbor.y + neighbor.h;
     }
     if (next === covered) return false;
     covered = next;
@@ -373,6 +374,7 @@ export function createGraphics(canvas, world, compact) {
   const eye = new THREE.Vector3();
   const offset = new THREE.Vector3();
   const direction = new THREE.Vector3();
+  const projected = new THREE.Vector3();
   const pointer = new THREE.Vector2();
   const raycaster = new THREE.Raycaster();
   let followDistance = 0;
@@ -401,6 +403,7 @@ export function createGraphics(canvas, world, compact) {
     vessel: objects.vessel,
     pet: objects.pet,
     tea: objects.tea,
+    movePreview: houseObjects.movePreview,
     preview(canvas) { return appearancePreview(canvas, body); },
     dirty(brick) { meshes.dirty(brick); },
     christmas(active) { scenery.christmas(active); meshes.christmas(active); },
@@ -450,11 +453,16 @@ export function createGraphics(canvas, world, compact) {
       camera.updateMatrixWorld();
       lastView = view;
     },
-    pick(point, distance) {
+    pick(point, distance, ignoredId = null) {
       const bounds = canvas.getBoundingClientRect();
       pointer.set(2 * (point.x - bounds.left) / bounds.width - 1, 1 - 2 * (point.y - bounds.top) / bounds.height);
       raycaster.setFromCamera(pointer, camera);
-      return world.pick(raycaster.ray.origin, raycaster.ray.direction, distance);
+      return world.pick(raycaster.ray.origin, raycaster.ray.direction, distance, false, ignoredId);
+    },
+    projectBase(brick) {
+      const bounds = canvas.getBoundingClientRect();
+      projected.set((brick.x + brick.w / 2) * STUD, brick.y * PLATE, (brick.z + brick.d / 2) * STUD).project(camera);
+      return { x: bounds.left + (projected.x + 1) * bounds.width / 2, y: bounds.top + (1 - projected.y) * bounds.height / 2 };
     },
     render(time, dt) {
       if (meshes.update() || firstFrame) {

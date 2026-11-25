@@ -23,6 +23,8 @@ button svg, [data-icon] svg { width: 19px; height: 19px; display: block; flex: n
 #game { height: 100dvh; position: relative; isolation: isolate; background: radial-gradient(ellipse at 65% 26%, #ab888e, #343a34 70%); }
 #world { display: block; position: absolute; inset: 0; width: 100%; height: 100%; outline: none; touch-action: none; }
 #game[data-screen='play'] #world { cursor: crosshair; }
+#game[data-screen='play'][data-tool='move'] #world { cursor: grab; }
+#game[data-screen='play'].dragging-piece #world { cursor: grabbing; }
 #game[data-screen='play'][data-tool='explore'] #world { cursor: grab; }
 #game[data-screen='play'].looking #world { cursor: grabbing; }
 .screen-shade { position: absolute; inset: 0; pointer-events: none; transition: opacity .28s ease; }
@@ -447,6 +449,9 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid #f4e2d141; bord
 
 .workshop-panel { width: min(750px, calc(100vw - 26px)); }
 .kit-heading { display: flex; align-items: center; gap: 9px; padding: 0 0 12px; }
+.house-build-help { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.42; }
+.house-build-help summary { cursor: pointer; color: var(--paper); font-weight: 680; padding: 6px 0; }
+.house-build-help p { margin: 3px 0 10px; }
 .kit-heading label, .boat-report label { font-size: 13px; font-weight: 700; color: var(--muted); }
 .kit-heading select, .boat-report select { min-height: 44px; padding: 4px 9px; border: 1px solid var(--stroke); border-radius: 7px; color: var(--paper); background: #17201a; font: inherit; }
 .parts-layout { display: grid; grid-template-columns: minmax(250px, 1.35fr) minmax(170px, 1fr); gap: 15px; margin-bottom: 14px; }
@@ -617,10 +622,13 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid #f4e2d141; bord
 #game[data-compact='true'] :is(button, #world) { -webkit-tap-highlight-color: transparent; }
 #game[data-compact='true'] .compact-tools { display: flex; gap: 3px; margin-bottom: 10px; }
 #game[data-compact='true'] .compact-tools button { flex: 1; min-width: 45px; min-height: 44px; padding-inline: 4px; }
+@media (max-width: 360px) {
+  #game[data-compact='true'] .compact-tools { display: grid; grid-template-columns: repeat(3, minmax(44px, 1fr)); }
+}
 #game[data-compact='true'] .compact-parts-tabs { display: flex; gap: 4px; margin-bottom: 9px; }
 #game[data-compact='true'] .compact-parts-tabs button { flex: 1; min-height: 44px; }
 #game[data-compact='true'] #parts-dialog[data-phone-page='pieces'] .brick-palette,
-#game[data-compact='true'] #parts-dialog[data-phone-page='colors'] :is(.parts-shelf, .kit-heading) { display: none; }
+#game[data-compact='true'] #parts-dialog[data-phone-page='colors'] :is(.parts-shelf, .kit-heading, .house-build-help) { display: none; }
 #game[data-compact='true'] .brick-palette { border: 0; padding: 0; }
 #game[data-compact='true'] .part-grid { max-height: min(37dvh, 328px); }
 #game[data-compact='true'] .kit-heading { gap: 5px; }

@@ -17,11 +17,13 @@ Use the arrow keys or hold the on-screen movement buttons to walk on a computer.
 
 On an iPhone, tap **Build** to pick a piece or edit tool. The check mark takes you back to exploring. **Journal** shows the story, build packs, pets, and islands. **Menu** opens camera, audio, player, and room settings. Music and game sounds have separate switches.
 
-Start in **Explore** to walk and orbit the camera. Pick a brick and tap or click a top or side to snap it in place. Rectangular bricks follow the direction of the brick or row you tap. Use **Turn piece** while placing to set your own orientation, or select the piece again to resume automatic alignment. Choose **Rotate**, **Paint**, or **Remove** and tap a placed brick to edit it. **Undo** reverses your recent edits.
+Start in **Explore** to walk and orbit the camera. Pick a brick and tap or click a top or side to snap it in place. Rectangular bricks follow the direction of the brick or row you tap. Use **Turn piece** while placing to set your own orientation, or select the piece again to resume automatic alignment. Choose **Move** and drag a placed piece to a new snap point. In **Rotate**, tap to turn a piece or drag it to move it. **Paint** and **Remove** edit a piece you tap. **Undo** reverses your recent edits.
 
 Open **Parts & colors** and choose a **Build kit**. Shrine & treehouse, Blossom tree, Boat & dock, and Tea garden load matching materials and populate your quick tray. Pick a color for new bricks or choose **Paint placed bricks** to recolor existing ones. **Show all colors** opens the full palette. **Match a brick in the world** copies the shape and color of any brick you tap. Open **Objects** for the tea counter, lanterns, and the boat workshop.
 
 Earn the House Pack by placing six pieces, the Furnishings Pack by serving blossom tea, the Garden Lights Pack by rescuing Mochi, and the Coastal Pack by sailing to Shell Cove. Open each earned pack from the journal or the build kit picker. Tap placed doors and lights in Explore, or walk up and use their interaction button.
+
+Choose a House Pack door that matches the width and height of your opening, then tap the floor inside the opening. Door cards show their dimensions. Set glass or lattice windows on a sill. Use roof tiles or stepped eaves along the wall tops and finish a peaked roof with capped ridge pieces.
 
 Use **Camera** to cycle between third person, wide, and first person. **Customize** in the top bar opens presets and separate controls for your character’s face, hair, and clothes. Drag the preview to turn your character, or switch to Face close-up to see your expression. Your appearance is saved in your browser and shared with your co-op partner.
 
@@ -35,7 +37,7 @@ Walk up to the tea counter in the High Pavilion, or build one from **Objects**. 
 
 ## Christmas in Blossom Valley
 
-Play from November 25 through December 25, 2026, Eastern time, to receive three free packs in **Journal → Build packs**. Choose the Christmas Tree, Holiday Home, or Winter Village pack for 21 decorations. Use **Explore** to open presents, switch lights on or off, light the fireplace and candles, and ring a jingle bell.
+Play from November 25 through December 25, 2026, Eastern time, to receive three free packs in **Journal → Build packs**. Choose the Christmas Tree, Holiday Home, or Winter Village pack for 22 decorations. The Indoor Christmas tree fits on a floor or table. Use **Explore** to open presents, switch lights on or off, light the fireplace and candles, and ring a jingle bell.
 
 Starting December 26, the game packs away holiday pieces the next time you play your world. All the seasonal pieces stay available in your **Christmas Kit**. You can place them again at any time. In co-op, the host’s save contains the shared decorations and each player keeps their own kit.
 
@@ -49,7 +51,7 @@ The trail unlocks the **Shipwright Pack** and the **Stargazer Pack**. The Starga
 
 For two players, choose **Play together**, then **Create room**. **Message a friend** opens the device’s share menu when supported. **Copy invite link** copies a link that fills in the room code for your friend. Your friend can also enter the six-character code manually. Keep the host tab open during play. The host’s browser saves the shared edits. Players need no accounts or keys. The game uses WebRTC and the [shared PeerJS Cloud service](https://peerjs.com/server/cloud) for room discovery and connectivity. Access depends on the service and the players’ networks.
 
-Guests can place bricks and rotate, paint, remove, or undo changes to the ones they place during that visit. The host can edit the whole world. Guest builds become part of the host’s saved world. Only the host can change those builds on later visits.
+Guests can place bricks and move, rotate, paint, remove, or undo changes to the ones they place during that visit. The host can edit the whole world. Guest builds become part of the host’s saved world. Only the host can change those builds on later visits.
 
 ## Host on GitHub Pages
 

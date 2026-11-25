@@ -72,6 +72,7 @@
         <div class="build-tools" role="group" aria-label="Building tool">
           <button class="tool-button explore-tool" id="explore-tool" type="button" aria-pressed="true">Explore</button>
           <button class="tool-button" id="place-tool" type="button" aria-pressed="false"><span data-icon="plus" aria-hidden="true"></span>Place</button>
+          <button class="tool-button" id="move-tool" type="button" aria-label="Move piece" aria-pressed="false"><span data-icon="move" aria-hidden="true"></span>Move</button>
           <button class="tool-button remove-tool" id="remove-tool" type="button" aria-pressed="false"><span data-icon="minus" aria-hidden="true"></span>Remove</button>
           <button class="tool-button" id="rotate-tool" type="button" aria-pressed="false"><span data-icon="rotate" aria-hidden="true"></span>Rotate</button>
           <button class="tool-button" id="paint-tool" type="button" aria-pressed="false"><span data-icon="paint" aria-hidden="true"></span>Paint</button>
@@ -111,6 +112,7 @@
         <h2 id="parts-title">Parts &amp; colors</h2>
         <div class="compact-tools option-row" role="group" aria-label="Building tools">
           <button type="button" data-compact-tool="place" aria-pressed="false">Place</button>
+          <button type="button" data-compact-tool="move" aria-label="Move piece" aria-pressed="false">Move</button>
           <button type="button" data-compact-tool="remove" aria-pressed="false">Remove</button>
           <button type="button" data-compact-tool="rotate" aria-pressed="false">Rotate</button>
           <button type="button" data-compact-tool="paint" aria-pressed="false">Paint</button>
@@ -121,6 +123,10 @@
           <button type="button" data-parts-page="colors" aria-pressed="false">Colors</button>
         </div>
         <div class="kit-heading"><label for="kit-select">Build kit</label><select id="kit-select"></select><button id="parts-journal" class="text-button" type="button">Build packs</button></div>
+        <details id="house-build-help" class="house-build-help" hidden>
+          <summary>Finishing a house</summary>
+          <p>Leave an opening that matches the door’s width and height. Tap the floor inside the doorway to snap the door in. Set a window on its sill. Run tiles or stepped eaves along the tops of the walls and cap a peaked roof with a ridge.</p>
+        </details>
         <div class="parts-layout">
           <section class="parts-shelf" aria-label="Parts">
             <div id="part-groups" class="part-groups" role="group" aria-label="Part groups"></div>
@@ -250,6 +256,7 @@
           <div><dt>Move</dt><dd id="move-help">Use the arrow keys or movement buttons</dd></div>
           <div><dt>Orbit</dt><dd id="orbit-help">Drag with either mouse button</dd></div>
           <div><dt>Place a brick</dt><dd id="place-help">Choose a brick, then click a surface</dd></div>
+          <div><dt>Move a piece</dt><dd>Choose Move, then drag a placed piece to a new spot</dd></div>
           <div><dt>Remove a brick</dt><dd id="remove-help">Choose Remove, then click a brick</dd></div>
           <div><dt>Rotate or paint</dt><dd>Choose the tool and select a placed brick</dd></div>
           <div><dt>Undo</dt><dd>Restore your last building edit</dd></div>
