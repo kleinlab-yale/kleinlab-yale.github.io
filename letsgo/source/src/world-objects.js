@@ -17,6 +17,8 @@ export function createWorldObjects(scene, body) {
   const dark = material(TONES.darkBark);
   const rope = material(TONES.cream);
   const jade = material('#78948b', 0.3);
+  const reedPlank = material('#a6a265', 0.66);
+  const metalFitting = new THREE.MeshStandardMaterial({ color: '#a5aaa5', metalness: 0.45, roughness: 0.34 });
   const kettleGlaze = material('#386561', 0.29);
   const cupGlaze = material('#e7cbb6', 0.27);
   const brew = material('#a0653b', 0.34);
@@ -34,6 +36,9 @@ export function createWorldObjects(scene, body) {
   const rabbitCream = material('#f4e7e6', 0.38);
   const foxFur = material('#c9784c', 0.44);
   const otterFur = material('#80543d', 0.48);
+  const pandaFur = material('#ae6241', 0.43);
+  const craneFeathers = material('#eee7d6', 0.41);
+  const craneCrown = material('#a83648', 0.38);
   const earPoint = new THREE.ConeGeometry(0.5, 1, 4);
   const sphere = new THREE.SphereGeometry(0.5, 14, 9);
   const ring = new THREE.TorusGeometry(0.155, 0.022, 7, 18);
@@ -123,14 +128,15 @@ export function createWorldObjects(scene, body) {
       const x = (cx - centerX) * scale;
       const z = (cz - centerZ) * scale;
       const sealed = cells[cell] === 2;
-      box(group, sealed ? dark : cedar, x, 0.115, z, scale - 0.009, 0.19, scale - 0.007);
-      box(group, sealed ? jade : oak, x, 0.228, z, scale - 0.022, 0.052, scale - 0.017);
+      box(group, sealed ? dark : reedPlank, x, 0.115, z, scale - 0.009, 0.19, scale - 0.007);
+      box(group, sealed ? jade : reedPlank, x, 0.228, z, scale - 0.022, 0.052, scale - 0.017);
       if (sealed) {
+        for (const dx of [-0.118, 0.118]) box(group, metalFitting, x + dx, 0.258, z, 0.042, 0.019, 0.084);
         for (const [dx, dz] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
           if (neighbor(cx + dx, cz + dz)) continue;
           box(group, cedar, x + dx * 0.17, 0.323, z + dz * 0.17, dx ? 0.062 : scale, 0.146, dz ? 0.062 : scale);
         }
-      }
+      } else for (const dz of [-0.098, 0.098]) box(group, rope, x, 0.254, z + dz, scale - 0.01, 0.018, 0.036);
     }
     const width = (Math.max(...xs) - Math.min(...xs) + 1) * scale;
     const length = (Math.max(...zs) - Math.min(...zs) + 1) * scale;
@@ -312,6 +318,71 @@ export function createWorldObjects(scene, body) {
     return { group, body, head, tail, legs };
   }
 
+  function newPanda(adopted) {
+    const group = new THREE.Group();
+    const body = new THREE.Group();
+    const head = new THREE.Group();
+    const tail = new THREE.Group();
+    group.add(body);
+    body.add(head, tail);
+    box(body, pandaFur, 0, 0.255, 0.045, 0.38, 0.26, 0.49);
+    box(body, dark, 0, 0.176, 0.015, 0.34, 0.12, 0.43);
+    head.position.set(0, 0.333, -0.22);
+    box(head, pandaFur, 0, 0.069, -0.013, 0.39, 0.27, 0.3);
+    box(head, puppyCream, 0, 0.018, -0.147, 0.255, 0.126, 0.09);
+    box(head, puppyNose, 0, 0.057, -0.194, 0.075, 0.046, 0.034);
+    for (const sign of [-1, 1]) {
+      mesh(head, sphere, pandaFur, sign * 0.161, 0.198, 0.007, 0.144, 0.151, 0.103);
+      mesh(head, sphere, puppyCream, sign * 0.16, 0.207, -0.039, 0.081, 0.091, 0.045);
+      box(head, puppyCream, sign * 0.122, 0.131, -0.157, 0.118, 0.073, 0.063).rotation.z = sign * 0.23;
+      box(head, dark, sign * 0.124, 0.072, -0.152, 0.086, 0.071, 0.043).rotation.z = sign * 0.35;
+      mesh(head, sphere, puppyNose, sign * 0.107, 0.101, -0.181, 0.045, 0.047, 0.024);
+    }
+    if (adopted) box(body, jade, 0, 0.326, -0.139, 0.341, 0.057, 0.115);
+    const legs = [];
+    for (const z of [-0.142, 0.187]) for (const x of [-0.131, 0.131]) {
+      const leg = new THREE.Group();
+      leg.position.set(x, 0.149, z);
+      box(leg, dark, 0, -0.075, -0.011, 0.118, 0.148, 0.131);
+      body.add(leg);
+      legs.push(leg);
+    }
+    tail.position.set(0, 0.228, 0.275);
+    for (let i = 0; i < 6; i++) box(tail, i % 2 ? biscuit : pandaFur, 0, i * 0.038, i * 0.069, 0.2 - i * 0.011, 0.141 - i * 0.009, 0.094).rotation.x = -0.42;
+    return { group, body, head, legs, tail };
+  }
+
+  function newCrane(adopted) {
+    const group = new THREE.Group();
+    const body = new THREE.Group();
+    const head = new THREE.Group();
+    const tail = new THREE.Group();
+    group.add(body);
+    body.add(head, tail);
+    box(body, craneFeathers, 0, 0.363, 0.025, 0.263, 0.215, 0.39);
+    for (const side of [-1, 1]) {
+      box(body, porcelain, side * 0.115, 0.371, 0.056, 0.084, 0.143, 0.342).rotation.x = -0.12;
+      box(body, dark, side * 0.082, 0.327, 0.211, 0.086, 0.07, 0.118);
+    }
+    box(tail, dark, 0, 0.378, 0.232, 0.159, 0.075, 0.17).rotation.x = -0.27;
+    box(body, craneFeathers, 0, 0.49, -0.088, 0.107, 0.27, 0.108).rotation.x = -0.18;
+    if (adopted) box(body, jade, 0, 0.534, -0.092, 0.119, 0.038, 0.119);
+    head.position.set(0, 0.633, -0.105);
+    box(head, craneFeathers, 0, 0.04, -0.007, 0.129, 0.12, 0.158);
+    box(head, craneCrown, 0, 0.105, -0.027, 0.083, 0.029, 0.096);
+    mesh(head, earPoint, gold, 0, 0.026, -0.162, 0.05, 0.174, 0.042).rotation.x = -Math.PI / 2;
+    for (const sign of [-1, 1]) mesh(head, sphere, puppyNose, sign * 0.068, 0.051, -0.038, 0.019, 0.025, 0.021);
+    const legs = [-0.062, 0.062].map(x => {
+      const leg = new THREE.Group();
+      leg.position.set(x, 0.29, 0.027);
+      box(leg, dark, 0, -0.136, 0, 0.044, 0.279, 0.045);
+      box(leg, dark, 0, -0.267, -0.043, 0.062, 0.033, 0.14);
+      body.add(leg);
+      return leg;
+    });
+    return { group, body, head, legs, tail };
+  }
+
   return {
     sync,
     tea(id, action) {
@@ -345,7 +416,8 @@ export function createWorldObjects(scene, body) {
         if (current) root.remove(current.group);
         const adopted = !key.startsWith('island-');
         const model = data.id === 'mochi' ? newPuppy(adopted) : data.id === 'pebble' ? newTurtle(adopted) :
-          data.id === 'pip' ? newRabbit(adopted) : newWildPet(data.id === 'juniper', adopted);
+          data.id === 'pip' ? newRabbit(adopted) : data.id === 'kumo' ? newPanda(adopted) :
+            data.id === 'tsubaki' ? newCrane(adopted) : newWildPet(data.id === 'juniper', adopted);
         current = { ...model, id: data.id, target: null, stride: 0, yaw: 0 };
         root.add(current.group);
         pets.set(key, current);

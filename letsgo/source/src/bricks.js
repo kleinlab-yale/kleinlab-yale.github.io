@@ -1,10 +1,11 @@
 import { PLACEABLE_OBJECTS, QUICK_PARTS } from './parts.js';
 import { canBuildAt } from './islands.js';
 import { isChristmasTree } from './christmas.js';
+import { COAST_BOUNDS } from './mainland-data.js';
 
 export const STUD = 0.55;
 export const PLATE = 0.17;
-export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: 403, minY: -9, maxY: 105 };
+export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: COAST_BOUNDS.maxZ, minY: -9, maxY: 105 };
 export const REACH = 13;
 export const MAX_EDITS = 6000;
 export const WORLD_SAVE_VERSION = 2;

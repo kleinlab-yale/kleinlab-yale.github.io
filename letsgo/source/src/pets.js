@@ -1,11 +1,11 @@
-import { STUD } from './bricks.js';
+import { PLATE, STUD } from './bricks.js';
 import { ISLAND_LAYOUT } from './islands.js';
 import { SEA_LEVEL } from './voyage.js';
 
 export const RESCUE_REACH = 2.45;
-function pet(name, kind, island, dx, dz, power) {
+function pet(name, kind, island, dx, dz, power, base = 0) {
   const { gridX, gridZ } = ISLAND_LAYOUT[island];
-  return { name, kind, island, x: (gridX + dx) * STUD, z: (gridZ + dz) * STUD, power };
+  return { name, kind, island, x: (gridX + dx) * STUD, z: (gridZ + dz) * STUD, power, base: base * PLATE };
 }
 
 export const PETS = {
@@ -14,6 +14,8 @@ export const PETS = {
   pip: pet('Pip', 'Rabbit', 'berry', 3.5, -5.5, 7),
   nori: pet('Nori', 'Otter', 'reef', -4.5, -3.5, 10),
   juniper: pet('Juniper', 'Fox', 'moon', 2.5, -4.5, 14),
+  kumo: pet('Kumo', 'Red panda', 'cedar', 36.5, 60.5, 19),
+  tsubaki: pet('Tsubaki', 'Crane', 'cedar', 44.5, 108.5, 25, 8),
 };
 const RADIUS = 0.15;
 
@@ -26,10 +28,10 @@ export function lostPet(world, id) {
   const home = PETS[id];
   for (const offset of [0, -1, 1, -2, 2]) {
     const x = home.x + offset * STUD;
-    const y = groundAt(world, x, home.z, 0);
+    const y = groundAt(world, x, home.z, home.base);
     if (y !== null) return { x, y, z: home.z, yaw: 0, moving: false, aboard: false };
   }
-  return { x: home.x, z: home.z, y: 0, yaw: 0, moving: false, aboard: false };
+  return { x: home.x, z: home.z, y: home.base, yaw: 0, moving: false, aboard: false };
 }
 
 function restingSpot(world, player) {

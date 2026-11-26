@@ -5,7 +5,7 @@ import { PETS } from './pets.js';
 import { validHull } from './voyage.js';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const PROTOCOL = 7;
+const PROTOCOL = 8;
 const PREFIX = `brickbloom-v${PROTOCOL}-`;
 const TIMEOUT = 24000;
 const HEARTBEAT_INTERVAL = 2400;
@@ -168,6 +168,7 @@ export function createRooms(events) {
         const companion = validPose(pet) && Object.hasOwn(PETS, pet.id) && Math.hypot(pet.x - payload.x, pet.y - payload.y, pet.z - payload.z) < 6.5;
         events.pose({ x: payload.x, y: payload.y, z: payload.z, yaw: payload.yaw, moving: payload.moving === true,
           sprinting: payload.sprinting === true, grounded: payload.grounded === true,
+          coast: !isHost && payload.coast === true,
           boat: sailing ? { code: boat.code, yaw: boat.yaw } : null,
           pet: companion ? { id: pet.id, x: pet.x, y: pet.y, z: pet.z, yaw: pet.yaw,
             moving: pet.moving === true, aboard: sailing && pet.aboard === true, working: !sailing && pet.working === true } : null });

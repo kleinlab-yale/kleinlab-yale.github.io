@@ -19,6 +19,9 @@ export const BUILD_PACKS = {
   coastal: { name: 'Coastal Pack', goal: 'Sail to Shell Cove', contents: 'Harbor light, painted buoy and deck railing' },
   shipwright: { name: 'Shipwright Pack', goal: 'Light the Shell Cove lantern', contents: 'Mooring cleat, covered pier and rope rail' },
   stargazer: { name: 'Stargazer Pack', goal: 'Restore the lantern trail', contents: 'Working wind bell, star mosaic and observatory arch' },
+  harbor: { name: 'Harbor Workshop Pack', goal: 'Repair Cedar Coast’s canal bridge', contents: 'Canal railing, striped market canopy and dock bollard' },
+  terraces: { name: 'Terrace Garden Pack', goal: 'Water the Terrace Gardens', contents: 'Tea planter, stone trough and garden trellis' },
+  ridge: { name: 'Ridge Workshop Pack', goal: 'Restore the Ridge Observatory', contents: 'Compass mosaic, brass weather vane and lookout eave' },
 };
 
 export const PLACEABLE_OBJECTS = {
@@ -148,6 +151,43 @@ export const PARTS = [
     section(0, 0, 0, 1, 1, 6, 'blueGray'), section(4, 0, 0, 1, 1, 6, 'blueGray'),
     section(0, 6, 0, 5, 1, 1, 'ink'), section(1, 7, 0, 3, 1, 1, 'teal'), section(2, 8, 0, 1, 1, 1, 'gold'),
   ]), pack: 'stargazer' },
+  { ...kit('canal-rail', 'Canal railing', 'Structures', [
+    section(0, 0, 0, 1, 1, 6, 'redwood'), section(4, 0, 0, 1, 1, 6, 'redwood'),
+    section(1, 2, 0, 3, 1, 1, 'cream', false), section(1, 4, 0, 3, 1, 1, 'cream', false),
+    section(0, 6, 0, 5, 1, 1, 'cedar'),
+  ]), pack: 'harbor' },
+  { ...kit('market-awning', 'Striped market canopy', 'Structures', [
+    section(0, 0, 0, 1, 1, 8, 'beam'), section(3, 0, 0, 1, 1, 8, 'beam'),
+    section(0, 8, 0, 1, 3, 1, 'teal', false), section(1, 8, 0, 1, 3, 1, 'cream', false),
+    section(2, 8, 0, 1, 3, 1, 'teal', false), section(3, 8, 0, 1, 3, 1, 'cream', false),
+  ]), pack: 'harbor' },
+  { ...kit('dock-bollard', 'Dock bollard', 'Objects', [
+    section(0, 0, 0, 1, 1, 1, 'shale', false), section(0, 1, 0, 1, 1, 2, 'ink', false, 'round'),
+    section(0, 3, 0, 1, 1, 1, 'brass', false, 'round'), section(0, 4, 0, 1, 1, 1, 'ink', false, 'round'),
+  ]), pack: 'harbor' },
+  { ...kit('tea-planter', 'Tea planter', 'Garden', [
+    section(0, 0, 0, 3, 1, 2, 'claySoil'), ...[0, 1, 2].map(x => section(x, 2, 0, 1, 1, 1, 'fern', true, 'flower')),
+  ]), pack: 'terraces' },
+  { ...kit('stone-trough', 'Stone water trough', 'Garden', [
+    section(0, 0, 0, 3, 2, 2, 'shale'), section(0, 2, 0, 1, 2, 2, 'stone'), section(2, 2, 0, 1, 2, 2, 'stone'),
+    section(1, 2, 0, 1, 1, 2, 'stone'), section(1, 2, 1, 1, 1, 1, 'patina', false),
+  ]), pack: 'terraces' },
+  { ...kit('garden-trellis', 'Garden trellis', 'Structures', [
+    section(0, 0, 0, 1, 1, 8, 'cedar'), section(3, 0, 0, 1, 1, 8, 'cedar'), section(1, 4, 0, 2, 1, 1, 'fern'),
+    section(0, 8, 0, 4, 1, 1, 'oak'), section(1, 9, 0, 2, 1, 1, 'sage'),
+  ]), pack: 'terraces' },
+  { ...kit('compass-mosaic', 'Compass mosaic', 'Plates & tiles', [
+    section(0, 0, 0, 3, 3, 1, 'ink', false), section(1, 1, 0, 1, 3, 1, 'brass', false),
+    section(0, 1, 1, 1, 1, 1, 'chalk', false), section(2, 1, 1, 1, 1, 1, 'chalk', false),
+  ]), pack: 'ridge' },
+  { ...kit('weather-vane', 'Brass weather vane', 'Objects', [
+    section(1, 0, 0, 1, 1, 1, 'shale'), section(1, 1, 0, 1, 1, 5, 'brass', false, 'round'),
+    section(0, 6, 0, 3, 1, 1, 'brass', false), section(2, 7, 0, 1, 1, 1, 'gold', false),
+  ]), pack: 'ridge' },
+  { ...kit('lookout-eave', 'Lookout eave', 'Structures', [
+    section(0, 0, 0, 4, 3, 1, 'blueGray'), section(0, 1, 1, 4, 2, 1, 'teal'),
+    section(0, 2, 2, 4, 1, 1, 'ink'), section(0, 3, 2, 1, 1, 1, 'brass'), section(3, 3, 2, 1, 1, 1, 'brass'),
+  ]), pack: 'ridge' },
 ];
 
 export function matchedPart(brick) {
@@ -201,4 +241,10 @@ export const BUILD_KITS = [
     ['oak', 'cedar', 'beam', 'teal', 'chalk', 'stone', 'ink']),
   buildKit('stargazer', BUILD_PACKS.stargazer.name, ['windbell', 'star-mosaic', 'observatory-arch', 'column', 'plate-1x1', 'paving', 'paper'],
     ['gold', 'blueGray', 'ink', 'patina', 'teal', 'cream', 'ivory']),
+  buildKit('harbor', BUILD_PACKS.harbor.name, ['canal-rail', 'market-awning', 'dock-bollard', 'beam-1x7', 'cedar', 'floor', 'paving'],
+    ['cedar', 'oak', 'redwood', 'cream', 'teal', 'jade', 'brass']),
+  buildKit('terraces', BUILD_PACKS.terraces.name, ['tea-planter', 'stone-trough', 'garden-trellis', 'leaf', 'paving', 'tea-counter', 'column'],
+    ['pine', 'fern', 'sage', 'jade', 'patina', 'stone', 'oak']),
+  buildKit('ridge', BUILD_PACKS.ridge.name, ['compass-mosaic', 'weather-vane', 'lookout-eave', 'paper', 'column', 'paving', 'arch'],
+    ['brass', 'chalk', 'ink', 'blueGray', 'teal', 'jade', 'oak']),
 ];

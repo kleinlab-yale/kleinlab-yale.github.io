@@ -26,6 +26,14 @@ export const CHESTS = {
     requires: 'reef', hint: 'The dark vault sits at the base of Moonbell’s tower.' },
   stars: { name: 'Stargazer chest', ...onIsland('moon', 7.5, 2.5), power: 26, coins: 170,
     requires: 'moon', hint: 'Follow the eastern rock shelf beyond the Moonbell lanterns.' },
+  quay: { name: 'Quayside cache', x: -24.5, z: 536.5, power: 16, coins: 64, refill: 150000, coast: 'rei',
+    hint: 'Look behind the lantern arch at Cedar Harbor, beside the old boathouse.' },
+  terrace: { name: 'Terrace cache', x: 28.5, z: 599.5, power: 22, coins: 86, relic: 'Terrace Lens', coast: 'water',
+    hint: 'Follow the tea rows to the stone path beyond the irrigated gardens.' },
+  ridge: { name: 'Ridge vault', x: 19.5, z: 625.5, power: 28, coins: 128, relic: 'Brass Vane', coast: 'water',
+    hint: 'Look near the windward side of the stone road as it climbs the ridge.' },
+  summit: { name: 'Summit cache', x: 40.5, z: 640.5, power: 37, coins: 220, requires: 'ridge',
+    hint: 'Go east of the observatory courtyard and search the cedar edge after the signal is restored.' },
 };
 
 export const SYMBOLS = ['Wave', 'Blossom', 'Star', 'Moon', 'Shell'];
@@ -39,7 +47,10 @@ export const BEACONS = {
     restored: 'Driftglass is shining. The channel to Moonbell Isle is open.' },
   moon: { name: 'Moonbell lantern', ...onIsland('moon', 3.5, 0.5), chests: ['moon'], coins: 80,
     start: [0, 3, 4], answer: [3, 2, 1], clue: 'The crown is stamped with moon, star, then blossom.',
-    restored: 'All three sea lanterns are lit. The lantern trail is yours to explore.' },
+    restored: 'All three sea lanterns are lit. Cedar Coast is on your chart. Sail there from Moonbell harbor.' },
+  ridge: { name: 'Ridge Observatory', x: 29.5, z: 630.5, chests: ['terrace', 'ridge'], coins: 140, coast: 'water',
+    start: [3, 1, 0], answer: [0, 1, 2], clue: 'The coast chart is read south to north. The harbor receives the wave, the terraces bloom, and the ridge watches the star.',
+    restored: 'The observatory is shining. Cedar Coast has a signal to guide the next boats home.' },
 };
 
 export const STORY_STEPS = [

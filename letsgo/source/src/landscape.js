@@ -59,6 +59,7 @@ function makeSky(scene) {
   sky.renderOrder = -5;
   sky.frustumCulled = false;
   scene.add(sky);
+  return sky;
 }
 
 function makeEnvironment(renderer) {
@@ -127,7 +128,7 @@ function ridge(zBase, shade, side = 0, variant = 0) {
 }
 
 function makeWater(lowPower) {
-  const water = new Reflector(new THREE.PlaneGeometry(550, 550), {
+  const water = new Reflector(new THREE.PlaneGeometry(680, 900), {
     textureWidth: lowPower ? 384 : 768,
     textureHeight: lowPower ? 256 : 448,
     multisample: 0,
@@ -279,11 +280,16 @@ function makeSnow(lowPower) {
 
 export function dressScene(scene, renderer, lowPower) {
   scene.fog = new THREE.FogExp2(mist, fogDensity);
-  makeSky(scene);
+  const sky = makeSky(scene);
   scene.environment = makeEnvironment(renderer);
   scene.environmentIntensity = 0.63;
   scene.add(ridge(-142, '#77768e', 0, 1.5), ridge(-106, '#656e81', 0, 0.4), ridge(-76, '#526b69', 0, 2.2));
   scene.add(ridge(-108, '#6b7482', -1.2, 4.4), ridge(-89, '#677b76', 1.32, 3.3), ridge(-248, '#78848c', 3.04, 5.7));
+  const peaks = ridge(434, '#74788c', 0, 3.4);
+  peaks.scale.y = 1.5;
+  const foothills = ridge(377, '#526961', 0, 2.8);
+  foothills.scale.y = 0.66;
+  scene.add(peaks, ridge(403, '#64757a', 0, 1.2), foothills);
   const light = new THREE.DirectionalLight('#ffdfbe', 2.85);
   light.position.copy(sun.clone().multiplyScalar(62));
   light.castShadow = true;
@@ -295,7 +301,7 @@ export function dressScene(scene, renderer, lowPower) {
   light.shadow.intensity = 0.93;
   const fill = new THREE.DirectionalLight('#d5d9ff', 0.53);
   fill.position.set(8, 11, -17);
-  scene.add(light, new THREE.HemisphereLight('#ffeee7', '#78918b', 0.94), fill);
+  scene.add(light, light.target, new THREE.HemisphereLight('#ffeee7', '#78918b', 0.94), fill);
   const water = makeWater(lowPower);
   const petals = makePetals(lowPower);
   const snow = makeSnow(lowPower);
@@ -303,7 +309,15 @@ export function dressScene(scene, renderer, lowPower) {
   return {
     refresh() { water.refresh = true; },
     christmas(active) { snow.visible = active; petals.mesh.visible = !active; },
-    update(time) {
+    update(time, camera) {
+      sky.position.copy(camera.position);
+      const z = camera.position.z > 48 ? Math.round(camera.position.z / 34) * 34 : 0;
+      const x = z ? Math.round(camera.position.x / 32) * 32 : 0;
+      if (x !== light.target.position.x || z !== light.target.position.z) {
+        light.target.position.set(x, 0, z);
+        light.position.copy(light.target.position).addScaledVector(sun, 62);
+        renderer.shadowMap.needsUpdate = true;
+      }
       water.material.uniforms.time.value = time;
       if (petals.mesh.visible) petals.update(time);
       if (snow.visible) {

@@ -5,6 +5,7 @@ import { partIcon } from './build-menu.js';
 import { PETS } from './pets.js';
 import { HOUSE_GOAL } from './progression.js';
 import { christmasActive } from './christmas.js';
+import { COAST_STEPS } from './mainland-data.js';
 
 function element(tag, text, className) {
   const item = document.createElement(tag);
@@ -29,8 +30,40 @@ function entry(title, detail, status) {
   return row;
 }
 
-export function createJournal(dialog, progress, { selectKit, voyage, track, trainSound }) {
+export function createJournal(dialog, progress, { selectKit, voyage, track, trainSound, canCoast }) {
   const pages = Array.from(dialog.querySelectorAll('[data-journal-page]'));
+
+  function done(step) {
+    switch (step.type) {
+      case 'keeper': return progress.metKeeper;
+      case 'visit': return progress.visited(step.id);
+      case 'chest': return progress.opened(step.id);
+      case 'beacon': return progress.lit(step.id);
+      default: return progress.coastDone(step.id);
+    }
+  }
+
+  function chapter(panel, steps, summary, completion) {
+    const next = steps.find(step => !done(step));
+    panel.append(element('p', summary, 'panel-copy'));
+    if (next) {
+      const current = entry(next.title, next.detail, 'Current objective');
+      current.append(next.type === 'visit' ? action('Plan crossing', () => voyage(next.id)) : action('Track', () => track(next.type, next.id)));
+      panel.append(current);
+    } else {
+      const complete = entry(completion.title, completion.detail, 'Complete');
+      if (completion.lookout) complete.append(action('Track Cedar Pass', () => track('pass', 'cedar-pass')));
+      panel.append(complete);
+    }
+    const list = element('ol', '', 'story-steps');
+    for (const step of steps) {
+      const row = element('li', step.title);
+      if (done(step)) row.dataset.done = 'true';
+      if (step === next) row.setAttribute('aria-current', 'step');
+      list.append(row);
+    }
+    panel.append(list);
+  }
 
   function renderStory(panel) {
     if (christmasActive()) {
@@ -39,26 +72,21 @@ export function createJournal(dialog, progress, { selectKit, voyage, track, trai
       event.append(action('See packs', () => open('packs')));
       panel.append(event);
     }
-    const done = step => step.type === 'keeper' ? progress.metKeeper : step.type === 'chest' ? progress.opened(step.id) : progress.lit(step.id);
-    const next = STORY_STEPS.find(step => !done(step));
-    panel.append(element('h3', 'The Lantern Trail', 'story-heading'));
-    panel.append(element('p', 'Follow Keeper Aya’s chart to find the lost lenses and relight three sea lanterns.', 'panel-copy'));
-    if (next) {
-      const current = entry(next.title, next.detail, 'Current objective');
-      current.append(action('Track', () => track(next.type, next.id)));
-      panel.append(current);
-    } else panel.append(entry('The Lantern Trail is restored', 'Search Moonbell’s east shelf for the Stargazer chest.', 'Complete'));
-    const steps = element('ol', '', 'story-steps');
-    for (const step of STORY_STEPS) {
-      const row = element('li', step.title);
-      if (done(step)) row.dataset.done = 'true';
-      if (step === next) row.setAttribute('aria-current', 'step');
-      steps.append(row);
+    const mainland = canCoast();
+    if (mainland) {
+      panel.append(element('h3', 'Beyond Moonbell', 'story-heading'));
+      chapter(panel, COAST_STEPS, 'The mainland channel leads to Cedar Coast. Help the harbor town recover from the high tide.',
+        { title: 'Cedar Coast is restored', detail: 'Follow the inland trail to Cedar Pass, or train Tsubaki for the Summit cache.', lookout: true });
     }
-    panel.append(steps);
+    const trail = mainland ? element('details', '', 'treasure-guide') : panel;
+    trail.append(element(mainland ? 'summary' : 'h3', 'The Lantern Trail', mainland ? '' : 'story-heading'));
+    chapter(trail, STORY_STEPS, 'Follow Keeper Aya’s chart to find the lost lenses and relight three sea lanterns.',
+      { title: 'The Lantern Trail is restored', detail: 'Search Moonbell’s east shelf for the Stargazer chest.' });
+    if (mainland) panel.append(trail);
     const guide = element('details', '', 'treasure-guide');
     guide.append(element('summary', 'Treasure hints'));
     for (const [id, chest] of Object.entries(CHESTS)) {
+      if (!mainland && ['quay', 'terrace', 'ridge', 'summit'].includes(id)) continue;
       const detail = entry(chest.name, chest.hint, chest.refill ? 'Refills with the tide' : progress.opened(id) ? 'Opened' : `${chest.power} power`);
       if (chest.refill || !progress.opened(id)) detail.append(action('Track', () => track('chest', id)));
       guide.append(detail);
@@ -110,10 +138,11 @@ export function createJournal(dialog, progress, { selectKit, voyage, track, trai
     panel.append(action('Open island voyage', voyage));
     for (const [key, island] of Object.entries(ISLAND_LAYOUT)) {
       const route = key === 'reef' ? 'From Shell Cove or Cloudberry Isle · light Shell Cove first' :
-        key === 'moon' ? 'From Driftglass Reef or Cloudberry Isle · light Driftglass first' : 'Open-water crossing';
+        key === 'moon' ? 'From Driftglass Reef or Cloudberry Isle · light Driftglass first' :
+          key === 'cedar' ? 'Mainland crossing from Moonbell harbor · light Moonbell first' : 'Open-water crossing';
       const detail = island.offshore ? route : key === 'reed' ? 'Short crossing from the south dock' : 'Find Mochi by bridge or boat';
       const reached = progress.visited(key);
-      const row = entry(island.name, detail, reached ? 'Reached' : progress.charted(key) ? 'Explore' : 'Chart locked');
+      const row = entry(island.name, detail, reached ? 'Reached' : (key === 'cedar' ? canCoast() : progress.charted(key)) ? 'Explore' : 'Chart locked');
       row.dataset.earned = String(reached);
       panel.append(row);
     }

@@ -7,9 +7,9 @@
   <link rel="icon" type="image/png" href="./favicon.png" />
   <meta name="description" content="A touch-friendly 3D brick-building sandbox in a cherry-blossom village. Explore, rebuild, and play with a friend." />
   <title>LetsGo</title>
-  <script type="module" crossorigin src="./assets/index-CF3HAfBM.js"></script>
+  <script type="module" crossorigin src="./assets/index-e5N8YTb3.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/three-Coey5iCJ.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-ALPN3584.css">
+  <link rel="stylesheet" crossorigin href="./assets/index-BvO8iK1u.css">
 </head>
 <body>
   <div id="game" data-screen="title">
@@ -190,12 +190,13 @@
           <button id="return-dock" class="button secondary wide" type="button" hidden>Return to the south dock</button>
         </div>
         <div id="boat-workshop" hidden>
-          <p class="panel-copy">Connect the planks edge to edge. A sealed, reinforced floor gives you more range.</p>
+          <p class="panel-copy">Gather materials, then connect the planks edge to edge. A sealed hull carries you farther.</p>
           <div class="boat-layout">
             <section aria-label="Hull grid">
               <div class="boat-brushes option-row" role="group" aria-label="Boat building tool">
-                <button type="button" data-hull="1" aria-pressed="true">Plank</button>
-                <button type="button" data-hull="2" aria-pressed="false">Reinforced</button>
+                <button type="button" data-hull="1" aria-pressed="true">Reed plank</button>
+                <button type="button" data-hull="2" aria-pressed="false">Reinforced cedar</button>
+                <button type="button" data-hull="0" aria-pressed="false">Erase</button>
                 <button type="button" data-hull="0" aria-pressed="false">Remove</button>
               </div>
               <div id="boat-grid" class="boat-grid" role="group" aria-label="Five by seven hull grid"></div>
@@ -203,17 +204,27 @@
             <section class="boat-report" aria-label="Hull report">
               <h3 id="boat-range">Range 0 m</h3>
               <p id="boat-advice" class="panel-copy"></p>
+              <dl id="boat-stock" class="boat-stock" aria-label="Boat materials"></dl>
+              <p id="boat-recipe" class="panel-copy">A reed plank uses 1 bundle. Reinforced cedar uses 1 board and 1 fitting.</p>
+              <button id="track-materials" class="text-button" type="button">Track reed bundles</button>
+              <p id="boat-craft-message" class="boat-craft-message" role="status" hidden></p>
               <label for="voyage-destination">Destination</label>
               <select id="voyage-destination"></select>
               <p id="destination-range" class="panel-copy"></p>
               <div class="boat-patterns">
-                <button id="raft-pattern" class="text-button" type="button">Load a simple raft</button>
-                <button id="hull-pattern" class="text-button" type="button">Outline a larger hull</button>
+                <div><button id="raft-pattern" class="text-button" type="button">Build a simple raft</button><small id="raft-cost"></small></div>
+                <div><button id="wide-raft-pattern" class="text-button" type="button">Build a larger reed raft</button><small id="wide-raft-cost"></small></div>
+                <div><button id="hull-pattern" class="text-button" type="button">Outline a larger hull</button><small id="hull-cost"></small></div>
+                <div id="sea-hull-plan" hidden><button id="sealed-pattern" class="text-button" type="button">Build a reinforced sea hull</button><small id="sealed-cost"></small></div>
               </div>
             </section>
           </div>
           <button id="launch-boat" class="button primary wide" type="button" disabled>Launch boat</button>
           <button id="harbor-return-home" class="text-button" type="button" hidden>Return to the south dock</button>
+        </div>
+        <div class="port-returns">
+          <button id="return-moon" class="button secondary wide" type="button" hidden>Go to Moonbell harbor</button>
+          <button id="return-cedar" class="button secondary wide" type="button" hidden>Go to Cedar Harbor</button>
         </div>
       </div>
     </dialog>

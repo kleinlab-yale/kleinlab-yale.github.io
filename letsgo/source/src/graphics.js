@@ -479,7 +479,7 @@ export function createGraphics(canvas, world, compact) {
         slowFrames = 0;
         resize();
       }
-      scenery.update(reduceMotion ? 0 : time);
+      scenery.update(reduceMotion ? 0 : time, camera);
       traveler.animate(dt);
       local.animate(dt);
       objects.animate(reduceMotion ? 0 : time, dt);

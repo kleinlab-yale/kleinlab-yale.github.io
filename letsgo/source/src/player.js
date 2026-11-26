@@ -1,26 +1,28 @@
 import { BOUNDS, PLATE, STUD } from './bricks.js';
 import { SPAWN, WATER_LEVEL } from './valley.js';
+import { COAST_LANDING } from './mainland-data.js';
 
 export const RADIUS = 0.23;
 export const HEIGHT = 1.49;
 export const EYE = 1.29;
 const STEP = PLATE * 2 + 0.001;
 
-export function spawnPlayer(world, guest = false) {
-  const origin = SPAWN.x + (guest ? STUD * 3 : 0);
+export function spawnPlayer(world, guest = false, cedar = false) {
+  const start = cedar ? { ...SPAWN, x: COAST_LANDING.x * STUD, z: COAST_LANDING.z * STUD, yaw: Math.PI } : SPAWN;
+  const origin = start.x + (guest ? STUD * 3 : 0);
   for (let ring = 0; ring < 13; ring++) {
     const points = ring === 0 ? 1 : ring * 6;
     for (let i = 0; i < points; i++) {
       const angle = i / points * Math.PI * 2;
       const x = origin + Math.cos(angle) * ring * STUD;
-      const z = SPAWN.z + Math.sin(angle) * ring * STUD;
+      const z = start.z + Math.sin(angle) * ring * STUD;
       const y = world.groundBetween(x, z, RADIUS, WATER_LEVEL + 0.01, 18);
       if (Number.isFinite(y) && !world.collides(world.playerBox(x, y, z, RADIUS, HEIGHT))) {
-        return { ...SPAWN, x, y, z, velocity: 0, grounded: true, moving: false, sprinting: false, bob: 0 };
+        return { ...start, x, y, z, velocity: 0, grounded: true, moving: false, sprinting: false, bob: 0 };
       }
     }
   }
-  return { ...SPAWN, x: origin, y: 20, velocity: 0, grounded: false, moving: false, sprinting: false, bob: 0 };
+  return { ...start, x: origin, y: 20, velocity: 0, grounded: false, moving: false, sprinting: false, bob: 0 };
 }
 
 export function movePlayer(player, world, input, dt, yaw = player.yaw) {

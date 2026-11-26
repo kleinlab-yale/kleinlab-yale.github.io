@@ -1,5 +1,7 @@
 import { BrickWorld, PLATE, STUD } from './bricks.js';
 import { DOCK, ISLANDS, SEA_LEVEL, islandAt } from './voyage.js';
+import { buildMainland } from './mainland-world.js';
+import { coastDistrict } from './mainland-data.js';
 
 export const WATER_LEVEL = SEA_LEVEL;
 export const SPAWN = { x: 12.5 * STUD, y: 0, z: 31.5 * STUD, yaw: -0.16, pitch: -0.21 };
@@ -584,10 +586,13 @@ export function makeValley() {
   buildVoyage(world, make);
   buildOuterIslands(world, make);
   buildLanternTrail(world, make);
+  buildMainland(world, make, noise);
   return world;
 }
 
 export function district(x, y, z) {
+  const coast = coastDistrict(x / STUD, z / STUD);
+  if (coast) return coast;
   const island = islandAt(x, z);
   if (island) return ISLANDS[island].name;
   if (Math.hypot(x - DOCK.x, z - DOCK.z) < 6) return 'South Dock';

@@ -1,5 +1,6 @@
 import { BOUNDS, PLATE, STUD } from './bricks.js';
 import { ISLAND_LAYOUT } from './islands.js';
+import { COAST_LANDING, coastDistrict } from './mainland-data.js';
 
 export const SEA_LEVEL = -0.43;
 export const HULL_WIDTH = 5;
@@ -15,18 +16,21 @@ export const ROUTES = {
   shell: ['lantern', 'berry', 'reef'],
   berry: ['shell', 'reef', 'moon'],
   reef: ['shell', 'berry', 'moon'],
-  moon: ['reef', 'berry'],
+  moon: ['reef', 'berry', 'cedar'],
+  cedar: ['moon'],
 };
 
 export function harborAt(player) {
   if (player.y <= SEA_LEVEL || player.y > 2.5) return null;
   if (dockDistance(player) < 5.5) return 'home';
   const island = islandAt(player.x, player.z);
+  if (island === 'cedar' && Math.hypot(player.x - COAST_LANDING.x * STUD, player.z - COAST_LANDING.z * STUD) > 12) return null;
   return player.grounded && island && Object.hasOwn(ROUTES, island) ? island : null;
 }
 
 export function harborReturn(key) {
   if (key === 'home') return DOCK;
+  if (key === 'cedar') return { x: COAST_LANDING.x * STUD, y: 0, z: COAST_LANDING.z * STUD };
   const { x, z } = ISLANDS[key];
   return { x: x + 0.5 * STUD, y: 0, z: z - 4.5 * STUD };
 }
@@ -77,7 +81,7 @@ export function rateHull(code) {
   const loose = boards - main;
   const narrow = Math.min(width, length) < 2 ? 0.38 : 1;
   const leaky = holes ? Math.max(0.11, 0.27 - (holes - 1) * 0.035) : 1;
-  const strength = (12 + main * 1.28 + reinforced * 0.92 + Math.min(width, length) * 1.6) * narrow * leaky;
+  const strength = (12 + main * 1.1 + reinforced * 1.03 + Math.min(width, length) * 1.6) * narrow * leaky;
   const range = Math.round(strength * Math.max(0.37, 1 - loose * 0.12));
   return { boards, reinforced, holes, loose, width, length, range, speed: 3.1 + Math.min(1.2, main * 0.038), launchable: main >= 3 };
 }
@@ -87,14 +91,16 @@ export function hullPattern(type) {
     const x = i % HULL_WIDTH;
     const z = Math.floor(i / HULL_WIDTH);
     if (type === 'raft') return x >= 1 && x <= 2 && z >= 2 && z <= 4 ? '1' : '0';
+    if (type === 'wide-raft') return x >= 1 && x <= 3 && z >= 1 && z <= 5 ? '1' : '0';
     const edge = x === 0 || x === HULL_WIDTH - 1 || z === 0 || z === HULL_LENGTH - 1;
-    return edge ? '2' : '0';
+    return edge ? '2' : type === 'sealed' ? '1' : '0';
   }).join('');
 }
 
 export function dockDistance(player) { return Math.hypot(DOCK.x - player.x, DOCK.z - player.z); }
 
 export function islandAt(x, z) {
+  if (coastDistrict(x / STUD, z / STUD)) return 'cedar';
   return Object.keys(ISLANDS).find(key => {
     const area = ISLANDS[key];
     return Math.hypot((x - area.x) / (area.rx * STUD + 0.8), (z - area.z) / (area.rz * STUD + 0.8)) < 1.18;
@@ -110,6 +116,7 @@ function coastDistance(target, dx, dz) {
 
 function launchPoint(target, origin) {
   if (origin === 'home') return { x: DOCK.x, z: DOCK.launchZ };
+  if (origin === 'cedar') return { x: -18.5 * STUD, z: 496 * STUD };
   const harbor = ISLANDS[origin];
   const dx = target.x - harbor.x;
   const dz = target.z - harbor.z;

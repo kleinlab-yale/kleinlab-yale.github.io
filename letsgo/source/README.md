@@ -29,7 +29,9 @@ Use **Camera** to cycle between third person, wide, and first person. **Customiz
 
 Use Space to jump, 1–7 to select a brick, R to rotate, Z to undo, V to change the camera, and Escape to pause.
 
-Choose **Island voyage** and **Show dock direction** to find the south dock. At the workshop, load the simple raft or draw connected planks on the hull grid. Sail with the regular movement controls and follow the island marker. Holes and loose planks shorten your range. You can build a bridge to Lantern Island or sail there. Shell Cove and Cloudberry Isle lie across open water beyond the building area. A wider, longer hull reaches Shell Cove, and a reinforced hull reaches Cloudberry Isle. A sinking returns you to the dock with your design saved.
+Choose **Island voyage** and **Show dock direction** to find the south dock. Gather reed bundles near the dock for your first planks. Collect driftwood on Reed Islet and salvage fittings on Lantern Island to build reinforced cedar planks. The workshop shows your stock and what each design uses. Erase a plank to recover its materials. Older saved hulls carry over with their existing pieces fitted.
+
+Sail with the regular movement controls and follow the island marker. A reed raft can reach nearby islands, while a wider, reinforced hull reaches Shell Cove and Cloudberry Isle. Holes and loose planks shorten your range. You can also build a bridge to Lantern Island. A sinking returns you to the dock with your design saved.
 
 Follow the island markers to rescue Mochi the puppy, Pebble the turtle, Pip the rabbit, Nori the otter, and Juniper the fox. Choose a companion in **Journal → Pets**. Pets follow you on land and ride aboard your boat.
 
@@ -48,6 +50,16 @@ Talk to Keeper Aya in Building Meadow, or open **Journal → Story** and track t
 Recover the prism at Shell Cove and turn the three rings to match the lantern’s clue. Restoring a lantern lights its signal tower and opens the next route. The harbors on Shell Cove and Cloudberry Isle launch to the outer islands once you have the charts. If a crossing fails, you return to its departure harbor with your hull design saved.
 
 The trail unlocks the **Shipwright Pack** and the **Stargazer Pack**. The Stargazer Pack includes a working wind bell. Step up to the bell or tap it in Explore to ring it. Coins, chest rewards, pets, and story progress save in each player’s browser and follow that player into co-op.
+
+## Beyond Moonbell
+
+Restore Moonbell’s lantern to chart Cedar Coast and unlock the refit supplies near Moonbell harbor. Open **Journal → Story → Plan crossing** to get there. Collect the supplies, choose Cedar Coast in the workshop, and build a watertight hull with enough range to reach the mainland. After landing, the voyage guide offers a return to Cedar Harbor and your next solo visit can start there.
+
+Talk to Harbormaster Rei by the harbor arch. Fit the canal bridge’s three plank rows at the repair board or build the deck across the same gap yourself. Cross to the Terrace Gardens and work the sluice to bring water to all three beds. Rescue Kumo the red panda and Tsubaki the crane, then bring the garden lens and brass vane to the Ridge Observatory. The bridge, gardens, and observatory each unlock a build pack. A well-trained pet can open the bonus Summit cache.
+
+The inland road leaves the canal behind and climbs from the observatory through cedar foothills to Cedar Pass, where you can look up into the mountains.
+
+Friends invited to a host already on Cedar Coast start at the harbor in the host’s world. Guests can help place bridge planks and build their own pieces. The host’s world save holds the shared construction, and each player earns their own rewards.
 
 For two players, choose **Play together**, then **Create room**. **Message a friend** opens the device’s share menu when supported. **Copy invite link** copies a link that fills in the room code for your friend. Your friend can also enter the six-character code manually. Keep the host tab open during play. The host’s browser saves the shared edits. Players need no accounts or keys. The game uses WebRTC and the [shared PeerJS Cloud service](https://peerjs.com/server/cloud) for room discovery and connectivity. Access depends on the service and the players’ networks.
 

@@ -1,6 +1,9 @@
 import { BEACONS, CHESTS, KEEPER, SYMBOLS } from './adventure-data.js';
 import { STUD } from './bricks.js';
 import { PETS } from './pets.js';
+import { BRIDGE_BOARD, COAST_BOUNDS, COAST_MILESTONES, COAST_PASS, IRRIGATION, REI, SLUICE, irrigationFlow } from './mainland-data.js';
+import { bridgeDeck, nextBridgePlanks } from './mainland-bridge.js';
+import { SUPPLIES, resourceList } from './boat-craft.js';
 
 const $ = id => document.getElementById(id);
 const REACH = 2.85;
@@ -13,7 +16,7 @@ function findGround(world, location) {
     [-3, 0], [3, 0], [0, -3], [0, 3]]) {
     const x = (location.x + a) * STUD;
     const z = (location.z + b) * STUD;
-    const y = world.groundBetween(x, z, 0.16, -0.35, 1.2);
+    const y = world.groundBetween(x, z, 0.16, -0.35, location.z >= COAST_BOUNDS.minZ ? 2.1 : 1.2);
     if (!Number.isFinite(y)) continue;
     fallback = { x, y, z };
     if (!world.collides(world.playerBox(x, y, z, 0.26, 1.51))) return fallback;
@@ -21,7 +24,7 @@ function findGround(world, location) {
   return fallback;
 }
 
-export function createExpedition({ world, model, getPlayer, progress, open, resume, openPets, toast, sound, celebrate }) {
+export function createExpedition({ world, model, getPlayer, progress, craft, open, resume, openPets, toast, sound, celebrate, build }) {
   const prompts = $('trail-action');
   const promptLabel = $('trail-action-label');
   const meter = $('pet-work');
@@ -39,14 +42,22 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
     entries.set(key(type, id), { type, id, data, spot: null });
   }
   register('keeper', 'keeper', KEEPER);
+  register('harbormaster', 'rei', REI);
+  register('bridge', 'bridge', BRIDGE_BOARD);
+  register('sluice', 'water', SLUICE);
+  register('pass', 'cedar-pass', COAST_PASS);
   for (const [id, data] of Object.entries(CHESTS)) register('chest', id, data);
   for (const [id, data] of Object.entries(BEACONS)) register('beacon', id, data);
+  for (const [id, data] of Object.entries(SUPPLIES)) register('supply', id, data);
+
+  const unlockedSupply = data => !data.requires || progress.lit(data.requires);
 
   function refreshChests() {
     for (const [id, chest] of Object.entries(CHESTS)) {
       const status = progress.chestStatus(id).status;
       model.showChest(id, progress.opened(id) && (!chest.refill || status === 'refill'), job?.entry.id === id);
     }
+    for (const [id, data] of Object.entries(SUPPLIES)) model.showSupply(id, unlockedSupply(data) && !craft.seconds(id));
   }
 
   function reset() {
@@ -57,10 +68,11 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
     prompts.hidden = true;
     for (const entry of entries.values()) {
       entry.spot = findGround(world, entry.data);
-      model.place(entry.type, entry.id, entry.spot);
+      model.place(entry.type, entry.id, entry.spot, entry.data);
       if (entry.type === 'beacon') model.showLantern(entry.id, progress.lit(entry.id));
     }
     refreshChests();
+    model.water(progress.coastDone('water'));
   }
   reset();
 
@@ -117,7 +129,7 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
 
   function showChest(entry) {
     const { data, id } = entry;
-    const { status, remaining, beacon } = progress.chestStatus(id);
+    const { status, remaining, beacon, step } = progress.chestStatus(id);
     const active = progress.companion;
     if (status === 'opened') {
       paragraph(data.relic ? `You recovered the ${data.relic} from this chest.` : 'You collected the coins from this chest.');
@@ -128,6 +140,8 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
       paragraph(`The next tide refills this chest in ${remaining} seconds.`);
     } else if (status === 'dark') {
       paragraph(`Light the ${BEACONS[beacon].name} to release this lock.`);
+    } else if (status === 'coast') {
+      paragraph(step === 'rei' ? 'Speak to Harbormaster Rei to open this supply cache.' : 'Restore water to the Terrace Gardens to release this lock.');
     } else if (status === 'power') {
       paragraph(active ? `${PETS[active].name} has ${progress.petStats(active).power} power. Train your pet or bring a stronger companion.` : 'Rescue a pet and bring it along to open this chest.');
       button('Open pet journal', openPets, content, 'button secondary wide');
@@ -140,6 +154,7 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
   function showLantern(entry) {
     const { id, data } = entry;
     if (progress.lit(id)) { paragraph(data.restored); return; }
+    if (data.coast && !progress.coastDone(data.coast)) { paragraph('Restore the Terrace Gardens first. Their restored flow powers the observatory gate.'); return; }
     const missing = progress.missingRelics(id);
     if (missing.length) {
       paragraph(`The lantern needs ${missing.map(chest => CHESTS[chest].relic).join(' and ')}.`);
@@ -172,6 +187,113 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
     });
   }
 
+  function finishCoast(entry, evidence, message, next) {
+    if (!reach(entry)) return;
+    const packs = progress.completeCoast(entry.id, evidence);
+    if (!packs) return;
+    tracked = next ? entries.get(key(...next)) : null;
+    model.water(progress.coastDone('water'));
+    resume();
+    celebrate(`${message} ${COAST_MILESTONES[entry.id].coins} coins earned.`, packs);
+  }
+
+  function showRei(entry) {
+    progress.completeCoast('rei');
+    if (tracked === entry) tracked = null;
+    if (progress.lit('ridge')) {
+      paragraph('Ships can see the observatory from the channel again. The market is open, and the summit cache is yours to search for.');
+      button('Back to the coast', resume);
+    } else if (progress.coastDone('water')) {
+      paragraph('The tea beds have water again. Find the lens near the gardens and the brass vane up on Windward Ridge. They belong to the observatory.');
+      button('Track the Terrace cache', () => { tracked = entries.get(key('chest', 'terrace')); resume(); });
+    } else if (progress.coastDone('bridge')) {
+      paragraph('You reopened the road. The terrace sluice is just across the canal. Use its three gates to bring water back to the tea beds.');
+      button('Track the terrace sluice', () => { tracked = entries.get(key('sluice', 'water')); resume(); });
+    } else {
+      paragraph('Moonbell’s light brought you through. A high tide washed the bridge deck out at Canal Market, and the gardens have been dry ever since.');
+      paragraph('Follow the paving to the repair board. You can use it to fit planks or build the three rows yourself.');
+      button('Track the canal bridge', () => { tracked = entries.get(key('bridge', 'bridge')); resume(); });
+    }
+  }
+
+  function showBridge(entry) {
+    if (!progress.coastDone('rei')) { paragraph('Speak to Harbormaster Rei by the harbor arch to take on the repair.'); return; }
+    const deck = bridgeDeck(world);
+    const fitted = deck.flat().filter(Boolean).length;
+    const total = deck.flat().length;
+    paragraph('Build a three-row deck level with the oak landings. Leave room to walk across it.');
+    const board = document.createElement('div');
+    board.className = 'repair-board';
+    board.setAttribute('role', 'img');
+    board.setAttribute('aria-label', `${fitted} of ${total} bridge studs fitted`);
+    for (const filled of deck.flat()) {
+      const tile = document.createElement('span');
+      tile.dataset.fitted = String(filled);
+      board.append(tile);
+    }
+    content.append(board);
+    paragraph(`${fitted} of ${total} deck studs ready`, 'lantern-feedback');
+    if (fitted === total) {
+      if (progress.coastDone('bridge')) button('Cross the bridge', resume);
+      else button('Finish bridge repair', () => finishCoast(entry, bridgeDeck(world).flat().every(Boolean),
+        'The market road is open.', ['sluice', 'water']));
+      return;
+    }
+    const planks = nextBridgePlanks(deck);
+    if (world.canPlace(planks)) button('Fit the next plank row', () => {
+      if (!reach(entry)) return;
+      const next = nextBridgePlanks(bridgeDeck(world));
+      if (!next.length || !world.canPlace(next)) { show(entry); return; }
+      build(next);
+      resume();
+    });
+    else paragraph('Clear the next row at the landing’s height, then fit a plank.');
+  }
+
+  function showSluice(entry) {
+    if (progress.coastDone('water')) { paragraph('Water is flowing through all three tea beds. Check the path beyond the terraces for the lens.'); return; }
+    if (!progress.coastDone('bridge')) { paragraph('Finish the canal bridge repair first so Rei can reopen the garden road.'); return; }
+    paragraph('Route water from the spring through each open channel. Each gate sends the flow west, straight, or east.');
+    const gates = [...IRRIGATION.start];
+    const directions = ['West', 'Straight', 'East'];
+    const board = document.createElement('div');
+    board.className = 'irrigation-board';
+    board.setAttribute('role', 'img');
+    content.append(board);
+    const group = document.createElement('div');
+    group.className = 'lantern-rings option-row';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Terrace gates');
+    content.append(group);
+    const feedback = paragraph('', 'lantern-feedback');
+    feedback.setAttribute('role', 'status');
+    const release = button('Release water', () => finishCoast(entry, gates, 'Fresh water reaches the tea beds.', ['chest', 'terrace']));
+    const controls = IRRIGATION.gates.map((name, i) => button(name, () => {
+      gates[i] = gates[i] === 1 ? -1 : gates[i] + 1;
+      sound('rotate');
+      render();
+    }, group, 'subtle-button'));
+
+    function render() {
+      const wet = irrigationFlow(gates);
+      board.replaceChildren();
+      for (const [row, lane] of [IRRIGATION.source, ...IRRIGATION.beds].entries()) {
+        for (let column = 0; column < 3; column++) {
+          const cell = document.createElement('span');
+          cell.dataset.channel = String(column === lane);
+          cell.dataset.water = String(wet[row] === column);
+          if (column === lane) cell.textContent = row === 0 ? 'Spring' : `Bed ${row}`;
+          board.append(cell);
+        }
+      }
+      board.setAttribute('aria-label', 'Spring in the center. Open channels lead east to bed one, west to bed two, and west to bed three.');
+      for (const [i, control] of controls.entries()) control.textContent = `${IRRIGATION.gates[i]} · ${directions[gates[i] + 1]}`;
+      feedback.textContent = `${wet.length - 1} of ${IRRIGATION.beds.length} beds connected`;
+      release.disabled = wet.length !== IRRIGATION.beds.length + 1;
+    }
+    render();
+  }
+
   function show(entry) {
     if (!entry || !reach(entry)) return;
     title.textContent = entry.data.name;
@@ -180,7 +302,7 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
       progress.meetKeeper();
       if (tracked === entry) tracked = null;
       if (progress.lit('moon')) {
-        paragraph('I heard Moonbell’s bell again from the meadow. The next boat coming home will have lights to guide it the whole way.');
+        paragraph('I heard Moonbell’s bell again from the meadow. The light reveals a channel to Cedar Coast. Visit the Moonbell harbor and take a watertight boat to the mainland.');
         button('Back to the valley', resume);
       } else if (progress.lit('reef')) {
         paragraph('The Driftglass light reaches Moonbell now. Juniper waits by the tower. With some training, that fox can work the old vault lock.');
@@ -193,16 +315,52 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
         paragraph('Pets can work the old chest locks. My supply chest holds coins for training. Find Mochi on Lantern Island if you need a companion.');
         button('I’ll find the prism', resume);
       }
-    } else if (entry.type === 'chest') showChest(entry);
+    } else if (entry.type === 'harbormaster') showRei(entry);
+    else if (entry.type === 'bridge') showBridge(entry);
+    else if (entry.type === 'sluice') showSluice(entry);
+    else if (entry.type === 'pass') {
+      paragraph('The canal ends below the ridge. From this pass, the old cedar road climbs into the mountains. Look up the valley to see the high country.');
+      button('Back to the trail', resume);
+    }
+    else if (entry.type === 'chest') showChest(entry);
     else showLantern(entry);
     open();
   }
 
-  prompts.onclick = () => show(focus);
+  function pickUp(entry) {
+    if (!reach(entry)) return;
+    if (!unlockedSupply(entry.data)) { toast('Restore Moonbell’s lantern to unlock these supplies.'); return; }
+    const remaining = craft.seconds(entry.id);
+    if (remaining) { toast(`This supply refills in ${remaining} seconds.`); return; }
+    const amount = craft.gather(entry.id);
+    if (!amount) return;
+    sound('place');
+    toast(`Collected ${resourceList(amount)}.`);
+    if (tracked === entry) tracked = null;
+    model.showSupply(entry.id, false);
+  }
+
+  prompts.onclick = () => {
+    if (focus?.type === 'supply') pickUp(focus);
+    else show(focus);
+  };
 
   return {
     reset,
     track(type, id) { tracked = entries.get(key(type, id)) ?? null; },
+    trackSupply(material) {
+      const player = getPlayer();
+      const sources = [];
+      for (const [id, data] of Object.entries(SUPPLIES)) {
+        if (!data.yield[material] || !unlockedSupply(data) || data.island && !progress.visited(data.island)) continue;
+        const entry = entries.get(key('supply', id));
+        const penalty = craft.seconds(id) ? 14 : 0;
+        sources.push({ entry, distance: distance(player, entry.spot) + penalty });
+      }
+      sources.sort((a, b) => a.distance - b.distance);
+      tracked = sources[0]?.entry ?? null;
+      return Boolean(tracked);
+    },
     stopTracking() { tracked = null; },
     get waypoint() { return tracked ? { ...tracked.spot, name: tracked.data.name } : null; },
     tick(player, elapsed, time, blocked, otherReach) {
@@ -233,7 +391,9 @@ export function createExpedition({ world, model, getPlayer, progress, open, resu
       }
       prompts.hidden = !focus;
       if (focus) {
-        const label = focus.type === 'keeper' ? 'Talk to Keeper Aya' : focus.type === 'beacon' ? 'Check the lantern' : `Check ${focus.data.name.toLowerCase()}`;
+        const supply = focus.type === 'supply' && unlockedSupply(focus.data) && craft.seconds(focus.id) ? 'Check supplies' : null;
+        const label = supply ?? focus.data.prompt ?? (focus.type === 'keeper' ? 'Talk to Keeper Aya' : focus.id === 'ridge' && focus.type === 'beacon' ?
+          'Check the observatory' : focus.type === 'beacon' ? 'Check the lantern' : `Check ${focus.data.name.toLowerCase()}`);
         if (promptLabel.textContent !== label) promptLabel.textContent = label;
       }
       return { nearby: Boolean(focus) || Boolean(job), work: job?.spot ?? null };

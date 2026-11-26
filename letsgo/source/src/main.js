@@ -20,6 +20,8 @@ import { district, makeValley } from './valley.js';
 import { christmasActive, CHRISTMAS_END, isChristmasPiece, isChristmasTree } from './christmas.js';
 import { snapPlacement } from './snapping.js';
 import { canBuildAt } from './islands.js';
+import { islandAt } from './voyage.js';
+import { createBoatCraft } from './boat-craft.js';
 
 const $ = id => document.getElementById(id);
 const SAVE_KEY = 'brick-and-bloom:valley:1';
@@ -27,6 +29,7 @@ const LOOK_KEY = 'brick-and-bloom:appearance:1';
 const VIEW_KEY = 'brick-and-bloom:view:1';
 const KIT_KEY = 'letsgo:build-kit:1';
 const AUDIO_KEY = 'letsgo:audio:1';
+const LANDING_KEY = 'letsgo:landing:1';
 const icons = {
   brick: '<path d="M2.5 11.8 12 6.5l9.5 5.3v5.5L12 22.5l-9.5-5.2zM2.5 11.8 12 17l9.5-5.2M12 17v5.5M7 9.2V6.5l5-2.8 5 2.8v2.7M7 6.5l5 2.8 5-2.8M12 9.3V12"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15.5 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/>',
@@ -86,6 +89,7 @@ function boot() {
   let christmasPacked = saveCache?.christmasPacked === true;
   world.restore(saveCache);
   const progress = createProgress(stored, remember, world.added.size);
+  const craft = createBoatCraft(stored, remember);
   const localEditor = new Builder(world);
   localEditor.restoreHistory(saveCache);
   const graphics = createGraphics(canvas, world, compact);
@@ -96,7 +100,10 @@ function boot() {
   const keys = new Set();
   const padPointers = new Map();
   const stick = { id: null, x: 0, z: 0 };
-  let player = spawnPlayer(world);
+  let cedarLanding = stored(LANDING_KEY) === 'cedar';
+  let guestLanding = false;
+  let guestCoast = false;
+  let player = spawnPlayer(world, false, cedarLanding && progress.charted('cedar'));
   const orbit = { yaw: player.yaw, pitch: player.pitch };
   let remote = null;
   let guestWorld = false;
@@ -126,6 +133,8 @@ function boot() {
   const dialogs = { pause: $('pause-dialog'), room: $('room-dialog'), controls: $('controls-dialog'), appearance: $('appearance-dialog'),
     parts: $('parts-dialog'), voyage: $('voyage-dialog'), journal: $('journal-dialog'), adventure: $('adventure-dialog') };
   const compactTools = Array.from(document.querySelectorAll('[data-compact-tool]'));
+  const canCoast = () => progress.charted('cedar') || guestWorld && (guestCoast || remote?.coast === true);
+  const joinCoast = () => guestWorld && remote?.coast === true && !remote.boat && islandAt(remote.x, remote.z) === 'cedar';
 
   function toast(message) {
     clearTimeout(toastTimer);
@@ -301,10 +310,13 @@ function boot() {
   }
 
   const rooms = createRooms({
-    snapshot: () => world.snapshot(),
+    snapshot: () => ({ ...world.snapshot(), coast: progress.charted('cedar'),
+      cedarLanding: progress.charted('cedar') && !activities.sailing && islandAt(player.x, player.z) === 'cedar' }),
     restore: snapshot => {
       if (!guestWorld && saveTimer) save();
       guestWorld = true;
+      guestCoast = snapshot.coast === true;
+      guestLanding = guestCoast && snapshot.cedarLanding === true;
       world.restore(snapshot);
       resetPlayer();
       setTool(tool);
@@ -351,6 +363,7 @@ function boot() {
   function leaveRoom() {
     if (guestWorld) {
       guestWorld = false;
+      guestCoast = guestLanding = false;
       world.restore(saveCache);
       resetPlayer();
       setTool(tool);
@@ -676,24 +689,34 @@ function boot() {
     if (brick && PLACEABLE_OBJECTS[brick.form]?.interaction && objectDistance(player, brick) <= 2.5) runEdit({ kind: 'use', id });
   }
 
-  const expedition = createExpedition({ world, model: graphics.adventure, getPlayer: () => player, progress,
+  const expedition = createExpedition({ world, model: graphics.adventure, getPlayer: () => player, progress, craft,
     open: () => { setScreen('pause'); dialogs.adventure.showModal(); }, resume: enter,
-    openPets: () => showJournal('pets'), toast, sound: audio.tap, celebrate,
+    openPets: () => showJournal('pets'), toast, sound: audio.tap, celebrate, build: bricks => runEdit({ kind: 'place', bricks }),
   });
   const activities = createActivities({ world, graphics, getPlayer: () => player, expedition,
     openDialog: () => { dialogs.journal.close(); dialogs.parts.close(); setScreen('pause'); dialogs.voyage.showModal(); },
     resume: enter, toast, sound: audio.tap, progress, achieve, use: useProp,
-    read: stored, save: remember, sendTea: action => { sendPose(); rooms.tea(action); },
+    craft, sendTea: action => { sendPose(); rooms.tea(action); },
+    canCoast, joinCoast,
+    onPort(port) {
+      const cedar = port === 'cedar';
+      if (guestWorld) guestLanding = cedar;
+      else if (cedarLanding !== cedar) {
+        cedarLanding = cedar;
+        remember(LANDING_KEY, cedar ? 'cedar' : null);
+      }
+    },
     turnTo: yaw => { orbit.yaw = yaw; orbit.pitch = -0.24; },
   });
   const journal = createJournal(dialogs.journal, progress, {
     selectKit: key => showParts('all', key), voyage: activities.openVoyage, trainSound: () => audio.tap('reward'),
+    canCoast,
     track: (type, id) => { activities.stopDockTracking(); expedition.track(type, id); enter(); },
   });
 
   function resetPlayer() {
     activities.reset();
-    player = spawnPlayer(world, guestWorld);
+    player = spawnPlayer(world, guestWorld, guestWorld ? guestLanding : cedarLanding && progress.charted('cedar'));
     orbit.yaw = player.yaw;
     orbit.pitch = player.pitch;
   }
@@ -992,7 +1015,8 @@ function boot() {
 
   function sendPose() {
     rooms.pose({ x: player.x, y: player.y, z: player.z, yaw: player.yaw,
-      moving: player.moving, sprinting: player.sprinting, grounded: player.grounded, boat: activities.pose, pet: activities.companion });
+      moving: player.moving, sprinting: player.sprinting, grounded: player.grounded,
+      coast: !guestWorld && progress.charted('cedar'), boat: activities.pose, pet: activities.companion });
   }
 
   let previous = performance.now();
