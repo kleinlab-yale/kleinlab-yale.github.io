@@ -9,7 +9,8 @@ import { createBuildMenu, partButton, toneName } from './build-menu.js';
 import { Builder, PROTECTED_BRICK } from './editor.js';
 import { BUILD_KITS, BUILD_PACKS, PLACEABLE_OBJECTS, layoutPart, matchedPart } from './parts.js';
 import { createGraphics } from './graphics.js';
-import { EYE, HEIGHT, movePlayer, RADIUS, spawnPlayer } from './player.js';
+import { EYE, HEIGHT, movePlayer, RADIUS, spawnPlayer, stopWalking } from './player.js';
+import { damp, snapMotion } from './motion.js';
 import { createRooms, normalizeCode, validCode } from './rooms.js';
 import { createAudio } from './audio.js';
 import { createActivities, objectDistance } from './activities.js';
@@ -109,6 +110,8 @@ function boot() {
   let guestCoast = false;
   let player = spawnPlayer(world, false, cedarLanding && progress.charted('cedar'));
   const orbit = { yaw: player.yaw, pitch: player.pitch };
+  const cameraYaw = { value: orbit.yaw, velocity: 0 };
+  const cameraPitch = { value: orbit.pitch, velocity: 0 };
   let remote = null;
   let guestWorld = false;
   let screen = 'title';
@@ -130,7 +133,6 @@ function boot() {
   let flashUntil = 0;
   let toastTimer;
   let lastPose = 0;
-  let lastStep = 0;
   let lastDistrict = '';
   let lastSeasonCheck = 0;
   let winter;
@@ -215,7 +217,7 @@ function boot() {
       stick.id = null;
       stick.x = stick.z = 0;
       $('stick').style.transform = '';
-      player.moving = player.sprinting = false;
+      stopWalking(player);
       graphics.aim(null, null, false);
     }
   }
@@ -879,7 +881,7 @@ function boot() {
         remember(LANDING_KEY, cedar ? 'cedar' : null);
       }
     },
-    turnTo: yaw => { orbit.yaw = yaw; orbit.pitch = -0.24; },
+    turnTo: yaw => faceCamera(yaw, -0.24),
   });
   const journal = createJournal(dialogs.journal, progress, {
     selectKit: key => showParts('all', key), voyage: activities.openVoyage, trainSound: () => audio.tap('reward'),
@@ -890,8 +892,12 @@ function boot() {
   function resetPlayer() {
     activities.reset();
     player = spawnPlayer(world, guestWorld, guestWorld ? guestLanding : cedarLanding && progress.charted('cedar'));
-    orbit.yaw = player.yaw;
-    orbit.pitch = player.pitch;
+    faceCamera(player.yaw, player.pitch);
+  }
+
+  function faceCamera(yaw, pitch) {
+    orbit.yaw = snapMotion(cameraYaw, yaw);
+    orbit.pitch = snapMotion(cameraPitch, pitch);
   }
 
   const angle = value => Math.atan2(Math.sin(value), Math.cos(value));
@@ -924,7 +930,12 @@ function boot() {
     }
   });
   window.addEventListener('keyup', event => keys.delete(event.code));
-  window.addEventListener('blur', () => { keys.clear(); padPointers.clear(); clearDrag(); });
+  window.addEventListener('blur', () => {
+    keys.clear();
+    padPointers.clear();
+    stopWalking(player);
+    clearDrag();
+  });
   canvas.addEventListener('contextmenu', event => event.preventDefault());
   canvas.addEventListener('wheel', event => {
     if (screen !== 'play' || event.deltaY === 0) return;
@@ -1032,9 +1043,11 @@ function boot() {
     const dz = event.clientY - bounds.top - bounds.height / 2;
     const travel = bounds.width * 0.26;
     const distance = Math.hypot(dx, dz);
-    const length = Math.max(travel, distance);
-    stick.x = distance > 3 ? dx / length : 0;
-    stick.z = distance > 3 ? -dz / length : 0;
+    const deadZone = Math.min(4, travel * 0.18);
+    const strength = Math.max(0, Math.min(1, (distance - deadZone) / (travel - deadZone)));
+    const scale = strength / Math.max(0.001, distance);
+    stick.x = dx * scale;
+    stick.z = -dz * scale;
     $('stick').style.transform = `translate(${stick.x * travel}px, ${-stick.z * travel}px)`;
   }
   joystick.addEventListener('pointerdown', event => {
@@ -1233,6 +1246,8 @@ function boot() {
     if (screen === 'title') {
       graphics.overview(time);
     } else {
+      const heading = damp(cameraYaw, cameraYaw.value + angle(orbit.yaw - cameraYaw.value), 22, dt);
+      damp(cameraPitch, orbit.pitch, 22, dt);
       if (screen === 'play') {
         const directions = new Set([...keys, ...padPointers.values()]);
         const input = {
@@ -1241,26 +1256,22 @@ function boot() {
           jump,
           sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'),
         };
-        const { x, z } = player;
-        if (!activities.move(input, orbit.yaw, dt)) {
-          if (movePlayer(player, world, input, dt, orbit.yaw)) resetPlayer();
-          else if (!CAMERAS[view].distance) player.yaw = orbit.yaw;
+        const { x, z, steps } = player;
+        if (!activities.move(input, heading, dt)) {
+          if (movePlayer(player, world, input, dt, heading)) resetPlayer();
+          else if (!CAMERAS[view].distance) player.yaw = angle(heading);
           else if (player.moving) {
-            const heading = Math.atan2(x - player.x, z - player.z);
-            player.yaw = angle(player.yaw + angle(heading - player.yaw) * (1 - Math.exp(-dt * 18)));
+            const walkingHeading = Math.atan2(x - player.x, z - player.z);
+            player.yaw = angle(player.yaw + angle(walkingHeading - player.yaw) * (1 - Math.exp(-dt * 18)));
           }
         }
-        activities.tick(now, orbit.yaw, dt);
+        activities.tick(now, cameraYaw.value, dt);
         jump = false;
-        if (player.moving && player.grounded && now - lastStep > (player.sprinting ? 260 : 390)) {
-          audio.tap('step');
-          lastStep = now;
-        }
+        if (Math.floor(player.steps) > Math.floor(steps)) audio.tap('step');
         const location = activities.sailing ? 'Open Water' : district(player.x, player.y, player.z);
         if (location !== lastDistrict) $('district').textContent = lastDistrict = location;
       }
-      const bob = player.moving && player.grounded && !reduceMotion ? Math.sin(player.bob * 2) * 0.026 : 0;
-      graphics.playerView(player, CAMERAS[view], orbit, bob, dt);
+      graphics.playerView(player, CAMERAS[view], { yaw: cameraYaw.value, pitch: cameraPitch.value }, dt);
       if (aimPoint?.touch && now >= flashUntil) aimPoint = null;
       const moving = screen === 'play' && drag?.piece && drag.moved ? movePlacement(drag, drag) : null;
       const hit = screen === 'play' && !activities.sailing && tool !== 'explore' && aimPoint ? pick(aimPoint) : null;

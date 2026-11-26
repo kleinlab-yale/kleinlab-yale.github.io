@@ -2,8 +2,16 @@ import * as THREE from 'three';
 import { DEFAULT_LOOK, OUTFITS } from './appearance.js';
 import { createFace } from './face.js';
 import { createAccessories, createClothes, createHair } from './wardrobe.js';
+import { STEP } from './player.js';
+import { damp, snapMotion, stepLength } from './motion.js';
 
-export function createTraveler(scene, body, withShadow = true) {
+const HIP = 0.537;
+const THIGH = 0.221;
+const SHIN = 0.226;
+const ANKLE = HIP - THIGH - SHIN;
+const STANCE = 0.56;
+
+export function createTraveler(scene, body, withShadow = true, world = null) {
   const figure = new THREE.Group();
   const material = (color, roughness = 0.54) => new THREE.MeshStandardMaterial({ color, roughness });
   const suit = material(OUTFITS[0].color, 0.69);
@@ -26,9 +34,11 @@ export function createTraveler(scene, body, withShadow = true) {
   }
   let previousYaw = 0;
   let target = null;
+  let followImmediately = false;
   let stride = 0;
   let phase = 0;
   let strideLimit = 1;
+  const elevation = { value: 0, velocity: 0 };
 
   function brick(parent, surface, x, y, z, w, h, d) {
     const model = new THREE.Mesh(body, surface);
@@ -65,13 +75,21 @@ export function createTraveler(scene, body, withShadow = true) {
     const cuff = brick(arm, trim, side * 0.043, -0.301, 0, 0.154, 0.043, 0.183);
     brick(arm, skin, side * 0.043, -0.364, 0.004, 0.129, 0.105, 0.149);
     const leg = new THREE.Group();
-    leg.position.set(side * 0.119, 0.537, 0);
-    const trousers = brick(leg, lining, 0, -0.193, 0, 0.195, 0.409, 0.226);
-    brick(leg, trim, 0, -0.37, 0, 0.199, 0.039, 0.225);
-    brick(leg, boots, 0, -0.434, -0.036, 0.202, 0.133, 0.255);
-    brick(leg, boots, 0, -0.505, -0.075, 0.216, 0.064, 0.316);
+    leg.position.set(side * 0.119, HIP, 0);
+    const knee = new THREE.Group();
+    const foot = new THREE.Group();
+    knee.position.y = -THIGH;
+    foot.position.y = -SHIN;
+    leg.add(knee);
+    knee.add(foot);
+    const trousers = [[leg, HIP, THIGH], [knee, HIP - THIGH, 0.3975 - THIGH]].map(([joint, top, length]) => ({
+      top, length, mesh: brick(joint, lining, 0, -length / 2, 0, 0.195, length + 0.01, 0.226),
+    }));
+    brick(knee, trim, 0, THIGH - 0.37, 0, 0.199, 0.039, 0.225);
+    brick(foot, boots, 0, HIP - 0.434 - ANKLE, -0.036, 0.202, 0.133, 0.255);
+    brick(foot, boots, 0, HIP - 0.505 - ANKLE, -0.075, 0.216, 0.064, 0.316);
     parts.add(arm, leg);
-    return { arm, leg, sleeve, cuff, trousers, side };
+    return { arm, leg, knee, foot, sleeve, cuff, trousers, side, contact: { value: 0, velocity: 0 } };
   });
 
   parts.add(head);
@@ -108,53 +126,90 @@ export function createTraveler(scene, body, withShadow = true) {
       sleeve.scale.set(width, length, cut.sleeves > 1 ? 0.221 : 0.193);
       cuff.position.y = -length + 0.014;
       cuff.scale.x = width * 0.95;
-      const hidesThighs = tailored && look.garment !== 5 && look.garment !== 7;
-      const trouserHeight = hidesThighs ? Math.max(0, cut.hem - 0.09) : 0.409;
-      trousers.visible = trouserHeight > 0;
-      trousers.scale.y = trouserHeight;
-      trousers.position.y = -0.3975 + trouserHeight / 2;
+      const hem = tailored && look.garment !== 5 && look.garment !== 7 ? cut.hem : HIP;
+      for (const { top, length, mesh } of trousers) {
+        const height = Math.max(0, Math.min(top, hem) - top + length);
+        mesh.visible = height > 0;
+        mesh.scale.y = height + 0.01;
+        mesh.position.y = -length + height / 2;
+      }
     }
   }
   appearance(DEFAULT_LOOK);
+
+  function positionFeet(dt) {
+    const cos = Math.cos(previousYaw);
+    const sin = Math.sin(previousYaw);
+    const rest = figure.position.y + parts.position.y;
+    for (const { arm, leg, knee, foot, side, contact } of limbs) {
+      const cycle = (phase + (side === 1 ? 0.5 : 0)) % 1;
+      const swinging = Math.max(0, (cycle - STANCE) / (1 - STANCE));
+      const sweep = cycle < STANCE ? 2 * cycle / STANCE - 1 : 1 - 2 * swinging * swinging * (3 - 2 * swinging);
+      const forward = sweep * stride * (target.sprinting ? 0.31 : 0.26) * strideLimit;
+      const probe = forward - 0.07;
+      const x = figure.position.x + cos * leg.position.x + sin * probe;
+      const z = figure.position.z - sin * leg.position.x + cos * probe;
+      const ground = target.grounded && world ?
+        world.groundBetween(x, z, 0.065, target.y - STEP, target.y + STEP) : -Infinity;
+      const floor = Number.isFinite(ground) ? ground : target.grounded ? target.y : figure.position.y;
+      const softContact = damp(contact, floor, 36, dt);
+      const lift = Math.sin(swinging * Math.PI) * stride * (0.12 + Math.max(0, floor - figure.position.y) * 0.25);
+      const ankle = Math.min(HIP - 0.13, Math.max(floor - 0.04, softContact) + ANKLE + lift - rest);
+      const reach = Math.min(THIGH + SHIN - 0.0001, Math.hypot(HIP - ankle, forward));
+      const bend = -Math.acos((reach * reach - THIGH * THIGH - SHIN * SHIN) / (2 * THIGH * SHIN));
+      leg.rotation.x = Math.atan2(-forward, HIP - ankle) - Math.atan2(SHIN * Math.sin(bend), THIGH + SHIN * Math.cos(bend));
+      knee.rotation.x = bend;
+      foot.rotation.x = -leg.rotation.x - bend;
+      arm.rotation.x = -Math.cos(cycle * Math.PI * 2) * stride * 0.46;
+    }
+  }
 
   return {
     figure,
     appearance,
     state(state, snap = false) {
+      const changedPlayer = snap && target !== state;
       target = state;
+      followImmediately = snap;
       if (!target) {
         figure.visible = false;
         if (shadow) shadow.visible = false;
         return;
       }
       destination.set(target.x, target.y, target.z);
-      if (snap || !figure.visible || figure.position.distanceToSquared(destination) > 30) {
+      if (changedPlayer || !figure.visible || figure.position.distanceToSquared(destination) > 7) {
         figure.position.copy(destination);
         previousYaw = target.yaw;
+        snapMotion(elevation, target.y);
+        for (const { contact } of limbs) snapMotion(contact, target.y);
+        stride = phase = 0;
       }
       figure.visible = true;
       if (shadow) shadow.visible = Boolean(target.grounded);
     },
     animate(dt) {
       if (!target) return;
-      const weight = 1 - Math.exp(-Math.min(0.1, dt) * 15);
-      const moving = target.moving ? (target.sprinting ? 0.79 : 0.61) : 0;
+      dt = Math.min(0.07, dt);
+      const weight = 1 - Math.exp(-dt * 15);
+      const { x, z } = figure.position;
+      figure.position.x += (destination.x - x) * (followImmediately ? 1 : weight);
+      figure.position.z += (destination.z - z) * (followImmediately ? 1 : weight);
+      figure.position.y = damp(elevation, destination.y, 24, dt);
+      const distance = Math.hypot(figure.position.x - x, figure.position.z - z);
+      const moving = target.moving && target.grounded ? Math.min(1, distance / Math.max(0.0001, dt * 2.25)) : 0;
       stride += (moving - stride) * weight;
-      if (target.moving) phase += dt * (target.sprinting ? 13.5 : 9.7);
-      figure.position.lerp(destination, weight);
+      if (target.grounded) phase = (phase + distance / (2 * stepLength(target.sprinting))) % 1;
       if (shadow?.visible) {
         shadow.position.copy(figure.position);
-        shadow.position.y += 0.01;
+        const ground = world?.groundBetween(figure.position.x, figure.position.z, 0.13, target.y - STEP, target.y + STEP);
+        shadow.position.y = (Number.isFinite(ground) ? ground : target.y) + 0.01;
       }
-      previousYaw += Math.atan2(Math.sin(target.yaw - previousYaw), Math.cos(target.yaw - previousYaw)) * weight;
+      previousYaw += Math.atan2(Math.sin(target.yaw - previousYaw), Math.cos(target.yaw - previousYaw)) * (followImmediately ? 1 : weight);
       figure.rotation.y = previousYaw;
-      const swing = Math.sin(phase) * stride;
-      for (const { arm, leg, side } of limbs) {
-        arm.rotation.x = swing * side * 0.83;
-        leg.rotation.x = -swing * side * strideLimit;
-      }
-      parts.position.y = Math.abs(swing) * 0.027;
-      parts.rotation.z = swing * 0.026;
+      const bend = (target.sprinting ? 0.104 : 0.076) * strideLimit;
+      parts.position.y = ((1 - Math.cos(phase * Math.PI * 4)) * 0.006 - bend) * stride;
+      parts.rotation.z = Math.sin(phase * Math.PI * 2) * stride * 0.018;
+      positionFeet(dt);
     },
   };
 }

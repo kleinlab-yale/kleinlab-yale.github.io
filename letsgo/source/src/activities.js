@@ -5,6 +5,7 @@ import { DOCK, HULL_WIDTH, ISLANDS, ROUTES, SEA_LEVEL, advanceVessel, crossingDi
   harborReturn, hullPattern, islandAt, launchVessel, rateHull } from './voyage.js';
 import { MATERIALS, resourceList } from './boat-craft.js';
 import { isChristmasTree } from './christmas.js';
+import { stopWalking } from './player.js';
 
 const $ = id => document.getElementById(id);
 const STEEP_MS = 1700;
@@ -199,7 +200,9 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
       const y = world.groundBetween(x, z, 0.23, SEA_LEVEL + 0.03, 1.8);
       if (Number.isFinite(y) && !world.collides(world.playerBox(x, y, z, 0.23, 1.49))) { spot = { x, y, z }; break; }
     }
-    Object.assign(getPlayer(), spot, { velocity: 0, grounded: true, moving: false, sprinting: false });
+    const player = getPlayer();
+    Object.assign(player, spot, { velocity: 0, grounded: true });
+    stopWalking(player);
     if (origin === 'cedar') turnTo(Math.PI);
     onPort(origin);
     tracking = false;
@@ -263,7 +266,9 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     if (!vessel) return;
     tracking = false;
     turnTo(vessel.yaw);
-    Object.assign(getPlayer(), { x: vessel.x, y: SEA_LEVEL + 0.26, z: vessel.z, yaw: vessel.yaw, velocity: 0, grounded: false });
+    const player = getPlayer();
+    Object.assign(player, { x: vessel.x, y: SEA_LEVEL + 0.26, z: vessel.z, yaw: vessel.yaw, velocity: 0, grounded: false });
+    stopWalking(player);
     updateBoatView();
     resume();
   };
@@ -290,14 +295,15 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
         toast('Restore Moonbell’s lantern to chart the Cedar Coast landing.');
         return true;
       }
-      Object.assign(player, outcome.shore, { velocity: 0, grounded: true, moving: false, sprinting: false });
+      Object.assign(player, outcome.shore, { velocity: 0, grounded: true });
+      stopWalking(player);
       vessel = null;
       updateBoatView();
       if (outcome.island) arrive(outcome.island);
       else onPort('home');
     } else {
       Object.assign(player, { x: vessel.x, y: SEA_LEVEL + 0.26, z: vessel.z, yaw: vessel.yaw,
-        velocity: 0, grounded: false, moving: false, sprinting: false });
+        velocity: 0, grounded: false });
       $('hull-meter').value = Math.max(0, Math.round(100 * (1 - vessel.wear / vessel.rating.range)));
       graphics.vessel('local', vessel);
     }

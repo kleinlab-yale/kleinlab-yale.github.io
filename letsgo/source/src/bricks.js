@@ -409,14 +409,9 @@ export class BrickWorld {
 
   pick(origin, direction, distance = REACH, throughDoors = false, ignored = null, pickTree = null) {
     const ignoredIds = typeof ignored === 'number' ? new Set([ignored]) : ignored;
-    const endX = origin.x + direction.x * distance;
-    const endZ = origin.z + direction.z * distance;
-    const margin = pickTree ? 1 : 0;
-    const results = this.query(Math.floor(Math.min(origin.x, endX) / STUD) - margin, Math.floor(Math.max(origin.x, endX) / STUD) + 1 + margin,
-      Math.floor(Math.min(origin.z, endZ) / STUD) - margin, Math.floor(Math.max(origin.z, endZ) / STUD) + 1 + margin);
     let closest = distance;
     let target = null;
-    for (const brick of results) {
+    for (const brick of rayBricks(this, origin, direction, distance, pickTree ? STUD : 0)) {
       if (ignoredIds?.has(brick.id) || throughDoors && openDoor(brick)) continue;
       if (pickTree && isChristmasTree(brick)) {
         const hit = pickTree(brick, closest, ignoredIds);
@@ -434,16 +429,35 @@ export class BrickWorld {
     }
     return target;
   }
+
+  cameraClearance(origin, direction, distance, radius) {
+    let closest = distance;
+    for (const brick of rayBricks(this, origin, direction, distance, radius)) {
+      if (openDoor(brick)) continue;
+      const hit = hitBox(origin, direction, brick, closest, radius);
+      if (hit) closest = hit.distance;
+    }
+    return closest;
+  }
 }
 
-function hitBox(origin, direction, brick, maxDistance) {
+function rayBricks(world, origin, direction, distance, padding) {
+  const endX = origin.x + direction.x * distance;
+  const endZ = origin.z + direction.z * distance;
+  return world.query(Math.floor((Math.min(origin.x, endX) - padding) / STUD), Math.floor((Math.max(origin.x, endX) + padding) / STUD) + 1,
+    Math.floor((Math.min(origin.z, endZ) - padding) / STUD), Math.floor((Math.max(origin.z, endZ) + padding) / STUD) + 1);
+}
+
+const rayAxes = [['x', 'w', STUD], ['y', 'h', PLATE], ['z', 'd', STUD]];
+
+function hitBox(origin, direction, brick, maxDistance, padding = 0) {
   let near = 0;
   let far = maxDistance;
   let axis;
   let sign;
-  for (const [name, size, scale] of [['x', 'w', STUD], ['y', 'h', PLATE], ['z', 'd', STUD]]) {
-    const start = brick[name] * scale;
-    const end = (brick[name] + brick[size]) * scale;
+  for (const [name, size, scale] of rayAxes) {
+    const start = brick[name] * scale - padding;
+    const end = (brick[name] + brick[size]) * scale + padding;
     const ray = direction[name];
     if (Math.abs(ray) < epsilon) {
       if (origin[name] < start || origin[name] > end) return null;

@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import { BOUNDS, MAX_PATCH, PLATE, STUD, TONES } from './bricks.js';
 import { dressScene } from './landscape.js';
 import { noise } from './valley.js';
-import { EYE } from './player.js';
+import { EYE, HEIGHT, RADIUS, STEP } from './player.js';
 import { appearancePreview, createTraveler } from './traveler.js';
 import { createWorldObjects } from './world-objects.js';
 import { createHouseObjects } from './house-objects.js';
 import { createAdventureObjects } from './adventure-objects.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
+import { damp, snapMotion } from './motion.js';
 
 const CHUNK = 18;
 const GAP = 0.018;
@@ -368,16 +369,22 @@ export function createGraphics(canvas, world, compact) {
   const adventure = createAdventureObjects(scene, body);
   const meshes = brickMeshes(scene, world, body, lowPower);
   const aim = indicators(scene, body, meshes.studGeometry);
-  const traveler = createTraveler(scene, body);
-  const local = createTraveler(scene, body);
+  const traveler = createTraveler(scene, body, true, world);
+  const local = createTraveler(scene, body, true, world);
   const focus = new THREE.Vector3();
   const eye = new THREE.Vector3();
+  const lastEye = new THREE.Vector3();
+  const ahead = new THREE.Vector3();
+  const vertical = new THREE.Vector3();
   const offset = new THREE.Vector3();
   const direction = new THREE.Vector3();
   const projected = new THREE.Vector3();
   const pointer = new THREE.Vector2();
   const raycaster = new THREE.Raycaster();
-  let followDistance = 0;
+  const eyeHeight = { value: 0, velocity: 0 };
+  const arm = { value: 0, velocity: 0 };
+  let followedPlayer = null;
+  let releaseDelay = 0;
   let lastView = null;
   let firstFrame = true;
   let objectsChanged = false;
@@ -421,6 +428,7 @@ export function createGraphics(canvas, world, compact) {
     overview(time) {
       local.state(null);
       lastView = null;
+      followedPlayer = null;
       const drift = reduceMotion ? 0 : Math.sin(time * 0.083) * 0.8;
       const portrait = camera.aspect < 0.85;
       camera.fov = portrait ? 59 : 47;
@@ -429,7 +437,7 @@ export function createGraphics(canvas, world, compact) {
       camera.lookAt(focus);
       camera.updateProjectionMatrix();
     },
-    playerView(player, view, orbit, bob, dt) {
+    playerView(player, view, orbit, dt) {
       const portrait = camera.aspect < 0.85;
       const fov = view.fov ? view.fov + (portrait ? 8 : 0) : (portrait ? 76 : 68);
       if (camera.fov !== fov) {
@@ -437,6 +445,20 @@ export function createGraphics(canvas, world, compact) {
         camera.updateProjectionMatrix();
       }
       eye.set(player.x, player.y + EYE, player.z);
+      const reset = followedPlayer !== player || lastEye.distanceToSquared(eye) > 2.25;
+      followedPlayer = player;
+      lastEye.copy(eye);
+      if (reset) snapMotion(eyeHeight, eye.y);
+      else {
+        const height = damp(eyeHeight, eye.y, 21, dt);
+        const shift = height - eye.y;
+        if (Math.abs(shift) > 0.001) {
+          vertical.set(0, Math.sign(shift), 0);
+          const room = world.cameraClearance(eye, vertical, Math.min(0.52, Math.abs(shift)), 0.09);
+          eye.y += vertical.y * room;
+          if (Math.abs(eye.y - height) > 0.001) snapMotion(eyeHeight, eye.y);
+        }
+      }
       if (view.distance) {
         const cosPitch = Math.cos(orbit.pitch);
         direction.set(-Math.sin(orbit.yaw) * cosPitch, Math.sin(orbit.pitch), -Math.cos(orbit.yaw) * cosPitch);
@@ -447,17 +469,43 @@ export function createGraphics(canvas, world, compact) {
         offset.y += view.height;
         const desired = offset.length();
         offset.divideScalar(desired);
-        const obstruction = world.pick(eye, offset, desired, true);
-        const clear = obstruction ? Math.max(0.06, obstruction.distance - 0.24) : desired;
-        if (view !== lastView || clear < followDistance) followDistance = clear;
-        else followDistance += (clear - followDistance) * (1 - Math.exp(-dt * 10));
-        camera.position.copy(eye).addScaledVector(offset, followDistance);
+        const clear = world.cameraClearance(eye, offset, desired, 0.115);
+        const buffer = world.cameraClearance(eye, offset, desired, 0.34);
+        let room = Math.min(clear, THREE.MathUtils.lerp(desired, buffer, 0.8));
+        if (player.grounded && player.moving) {
+          const lead = 0.16;
+          ahead.set(eye.x + player.velocityX * lead, eye.y + THREE.MathUtils.clamp(eyeHeight.velocity * lead, -0.35, 0.35),
+            eye.z + player.velocityZ * lead);
+          // A blocked walking path cannot carry the camera past a counter or wall.
+          const floor = world.groundBetween(ahead.x, ahead.z, RADIUS, player.y - STEP * 2, player.y + STEP * 2);
+          if (Number.isFinite(floor) && !world.collides(world.playerBox(ahead.x, floor, ahead.z, RADIUS, HEIGHT))) {
+            const approach = world.cameraClearance(ahead, offset, desired, 0.24);
+            room = Math.min(room, THREE.MathUtils.lerp(desired, approach, 0.45));
+          }
+        }
+        room = Math.max(0.065, room);
+        if (reset || view !== lastView) {
+          snapMotion(arm, room);
+          releaseDelay = 0;
+        } else {
+          if (room < arm.value) releaseDelay = 0.15;
+          else releaseDelay = Math.max(0, releaseDelay - dt);
+          const goal = releaseDelay > 0 ? Math.min(room, arm.value) : room;
+          if (damp(arm, goal, goal < arm.value ? 19 : 11, dt) < 0.065) snapMotion(arm, 0.065);
+        }
+        camera.position.copy(eye).addScaledVector(offset, arm.value);
+        // A railing can briefly cross the sight line without forcing a cut. Only clamp
+        // immediately when the camera itself would intersect a solid brick.
+        const { x, y, z } = camera.position;
+        if (arm.value > clear && world.collides(world.playerBox(x, y - 0.09, z, 0.09, 0.18))) {
+          snapMotion(arm, Math.max(0.065, clear - 0.025));
+          camera.position.copy(eye).addScaledVector(offset, arm.value);
+        }
         focus.copy(eye).addScaledVector(direction, 6.4);
         camera.lookAt(focus);
-        local.state(followDistance > 1.05 ? player : null, true);
+        local.state(arm.value > (local.figure.visible ? 0.9 : 1.08) ? player : null, true);
       } else {
         camera.position.copy(eye);
-        camera.position.y += bob;
         camera.rotation.set(orbit.pitch, orbit.yaw, 0);
         local.state(null);
       }
