@@ -5,7 +5,7 @@ import { PETS } from './pets.js';
 import { validHull } from './voyage.js';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const PROTOCOL = 8;
+const PROTOCOL = 9;
 const PREFIX = `brickbloom-v${PROTOCOL}-`;
 const TIMEOUT = 24000;
 const HEARTBEAT_INTERVAL = 2400;

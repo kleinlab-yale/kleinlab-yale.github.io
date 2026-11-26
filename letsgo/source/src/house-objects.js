@@ -3,6 +3,7 @@ import { PLATE, STUD, TONES, sameBrick } from './bricks.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
 import { isChristmasPiece } from './christmas.js';
 import { createChristmasModels } from './christmas-models.js';
+import { decorationPose, treeDecorationKind } from './tree-decorations.js';
 
 export function createHouseObjects(scene, brickGeometry) {
   const placed = new Map();
@@ -17,6 +18,10 @@ export function createHouseObjects(scene, brickGeometry) {
     depthWrite: false, metalness: 0.15, roughness: 0.18 });
   const amber = new THREE.MeshStandardMaterial({ color: '#ffdb98', emissive: '#ffad52', emissiveIntensity: 1.55, roughness: 0.27 });
   const dim = new THREE.MeshStandardMaterial({ color: '#ba986c', roughness: 0.66 });
+  const treeBounds = new THREE.Box3();
+  const ornamentBounds = new THREE.Sphere();
+  const intersection = new THREE.Vector3();
+  const normal = new THREE.Vector3();
 
   function mesh(group, surface, x, y, z, w, h, d, geometry = brickGeometry) {
     const piece = new THREE.Mesh(geometry, surface);
@@ -57,13 +62,14 @@ export function createHouseObjects(scene, brickGeometry) {
     return panels;
   }
 
-  function makeWindow(group, tone, height) {
-    mesh(group, glass, 0, height / 2, 0, 1.44, height * 0.85, 0.075);
-    for (const sign of [-1, 1]) mesh(group, tone, sign * 0.75, height / 2, 0, 0.14, height, 0.27);
-    for (const y of [0.052, height - 0.052]) mesh(group, tone, 0, y, 0, 1.53, 0.101, 0.28);
+  function makeWindow(group, tone, height, width) {
+    const frame = Math.min(0.14, width * 0.18, height * 0.22);
+    mesh(group, glass, 0, height / 2, 0, width - frame, height - frame, 0.075);
+    for (const sign of [-1, 1]) mesh(group, tone, sign * (width - frame) / 2, height / 2, 0, frame, height, 0.27);
+    for (const y of [frame / 2, height - frame / 2]) mesh(group, tone, 0, y, 0, width, frame, 0.28);
     mesh(group, tone, 0, height / 2, 0, 0.056, height, 0.155);
-    mesh(group, tone, 0, height / 2, 0, 1.6, 0.053, 0.154);
-    mesh(group, paint('chalk'), 0, 0.044, 0, 1.64, 0.087, 0.48);
+    if (height >= 0.68) mesh(group, tone, 0, height / 2, 0, width, 0.053, 0.154);
+    mesh(group, paint('chalk'), 0, frame * 0.33, 0, width, frame * 0.66, 0.48);
   }
 
   function makeFurniture(group, form, tone, height, width, depth) {
@@ -118,44 +124,96 @@ export function createHouseObjects(scene, brickGeometry) {
     return swinging;
   }
 
-  function create(brick) {
+  function create(brick, tree) {
     const group = new THREE.Group();
-    const { size: [w, d] } = PLACEABLE_OBJECTS[brick.form];
-    const height = brick.h * PLATE;
+    const area = tree ? decorationPose(tree, brick) : brick;
+    const turned = !tree && brick.turn % 2 === 1;
+    const w = turned ? area.d : area.w;
+    const d = turned ? area.w : area.d;
+    const { h } = area;
     const tone = paint(brick.tone);
     let door = null;
     let light = null;
     let bell = null;
     let christmas = null;
-    if (isChristmasPiece(brick)) christmas = makeChristmas(group, brick);
-    else switch (brick.form) {
-      case 'door': door = makeDoor(group, tone, height, (brick.turn % 2 ? brick.d : brick.w) * STUD); break;
-      case 'window': makeWindow(group, tone, height); break;
-      case 'lamp':
-      case 'beacon': light = makeLantern(group, brick.form, tone, height); break;
-      case 'windbell': bell = makeBell(group, tone, height); break;
-      default: makeFurniture(group, brick.form, tone, height, w * STUD, d * STUD);
+    if (isChristmasPiece(brick)) christmas = makeChristmas(group, brick, { w, d, h });
+    else if (brick.form === 'door') door = makeDoor(group, tone, h * PLATE, w * STUD);
+    else if (brick.form === 'window') makeWindow(group, tone, h * PLATE, w * STUD);
+    else {
+      const [width, depth, height] = PLACEABLE_OBJECTS[brick.form].size;
+      group.scale.set(w / width, h / height, d / depth);
+      switch (brick.form) {
+        case 'lamp':
+        case 'beacon': light = makeLantern(group, brick.form, tone, height * PLATE); break;
+        case 'windbell': bell = makeBell(group, tone, height * PLATE); break;
+        default: makeFurniture(group, brick.form, tone, height * PLATE, width * STUD, depth * STUD);
+      }
     }
-    position(group, brick, brick);
-    group.rotation.y = -brick.turn * Math.PI / 2;
+    position(group, area, area);
+    group.rotation.y = tree ? area.yaw : -brick.turn * Math.PI / 2;
     if (door && brick.active) for (const { panel, openAngle } of door) panel.rotation.y = openAngle;
     scene.add(group);
-    return { brick, group, door, light, bell, christmas, swing: 0 };
+    return { brick, tree, area, group, door, light, bell, christmas, swing: 0 };
   }
 
   return {
-    movePreview(brick, destination) {
+    movePreview(brick, destination, world) {
       const item = brick && destination ? placed.get(brick.id) : null;
-      if (moving && moving !== item) position(moving.group, moving.brick, moving.brick);
-      moving = item;
-      if (moving) position(moving.group, moving.brick, destination);
+      if (moving && moving.item !== item) {
+        for (const part of moving.parts) position(part.group, part.area, part.area);
+        moving = null;
+      }
+      if (!item) return;
+      moving ??= { item, parts: [item, ...Array.from(world.decorationsOf(brick.id), child => placed.get(child.id)).filter(Boolean)] };
+      const dx = destination.x - brick.x, dy = destination.y - brick.y, dz = destination.z - brick.z;
+      for (const part of moving.parts) {
+        const { x, y, z } = part.area;
+        position(part.group, part.area, { x: x + dx, y: y + dy, z: z + dz });
+      }
+    },
+    pickTree(world, tree, raycaster, distance, ignoredIds) {
+      treeBounds.min.set((tree.x - 1) * STUD, tree.y * PLATE, (tree.z - 1) * STUD);
+      treeBounds.max.set((tree.x + tree.w + 1) * STUD, (tree.y + tree.h * 1.06) * PLATE, (tree.z + tree.d + 1) * STUD);
+      if (!raycaster.ray.intersectsBox(treeBounds)) return null;
+      let best = null;
+      for (const brick of [...world.decorationsOf(tree.id), tree]) {
+        if (ignoredIds?.has(brick.id)) continue;
+        const item = placed.get(brick.id);
+        if (!item) continue;
+        const surface = raycaster.intersectObject(item.group, true)[0];
+        let point = surface?.point;
+        let depth = surface?.distance ?? Infinity;
+        normal.copy(surface?.face?.normal ?? raycaster.ray.direction);
+        if (surface?.face) normal.transformDirection(surface.object.matrixWorld);
+        else normal.negate();
+        const kind = brick.treeId === undefined ? null : treeDecorationKind(brick.form);
+        if (kind === 'branch' || kind === 'top') {
+          const { x, y, z, w, d, h } = item.area;
+          ornamentBounds.center.set((x + w / 2) * STUD, (y + h * 0.43) * PLATE, (z + d / 2) * STUD);
+          ornamentBounds.radius = Math.max(0.075, Math.min(w * STUD * 0.31, h * PLATE * 0.49));
+          const near = raycaster.ray.intersectSphere(ornamentBounds, intersection);
+          if (near && near.distanceTo(raycaster.ray.origin) < depth) {
+            point = near.clone();
+            depth = near.distanceTo(raycaster.ray.origin);
+            normal.copy(near).sub(ornamentBounds.center);
+          }
+        }
+        if (!point || depth >= distance) continue;
+        const axis = Math.abs(normal.y) > Math.max(Math.abs(normal.x), Math.abs(normal.z)) ? 'y' :
+          Math.abs(normal.x) > Math.abs(normal.z) ? 'x' : 'z';
+        distance = depth;
+        best = { brick, point, axis, distance, sign: Math.sign(normal[axis]) || 1 };
+      }
+      return best;
     },
     sync(world) {
       for (const [id, item] of placed) {
         const brick = world.bricks.get(id);
-        if (sameBrick(item.brick, brick, false)) {
+        const tree = brick?.treeId === undefined ? undefined : world.bricks.get(brick.treeId);
+        if (sameBrick(item.brick, brick, false) && sameBrick(item.tree, tree, false)) {
           if (item.bell && item.brick.active !== brick.active) item.swing = 1.2;
           item.brick = brick;
+          item.tree = tree;
           continue;
         }
         scene.remove(item.group);
@@ -163,14 +221,16 @@ export function createHouseObjects(scene, brickGeometry) {
         placed.delete(id);
       }
       for (const brick of world.bricks.values()) {
-        if (brick.form !== 'tea' && Object.hasOwn(PLACEABLE_OBJECTS, brick.form) && !placed.has(brick.id)) placed.set(brick.id, create(brick));
+        if (brick.form === 'tea' || !Object.hasOwn(PLACEABLE_OBJECTS, brick.form) || placed.has(brick.id)) continue;
+        const tree = brick.treeId === undefined ? undefined : world.bricks.get(brick.treeId);
+        placed.set(brick.id, create(brick, tree));
       }
     },
     animate(dt, reducedMotion, time) {
       const weight = reducedMotion ? 1 : 1 - Math.exp(-dt * 13);
       for (const item of placed.values()) {
-        const { brick, door, light, bell, christmas } = item;
-        christmas?.(brick.active, weight, reducedMotion ? 0 : time);
+        const { brick, tree, door, light, bell, christmas } = item;
+        christmas?.(tree ? tree.active : brick.active, weight, reducedMotion ? 0 : time);
         if (door) for (const { panel, openAngle } of door) panel.rotation.y += ((brick.active ? openAngle : 0) - panel.rotation.y) * weight;
         if (light) light.material = brick.active ? amber : dim;
         if (bell && item.swing > 0) {

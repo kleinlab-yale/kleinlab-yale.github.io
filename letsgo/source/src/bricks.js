@@ -2,13 +2,16 @@ import { PLACEABLE_OBJECTS, QUICK_PARTS } from './parts.js';
 import { canBuildAt } from './islands.js';
 import { isChristmasTree } from './christmas.js';
 import { COAST_BOUNDS } from './mainland-data.js';
+import { recoverAssemblies } from './assemblies.js';
+import { openingSizeAllowed, sizeOptions } from './object-sizes.js';
+import { decorationPose, treeSlotKey, treeSlots } from './tree-decorations.js';
 
 export const STUD = 0.55;
 export const PLATE = 0.17;
 export const BOUNDS = { minX: -59, maxX: 60, minZ: -53, maxZ: COAST_BOUNDS.maxZ, minY: -9, maxY: 105 };
 export const REACH = 13;
 export const MAX_EDITS = 6000;
-export const WORLD_SAVE_VERSION = 2;
+export const WORLD_SAVE_VERSION = 3;
 export const MAX_PATCH = 24;
 
 export const TONES = {
@@ -27,7 +30,7 @@ export const TONES = {
 };
 
 const BRICK_FORMS = ['brick', 'round', 'flower'];
-const brickFields = ['id', 'x', 'y', 'z', 'w', 'd', 'h', 'tone', 'studs', 'form', 'turn'];
+const brickFields = ['id', 'x', 'y', 'z', 'w', 'd', 'h', 'tone', 'studs', 'form', 'turn', 'assembly', 'treeId', 'slot'];
 
 export function sameBrick(a, b, includeState = true) {
   return a === b || Boolean(a && b && brickFields.every(field => a[field] === b[field]) &&
@@ -48,20 +51,30 @@ export function resizeSavedDecoration(brick) {
 }
 
 export function validBrick(brick) {
-  if (!(brick && insideBounds(brick) && Object.hasOwn(TONES, brick.tone) && typeof brick.studs === 'boolean' &&
+  if (!(brick && Object.hasOwn(TONES, brick.tone) &&
     Number.isInteger(brick.turn) && brick.turn >= 0 && brick.turn <= 3)) return false;
+  if (brick.treeId !== undefined) {
+    return Number.isSafeInteger(brick.treeId) && brick.treeId > 0 && brick.treeId !== brick.id &&
+      brick.assembly === undefined && treeSlots(brick.form).includes(brick.slot) &&
+      (brick.active === undefined || brick.form === 'fairyLights' && typeof brick.active === 'boolean');
+  }
+  if (!insideBounds(brick) || typeof brick.studs !== 'boolean') return false;
+  if (brick.assembly !== undefined && !(Number.isSafeInteger(brick.assembly) && brick.assembly > 0 &&
+    Number.isSafeInteger(brick.id) && brick.id >= brick.assembly && brick.id - brick.assembly < MAX_PATCH)) return false;
   if (!Object.hasOwn(PLACEABLE_OBJECTS, brick.form)) {
     return BRICK_FORMS.includes(brick.form) && Math.max(brick.w, brick.d, brick.h) <= 8 && brick.active === undefined;
   }
-  const { size, variants, interaction } = PLACEABLE_OBJECTS[brick.form];
-  return !brick.studs && (matchesSize(brick, size) || Boolean(variants?.some(variant => matchesSize(brick, variant.size)))) &&
+  const { size, interaction } = PLACEABLE_OBJECTS[brick.form];
+  const [width, depth] = brick.turn % 2 ? [brick.d, brick.w] : [brick.w, brick.d];
+  const fitted = depth === 1 && openingSizeAllowed(brick.form, width, brick.h);
+  return !brick.studs && (fitted || matchesSize(brick, size) || sizeOptions(brick.form).some(option => matchesSize(brick, option.size))) &&
     (brick.active === undefined || Boolean(interaction) && typeof brick.active === 'boolean');
 }
 
 const openDoor = brick => brick.form === 'door' && brick.active;
 
 export function validSnapshot(value) {
-  return Boolean(value && (value.version === WORLD_SAVE_VERSION || value.version === 1) &&
+  return Boolean(value && [1, 2, WORLD_SAVE_VERSION].includes(value.version) &&
     Array.isArray(value.removed) && value.removed.length <= MAX_EDITS &&
     Array.isArray(value.added) && value.added.length <= MAX_EDITS &&
     (value.version === 1 || (Array.isArray(value.changed) && value.changed.length <= MAX_EDITS)));
@@ -100,6 +113,8 @@ export class BrickWorld {
     this.removed = new Set();
     this.added = new Map();
     this.changed = new Map();
+    this.legacyAssemblies = new Map();
+    this.treeDecorations = new Map();
     this.nextId = 1;
     this.originalNextId = 1;
     this.sceneryId = null;
@@ -154,6 +169,11 @@ export class BrickWorld {
 
   put(brick) {
     this.bricks.set(brick.id, brick);
+    if (brick.treeId !== undefined) {
+      if (!this.treeDecorations.has(brick.treeId)) this.treeDecorations.set(brick.treeId, new Map());
+      this.treeDecorations.get(brick.treeId).set(treeSlotKey(brick.form, brick.slot), brick);
+      return;
+    }
     for (let z = brick.z; z < brick.z + brick.d; z++) {
       for (let x = brick.x; x < brick.x + brick.w; x++) {
         const key = column(x, z);
@@ -165,6 +185,12 @@ export class BrickWorld {
 
   take(brick) {
     this.bricks.delete(brick.id);
+    if (brick.treeId !== undefined) {
+      const decorations = this.treeDecorations.get(brick.treeId);
+      decorations.delete(treeSlotKey(brick.form, brick.slot));
+      if (!decorations.size) this.treeDecorations.delete(brick.treeId);
+      return;
+    }
     for (let z = brick.z; z < brick.z + brick.d; z++) {
       for (let x = brick.x; x < brick.x + brick.w; x++) {
         const key = column(x, z);
@@ -194,24 +220,50 @@ export class BrickWorld {
       bricks.every(brick => !isChristmasTree(brick) || this.hasBase(brick)) && this.hasSpace(bricks, new Set(), players);
   }
 
-  hasBase(brick) {
+  hasBase(brick, ignoredIds) {
     for (const support of this.at(brick.x + Math.floor(brick.w / 2), brick.z + Math.floor(brick.d / 2))) {
-      if (support.id !== brick.id && support.y + support.h === brick.y &&
+      if (support.id !== brick.id && !ignoredIds?.has(support.id) && support.y + support.h === brick.y &&
         (support.form === 'brick' || support.form === 'round' || support.form === 'holidayRug' ||
           brick.form === 'indoorTree' && support.form === 'table')) return true;
     }
     return false;
   }
 
-  canMove(brick, players) {
-    return this.added.has(brick.id) && canBuildAt(brick) &&
-      (!isChristmasTree(brick) || this.hasBase(brick)) && this.hasSpace([brick], new Set([brick.id]), players);
+  assemblyMembers(brick) {
+    if (brick.assembly === undefined) return [brick];
+    const members = [];
+    for (let id = brick.assembly; id < brick.assembly + MAX_PATCH; id++) {
+      const member = this.added.get(id);
+      if (member?.assembly === brick.assembly) members.push(member);
+    }
+    return members;
+  }
+
+  decorationsOf(id) {
+    return this.treeDecorations.get(id)?.values() ?? [];
+  }
+
+  decorationAt(treeId, form, slot) {
+    return this.treeDecorations.get(treeId)?.get(treeSlotKey(form, slot));
+  }
+
+  areaOf(brick) {
+    return brick.treeId === undefined ? brick : decorationPose(this.bricks.get(brick.treeId), brick);
+  }
+
+  canMove(bricks, players) {
+    const group = Array.isArray(bricks) ? bricks : [bricks];
+    const replacing = new Set(group.map(brick => brick.id));
+    return group.every(brick => this.added.has(brick.id) && canBuildAt(brick) &&
+      (!isChristmasTree(brick) || this.hasBase(brick, replacing))) && this.hasSpace(group, replacing, players);
   }
 
   hasSpace(bricks, replacing, players) {
     const incoming = [];
     for (const brick of bricks) {
-      if (!validBrick(brick) || incoming.some(other => overlaps(brick, other))) return false;
+      if (!validBrick(brick)) return false;
+      if (brick.treeId !== undefined) continue;
+      if (incoming.some(other => overlaps(brick, other))) return false;
       incoming.push(brick);
       const current = this.bricks.get(brick.id);
       const moved = !current || ['x', 'y', 'z', 'w', 'h', 'd'].some(key => current[key] !== brick[key]);
@@ -226,7 +278,7 @@ export class BrickWorld {
 
   patch(edits, players = [], limit = MAX_PATCH) {
     if (!Array.isArray(edits) || edits.length === 0 || edits.length > limit) return false;
-    const changing = new Set();
+    const changing = new Map();
     const incoming = [];
     let additions = this.added.size;
     let removals = this.removed.size;
@@ -238,20 +290,42 @@ export class BrickWorld {
       const current = this.bricks.get(id);
       if (!starter && (id < this.originalNextId || id > 1e9)) return false;
       if (brick === null && !current) return false;
-      if (brick !== null && (!validBrick(brick) || brick.id !== id)) return false;
-      changing.add(id);
+      if (brick !== null && (!validBrick(brick) || brick.id !== id ||
+        (brick.assembly !== undefined && (starter || brick.assembly < this.originalNextId)) ||
+        (brick.treeId !== undefined && (starter || brick.treeId < this.originalNextId)))) return false;
+      changing.set(id, brick);
       if (brick) incoming.push(brick);
       if (starter) {
         removals += Number(brick === null) - Number(!current);
         changes += Number(Boolean(brick && !sameBrick(brick, starter))) - Number(this.changed.has(id));
       } else additions += Number(Boolean(brick)) - Number(Boolean(current));
     }
-    if (Math.max(additions, removals, changes) > MAX_EDITS || !this.hasSpace(incoming, changing, players)) return false;
+    if (Math.max(additions, removals, changes) > MAX_EDITS || !this.hasSpace(incoming, changing, players) ||
+      !this.validTreeEdits(changing)) return false;
 
     const previous = edits.map(({ id }) => ({ id, brick: this.bricks.get(id) ?? null }));
     for (const { brick } of previous) if (brick) this.take(brick);
     for (const { id, brick } of edits) this.storeBrick(id, brick);
     this.onChange?.(edits, previous);
+    return true;
+  }
+
+  validTreeEdits(changing) {
+    const occupiedSlots = new Set();
+    for (const [id, brick] of changing) {
+      if (!isChristmasTree(brick)) {
+        for (const child of this.decorationsOf(id)) {
+          if (!changing.has(child.id) || changing.get(child.id)?.treeId === id) return false;
+        }
+      }
+      if (brick?.treeId === undefined) continue;
+      const { treeId, slot, form } = brick;
+      const tree = changing.has(treeId) ? changing.get(treeId) : this.bricks.get(treeId);
+      const key = `${treeId}/${treeSlotKey(form, slot)}`;
+      const prior = this.decorationAt(treeId, form, slot);
+      if (!isChristmasTree(tree) || occupiedSlots.has(key) || prior && !changing.has(prior.id)) return false;
+      occupiedSlots.add(key);
+    }
     return true;
   }
 
@@ -286,6 +360,7 @@ export class BrickWorld {
     this.added.clear();
     this.changed.clear();
     this.removed.clear();
+    this.legacyAssemblies.clear();
     this.nextId = this.originalNextId;
     if (validSnapshot(snapshot)) {
       for (const id of snapshot.removed) {
@@ -294,13 +369,20 @@ export class BrickWorld {
         this.take(brick);
         this.removed.add(id);
       }
-      if (snapshot.version === WORLD_SAVE_VERSION && snapshot.changed.length) {
+      if (snapshot.version !== 1 && snapshot.changed.length) {
         const changed = snapshot.changed.filter(brick => validBrick(brick) && this.starter.has(brick.id));
         if (changed.length) this.patch(changed.map(brick => ({ id: brick.id, brick })), [], MAX_EDITS);
       }
+      const decorations = [];
       for (const saved of snapshot.added) {
-        const brick = snapshot.version === 1 ? legacyBrick(saved) : resizeSavedDecoration(saved);
+        let brick = saved;
+        if (snapshot.version === 1) brick = legacyBrick(saved);
+        else if (snapshot.version === 2) brick = resizeSavedDecoration(saved);
         if (validBrick(brick) && brick.id >= this.originalNextId && !this.bricks.has(brick.id)) {
+          if (brick.treeId !== undefined) {
+            decorations.push({ id: brick.id, brick });
+            continue;
+          }
           const edits = [{ id: brick.id, brick }];
           if (snapshot.version === 1) {
             // Give existing builds priority where the dock or kitchen overlaps an older save.
@@ -311,21 +393,39 @@ export class BrickWorld {
           this.patch(edits, [], MAX_EDITS);
         }
       }
+      for (const edit of decorations) if (!this.bricks.has(edit.id)) this.patch([edit]);
+      if (snapshot.version === 2) {
+        this.legacyAssemblies = recoverAssemblies(this.added, snapshot.undo, this.originalNextId);
+        for (const [id, assembly] of this.legacyAssemblies) {
+          const brick = this.added.get(id);
+          if (brick) this.storeBrick(id, { ...brick, assembly });
+        }
+      }
       if (Number.isSafeInteger(snapshot.nextId) && snapshot.nextId <= 1e9) this.nextId = Math.max(this.nextId, snapshot.nextId);
     }
     this.onChange = onChange;
     this.onChange?.(null, null);
   }
 
-  pick(origin, direction, distance = REACH, throughDoors = false, ignoredId = null) {
+  pick(origin, direction, distance = REACH, throughDoors = false, ignored = null, pickTree = null) {
+    const ignoredIds = typeof ignored === 'number' ? new Set([ignored]) : ignored;
     const endX = origin.x + direction.x * distance;
     const endZ = origin.z + direction.z * distance;
-    const results = this.query(Math.floor(Math.min(origin.x, endX) / STUD), Math.floor(Math.max(origin.x, endX) / STUD) + 1,
-      Math.floor(Math.min(origin.z, endZ) / STUD), Math.floor(Math.max(origin.z, endZ) / STUD) + 1);
+    const margin = pickTree ? 1 : 0;
+    const results = this.query(Math.floor(Math.min(origin.x, endX) / STUD) - margin, Math.floor(Math.max(origin.x, endX) / STUD) + 1 + margin,
+      Math.floor(Math.min(origin.z, endZ) / STUD) - margin, Math.floor(Math.max(origin.z, endZ) / STUD) + 1 + margin);
     let closest = distance;
     let target = null;
     for (const brick of results) {
-      if (brick.id === ignoredId || throughDoors && openDoor(brick)) continue;
+      if (ignoredIds?.has(brick.id) || throughDoors && openDoor(brick)) continue;
+      if (pickTree && isChristmasTree(brick)) {
+        const hit = pickTree(brick, closest, ignoredIds);
+        if (hit) {
+          closest = hit.distance;
+          target = hit;
+        }
+        continue;
+      }
       const hit = hitBox(origin, direction, brick, closest);
       if (!hit) continue;
       closest = hit.distance;

@@ -107,6 +107,10 @@ export const PARTS = [
   ...Object.entries(PLACEABLE_OBJECTS).map(([form, object]) => ({
     ...part(object.key ?? form, object.name, 'Objects', ...object.size, object.tone, false, form), pack: object.pack,
   })),
+  ...['door', 'window'].map(form => ({
+    ...part(`fit-${form}`, `Add ${form}`, 'Objects', ...PLACEABLE_OBJECTS[form].size, PLACEABLE_OBJECTS[form].tone, false, form),
+    pack: 'house', fit: true,
+  })),
   ...DOOR_VARIANTS.map(({ key, name, size }) => ({ ...part(key, name, 'Objects', ...size, 'cedar', false, 'door'), pack: 'house' })),
   { ...kit('shutters', 'Shutter window', 'Structures', [
     section(0, 0, 0, 4, 1, 1, 'chalk'), section(0, 1, 0, 1, 1, 4, 'vermilion'),
@@ -218,7 +222,8 @@ function buildKit(key, name, keys, colors) {
 export const BUILD_KITS = [
   buildKit('all', 'All parts', QUICK_PARTS.map(part => part.key), []),
   ...Object.entries(CHRISTMAS_PACKS).map(([key, pack]) => buildKit(key, pack.name,
-    Object.keys(CHRISTMAS_OBJECTS).filter(form => pack.season === 'keepsake' || CHRISTMAS_OBJECTS[form].pack === key),
+    Object.keys(CHRISTMAS_OBJECTS).filter(form => pack.season === 'keepsake' || CHRISTMAS_OBJECTS[form].pack === key ||
+      (key === 'christmas-tree' && form === 'fairyLights')),
     ['pine', 'cranberry', 'snow', 'brass', 'frost', 'gingerbread', 'cream', 'vermilion', 'jade'])),
   buildKit('treehouse', 'Shrine & treehouse', ['cedar', 'floor', 'eave', 'stairs', 'arch', 'paper', 'window', 'column', 'corner', 'garden-lamp'],
     ['cedar', 'oak', 'beam', 'warmBark', 'lacquer', 'vermilion', 'teal', 'tile', 'ink', 'cream']),
@@ -228,7 +233,7 @@ export const BUILD_KITS = [
     ['oak', 'cedar', 'beam', 'redwood', 'jade', 'teal', 'amber', 'chalk']),
   buildKit('tea', 'Tea garden', ['tea-counter', 'floor', 'paper', 'window', 'garden-lamp', 'paving', 'flower-pot'],
     ['oak', 'cedar', 'cream', 'jade', 'petal', 'gold', 'ink']),
-  buildKit('house', BUILD_PACKS.house.name, ['door', 'glass-window', 'shutters', 'roof-ridge', 'paper', 'floor', 'cedar',
+  buildKit('house', BUILD_PACKS.house.name, ['fit-door', 'fit-window', 'door', 'glass-window', 'shutters', 'roof-ridge', 'paper', 'floor', 'cedar',
     'narrow-door', 'short-door', 'tall-door', 'wide-door', 'window', 'slate', 'eave'],
     ['cedar', 'oak', 'cream', 'ink', 'vermilion', 'tile', 'patina']),
   buildKit('furnishings', BUILD_PACKS.furnishings.name, ['couch', 'chair', 'table', 'bench', 'floor', 'paving', 'tea-counter'],

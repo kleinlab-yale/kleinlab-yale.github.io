@@ -6,7 +6,7 @@ export function christmasActive(now = Date.now()) {
 }
 
 export const CHRISTMAS_PACKS = {
-  'christmas-tree': { name: 'Christmas Tree Pack', season: 'event', contents: 'Outdoor and indoor trees, wrapped gift, ornament, gold star, garland, candy cane and ribbon bow' },
+  'christmas-tree': { name: 'Christmas Tree Pack', season: 'event', contents: 'Indoor and outdoor trees, ornaments, stars, garland, string lights and gifts' },
   'holiday-home': { name: 'Holiday Home Pack', season: 'event', contents: 'Wreath, stocking, fireplace, string lights, candles, snowflake and holiday rug' },
   'winter-village': { name: 'Winter Village Pack', season: 'event', contents: 'Snowman, gingerbread house, sleigh, toy train, jingle bell, reindeer and toy drum' },
   christmas: { name: 'Christmas Kit', season: 'keepsake', contents: 'Your full holiday collection, ready to place again' },

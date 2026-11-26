@@ -1,6 +1,8 @@
 import { adjacentBrick, PLATE, STUD } from './bricks.js';
 import { layoutPart } from './parts.js';
 import { isChristmasTree } from './christmas.js';
+import { offsetBricks } from './assemblies.js';
+import { wallAt } from './openings.js';
 
 const AXES = { x: ['w', STUD], y: ['h', PLATE], z: ['d', STUD] };
 const NEARBY = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1],
@@ -56,13 +58,7 @@ function faceAnchors(hit, layout, centered, sideY) {
 }
 
 function planAt(layout, origin, turn) {
-  const blocks = layout.blocks.map(block => ({ ...block, x: origin.x + block.x, y: origin.y + block.y, z: origin.z + block.z }));
-  return { ...layout, ...origin, turn, blocks };
-}
-
-function wallAt(world, x, z, y) {
-  for (const brick of world.at(x, z)) if (brick.form === 'brick' && brick.y <= y && brick.y + brick.h > y) return true;
-  return false;
+  return { ...layout, ...origin, turn, blocks: offsetBricks(layout.blocks, origin) };
 }
 
 function doorwaySides(world, door) {
@@ -116,21 +112,12 @@ function snapDoor(world, hit, part, turn, tone, manual, canUse) {
   return { ...(best ?? first), allowed: Boolean(best) };
 }
 
-export function snapPlacement(world, hit, { part, turn, tone, manual, centered = false, sideY = null }, canUse) {
-  if (part.form === 'door' && !centered) return snapDoor(world, hit, part, turn, tone, manual, canUse);
-  const plainBrick = !part.blocks && part.form === 'brick';
-  const axis = plainBrick && part.w !== part.d && !manual ? rowAxis(world, hit.brick) : null;
-  let layout = layoutPart(part, turn, tone);
-  if (axis && (layout.w > layout.d ? 'x' : 'z') !== axis) {
-    turn = (turn + 1) % 4;
-    layout = layoutPart(part, turn, tone);
-  }
-
+function snapLayout(hit, layout, { form, turn, centered, sideY }, canUse) {
   const top = (hit.brick.y + hit.brick.h) * PLATE;
-  const nearTop = plainBrick && hit.brick.form === 'brick' && hit.axis !== 'y' &&
+  const nearTop = form === 'brick' && hit.brick.form === 'brick' && hit.axis !== 'y' &&
     hit.point.y >= top - PLATE * Math.min(0.72, hit.brick.h * 0.24);
   const topFace = { ...hit, axis: 'y', sign: 1 };
-  const faces = isChristmasTree(part) ? [topFace] : nearTop ? [topFace, hit] : [hit];
+  const faces = isChristmasTree({ form }) ? [topFace] : nearTop ? [topFace, hit] : [hit];
   let first = null;
   for (const face of faces) {
     for (const { origin } of faceAnchors(face, layout, centered, sideY)) {
@@ -140,4 +127,21 @@ export function snapPlacement(world, hit, { part, turn, tone, manual, centered =
     }
   }
   return { ...first, allowed: false };
+}
+
+export function snapPlacement(world, hit, { part, turn, tone, manual, centered = false, sideY = null }, canUse) {
+  if (part.form === 'door' && !centered) return snapDoor(world, hit, part, turn, tone, manual, canUse);
+  const form = part.blocks ? undefined : part.form;
+  const axis = form === 'brick' && part.w !== part.d && !manual ? rowAxis(world, hit.brick) : null;
+  let layout = layoutPart(part, turn, tone);
+  if (axis && (layout.w > layout.d ? 'x' : 'z') !== axis) {
+    turn = (turn + 1) % 4;
+    layout = layoutPart(part, turn, tone);
+  }
+  return snapLayout(hit, layout, { form, turn, centered, sideY }, canUse);
+}
+
+export function snapMove(hit, layout, sideY, canUse) {
+  const form = layout.blocks.length === 1 ? layout.blocks[0].form : undefined;
+  return snapLayout(hit, layout, { form, turn: 0, centered: true, sideY }, canUse);
 }

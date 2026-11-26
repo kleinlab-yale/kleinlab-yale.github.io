@@ -74,9 +74,7 @@ export function drawChristmasIcon(ctx, form, tone, turn) {
       for (const [y, width] of [[59, 29], [48, 24], [36, 19], [24, 13]]) {
         path([[56, y - 20], [56 + width, y], [56, y + 8], [56 - width, y]], color);
         path([[56, y - 20], [56 + width, y], [56, y + 8]], '#10261758', 'transparent');
-        for (const [i, dx] of [-0.67, -0.2, 0.28, 0.67].entries()) oval(56 + dx * width, y + 1 - Math.abs(dx) * 7, 2.4, 2.3, [gold, '#ff9494', '#d2f8df', gold][i]);
       }
-      star(56, 13, 9.6);
       break;
     case 'wrappedGift':
       brick(25, 35, 50, 32, 12, color);

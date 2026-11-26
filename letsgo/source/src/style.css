@@ -272,7 +272,13 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid #f4e2d141; bord
   line-height: 1.25;
 }
 .build-topline { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; }
-#turn-piece { pointer-events: auto; min-height: 38px; padding-inline: 8px; font-size: 12px; }
+#turn-piece, #size-piece { pointer-events: auto; min-height: 38px; padding-inline: 8px; font-size: 12px; }
+.size-panel { width: min(430px, calc(100vw - 24px)); }
+.size-options { display: grid; gap: 8px; }
+.size-options .button { display: grid; justify-items: start; text-align: left; padding-block: 10px; min-height: 50px; }
+.size-options .button small { font-size: 12px; }
+.size-options .button[aria-pressed='true'] { border-color: var(--rose); }
+.size-options .button:disabled { cursor: default; }
 .build-tools {
   display: flex;
   gap: 4px;
@@ -623,8 +629,8 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid #f4e2d141; bord
   display: grid; justify-items: center; gap: 5px; width: min(220px, calc(100% - 112px)); pointer-events: none;
 }
 #game[data-compact='true'] .phone-build-actions { display: flex; gap: 5px; pointer-events: auto; }
-#game[data-compact='true'] .phone-build-preview { display: flex; align-items: center; gap: 4px; }
-#game[data-compact='true'] #phone-turn-piece { pointer-events: auto; flex: none; }
+#game[data-compact='true'] .phone-build-preview { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; }
+#game[data-compact='true'] :is(#phone-turn-piece, #phone-size-piece) { pointer-events: auto; flex: none; }
 #game[data-compact='true'] .phone-build .build-guide { padding: 4px 7px; margin: 0; }
 #game[data-compact='true'] #phone-build-button { padding: 0 11px; background: #25332ad9; }
 #game[data-compact='true'] #phone-explore-button { color: #29372c; background: #d9ead3; padding: 0; }

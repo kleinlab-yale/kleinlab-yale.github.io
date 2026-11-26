@@ -67,6 +67,7 @@
         <div class="build-topline">
           <div class="selected-piece" id="selected-piece" aria-live="polite"></div>
           <button id="turn-piece" class="subtle-button" type="button" hidden><span data-icon="rotate" aria-hidden="true"></span>Turn piece</button>
+          <button id="size-piece" class="subtle-button" type="button" hidden>Size</button>
           <p class="build-guide" id="build-guide"></p>
         </div>
         <div class="build-tools" role="group" aria-label="Building tool">
@@ -88,6 +89,7 @@
         <div class="phone-build-preview">
           <p class="build-guide" id="phone-build-guide" hidden></p>
           <button id="phone-turn-piece" class="subtle-button icon-button" type="button" data-icon="rotate" aria-label="Turn piece" hidden></button>
+          <button id="phone-size-piece" class="subtle-button" type="button" hidden>Size</button>
         </div>
         <div class="phone-build-actions">
           <button id="phone-build-button" class="subtle-button" type="button" aria-haspopup="dialog"><span data-icon="brick" aria-hidden="true"></span><span id="phone-build-label">Build</span></button>
@@ -99,6 +101,7 @@
         <button id="tea-action" class="subtle-button" type="button" hidden><span data-icon="tea" aria-hidden="true"></span><span id="tea-action-label">Brew tea</span></button>
         <button id="rescue-pet" class="subtle-button" type="button" hidden><span data-icon="paw" aria-hidden="true"></span><span id="rescue-label">Rescue pet</span></button>
         <button id="prop-action" class="subtle-button" type="button" hidden><span data-icon="object" aria-hidden="true"></span><span id="prop-action-label"></span></button>
+        <button id="decorate-tree" class="subtle-button" type="button" hidden>Decorate tree</button>
         <button id="trail-action" class="subtle-button" type="button" hidden><span data-icon="journal" aria-hidden="true"></span><span id="trail-action-label"></span></button>
         <div id="pet-work" class="hull-status" hidden><label id="pet-work-label" for="pet-work-meter">Opening chest</label><progress id="pet-work-meter" max="1" value="0"></progress></div>
         <div id="voyage-direction" class="voyage-direction" hidden><span id="voyage-arrow" data-icon="up" aria-hidden="true"></span><span id="voyage-distance"></span></div>
@@ -125,7 +128,7 @@
         <div class="kit-heading"><label for="kit-select">Build kit</label><select id="kit-select"></select><button id="parts-journal" class="text-button" type="button">Build packs</button></div>
         <details id="house-build-help" class="house-build-help" hidden>
           <summary>Finishing a house</summary>
-          <p>Leave an opening that matches the door’s width and height. Tap the floor inside the doorway to snap the door in. Set a window on its sill. Run tiles or stepped eaves along the tops of the walls and cap a peaked roof with a ridge.</p>
+          <p>Choose Add door or Add window and tap a framed opening. The frame needs two sides, a top, and a sill or floor. Use tiles or stepped eaves along the tops of the walls and cap a peaked roof with a ridge.</p>
         </details>
         <div class="parts-layout">
           <section class="parts-shelf" aria-label="Parts">
@@ -148,6 +151,15 @@
           <button id="turn-next-brick" class="button secondary" type="button">Turn next piece</button>
           <button class="button primary" type="button" data-close="parts">Done</button>
         </div>
+      </div>
+    </dialog>
+
+    <dialog id="size-dialog" class="panel size-panel" aria-labelledby="size-title">
+      <div class="panel-inner">
+        <button class="close-button" type="button" data-close="size" data-icon="x" aria-label="Close size choices"></button>
+        <h2 id="size-title">Object size</h2>
+        <p id="size-name"></p>
+        <div class="size-options" id="size-options"></div>
       </div>
     </dialog>
 
@@ -267,9 +279,10 @@
           <div><dt>Move</dt><dd id="move-help">Use the arrow keys or movement buttons</dd></div>
           <div><dt>Orbit</dt><dd id="orbit-help">Drag with either mouse button</dd></div>
           <div><dt>Place a brick</dt><dd id="place-help">Choose a brick, then click a surface</dd></div>
-          <div><dt>Move a piece</dt><dd>Choose Move, then drag a placed piece to a new spot</dd></div>
+          <div><dt>Move an item</dt><dd>Choose Move, then drag any part of an item to move it together</dd></div>
           <div><dt>Remove a brick</dt><dd id="remove-help">Choose Remove, then click a brick</dd></div>
-          <div><dt>Rotate or paint</dt><dd>Choose the tool and select a placed brick</dd></div>
+          <div><dt>Rotate an item</dt><dd>Choose Rotate, then select any part to turn it together</dd></div>
+          <div><dt>Resize an object</dt><dd>Choose Size when placing an object, or use Move then Size on a placed object</dd></div>
           <div><dt>Undo</dt><dd>Restore your last building edit</dd></div>
           <div><dt>Change views</dt><dd>Use the Camera button</dd></div>
         </dl>

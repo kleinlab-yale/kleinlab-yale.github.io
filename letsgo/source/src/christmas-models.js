@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { PLATE, STUD } from './bricks.js';
-import { CHRISTMAS_OBJECTS } from './christmas.js';
+import { TREE_TIERS, treeDecorationKind } from './tree-decorations.js';
 
 export function createChristmasModels(mesh, paint) {
   const ball = new THREE.SphereGeometry(0.5, 14, 10);
@@ -41,6 +41,10 @@ export function createChristmasModels(mesh, paint) {
     [-0.46, 0.91, 0], [-0.22, 0.54, 0], [0, 0.43, 0], [0.22, 0.54, 0], [0.46, 0.91, 0],
   ].map(point => new THREE.Vector3(...point))), 24, 0.012, 6, false);
 
+  const loopPoint = angle => [Math.cos(angle) * 0.475, 0.57 + Math.sin(angle * 3) * 0.18, Math.sin(angle) * 0.475];
+  const treeWire = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(
+    Array.from({ length: 24 }, (_, i) => new THREE.Vector3(...loopPoint(i * Math.PI / 12))), true), 48, 0.009, 6, true);
+
   function bulbStrands(group, positions) {
     const transform = new THREE.Object3D();
     return bulbColors.map((_, index) => {
@@ -59,6 +63,28 @@ export function createChristmasModels(mesh, paint) {
 
   function switchBulbs(lights, active) {
     lights.forEach((light, i) => { light.material = active ? bulbsOn[i] : bulbsOff[i]; });
+  }
+
+  function treeTrim(group, tone, kind) {
+    mesh(group, kind === 'lights' ? pine : tone, 0, 0, 0, 1, 1, 1, treeWire);
+    const lamps = [];
+    for (let i = 0; i < 24; i++) {
+      const angle = i * Math.PI / 12;
+      const [x, y, z] = loopPoint(angle);
+      if (kind === 'lights') {
+        mesh(group, tone, x, y, z, 0.026, 0.26, 0.026, cylinder);
+        lamps.push([x, y - 0.16, z, 0.035, 0.46, 0.035]);
+      } else {
+        const leaf = mesh(group, i % 3 ? tone : paint('sage'), x, y, z, 0.105, 0.41, 0.033);
+        leaf.rotation.y = -angle - Math.PI / 2;
+        if (i % 3 === 0) mesh(group, red, x * 1.027, y, z * 1.027, 0.038, 0.44, 0.038, ball);
+      }
+    }
+    if (kind === 'lights') {
+      const strands = bulbStrands(group, lamps);
+      return active => switchBulbs(strands, active);
+    }
+    return null;
   }
 
   function bow(group, color, x, y, z, size) {
@@ -83,28 +109,18 @@ export function createChristmasModels(mesh, paint) {
       mesh(group, paint('cedar'), 0, 0.052, 0, 0.44, 0.104, 0.44, taper);
       mesh(group, oak, 0, 0.106, 0, 0.47, 0.029, 0.47, cylinder);
       mesh(group, paint('bark'), 0, 0.25, 0, 0.13, 0.34, 0.13, cylinder);
-      const lights = [];
-      for (const [i, width] of [0.97, 0.78, 0.57, 0.36].entries()) {
-        const y = 0.26 + i * 0.157;
+      for (const { width, height: y, angle } of TREE_TIERS) {
         mesh(group, tone, 0, y, 0, width * 0.94, 0.26, width * 0.94, taper);
         for (let side = 0; side < 8; side++) {
-          const a = side * Math.PI / 4 + i * 0.27;
+          const a = side * Math.PI / 4 + angle;
           const x = Math.cos(a), z = Math.sin(a);
           const leaf = mesh(group, side % 3 ? tone : paint('fern'), x * width * 0.34, y - 0.088, z * width * 0.34,
             width * 0.31, 0.075, width * 0.22);
           leaf.rotation.y = -a;
           leaf.rotation.z = 0.24;
-          lights.push([x * width * 0.47, y - 0.071 + side % 2 * 0.016, z * width * 0.47, 0.046, 0.031, 0.046]);
-          if ((side + i) % 3 === 0) {
-            mesh(group, side % 2 ? brass : red, x * width * 0.423, y - 0.111, z * width * 0.423, 0.071, 0.048, 0.071, ball);
-          }
         }
       }
       mesh(group, tone, 0, 0.861, 0, 0.155, 0.124, 0.155, taper);
-      mesh(group, brass, 0, 0.907, 0, 0.024, 0.062, 0.024, cylinder);
-      const topper = mesh(group, bulbsOn[0], 0, 0.945, 0, 0.154, 0.11, 0.21, star);
-      const strands = bulbStrands(group, lights);
-      return active => { switchBulbs(strands, active); topper.material = active ? bulbsOn[0] : brass; };
     },
     wrappedGift(group, tone) {
       mesh(group, tone, 0, 0.33, 0, 0.914, 0.65, 0.91);
@@ -364,13 +380,14 @@ export function createChristmasModels(mesh, paint) {
     },
   };
 
-  return (group, brick) => {
+  return (group, brick, { w, d, h }) => {
     const model = new THREE.Group();
-    const [w, d, h] = CHRISTMAS_OBJECTS[brick.form].size;
     model.scale.set(w * STUD, h * PLATE, d * STUD);
     group.add(model);
     const form = brick.form === 'indoorTree' ? 'festiveTree' : brick.form;
-    const animate = models[form](model, paint(brick.tone));
+    const tone = paint(brick.tone);
+    const kind = brick.treeId === undefined ? null : treeDecorationKind(form);
+    const animate = kind === 'lights' || kind === 'garland' ? treeTrim(model, tone, kind) : models[form](model, tone);
     model.traverse(piece => { if (piece.isMesh && !piece.isInstancedMesh) piece.castShadow = true; });
     animate?.(brick.active, 1, 0);
     return animate;

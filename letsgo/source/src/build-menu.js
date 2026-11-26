@@ -2,6 +2,7 @@ import { TONES } from './bricks.js';
 import { BUILD_KITS, BUILD_PACKS, PARTS, layoutPart } from './parts.js';
 import { drawChristmasIcon } from './christmas-icons.js';
 import { isChristmasPiece, isChristmasTree } from './christmas.js';
+import { treeDecorationKind } from './tree-decorations.js';
 
 export function toneName(tone) {
   const spaced = tone.replace(/([a-z])([A-Z])/g, '$1 $2');
@@ -158,21 +159,25 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
     allColors.parentElement.hidden = !kit.colors.length;
   }
 
+  let decorating = false;
+
   function parts() {
     houseHelp.hidden = kit.key !== 'house';
     const source = kit.key === 'all' || group === 'Objects' && !BUILD_PACKS[kit.key]?.season ? PARTS : kit.parts;
     grid.replaceChildren();
     for (const part of source) {
+      if (decorating && !treeDecorationKind(part.form)) continue;
       if ((group !== 'All' && part.group !== group) || part.pack && !callbacks.unlocked(part.pack)) continue;
       const button = makeButton('');
       button.setAttribute('aria-label', part.name);
       const title = document.createElement('strong');
       title.textContent = part.name;
       const size = document.createElement('small');
-      if (part.form === 'door' || part.form === 'window') size.textContent = `${part.w} studs wide · ${part.h} plates high`;
+      if (part.fit) size.textContent = 'Fits a framed opening';
+      else if (part.form === 'door' || part.form === 'window') size.textContent = `${part.w} studs wide · ${part.h} plates high`;
       else size.textContent = `${part.w} × ${part.d} studs${isChristmasTree(part) ? ` · ${part.h} plates high` : ''}`;
       button.append(partIcon(part, 0, tone), title, size);
-      button.onclick = () => callbacks.part(part);
+      button.onclick = () => callbacks.part(part, decorating || (kit.key === 'christmas-tree' && Boolean(treeDecorationKind(part.form))));
       grid.append(button);
     }
     const workshop = dialog.querySelector('#workshop-from-parts');
@@ -186,7 +191,8 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
   }
 
   function showGroups() {
-    const visible = kit.key === 'all' ? PARTS : kit.parts;
+    const parts = kit.key === 'all' ? PARTS : kit.parts;
+    const visible = decorating ? parts.filter(part => treeDecorationKind(part.form)) : parts;
     groups.replaceChildren();
     for (const label of ['All', ...new Set(visible.map(part => part.group).concat('Objects'))]) {
       const button = makeButton(label);
@@ -222,6 +228,7 @@ export function createBuildMenu(dialog, initialKit, callbacks) {
       if (dialog.open) parts();
     },
     open(mode, selectedTone, kitKey) {
+      decorating = mode === 'tree';
       updateAvailability();
       if (kitKey) selectKit(kitKey);
       else tone = selectedTone;

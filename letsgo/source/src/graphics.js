@@ -313,13 +313,13 @@ function indicators(scene, body, studGeometry) {
   const matrix = new THREE.Matrix4();
   let lastTarget = null;
   let lastPlacement = '';
-  return (hit, placement, allowed, mode) => {
-    target.visible = Boolean(hit);
+  return (brick, placement, allowed, mode) => {
+    target.visible = Boolean(brick);
     preview.visible = Boolean(placement);
     target.material.color.set(mode === 'remove' ? '#ffb9a5' : '#ffdfc3');
-    if (hit && lastTarget !== hit.brick) {
-      dimensions(target, hit.brick, -0.014);
-      lastTarget = hit.brick;
+    if (brick && lastTarget !== brick) {
+      dimensions(target, brick, -0.014);
+      lastTarget = brick;
     }
     if (!placement) return;
     const key = placement.blocks.map(b => `${b.x},${b.y},${b.z},${b.w},${b.d},${b.h},${b.studs}`).join('/') + allowed;
@@ -380,6 +380,7 @@ export function createGraphics(canvas, world, compact) {
   let followDistance = 0;
   let lastView = null;
   let firstFrame = true;
+  let objectsChanged = false;
   let scale = Math.min(lowPower ? 1.35 : 1.75, window.devicePixelRatio);
   let slowFrames = 0;
 
@@ -395,6 +396,13 @@ export function createGraphics(canvas, world, compact) {
   window.addEventListener('resize', resize);
   resize();
 
+  function screenRay(point) {
+    const bounds = canvas.getBoundingClientRect();
+    pointer.set(2 * (point.x - bounds.left) / bounds.width - 1, 1 - 2 * (point.y - bounds.top) / bounds.height);
+    raycaster.setFromCamera(pointer, camera);
+    return raycaster.ray;
+  }
+
   return {
     aim,
     adventure,
@@ -403,9 +411,12 @@ export function createGraphics(canvas, world, compact) {
     vessel: objects.vessel,
     pet: objects.pet,
     tea: objects.tea,
-    movePreview: houseObjects.movePreview,
+    movePreview(brick, destination) { houseObjects.movePreview(brick, destination, world); },
     preview(canvas) { return appearancePreview(canvas, body); },
-    dirty(brick) { meshes.dirty(brick); },
+    dirty(brick) {
+      if (brick?.treeId !== undefined) objectsChanged = true;
+      else meshes.dirty(brick);
+    },
     christmas(active) { scenery.christmas(active); meshes.christmas(active); },
     overview(time) {
       local.state(null);
@@ -453,11 +464,11 @@ export function createGraphics(canvas, world, compact) {
       camera.updateMatrixWorld();
       lastView = view;
     },
-    pick(point, distance, ignoredId = null) {
-      const bounds = canvas.getBoundingClientRect();
-      pointer.set(2 * (point.x - bounds.left) / bounds.width - 1, 1 - 2 * (point.y - bounds.top) / bounds.height);
-      raycaster.setFromCamera(pointer, camera);
-      return world.pick(raycaster.ray.origin, raycaster.ray.direction, distance, false, ignoredId);
+    screenRay,
+    pick(point, distance, ignored = null) {
+      const { origin, direction } = screenRay(point);
+      return world.pick(origin, direction, distance, false, ignored,
+        (tree, closest, ignoredIds) => houseObjects.pickTree(world, tree, raycaster, closest, ignoredIds));
     },
     projectBase(brick) {
       const bounds = canvas.getBoundingClientRect();
@@ -465,12 +476,14 @@ export function createGraphics(canvas, world, compact) {
       return { x: bounds.left + (projected.x + 1) * bounds.width / 2, y: bounds.top + (1 - projected.y) * bounds.height / 2 };
     },
     render(time, dt) {
-      if (meshes.update() || firstFrame) {
+      const chunksChanged = meshes.update();
+      if (chunksChanged || firstFrame || objectsChanged) {
         objects.sync(world);
         houseObjects.sync(world);
         renderer.shadowMap.needsUpdate = true;
-        scenery.refresh();
+        if (chunksChanged || firstFrame) scenery.refresh();
         firstFrame = false;
+        objectsChanged = false;
       }
       if (dt > 0.038 && dt < 0.22) slowFrames++;
       else slowFrames = Math.max(0, slowFrames - 2);

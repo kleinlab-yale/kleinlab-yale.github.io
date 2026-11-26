@@ -1,13 +1,17 @@
 import { MAX_PATCH, TONES, resizeSavedDecoration, sameBrick, validBrick } from './bricks.js';
 import { canBuildAt } from './islands.js';
-import { PLACEABLE_OBJECTS } from './parts.js';
+import { PARTS, PLACEABLE_OBJECTS, layoutPart } from './parts.js';
 import { isChristmasPiece, isChristmasTree } from './christmas.js';
+import { offsetBricks, rotateBricks } from './assemblies.js';
+import { OPENING_LIMITS, resizeObject, sizeOptions } from './object-sizes.js';
+import { hasOpeningFrame } from './openings.js';
 
 const UNDO_LIMIT = 64;
+const assembledParts = new Map(PARTS.filter(part => part.blocks).map(part => [part.key, part]));
 export const PROTECTED_BRICK = 'You can change bricks you placed during this visit.';
 
 function toBrick(value, id) {
-  if (!validBrick(value)) return null;
+  if (value?.treeId !== undefined || !validBrick(value)) return null;
   const { x, y, z, w, d, h, tone, studs, form, turn } = value;
   const brick = { id, x, y, z, w, d, h, tone, studs, form, turn };
   if (PLACEABLE_OBJECTS[form]?.interaction) brick.active = isChristmasTree(brick) || form === 'fairyLights';
@@ -17,10 +21,6 @@ function toBrick(value, id) {
 function validEdit(edit) {
   return Boolean(edit && Number.isSafeInteger(edit.id) &&
     (edit.brick === null || (validBrick(edit.brick) && edit.brick.id === edit.id)));
-}
-
-function restoreEdit(edit) {
-  return edit?.brick ? { ...edit, brick: resizeSavedDecoration(edit.brick) } : edit;
 }
 
 export class Builder {
@@ -42,6 +42,12 @@ export class Builder {
 
   restoreHistory(snapshot) {
     if (Array.isArray(snapshot?.undo)) {
+      const restoreEdit = edit => {
+        if (!edit?.brick || snapshot.version !== 2) return edit;
+        const brick = resizeSavedDecoration(edit.brick);
+        const assembly = this.world.legacyAssemblies.get(edit.id);
+        return { ...edit, brick: assembly === undefined ? brick : { ...brick, assembly } };
+      };
       this.history = snapshot.undo.slice(-UNDO_LIMIT).filter(item =>
         Array.isArray(item?.edits) && Array.isArray(item?.previous) && item.edits.length > 0 &&
         item.edits.length <= MAX_PATCH && item.edits.length === item.previous.length)
@@ -58,11 +64,22 @@ export class Builder {
     if (!request || typeof request !== 'object') return { error: 'blocked' };
     if (request.kind === 'undo') return this.undo(boxes);
     if (request.kind === 'place') {
-      if (!Array.isArray(request.bricks) || request.bricks.length === 0 || request.bricks.length > MAX_PATCH) return { error: 'blocked' };
-      const bricks = request.bricks.map((value, i) => toBrick(value, this.world.nextId + i));
+      if (request.treeId !== undefined) return this.hang(request, null, boxes, reachable);
+      const { kit, x, y, z, turn, tone } = request;
+      let blocks = request.bricks;
+      if (kit !== undefined) {
+        const part = assembledParts.get(kit);
+        if (!part || ![x, y, z, turn].every(Number.isInteger) || turn < 0 || turn > 3) return { error: 'blocked' };
+        blocks = offsetBricks(layoutPart(part, turn, tone).blocks, { x, y, z });
+      }
+      if (!Array.isArray(blocks) || blocks.length === 0 || blocks.length > MAX_PATCH) return { error: 'blocked' };
+      const bricks = Array.from(blocks, (value, i) => toBrick(value, this.world.nextId + i));
       if (bricks.some(brick => !brick || !reachable(brick))) return { error: 'blocked' };
       if (!bricks.every(canBuildAt)) return { error: 'open-water' };
       if (bricks.some(brick => isChristmasTree(brick) && !this.world.hasBase(brick))) return { error: 'tree-base' };
+      if (request.fit === true && (bricks.length !== 1 || !Object.hasOwn(OPENING_LIMITS, bricks[0].form) ||
+        !hasOpeningFrame(this.world, bricks[0]))) return { error: `${bricks[0].form}-opening` };
+      if (kit !== undefined) for (const brick of bricks) brick.assembly = bricks[0].id;
       const edits = bricks.map(brick => ({ id: brick.id, brick }));
       return this.commit(edits, boxes);
     }
@@ -74,29 +91,75 @@ export class Builder {
       return this.world.patch(edits, boxes) ? { edits } : { error: 'doorway' };
     }
     if (!this.canEdit(target.id)) return { error: 'protected' };
+    const decorations = Array.from(this.world.decorationsOf(target.id));
+    if (request.kind !== 'paint' && decorations.some(brick => !this.canEdit(brick.id))) return { error: 'protected' };
     let brick;
     switch (request.kind) {
-      case 'remove': brick = null; break;
+      case 'remove': return this.commit([target, ...decorations].map(({ id }) => ({ id, brick: null })), boxes);
       case 'move':
-        if (!this.world.added.has(target.id)) return { error: 'placed-piece' };
-        if (['x', 'y', 'z', 'turn'].some(field => target[field] !== request.from?.[field])) return { error: 'moved' };
-        brick = { ...target, x: request.x, y: request.y, z: request.z };
-        if (sameBrick(brick, target)) return { error: 'same-spot' };
-        if (!validBrick(brick) || !reachable(brick)) return { error: 'blocked' };
-        if (!canBuildAt(brick)) return { error: 'open-water' };
-        if (isChristmasTree(brick) && !this.world.hasBase(brick)) return { error: 'tree-base' };
-        break;
+      case 'rotate': return this.transform(request, target, boxes, reachable);
+      case 'resize': return this.resize(request, target, boxes, reachable);
       case 'paint':
         if (!Object.hasOwn(TONES, request.tone) || target.tone === request.tone) return { error: 'color' };
         brick = { ...target, tone: request.tone };
         break;
-      case 'rotate':
-        if (target.w === target.d && target.form !== 'flower' && !PLACEABLE_OBJECTS[target.form]) return { error: 'square' };
-        brick = { ...target, w: target.d, d: target.w, turn: (target.turn + 1) % 4 };
-        if (!canBuildAt(brick)) return { error: 'open-water' };
-        break;
       default: return { error: 'blocked' };
     }
+    return this.commit([{ id: target.id, brick }], boxes);
+  }
+
+  transform(request, target, boxes, reachable) {
+    const members = this.world.assemblyMembers(target);
+    if (!members.every(brick => this.canEdit(brick.id))) return { error: 'protected' };
+    let bricks;
+    if (request.kind === 'move') {
+      if (!this.world.added.has(target.id)) return { error: 'placed-piece' };
+      const { from, x, y, z } = request;
+      if (!from || ['x', 'y', 'z', 'turn', 'treeId', 'slot'].some(field => target[field] !== from[field]) ||
+        ['w', 'd', 'h'].some(field => from[field] !== undefined && target[field] !== from[field]) ||
+        (target.assembly !== undefined && (!Array.isArray(from.members) || from.members.length !== members.length ||
+          members.some((brick, i) => brick.id !== from.members[i])))) return { error: 'moved' };
+      if (request.treeId !== undefined) return this.hang(request, target, boxes, reachable);
+      if (target.treeId !== undefined) return { error: 'tree-decoration' };
+      if (![x, y, z].every(Number.isInteger)) return { error: 'blocked' };
+      if (x === target.x && y === target.y && z === target.z) return { error: 'same-spot' };
+      bricks = offsetBricks(members, { x: x - target.x, y: y - target.y, z: z - target.z });
+      if (bricks.some(brick => !validBrick(brick) || !reachable(brick))) return { error: 'blocked' };
+      if (bricks.some(brick => isChristmasTree(brick) && !this.world.hasBase(brick))) return { error: 'tree-base' };
+    } else {
+      if (target.treeId !== undefined) {
+        return this.commit([{ id: target.id, brick: { ...target, turn: (target.turn + 1) % 4 } }], boxes);
+      }
+      if (members.length === 1 && target.w === target.d && target.form !== 'flower' && !PLACEABLE_OBJECTS[target.form]) {
+        return { error: 'square' };
+      }
+      bricks = rotateBricks(members);
+    }
+    if (!bricks.every(canBuildAt)) return { error: 'open-water' };
+    return this.commit(bricks.map(brick => ({ id: brick.id, brick })), boxes);
+  }
+
+  hang(request, target, boxes, reachable) {
+    const { treeId, slot } = request;
+    const tree = this.world.added.get(treeId);
+    if (!isChristmasTree(tree) || !reachable(tree) || target?.assembly !== undefined) return { error: 'tree-decoration' };
+    const form = target?.form ?? request.form;
+    const occupied = this.world.decorationAt(treeId, form, slot);
+    if (occupied) return { error: occupied.id === target?.id ? 'same-spot' : 'tree-slot' };
+    const id = target?.id ?? this.world.nextId;
+    const brick = { id, treeId, slot, form, tone: target?.tone ?? request.tone, turn: target?.turn ?? request.turn };
+    if (form === 'fairyLights') brick.active = target?.active ?? true;
+    if (!validBrick(brick) || !reachable(brick)) return { error: 'tree-decoration' };
+    return this.commit([{ id, brick }], boxes);
+  }
+
+  resize(request, target, boxes, reachable) {
+    const option = sizeOptions(target.form).find(option => option.key === request.size);
+    if (!option || target.treeId !== undefined || !this.world.added.has(target.id)) return { error: 'size-options' };
+    if (['x', 'y', 'z', 'w', 'd', 'h', 'turn'].some(field => target[field] !== request.from?.[field])) return { error: 'moved' };
+    const brick = resizeObject(target, option.size);
+    if (sameBrick(brick, target)) return { error: 'same-size' };
+    if (!reachable(brick) || !this.world.canMove(brick, boxes)) return { error: 'size-room' };
     return this.commit([{ id: target.id, brick }], boxes);
   }
 
@@ -116,6 +179,9 @@ export class Builder {
       this.history.pop();
       return { error: 'changed' };
     }
+    if (last.edits.some(({ id, brick }, i) => isChristmasTree(brick) &&
+      ['x', 'y', 'z', 'w', 'd', 'h', 'turn'].some(field => brick[field] !== last.previous[i].brick?.[field]) &&
+      Array.from(this.world.decorationsOf(id)).some(child => !this.canEdit(child.id)))) return { error: 'protected' };
     const restore = last.previous.map(edit => {
       const current = this.world.bricks.get(edit.id);
       if (!edit.brick || current?.active === undefined) return edit;

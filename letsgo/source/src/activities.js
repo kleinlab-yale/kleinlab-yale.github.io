@@ -4,6 +4,7 @@ import { PETS, RESCUE_REACH, followPet, lostPet } from './pets.js';
 import { DOCK, HULL_WIDTH, ISLANDS, ROUTES, SEA_LEVEL, advanceVessel, crossingDistance, harborAt,
   harborReturn, hullPattern, islandAt, launchVessel, rateHull } from './voyage.js';
 import { MATERIALS, resourceList } from './boat-craft.js';
+import { isChristmasTree } from './christmas.js';
 
 const $ = id => document.getElementById(id);
 const STEEP_MS = 1700;
@@ -12,16 +13,18 @@ const SERVE_MS = 4500;
 export function objectDistance(player, brick) {
   const x = (brick.x + brick.w / 2) * STUD;
   const z = (brick.z + brick.d / 2) * STUD;
-  return Math.hypot(x - player.x, z - player.z, brick.y * PLATE - player.y);
+  const radius = isChristmasTree(brick) ? Math.min(brick.w, brick.d) * STUD * 0.45 : 0;
+  return Math.hypot(Math.max(0, Math.hypot(x - player.x, z - player.z) - radius), brick.y * PLATE - player.y);
 }
 
 export function createActivities({ world, graphics, getPlayer, openDialog, resume, toast, sound, craft,
-  progress, achieve, sendTea, use, turnTo, expedition, canCoast, joinCoast, onPort }) {
+  progress, achieve, sendTea, use, turnTo, expedition, canCoast, joinCoast, onPort, decorateTree }) {
   const game = $('game');
   const boatGrid = $('boat-grid');
   const destination = $('voyage-destination');
   const rescueButton = $('rescue-pet');
   const propButton = $('prop-action');
+  const decorateButton = $('decorate-tree');
   const teaButton = $('tea-action');
   const tileButtons = [];
   const tea = new Map();
@@ -307,7 +310,13 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     const result = {};
     let bestTea = 3.35;
     let bestProp = 2.5;
+    let bestTree = 3.5;
     for (const brick of world.query(x - 7, x + 8, z - 7, z + 8)) {
+      if (isChristmasTree(brick)) {
+        const distance = objectDistance(player, brick);
+        if (distance < bestTree) { bestTree = distance; result.tree = brick.id; }
+        if (![...world.decorationsOf(brick.id)].some(child => child.form === 'fairyLights')) continue;
+      }
       if (brick.form === 'tea') {
         const distance = objectDistance(player, brick);
         if (distance < bestTea) { bestTea = distance; result.tea = brick.id; }
@@ -377,6 +386,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   };
 
   propButton.onclick = () => { if (stations.prop) use(stations.prop); };
+  decorateButton.onclick = decorateTree;
 
   function updatePrompts(player, pet, now, adventureNearby) {
     const canRescue = Boolean(withinRescue(player, pet));
@@ -387,6 +397,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     const preferTea = counter && (!item || objectDistance(player, counter) <= objectDistance(player, item));
     teaButton.hidden = Boolean(vessel || canRescue || adventureNearby || !preferTea);
     propButton.hidden = Boolean(vessel || canRescue || adventureNearby || preferTea || !item);
+    decorateButton.hidden = Boolean(vessel || !stations.tree || !progress.hasChristmasKit || game.dataset.tool !== 'explore');
     if (preferTea) {
       const phase = teaPhase(counter.id, now);
       teaButton.disabled = phase === 'brewing' || phase === 'served';

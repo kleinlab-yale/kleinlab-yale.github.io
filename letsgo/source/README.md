@@ -17,13 +17,15 @@ Use the arrow keys or hold the on-screen movement buttons to walk on a computer.
 
 On an iPhone, tap **Build** to pick a piece or edit tool. The check mark takes you back to exploring. **Journal** shows the story, build packs, pets, and islands. **Menu** opens camera, audio, player, and room settings. Music and game sounds have separate switches.
 
-Start in **Explore** to walk and orbit the camera. Pick a brick and tap or click a top or side to snap it in place. Rectangular bricks follow the direction of the brick or row you tap. Use **Turn piece** while placing to set your own orientation, or select the piece again to resume automatic alignment. Choose **Move** and drag a placed piece to a new snap point. In **Rotate**, tap to turn a piece or drag it to move it. **Paint** and **Remove** edit a piece you tap. **Undo** reverses your recent edits.
+Start in **Explore** to walk and orbit the camera. Pick a brick and tap or click a top or side to snap it in place. Rectangular bricks follow the direction of the brick or row you tap. Use **Turn piece** while placing to set your own orientation, or select the piece again to resume automatic alignment. Choose **Move**, then drag any part of a placed kit item to move it together. In **Rotate**, tap any part of the item to turn it. **Paint** and **Remove** edit individual bricks. **Undo** reverses your recent edits.
 
 Open **Parts & colors** and choose a **Build kit**. Shrine & treehouse, Blossom tree, Boat & dock, and Tea garden load matching materials and populate your quick tray. Pick a color for new bricks or choose **Paint placed bricks** to recolor existing ones. **Show all colors** opens the full palette. **Match a brick in the world** copies the shape and color of any brick you tap. Open **Objects** for the tea counter, lanterns, and the boat workshop.
 
 Earn the House Pack by placing six pieces, the Furnishings Pack by serving blossom tea, the Garden Lights Pack by rescuing Mochi, and the Coastal Pack by sailing to Shell Cove. Open each earned pack from the journal or the build kit picker. Tap placed doors and lights in Explore, or walk up and use their interaction button.
 
-Choose a House Pack door that matches the width and height of your opening, then tap the floor inside the opening. Door cards show their dimensions. Set glass or lattice windows on a sill. Use roof tiles or stepped eaves along the wall tops and finish a peaked roof with capped ridge pieces.
+Choose **Add door** or **Add window** in the House Pack, then tap the opening or its bottom edge. A rectangular frame with two sides, a top, and a sill or floor gives the piece its size and orientation. The pack also includes fixed-size options, roof tiles, eaves, and ridges.
+
+Choose **Size** while placing a tree, piece of furniture, or decoration to pick a size. To resize a placed object, choose **Move → Size** and tap the object.
 
 Use **Camera** to cycle between third person, wide, and first person. **Customize** in the top bar opens presets and separate controls for your character’s face, hair, and clothes. Drag the preview to turn your character, or switch to Face close-up to see your expression. Your appearance is saved in your browser and shared with your co-op partner.
 
@@ -39,7 +41,7 @@ Walk up to the tea counter in the High Pavilion, or build one from **Objects**. 
 
 ## Christmas in Blossom Valley
 
-Play from November 25 through December 25, 2026, Eastern time, to receive three free packs in **Journal → Build packs**. Choose the Christmas Tree, Holiday Home, or Winter Village pack for 22 decorations. The Indoor Christmas tree fits on a floor or table. Use **Explore** to open presents, switch lights on or off, light the fireplace and candles, and ring a jingle bell.
+Play from November 25 through December 25, 2026, Eastern time, to receive three free packs in **Journal → Build packs**. Both trees start bare. Walk up to either tree and choose **Decorate tree** to pick a decoration. Tap a branch to hang an ornament, a tier to wrap lights or garland around it, or the tree to add a star on top. In **Remove**, tap any decoration to take it off or tap the pot to remove the tree. **Explore** has controls for lighting decorated trees, opening gifts, and other holiday interactions.
 
 Starting December 26, the game packs away holiday pieces the next time you play your world. All the seasonal pieces stay available in your **Christmas Kit**. You can place them again at any time. In co-op, the host’s save contains the shared decorations and each player keeps their own kit.
 
