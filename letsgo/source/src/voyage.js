@@ -124,7 +124,7 @@ export const CHANNEL_BUOYS = [
   { x: 44 * STUD, z: 110 * STUD, name: 'East channel buoy' },
   { x: 46 * STUD, z: 153 * STUD, name: 'Outer channel buoy' },
 ];
-const westboundChannel = CHANNEL_BUOYS.toReversed();
+const westboundChannel = [...CHANNEL_BUOYS].reverse();
 
 function passage(origin, target) {
   if (origin === 'home' && target === ISLANDS.reef) return CHANNEL_BUOYS;
