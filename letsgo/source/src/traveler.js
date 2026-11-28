@@ -21,6 +21,7 @@ export function createTraveler(scene, body, withShadow = true, world = null) {
   const boots = material('#3f302a', 0.53);
   const head = new THREE.Group();
   const parts = new THREE.Group();
+  const hand = new THREE.Group();
   const destination = new THREE.Vector3();
   const shadow = withShadow ? new THREE.Mesh(new THREE.PlaneGeometry(1.08, 0.9), new THREE.ShaderMaterial({
     transparent: true, depthWrite: false,
@@ -74,6 +75,10 @@ export function createTraveler(scene, body, withShadow = true, world = null) {
     sleeve.rotation.z = side * 0.12;
     const cuff = brick(arm, trim, side * 0.043, -0.301, 0, 0.154, 0.043, 0.183);
     brick(arm, skin, side * 0.043, -0.364, 0.004, 0.129, 0.105, 0.149);
+    if (side === 1) {
+      hand.position.set(0.043, -0.425, -0.012);
+      arm.add(hand);
+    }
     const leg = new THREE.Group();
     leg.position.set(side * 0.119, HIP, 0);
     const knee = new THREE.Group();
@@ -137,7 +142,7 @@ export function createTraveler(scene, body, withShadow = true, world = null) {
   }
   appearance(DEFAULT_LOOK);
 
-  function positionFeet(dt) {
+  function positionFeet(dt, time) {
     const cos = Math.cos(previousYaw);
     const sin = Math.sin(previousYaw);
     const rest = figure.position.y + parts.position.y;
@@ -160,12 +165,16 @@ export function createTraveler(scene, body, withShadow = true, world = null) {
       leg.rotation.x = Math.atan2(-forward, HIP - ankle) - Math.atan2(SHIN * Math.sin(bend), THIGH + SHIN * Math.cos(bend));
       knee.rotation.x = bend;
       foot.rotation.x = -leg.rotation.x - bend;
-      arm.rotation.x = -Math.cos(cycle * Math.PI * 2) * stride * 0.46;
+      const carrying = side === 1 && hand.children.length > 0;
+      const resting = carrying && target.working ? 0.66 + Math.sin(time * 4.4) * 0.19 : carrying ? 0.14 : 0;
+      const swing = -Math.cos(cycle * Math.PI * 2) * stride * (carrying ? 0.22 : 0.46);
+      arm.rotation.x += (resting + swing - arm.rotation.x) * (1 - Math.exp(-dt * 19));
     }
   }
 
   return {
     figure,
+    hand,
     appearance,
     state(state, snap = false) {
       const changedPlayer = snap && target !== state;
@@ -187,7 +196,7 @@ export function createTraveler(scene, body, withShadow = true, world = null) {
       figure.visible = true;
       if (shadow) shadow.visible = Boolean(target.grounded);
     },
-    animate(dt) {
+    animate(dt, time = 0) {
       if (!target) return;
       dt = Math.min(0.07, dt);
       const weight = 1 - Math.exp(-dt * 15);
@@ -209,7 +218,7 @@ export function createTraveler(scene, body, withShadow = true, world = null) {
       const bend = (target.sprinting ? 0.104 : 0.076) * strideLimit;
       parts.position.y = ((1 - Math.cos(phase * Math.PI * 4)) * 0.006 - bend) * stride;
       parts.rotation.z = Math.sin(phase * Math.PI * 2) * stride * 0.018;
-      positionFeet(dt);
+      positionFeet(dt, time);
     },
   };
 }

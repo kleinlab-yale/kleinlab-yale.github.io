@@ -284,7 +284,7 @@ export function dressScene(scene, renderer, lowPower) {
   scene.environment = makeEnvironment(renderer);
   scene.environmentIntensity = 0.63;
   scene.add(ridge(-142, '#77768e', 0, 1.5), ridge(-106, '#656e81', 0, 0.4), ridge(-76, '#526b69', 0, 2.2));
-  scene.add(ridge(-108, '#6b7482', -1.2, 4.4), ridge(-89, '#677b76', 1.32, 3.3), ridge(-248, '#78848c', 3.04, 5.7));
+  scene.add(ridge(-108, '#6b7482', -1.2, 4.4), ridge(-89, '#677b76', 1.32, 3.3));
   const peaks = ridge(434, '#74788c', 0, 3.4);
   peaks.scale.y = 1.5;
   const foothills = ridge(377, '#526961', 0, 2.8);

@@ -6,6 +6,8 @@ import { PETS } from './pets.js';
 import { HOUSE_GOAL } from './progression.js';
 import { christmasActive } from './christmas.js';
 import { COAST_STEPS } from './mainland-data.js';
+import { RESIDENTS } from './residents.js';
+import { renderFleet } from './fleet-menu.js';
 
 function element(tag, text, className) {
   const item = document.createElement(tag);
@@ -30,7 +32,7 @@ function entry(title, detail, status) {
   return row;
 }
 
-export function createJournal(dialog, progress, { selectKit, voyage, track, trainSound, canCoast }) {
+export function createJournal(dialog, progress, { selectKit, voyage, track, trainSound, canCoast, craft, openFleet, guideShip }) {
   const pages = Array.from(dialog.querySelectorAll('[data-journal-page]'));
 
   function done(step) {
@@ -146,9 +148,19 @@ export function createJournal(dialog, progress, { selectKit, voyage, track, trai
       row.dataset.earned = String(reached);
       panel.append(row);
     }
+    const people = element('details', '', 'treasure-guide');
+    people.append(element('summary', 'People of the valley'));
+    for (const [id, resident] of Object.entries(RESIDENTS)) {
+      if ((id === 'rei' || id === 'ren') && !progress.visited('cedar') || id === 'nami' && !progress.visited('shell')) continue;
+      const row = entry(resident.name, `${resident.role} · ${resident.place}`);
+      row.append(action('Track', () => track(id === 'keeper' ? 'keeper' : id === 'rei' ? 'harbormaster' : 'resident', id)));
+      people.append(row);
+    }
+    panel.append(people);
   }
 
-  const render = { story: renderStory, packs: renderPacks, pets: renderPets, islands: renderIslands };
+  const render = { story: renderStory, packs: renderPacks, pets: renderPets, islands: renderIslands,
+    fleet: panel => renderFleet(panel, craft, progress, { choose: openFleet, guide: guideShip }) };
   let currentPage = 'story';
   function open(name = 'story') {
     currentPage = name;

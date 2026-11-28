@@ -493,6 +493,25 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid #f4e2d141; bord
 
 .voyage-destinations { padding-left: 24px; color: var(--muted); font-size: 14px; line-height: 1.9; }
 .voyage-destinations [data-done='true'] { color: #b9e0bd; }
+#voyage-fleet { margin-top: 7px; }
+.workshop-tabs { margin-bottom: 10px; }
+.workshop-tabs button { flex: 1; min-height: 44px; }
+.fleet-cards { display: grid; gap: 9px; margin: 9px 0 14px; }
+#workshop-fleet { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fleet-card {
+  min-width: 0; display: grid; align-content: start; gap: 7px; padding: 13px 14px;
+  background: linear-gradient(145deg, #334436, #1c2824 70%);
+  border: 1px solid #d5bd9163; border-left: 4px solid var(--ship-color); border-radius: 9px;
+}
+.fleet-card h3 { margin: 0; font: 27px/1.05 'Instrument Serif', Georgia, serif; color: #ffe4b6; }
+.fleet-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.fleet-card .fleet-stats { color: #b9ded0; font-weight: 650; font-variant-numeric: tabular-nums; }
+.fleet-card .fleet-goal { color: #f0ceac; }
+.fleet-card .subtle-button { min-height: 44px; white-space: normal; justify-self: start; margin-top: 4px; }
+.departure-controls { display: grid; gap: 5px; margin: 8px 0 12px; }
+.departure-controls select { width: 100%; min-height: 44px; }
+.departure-controls .panel-copy { margin: 0; }
+.resident-role { margin: 0 0 8px; color: #ebc79a; font-size: 13px; }
 #return-dock { margin-top: 7px; }
 .boat-layout { display: grid; grid-template-columns: minmax(205px, 1fr) minmax(170px, 1fr); gap: 16px; margin: 0 0 16px; }
 .boat-brushes { flex-wrap: wrap; margin-bottom: 8px; }
@@ -535,6 +554,7 @@ kbd { display: inline-block; padding: 2px 5px; border: 1px solid #f4e2d141; bord
   .boat-layout { grid-template-columns: 1fr; }
   .boat-grid { margin-inline: auto; }
   .boat-grid button { aspect-ratio: 1.42; }
+  #workshop-fleet { grid-template-columns: 1fr; }
 }
 @media (pointer: coarse) {
   .part-groups button, .parts-actions .button, .boat-brushes button { min-height: 42px; }

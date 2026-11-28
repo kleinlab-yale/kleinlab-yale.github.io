@@ -23,6 +23,7 @@ import { snapMove, snapPlacement } from './snapping.js';
 import { canBuildAt } from './islands.js';
 import { islandAt } from './voyage.js';
 import { createBoatCraft } from './boat-craft.js';
+import { SHIPS } from './ship-data.js';
 import { brickBounds, offsetBricks } from './assemblies.js';
 import { orientedSize, resizeObject, sizeOptions } from './object-sizes.js';
 import { snapOpening } from './openings.js';
@@ -35,6 +36,10 @@ const VIEW_KEY = 'brick-and-bloom:view:1';
 const KIT_KEY = 'letsgo:build-kit:1';
 const AUDIO_KEY = 'letsgo:audio:1';
 const LANDING_KEY = 'letsgo:landing:1';
+const SHIP_CAMERAS = Object.fromEntries(Object.entries(SHIPS).map(([id, ship]) => [id, CAMERAS.map(view => view.distance ? {
+  ...view, distance: view.distance + ship.length * (view.short === 'Wide' ? 0.39 : 0.25),
+  height: view.height + ship.beam * 0.32, shoulder: view.shoulder + ship.beam * 0.72,
+} : { ...view, bowLookout: ship.length * 0.42 })]));
 const icons = {
   brick: '<path d="M2.5 11.8 12 6.5l9.5 5.3v5.5L12 22.5l-9.5-5.2zM2.5 11.8 12 17l9.5-5.2M12 17v5.5M7 9.2V6.5l5-2.8 5 2.8v2.7M7 6.5l5 2.8 5-2.8M12 9.3V12"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15.5 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/>',
@@ -865,13 +870,14 @@ function boot() {
 
   const expedition = createExpedition({ world, model: graphics.adventure, getPlayer: () => player, progress, craft,
     open: () => { setScreen('pause'); dialogs.adventure.showModal(); }, resume: enter,
-    openPets: () => showJournal('pets'), toast, sound: audio.tap, celebrate, build: bricks => runEdit({ kind: 'place', bricks }),
+    openPets: () => showJournal('pets'), openFleet, toast, sound: audio.tap, celebrate, build: bricks => runEdit({ kind: 'place', bricks }),
   });
   const activities = createActivities({ world, graphics, getPlayer: () => player, expedition,
     openDialog: () => { dialogs.journal.close(); dialogs.parts.close(); setScreen('pause'); dialogs.voyage.showModal(); },
     resume: enter, toast, sound: audio.tap, progress, achieve, use: useProp,
     craft, sendTea: action => { sendPose(); rooms.tea(action); },
     canCoast, joinCoast,
+    fleetJournal: () => showJournal('fleet'),
     decorateTree: () => showParts('tree', progress.packVisible('christmas-tree') ? 'christmas-tree' : 'christmas'),
     onPort(port) {
       const cedar = port === 'cedar';
@@ -885,9 +891,14 @@ function boot() {
   });
   const journal = createJournal(dialogs.journal, progress, {
     selectKit: key => showParts('all', key), voyage: activities.openVoyage, trainSound: () => audio.tap('reward'),
-    canCoast,
+    canCoast, craft, openFleet, guideShip: activities.guideShip,
     track: (type, id) => { activities.stopDockTracking(); expedition.track(type, id); enter(); },
   });
+
+  function openFleet(ship) {
+    enter();
+    activities.openVoyage(undefined, 'fleet', ship);
+  }
 
   function resetPlayer() {
     activities.reset();
@@ -1271,7 +1282,8 @@ function boot() {
         const location = activities.sailing ? 'Open Water' : district(player.x, player.y, player.z);
         if (location !== lastDistrict) $('district').textContent = lastDistrict = location;
       }
-      graphics.playerView(player, CAMERAS[view], { yaw: cameraYaw.value, pitch: cameraPitch.value }, dt);
+      const camera = SHIP_CAMERAS[activities.ship]?.[view] ?? CAMERAS[view];
+      graphics.playerView(player, camera, { yaw: cameraYaw.value, pitch: cameraPitch.value }, dt);
       if (aimPoint?.touch && now >= flashUntil) aimPoint = null;
       const moving = screen === 'play' && drag?.piece && drag.moved ? movePlacement(drag, drag) : null;
       const hit = screen === 'play' && !activities.sailing && tool !== 'explore' && aimPoint ? pick(aimPoint) : null;

@@ -1,14 +1,16 @@
-import { BEACONS, CHESTS, KEEPER, SYMBOLS } from './adventure-data.js';
+import { BEACONS, CHESTS, SYMBOLS } from './adventure-data.js';
 import { STUD } from './bricks.js';
 import { PETS } from './pets.js';
-import { BRIDGE_BOARD, COAST_BOUNDS, COAST_MILESTONES, COAST_PASS, IRRIGATION, REI, SLUICE, irrigationFlow } from './mainland-data.js';
+import { BRIDGE_BOARD, COAST_BOUNDS, COAST_MILESTONES, COAST_PASS, IRRIGATION, SLUICE, irrigationFlow } from './mainland-data.js';
 import { bridgeDeck, nextBridgePlanks } from './mainland-bridge.js';
-import { SUPPLIES, resourceList } from './boat-craft.js';
+import { MATERIALS, SUPPLIES, resourceList } from './boat-craft.js';
+import { RESIDENTS, createRoutine } from './residents.js';
+import { SHIPS, SHIPYARDS, fleetGoal, shipyardOpen } from './ship-data.js';
 
 const $ = id => document.getElementById(id);
 const REACH = 2.85;
 
-function distance(player, target) { return Math.hypot(player.x - target.x, player.y - target.y, player.z - target.z); }
+function distance(player, target) { return target ? Math.hypot(player.x - target.x, player.y - target.y, player.z - target.z) : Infinity; }
 
 function findGround(world, location) {
   let fallback = { x: location.x * STUD, z: location.z * STUD, y: 0 };
@@ -24,7 +26,7 @@ function findGround(world, location) {
   return fallback;
 }
 
-export function createExpedition({ world, model, getPlayer, progress, craft, open, resume, openPets, toast, sound, celebrate, build }) {
+export function createExpedition({ world, model, getPlayer, progress, craft, open, resume, openPets, openFleet, toast, sound, celebrate, build }) {
   const prompts = $('trail-action');
   const promptLabel = $('trail-action-label');
   const meter = $('pet-work');
@@ -39,16 +41,16 @@ export function createExpedition({ world, model, getPlayer, progress, craft, ope
 
   const key = (type, id) => `${type}-${id}`;
   function register(type, id, data) {
-    entries.set(key(type, id), { type, id, data, spot: null });
+    entries.set(key(type, id), { type, id, data, spot: null, walker: data.routine ? createRoutine(world, data) : null });
   }
-  register('keeper', 'keeper', KEEPER);
-  register('harbormaster', 'rei', REI);
+  for (const [id, data] of Object.entries(RESIDENTS)) register(id === 'keeper' ? 'keeper' : id === 'rei' ? 'harbormaster' : 'resident', id, data);
   register('bridge', 'bridge', BRIDGE_BOARD);
   register('sluice', 'water', SLUICE);
   register('pass', 'cedar-pass', COAST_PASS);
   for (const [id, data] of Object.entries(CHESTS)) register('chest', id, data);
   for (const [id, data] of Object.entries(BEACONS)) register('beacon', id, data);
   for (const [id, data] of Object.entries(SUPPLIES)) register('supply', id, data);
+  for (const [id, data] of Object.entries(SHIPYARDS)) register('shipyard', id, data);
 
   const unlockedSupply = data => !data.requires || progress.lit(data.requires);
 
@@ -67,9 +69,15 @@ export function createExpedition({ world, model, getPlayer, progress, craft, ope
     meter.hidden = true;
     prompts.hidden = true;
     for (const entry of entries.values()) {
+      if (entry.walker) {
+        entry.spot = entry.walker.reset();
+        model.resident(entry.id, entry.data, distance(getPlayer(), entry.spot) < 28 ? entry.spot : null);
+        continue;
+      }
       entry.spot = findGround(world, entry.data);
       model.place(entry.type, entry.id, entry.spot, entry.data);
       if (entry.type === 'beacon') model.showLantern(entry.id, progress.lit(entry.id));
+      if (entry.type === 'shipyard') model.shipStage(entry.id, craft.shipStage(entry.id));
     }
     refreshChests();
     model.water(progress.coastDone('water'));
@@ -95,6 +103,87 @@ export function createExpedition({ world, model, getPlayer, progress, craft, ope
   }
 
   function reach(entry) { return distance(getPlayer(), entry.spot) <= REACH; }
+
+  function guide(label, type, id) {
+    button(label, () => {
+      tracked = entries.get(key(type, id)) ?? null;
+      resume();
+    }, content, 'button secondary wide');
+  }
+
+  function showResident(entry) {
+    switch (entry.id) {
+      case 'sora':
+        paragraph(progress.rescued('mochi') ?
+          'Mochi knows the meadow path now. There’s a supply chest near Aya’s rounds. You can use its coins to train a companion for heavier locks.' :
+          'When the reeds along the brook get tall, Haru bundles them for boats. Head south along the meadow path and look for a bundle by the crossing.');
+        guide(progress.rescued('mochi') ? 'Track Aya’s supply chest' : 'Track meadow reeds',
+          progress.rescued('mochi') ? 'chest' : 'supply', progress.rescued('mochi') ? 'supplies' : 'brook');
+        break;
+      case 'mika':
+        paragraph(progress.unlocked('furnishings') ?
+          'I heard you served blossom tea. The Furnishings Pack has a little bench for a garden tea corner.' :
+          'You’ll find a tea counter upstairs in the High Pavilion. Brew a pot, give it a moment to steep, and serve it to earn the Furnishings Pack.');
+        break;
+      case 'haru':
+        paragraph('A wide raft stays afloat longer. Add cedar boards and metal fittings for open water. I keep a stack of reeds up the dock path.');
+        paragraph('At Shell Cove, Nami has been sorting timbers from a wreck. Look for the workbench on the east beach.');
+        guide('Track dockside reeds', 'supply', 'dockReeds');
+        break;
+      case 'nami':
+        paragraph(craft.hasShip('sloop') ?
+          'That jade stripe looks fine on the water again. Once Shell Cove’s lantern lights Driftglass, follow the two east channel buoys past Lantern Island.' :
+          'We’ve found enough of the Lantern to save her. The loose timber and cordage washed up near the north shore. Look by the lighthouse platform for metal fittings.');
+        if (craft.hasShip('sloop')) button('Open Fleet', openFleet, content, 'button secondary wide');
+        else guide('Track the wreck', 'shipyard', 'sloop');
+        break;
+      case 'ren':
+        paragraph(craft.hasShip('galleon') ?
+          'The galleon’s canvas is cut for a long crossing. You can sail from here straight to the south dock when you’re ready.' :
+          'I’m cutting five sails for the galleon. Bring your restored sloop and reopen the canal bridge so we can haul the yard’s timber and fittings to the berth.');
+        guide('Track the shipyard', 'shipyard', 'galleon');
+        break;
+    }
+    button('See you around', resume);
+  }
+
+  function showShipyard(entry) {
+    const { id } = entry;
+    const blueprint = SHIPS[id];
+    if (craft.hasShip(id)) {
+      paragraph(`The ${blueprint.name} is ready. You can select it in Fleet at any harbor.`);
+      button('Open Fleet', openFleet);
+      return;
+    }
+    if (!shipyardOpen(id, craft, progress)) {
+      const goal = fleetGoal(id, craft, progress);
+      paragraph(goal.detail);
+      if (goal.track) guide('Track the next step', ...goal.track);
+      else button('Open Fleet', openFleet);
+      return;
+    }
+    const task = craft.shipWork(id);
+    if (id === 'sloop') paragraph(`${task.stage} of ${blueprint.work.length} repairs complete`, 'journal-status');
+    paragraph(`${task.name} with ${resourceList(task.cost)}.`);
+    const missing = Object.keys(task.missing).find(material => task.missing[material]);
+    if (missing) {
+      paragraph(`You still need ${resourceList(task.missing)}.`);
+      button(`Track ${MATERIALS[missing].name.toLowerCase()}`, () => {
+        const found = trackSupply(missing);
+        resume();
+        if (!found) toast(MATERIALS[missing].hint);
+      });
+      return;
+    }
+    button(task.name, () => {
+      if (!reach(entry) || !shipyardOpen(id, craft, progress) || !craft.refit(id, task.stage)) return;
+      model.shipStage(id, craft.shipStage(id));
+      if (craft.hasShip(id) && tracked === entry) tracked = null;
+      resume();
+      sound(craft.hasShip(id) ? 'reward' : 'place');
+      toast(task.result);
+    });
+  }
 
   function collect(entry) {
     if (!progress.collect(entry.id)) return;
@@ -298,6 +387,12 @@ export function createExpedition({ world, model, getPlayer, progress, craft, ope
     if (!entry || !reach(entry)) return;
     title.textContent = entry.data.name;
     content.replaceChildren();
+    if (entry.walker) {
+      paragraph(`${entry.data.role} · ${entry.walker.activity}`, 'resident-role');
+      entry.walker.address(getPlayer());
+      model.resident(entry.id, entry.data, entry.spot);
+      if (tracked === entry) tracked = null;
+    }
     if (entry.type === 'keeper') {
       progress.meetKeeper();
       if (tracked === entry) tracked = null;
@@ -316,6 +411,8 @@ export function createExpedition({ world, model, getPlayer, progress, craft, ope
         button('I’ll find the prism', resume);
       }
     } else if (entry.type === 'harbormaster') showRei(entry);
+    else if (entry.type === 'resident') showResident(entry);
+    else if (entry.type === 'shipyard') showShipyard(entry);
     else if (entry.type === 'bridge') showBridge(entry);
     else if (entry.type === 'sluice') showSluice(entry);
     else if (entry.type === 'pass') {
@@ -345,25 +442,34 @@ export function createExpedition({ world, model, getPlayer, progress, craft, ope
     else show(focus);
   };
 
+  function trackSupply(material) {
+    const player = getPlayer();
+    const sources = [];
+    for (const [id, data] of Object.entries(SUPPLIES)) {
+      if (!data.yield[material] || !unlockedSupply(data) || data.island && !progress.visited(data.island)) continue;
+      const entry = entries.get(key('supply', id));
+      const penalty = craft.seconds(id) ? 14 : 0;
+      sources.push({ entry, distance: distance(player, entry.spot) + penalty });
+    }
+    sources.sort((a, b) => a.distance - b.distance);
+    tracked = sources[0]?.entry ?? null;
+    return Boolean(tracked);
+  }
+
   return {
     reset,
     track(type, id) { tracked = entries.get(key(type, id)) ?? null; },
-    trackSupply(material) {
-      const player = getPlayer();
-      const sources = [];
-      for (const [id, data] of Object.entries(SUPPLIES)) {
-        if (!data.yield[material] || !unlockedSupply(data) || data.island && !progress.visited(data.island)) continue;
-        const entry = entries.get(key('supply', id));
-        const penalty = craft.seconds(id) ? 14 : 0;
-        sources.push({ entry, distance: distance(player, entry.spot) + penalty });
-      }
-      sources.sort((a, b) => a.distance - b.distance);
-      tracked = sources[0]?.entry ?? null;
-      return Boolean(tracked);
-    },
+    trackSupply,
     stopTracking() { tracked = null; },
-    get waypoint() { return tracked ? { ...tracked.spot, name: tracked.data.name } : null; },
+    get waypoint() { return tracked?.spot ? { ...tracked.spot, name: tracked.data.name } : null; },
     tick(player, elapsed, time, blocked, otherReach) {
+      for (const entry of entries.values()) {
+        if (!entry.walker) continue;
+        const nearby = distance(player, entry.spot ?? { x: entry.data.routine[0][0] * STUD,
+          y: 0, z: entry.data.routine[0][1] * STUD }) < 28;
+        if (nearby) entry.spot = entry.walker.tick(elapsed, player);
+        model.resident(entry.id, entry.data, nearby ? entry.spot : null);
+      }
       if (job) {
         if (blocked || progress.companion !== job.id || distance(player, job.entry.spot) > 3.9) {
           if (!blocked) toast('Come back to the chest to try again.');
@@ -392,7 +498,7 @@ export function createExpedition({ world, model, getPlayer, progress, craft, ope
       prompts.hidden = !focus;
       if (focus) {
         const supply = focus.type === 'supply' && unlockedSupply(focus.data) && craft.seconds(focus.id) ? 'Check supplies' : null;
-        const label = supply ?? focus.data.prompt ?? (focus.type === 'keeper' ? 'Talk to Keeper Aya' : focus.id === 'ridge' && focus.type === 'beacon' ?
+        const label = supply ?? focus.data.prompt ?? (focus.walker ? `Talk to ${focus.data.name}` : focus.id === 'ridge' && focus.type === 'beacon' ?
           'Check the observatory' : focus.type === 'beacon' ? 'Check the lantern' : `Check ${focus.data.name.toLowerCase()}`);
         if (promptLabel.textContent !== label) promptLabel.textContent = label;
       }

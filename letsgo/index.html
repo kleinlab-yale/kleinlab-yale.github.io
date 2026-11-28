@@ -7,9 +7,9 @@
   <link rel="icon" type="image/png" href="./favicon.png" />
   <meta name="description" content="A touch-friendly 3D brick-building sandbox in a cherry-blossom village. Explore, rebuild, and play with a friend." />
   <title>LetsGo</title>
-  <script type="module" crossorigin src="./assets/index-D-k_G1UD.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/three-CN8d3Tzm.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-BtMW1XD1.css">
+  <script type="module" crossorigin src="./assets/index-CcgrBf03.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/three-CAsFkbda.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-DF-wfvOj.css">
 </head>
 <body>
   <div id="game" data-screen="title">
@@ -175,11 +175,13 @@
           <button type="button" data-journal-page="packs" aria-pressed="false">Build packs</button>
           <button type="button" data-journal-page="pets" aria-pressed="false">Pets</button>
           <button type="button" data-journal-page="islands" aria-pressed="false">Islands</button>
+          <button type="button" data-journal-page="fleet" aria-pressed="false">Fleet</button>
         </div>
         <section id="journal-story" aria-label="Story"></section>
         <section id="journal-packs" aria-label="Build packs" hidden></section>
         <section id="journal-pets" aria-label="Pets" hidden></section>
         <section id="journal-islands" aria-label="Islands" hidden></section>
+        <section id="journal-fleet" class="fleet-cards" aria-label="Fleet" hidden></section>
       </div>
     </dialog>
 
@@ -199,37 +201,47 @@
           <p class="panel-copy">Reach the nearby islands by bridge or boat. Start farther crossings from the harbors at Shell Cove, Cloudberry Isle, and the outer islands.</p>
           <ol class="voyage-destinations" id="voyage-destinations"></ol>
           <button id="track-dock" class="button primary wide" type="button">Show dock direction</button>
+          <button id="voyage-fleet" class="button secondary wide" type="button">See the fleet</button>
           <button id="return-dock" class="button secondary wide" type="button" hidden>Return to the south dock</button>
         </div>
         <div id="boat-workshop" hidden>
-          <p class="panel-copy">Gather materials, then connect the planks edge to edge. A sealed hull carries you farther.</p>
-          <div class="boat-layout">
-            <section aria-label="Hull grid">
-              <div class="boat-brushes option-row" role="group" aria-label="Boat building tool">
-                <button type="button" data-hull="1" aria-pressed="true">Reed plank</button>
-                <button type="button" data-hull="2" aria-pressed="false">Reinforced cedar</button>
-                <button type="button" data-hull="0" aria-pressed="false">Erase</button>
-                <button type="button" data-hull="0" aria-pressed="false">Remove</button>
-              </div>
-              <div id="boat-grid" class="boat-grid" role="group" aria-label="Five by seven hull grid"></div>
-            </section>
-            <section class="boat-report" aria-label="Hull report">
-              <h3 id="boat-range">Range 0 m</h3>
-              <p id="boat-advice" class="panel-copy"></p>
-              <dl id="boat-stock" class="boat-stock" aria-label="Boat materials"></dl>
-              <p id="boat-recipe" class="panel-copy">A reed plank uses 1 bundle. Reinforced cedar uses 1 board and 1 fitting.</p>
-              <button id="track-materials" class="text-button" type="button">Track reed bundles</button>
-              <p id="boat-craft-message" class="boat-craft-message" role="status" hidden></p>
-              <label for="voyage-destination">Destination</label>
-              <select id="voyage-destination"></select>
-              <p id="destination-range" class="panel-copy"></p>
-              <div class="boat-patterns">
-                <div><button id="raft-pattern" class="text-button" type="button">Build a simple raft</button><small id="raft-cost"></small></div>
-                <div><button id="wide-raft-pattern" class="text-button" type="button">Build a larger reed raft</button><small id="wide-raft-cost"></small></div>
-                <div><button id="hull-pattern" class="text-button" type="button">Outline a larger hull</button><small id="hull-cost"></small></div>
-                <div id="sea-hull-plan" hidden><button id="sealed-pattern" class="text-button" type="button">Build a reinforced sea hull</button><small id="sealed-cost"></small></div>
-              </div>
-            </section>
+          <div class="workshop-tabs option-row" role="group" aria-label="Boat workshop pages">
+            <button id="raft-tab" type="button" aria-pressed="true">Raft workshop</button>
+            <button id="fleet-tab" type="button" aria-pressed="false">Fleet</button>
+          </div>
+          <div id="raft-workbench">
+            <p class="panel-copy">Gather materials, then connect the planks edge to edge. A sealed hull carries you farther.</p>
+            <div class="boat-layout">
+              <section aria-label="Hull grid">
+                <div class="boat-brushes option-row" role="group" aria-label="Boat building tool">
+                  <button type="button" data-hull="1" aria-pressed="true">Reed plank</button>
+                  <button type="button" data-hull="2" aria-pressed="false">Reinforced cedar</button>
+                  <button type="button" data-hull="0" aria-pressed="false">Erase</button>
+                  <button type="button" data-hull="0" aria-pressed="false">Remove</button>
+                </div>
+                <div id="boat-grid" class="boat-grid" role="group" aria-label="Five by seven hull grid"></div>
+              </section>
+              <section class="boat-report" aria-label="Hull report">
+                <h3 id="boat-range">Range 0 m</h3>
+                <p id="boat-advice" class="panel-copy"></p>
+                <dl id="boat-stock" class="boat-stock" aria-label="Boat materials"></dl>
+                <p id="boat-recipe" class="panel-copy">A reed plank uses 1 bundle. Reinforced cedar uses 1 board and 1 fitting.</p>
+                <button id="track-materials" class="text-button" type="button">Track reed bundles</button>
+                <p id="boat-craft-message" class="boat-craft-message" role="status" hidden></p>
+                <div class="boat-patterns">
+                  <div><button id="raft-pattern" class="text-button" type="button">Build a simple raft</button><small id="raft-cost"></small></div>
+                  <div><button id="wide-raft-pattern" class="text-button" type="button">Build a larger reed raft</button><small id="wide-raft-cost"></small></div>
+                  <div><button id="hull-pattern" class="text-button" type="button">Outline a larger hull</button><small id="hull-cost"></small></div>
+                  <div id="sea-hull-plan" hidden><button id="sealed-pattern" class="text-button" type="button">Build a reinforced sea hull</button><small id="sealed-cost"></small></div>
+                </div>
+              </section>
+            </div>
+          </div>
+          <section id="workshop-fleet" class="fleet-cards" aria-label="Fleet" hidden></section>
+          <div class="departure-controls">
+            <label for="voyage-destination">Destination</label>
+            <select id="voyage-destination"></select>
+            <p id="destination-range" class="panel-copy"></p>
           </div>
           <button id="launch-boat" class="button primary wide" type="button" disabled>Launch boat</button>
           <button id="harbor-return-home" class="text-button" type="button" hidden>Return to the south dock</button>

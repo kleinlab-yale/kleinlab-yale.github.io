@@ -35,6 +35,10 @@ Choose **Island voyage** and **Show dock direction** to find the south dock. Gat
 
 Sail with the regular movement controls and follow the island marker. A reed raft can reach nearby islands, while a wider, reinforced hull reaches Shell Cove and Cloudberry Isle. Holes and loose planks shorten your range. You can also build a bridge to Lantern Island. A sinking returns you to the dock with your design saved.
 
+Look for the **Talk to** prompt near residents on their daily rounds. Haru can point you to dockside supplies, Mika knows the tea counter, and Nami watches the wreck on Shell Cove's east beach. Use **Journal → Islands → People of the valley** to track a resident.
+
+Open **Journal → Fleet** to follow the ship projects. Gather driftwood, fittings, and cordage to restore the Lantern Sloop in three stages. At Cedar Harbor, finish the canal bridge and bring materials to the shipyard to commission the Cedar Galleon. Use **Fleet** in the harbor workshop to select a ship and **Raft workshop** to return to your custom hull. Follow the east channel buoys on the south dock crossing to Driftglass Reef.
+
 Follow the island markers to rescue Mochi the puppy, Pebble the turtle, Pip the rabbit, Nori the otter, and Juniper the fox. Choose a companion in **Journal → Pets**. Pets follow you on land and ride aboard your boat.
 
 Walk up to the tea counter in the High Pavilion, or build one from **Objects**. Choose **Brew tea**, wait for the tea to steep, then choose **Serve tea**.

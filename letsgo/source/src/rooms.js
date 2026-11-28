@@ -3,6 +3,7 @@ import { readAppearance } from './appearance.js';
 import { BOUNDS, STUD, validSnapshot, WORLD_SAVE_VERSION } from './bricks.js';
 import { PETS } from './pets.js';
 import { validHull } from './voyage.js';
+import { SHIPS } from './ship-data.js';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const PROTOCOL = 9;
@@ -169,7 +170,7 @@ export function createRooms(events) {
         events.pose({ x: payload.x, y: payload.y, z: payload.z, yaw: payload.yaw, moving: payload.moving === true,
           sprinting: payload.sprinting === true, grounded: payload.grounded === true,
           coast: !isHost && payload.coast === true,
-          boat: sailing ? { code: boat.code, yaw: boat.yaw } : null,
+          boat: sailing ? { code: boat.code, yaw: boat.yaw, ship: Object.hasOwn(SHIPS, boat.ship) ? boat.ship : undefined } : null,
           pet: companion ? { id: pet.id, x: pet.x, y: pet.y, z: pet.z, yaw: pet.yaw,
             moving: pet.moving === true, aboard: sailing && pet.aboard === true, working: !sailing && pet.working === true } : null });
       } else if (type === 'appearance') {

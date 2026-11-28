@@ -9,6 +9,7 @@ import { createHouseObjects } from './house-objects.js';
 import { createAdventureObjects } from './adventure-objects.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
 import { damp, snapMotion } from './motion.js';
+import { createShipModels } from './ship-models.js';
 
 const CHUNK = 18;
 const GAP = 0.018;
@@ -364,9 +365,10 @@ export function createGraphics(canvas, world, compact) {
   camera.rotation.order = 'YXZ';
   const scenery = dressScene(scene, renderer, lowPower);
   const body = chamferBox();
-  const objects = createWorldObjects(scene, body);
+  const makeShip = createShipModels(body);
+  const objects = createWorldObjects(scene, body, makeShip);
   const houseObjects = createHouseObjects(scene, body);
-  const adventure = createAdventureObjects(scene, body);
+  const adventure = createAdventureObjects(scene, body, world, makeShip);
   const meshes = brickMeshes(scene, world, body, lowPower);
   const aim = indicators(scene, body, meshes.studGeometry);
   const traveler = createTraveler(scene, body, true, world);
@@ -506,6 +508,10 @@ export function createGraphics(canvas, world, compact) {
         local.state(arm.value > (local.figure.visible ? 0.9 : 1.08) ? player : null, true);
       } else {
         camera.position.copy(eye);
+        if (view.bowLookout) {
+          camera.position.x -= Math.sin(player.yaw) * view.bowLookout;
+          camera.position.z -= Math.cos(player.yaw) * view.bowLookout;
+        }
         camera.rotation.set(orbit.pitch, orbit.yaw, 0);
         local.state(null);
       }

@@ -1,11 +1,13 @@
 import { BOUNDS, PLATE, STUD } from './bricks.js';
 import { ISLAND_LAYOUT } from './islands.js';
 import { COAST_LANDING, coastDistrict } from './mainland-data.js';
+import { SHIPS } from './ship-data.js';
 
 export const SEA_LEVEL = -0.43;
 export const HULL_WIDTH = 5;
 export const HULL_LENGTH = 7;
 const CELLS = HULL_WIDTH * HULL_LENGTH;
+const SEA_SHIP_HULL = '2'.repeat(CELLS);
 export const EMPTY_HULL = '0'.repeat(CELLS);
 export const DOCK = { x: 18.5 * STUD, y: PLATE, z: 62.5 * STUD, launchZ: 68.3 * STUD };
 export const ISLANDS = Object.fromEntries(Object.entries(ISLAND_LAYOUT).map(([key, area]) =>
@@ -19,6 +21,10 @@ export const ROUTES = {
   moon: ['reef', 'berry', 'cedar'],
   cedar: ['moon'],
 };
+
+export function routesFor(origin, ship) {
+  return [...(ROUTES[origin] ?? []), ...(Object.hasOwn(SHIPS, ship) ? SHIPS[ship].routes[origin] ?? [] : [])];
+}
 
 export function harborAt(player) {
   if (player.y <= SEA_LEVEL || player.y > 2.5) return null;
@@ -114,28 +120,60 @@ function coastDistance(target, dx, dz) {
   return distance / Math.hypot(dx / (target.rx * STUD), dz / (target.rz * STUD));
 }
 
-function launchPoint(target, origin) {
-  if (origin === 'home') return { x: DOCK.x, z: DOCK.launchZ };
-  if (origin === 'cedar') return { x: -18.5 * STUD, z: 496 * STUD };
+export const CHANNEL_BUOYS = [
+  { x: 44 * STUD, z: 110 * STUD, name: 'East channel buoy' },
+  { x: 46 * STUD, z: 153 * STUD, name: 'Outer channel buoy' },
+];
+const westboundChannel = CHANNEL_BUOYS.toReversed();
+
+function passage(origin, target) {
+  if (origin === 'home' && target === ISLANDS.reef) return CHANNEL_BUOYS;
+  if (origin === 'reef' && target === homePort) return westboundChannel;
+  return [];
+}
+
+const homePort = { ...DOCK, name: 'South Dock', rx: 1.5, rz: 1.5 };
+
+export function port(key) { return key === 'home' ? homePort : ISLANDS[key]; }
+
+function launchPoint(target, origin, length = 0) {
+  if (origin === 'home') return { x: DOCK.x, z: DOCK.launchZ + length * 0.48 };
+  if (origin === 'cedar') return { x: -18.5 * STUD, z: 496 * STUD - length * 0.48 };
   const harbor = ISLANDS[origin];
   const dx = target.x - harbor.x;
   const dz = target.z - harbor.z;
-  const scale = (coastDistance(harbor, dx, dz) + 0.95) / Math.hypot(dx, dz);
+  const scale = (coastDistance(harbor, dx, dz) + 0.95 + length * 0.48) / Math.hypot(dx, dz);
   return { x: harbor.x + dx * scale, z: harbor.z + dz * scale };
 }
 
-export function crossingDistance(target, origin = 'home') {
-  const start = launchPoint(target, origin);
-  const dx = target.x - start.x;
-  const dz = target.z - start.z;
-  return Math.ceil(Math.hypot(dx, dz) - coastDistance(target, dx, dz));
+export function crossingDistance(target, origin = 'home', ship) {
+  const buoys = passage(origin, target);
+  let current = launchPoint(buoys[0] ?? target, origin, Object.hasOwn(SHIPS, ship) ? SHIPS[ship].length : 0);
+  let meters = 0;
+  for (const buoy of buoys) {
+    meters += Math.hypot(current.x - buoy.x, current.z - buoy.z);
+    current = buoy;
+  }
+  const dx = target.x - current.x, dz = target.z - current.z;
+  return Math.ceil(meters + Math.hypot(dx, dz) - coastDistance(target, dx, dz));
 }
 
-export function launchVessel(code, destination, origin = 'home') {
-  const rating = rateHull(code);
-  if (!rating.launchable || !ROUTES[origin]?.includes(destination)) return null;
-  const location = launchPoint(ISLANDS[destination], origin);
-  return { ...location, code, destination, origin, rating, wear: 0, yaw: headingTo(location, ISLANDS[destination]) };
+export function launchVessel(code, destination, origin = 'home', ship) {
+  if (!routesFor(origin, ship).includes(destination)) return null;
+  const blueprint = Object.hasOwn(SHIPS, ship) ? SHIPS[ship] : null;
+  const rating = blueprint ? { range: blueprint.range, speed: blueprint.speed, holes: 0, loose: 0, launchable: true } : rateHull(code);
+  if (!rating.launchable) return null;
+  const target = port(destination);
+  const buoys = passage(origin, target);
+  const bearing = buoys[0] ?? target;
+  const location = launchPoint(bearing, origin, blueprint?.length);
+  return { ...location, code: blueprint ? SEA_SHIP_HULL : code, ship: blueprint ? ship : undefined,
+    deckHeight: blueprint?.deckHeight ?? 0.26, bow: blueprint ? blueprint.length * 0.4 : 0,
+    destination, origin, rating, buoys, buoy: 0, wear: 0, yaw: headingTo(location, bearing) };
+}
+
+export function sailingTarget(vessel) {
+  return vessel.buoys[vessel.buoy] ?? port(vessel.destination);
 }
 
 export function advanceVessel(vessel, world, input, yaw, dt) {
@@ -151,12 +189,14 @@ export function advanceVessel(vessel, world, input, yaw, dt) {
   }
   const x = vessel.x + dx;
   const z = vessel.z + dz;
-  const island = islandAt(x, z);
+  const landingX = x - Math.sin(vessel.yaw) * vessel.bow;
+  const landingZ = z - Math.cos(vessel.yaw) * vessel.bow;
+  const island = islandAt(landingX, landingZ);
   // A player-built bridge in the channel should not put sailors ashore in open water.
-  const canLand = island || z < DOCK.launchZ - STUD * 2;
-  const ground = canLand ? world.groundBetween(x, z, 0.21, SEA_LEVEL + 0.07, 1.05) : -Infinity;
-  if (Number.isFinite(ground) && !world.collides(world.playerBox(x, ground, z, 0.23, 1.49))) {
-    return { shore: { x, y: ground, z }, island };
+  const canLand = island || landingZ < DOCK.launchZ - STUD * 2;
+  const ground = canLand ? world.groundBetween(landingX, landingZ, 0.21, SEA_LEVEL + 0.07, 1.05) : -Infinity;
+  if (Number.isFinite(ground) && !world.collides(world.playerBox(landingX, ground, landingZ, 0.23, 1.49))) {
+    return { shore: { x: landingX, y: ground, z: landingZ }, island };
   }
   if (x > BOUNDS.maxX * STUD + 9 || x < BOUNDS.minX * STUD - 9 || z > BOUNDS.maxZ * STUD + 3 || z < BOUNDS.minZ * STUD - 10) {
     return { sunk: true };
@@ -165,6 +205,8 @@ export function advanceVessel(vessel, world, input, yaw, dt) {
     vessel.x = x;
     vessel.z = z;
   }
+  const buoy = vessel.buoys[vessel.buoy];
+  if (buoy && Math.hypot(x - buoy.x, z - buoy.z) < 1.8) vessel.buoy++;
   vessel.wear += Math.max(Math.hypot(dx, dz), dt * (vessel.rating.holes ? 0.62 : 0.085));
   return { sunk: vessel.wear >= vessel.rating.range };
 }

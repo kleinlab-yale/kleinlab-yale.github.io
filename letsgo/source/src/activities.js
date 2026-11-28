@@ -1,11 +1,13 @@
 import { PLATE, STUD } from './bricks.js';
 import { PLACEABLE_OBJECTS } from './parts.js';
 import { PETS, RESCUE_REACH, followPet, lostPet } from './pets.js';
-import { DOCK, HULL_WIDTH, ISLANDS, ROUTES, SEA_LEVEL, advanceVessel, crossingDistance, harborAt,
-  harborReturn, hullPattern, islandAt, launchVessel, rateHull } from './voyage.js';
+import { DOCK, HULL_WIDTH, ISLANDS, SEA_LEVEL, advanceVessel, crossingDistance, harborAt,
+  harborReturn, hullPattern, islandAt, launchVessel, port, rateHull, routesFor, sailingTarget } from './voyage.js';
 import { MATERIALS, resourceList } from './boat-craft.js';
 import { isChristmasTree } from './christmas.js';
 import { stopWalking } from './player.js';
+import { SHIPS, fleetGoal } from './ship-data.js';
+import { renderFleet } from './fleet-menu.js';
 
 const $ = id => document.getElementById(id);
 const STEEP_MS = 1700;
@@ -19,7 +21,7 @@ export function objectDistance(player, brick) {
 }
 
 export function createActivities({ world, graphics, getPlayer, openDialog, resume, toast, sound, craft,
-  progress, achieve, sendTea, use, turnTo, expedition, canCoast, joinCoast, onPort, decorateTree }) {
+  progress, achieve, sendTea, use, turnTo, expedition, canCoast, joinCoast, onPort, decorateTree, fleetJournal }) {
   const game = $('game');
   const boatGrid = $('boat-grid');
   const destination = $('voyage-destination');
@@ -44,6 +46,8 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   let painting = null;
   let vessel = null;
   let departure = 'home';
+  let workshopPane = 'raft';
+  let selectedShip = null;
   let tracking = false;
   let stations = {};
   let lastScan = -Infinity;
@@ -59,19 +63,21 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   $('voyage-destinations').append(rescueStep);
 
   const charted = key => key === 'cedar' ? canCoast() : progress.charted(key) || key === 'moon' && canCoast();
+  const activeShip = () => workshopPane === 'fleet' && craft.hasShip(selectedShip) ? selectedShip : null;
 
   function choices(harbor, preferred) {
     const prior = harbor === departure ? destination.value : '';
     departure = harbor;
     destination.replaceChildren();
-    for (const key of ROUTES[departure]) {
+    const routes = routesFor(departure, activeShip());
+    for (const key of routes) {
       const available = charted(key);
-      const name = key === 'cedar' ? 'Cedar Coast · light Moonbell first' : `${ISLANDS[key].name} · chart locked`;
-      const option = new Option(available ? ISLANDS[key].name : name, key);
+      const name = key === 'cedar' ? 'Cedar Coast · light Moonbell first' : `${port(key).name} · chart locked`;
+      const option = new Option(available ? port(key).name : name, key);
       option.disabled = !available;
       destination.add(option);
     }
-    const available = ROUTES[departure].filter(charted);
+    const available = routes.filter(charted);
     destination.value = available.includes(preferred) ? preferred : available.includes(prior) ? prior :
       available.find(key => !progress.visited(key)) ?? available[0] ?? '';
   }
@@ -86,6 +92,13 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   placeIslandPets();
 
   function review() {
+    const ship = activeShip();
+    const fleet = workshopPane === 'fleet';
+    $('raft-workbench').hidden = fleet;
+    $('workshop-fleet').hidden = !fleet;
+    $('raft-tab').setAttribute('aria-pressed', String(!fleet));
+    $('fleet-tab').setAttribute('aria-pressed', String(fleet));
+    if (fleet) renderFleet($('workshop-fleet'), craft, progress, { selected: ship, choose: selectShip, guide: guideShip });
     for (const [index, tile] of tileButtons.entries()) {
       const value = Number(code[index]);
       tile.dataset.hull = String(value);
@@ -107,19 +120,46 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
       rating.width < 2 || rating.length < 2 ? 'Widen the hull for stability.' : '',
     ].filter(Boolean).join(' ');
     $('boat-advice').dataset.warning = String(Boolean(rating.holes || rating.loose));
-    const target = ISLANDS[destination.value];
-    const needed = target ? crossingDistance(target, departure) : 0;
+    const target = port(destination.value);
+    const needed = target ? crossingDistance(target, departure, ship) : 0;
     const coastRoute = destination.value === 'cedar' || departure === 'cedar';
-    const advice = coastRoute ? 'This crossing needs a watertight hull with no loose planks and enough range.' :
+    const advice = ship ? `${SHIPS[ship].name} has a range of ${SHIPS[ship].range} m.` :
+      coastRoute ? 'This crossing needs a watertight hull with no loose planks and enough range.' :
       rating.launchable && rating.range < needed ? 'Add or reinforce planks for this crossing.' : '';
-    $('destination-range').textContent = target ? `${target.name} is about ${needed} m away. ${advice}` : 'Restore a sea lantern to chart the next crossing.';
+    $('destination-range').textContent = fleet && !ship ? 'Restore a ship to launch from your fleet.' :
+      target ? `${target.name} is about ${needed} m away. ${advice}`.trim() : 'Restore a sea lantern to chart the next crossing.';
     $('sea-hull-plan').hidden = !coastRoute;
     $('launch-boat').disabled = !canLaunch(rating, needed, coastRoute);
+    $('launch-boat').textContent = ship ? `Launch ${SHIPS[ship].name}` : 'Launch boat';
   }
 
   function canLaunch(rating, needed, coastRoute) {
+    const ship = activeShip();
+    if (workshopPane === 'fleet') return Boolean(ship && destination.value && charted(destination.value) && SHIPS[ship].range >= needed + 3);
     return Boolean(destination.value && charted(destination.value) && rating.launchable &&
       (!coastRoute || !rating.holes && !rating.loose && rating.range >= needed + 3));
+  }
+
+  function changeWorkshop(pane) {
+    workshopPane = pane;
+    if (pane === 'fleet' && !craft.hasShip(selectedShip)) selectedShip = Object.keys(SHIPS).find(craft.hasShip) ?? null;
+    choices(departure);
+    review();
+  }
+
+  function selectShip(id) {
+    if (!craft.hasShip(id)) return;
+    selectedShip = id;
+    changeWorkshop('fleet');
+  }
+
+  function guideShip(id) {
+    const goal = fleetGoal(id, craft, progress);
+    resume();
+    if (goal.track) {
+      tracking = false;
+      expedition.track(...goal.track);
+    } else openVoyage(goal.destination, 'raft');
   }
 
   function design(value) {
@@ -211,7 +251,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
 
   function atDock(player) { return vessel ? null : harborAt(player); }
 
-  function openVoyage(preferred) {
+  function openVoyage(preferred, pane, ship) {
     const player = getPlayer();
     const workshop = atDock(player);
     const island = islandAt(player.x, player.z);
@@ -233,11 +273,22 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     }
     rescueStep.textContent = progress.rescued('mochi') ? 'Mochi rescued' : 'Rescue Mochi';
     rescueStep.dataset.done = String(progress.rescued('mochi'));
-    if (workshop) { missingMaterial = ''; $('boat-craft-message').hidden = true; choices(workshop, preferred); review(); }
+    if (workshop) {
+      if (pane) workshopPane = pane;
+      if (craft.hasShip(ship)) selectedShip = ship;
+      else if (workshopPane === 'fleet' && !craft.hasShip(selectedShip)) selectedShip = Object.keys(SHIPS).find(craft.hasShip) ?? null;
+      missingMaterial = '';
+      $('boat-craft-message').hidden = true;
+      choices(workshop, preferred);
+      review();
+    }
     openDialog();
   }
 
   $('voyage-button').onclick = openVoyage;
+  $('raft-tab').onclick = () => changeWorkshop('raft');
+  $('fleet-tab').onclick = () => changeWorkshop('fleet');
+  $('voyage-fleet').onclick = () => { resume(); fleetJournal(); };
   $('track-dock').onclick = () => { tracking = true; expedition.stopTracking(); resume(); };
   const returnHome = () => { dock(); resume(); toast('Back at the south dock.'); };
   $('return-dock').onclick = returnHome;
@@ -260,14 +311,15 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   destination.onchange = review;
   $('launch-boat').onclick = () => {
     const target = destination.value;
+    const ship = activeShip();
     const coastRoute = target === 'cedar' || departure === 'cedar';
-    if (atDock(getPlayer()) !== departure || !target || !canLaunch(rateHull(code), crossingDistance(ISLANDS[target], departure), coastRoute)) return;
-    vessel = launchVessel(code, target, departure);
+    if (atDock(getPlayer()) !== departure || !target || !canLaunch(rateHull(code), crossingDistance(port(target), departure, ship), coastRoute)) return;
+    vessel = launchVessel(code, target, departure, ship);
     if (!vessel) return;
     tracking = false;
     turnTo(vessel.yaw);
     const player = getPlayer();
-    Object.assign(player, { x: vessel.x, y: SEA_LEVEL + 0.26, z: vessel.z, yaw: vessel.yaw, velocity: 0, grounded: false });
+    Object.assign(player, { x: vessel.x, y: SEA_LEVEL + vessel.deckHeight, z: vessel.z, yaw: vessel.yaw, velocity: 0, grounded: false });
     stopWalking(player);
     updateBoatView();
     resume();
@@ -276,7 +328,8 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
   function arrive(island) {
     onPort(island);
     const pet = Object.entries(PETS).find(([id, pet]) => pet.island === island && !progress.rescued(id));
-    const target = island === 'cedar' ? ' Follow the pale road to Harbormaster Rei.' : pet ? ` Look for ${pet[1].name}.` : '';
+    const target = island === 'cedar' ? ' Follow the pale road to Harbormaster Rei.' : island === 'shell' && !craft.hasShip('sloop') ?
+      ' Find Nami and the Lantern wreck on the east beach.' : pet ? ` Look for ${pet[1].name}.` : '';
     achieve('visit', island, `You reached ${ISLANDS[island].name}.${target}`);
     if (island === 'cedar' && !progress.coastDone('rei')) expedition.track('harbormaster', 'rei');
   }
@@ -302,7 +355,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
       if (outcome.island) arrive(outcome.island);
       else onPort('home');
     } else {
-      Object.assign(player, { x: vessel.x, y: SEA_LEVEL + 0.26, z: vessel.z, yaw: vessel.yaw,
+      Object.assign(player, { x: vessel.x, y: SEA_LEVEL + vessel.deckHeight, z: vessel.z, yaw: vessel.yaw,
         velocity: 0, grounded: false });
       $('hull-meter').value = Math.max(0, Math.round(100 * (1 - vessel.wear / vessel.rating.range)));
       graphics.vessel('local', vessel);
@@ -443,7 +496,7 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
     game.dataset.atDock = String(Boolean(nearDock));
     game.dataset.coast = String(island === 'cedar' || player.z >= ISLANDS.cedar.z - 12 && !vessel);
     updateText($('voyage-button').lastChild, nearDock === 'home' ? 'Boat workshop' : nearDock ? 'Harbor workshop' : 'Island voyage');
-    const target = vessel ? ISLANDS[vessel.destination] : tracking && !nearDock ? { ...DOCK, name: 'South dock' } :
+    const target = vessel ? sailingTarget(vessel) : tracking && !nearDock ? { ...DOCK, name: 'South dock' } :
       expedition.waypoint ?? (pet ? { ...pet, name: PETS[pet.id].name } : null);
     $('voyage-direction').hidden = !target;
     if (target) {
@@ -457,9 +510,11 @@ export function createActivities({ world, graphics, getPlayer, openDialog, resum
 
   return {
     get sailing() { return Boolean(vessel); },
-    get pose() { return vessel ? { code: vessel.code, yaw: vessel.yaw } : null; },
+    get ship() { return vessel?.ship; },
+    get pose() { return vessel ? { code: vessel.code, yaw: vessel.yaw, ship: vessel.ship } : null; },
     get companion() { return companion; },
     openVoyage,
+    guideShip,
     stopDockTracking() { tracking = false; },
     move,
     tick,

@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { PLATE, STUD, TONES } from './bricks.js';
 import { HULL_WIDTH, HULL_LENGTH, SEA_LEVEL } from './voyage.js';
+import { SHIPS } from './ship-data.js';
 
 function material(color, roughness = 0.54) {
   return new THREE.MeshStandardMaterial({ color, roughness });
 }
 
-export function createWorldObjects(scene, body) {
+export function createWorldObjects(scene, body, makeShip) {
   const root = new THREE.Group();
   scene.add(root);
   const counters = new Map();
@@ -393,14 +394,20 @@ export function createWorldObjects(scene, body) {
     },
     vessel(key, data) {
       let current = vessels.get(key);
-      if (current && (!data || current.code !== data.code)) {
+      if (current && (!data || current.code !== data.code || current.ship !== data.ship)) {
         root.remove(current.group);
+        current.dispose?.();
         vessels.delete(key);
         current = null;
       }
       if (!data) return;
       if (!current) {
-        current = newVessel(data.code);
+        if (Object.hasOwn(SHIPS, data.ship)) {
+          const model = makeShip(data.ship);
+          model.stage(SHIPS[data.ship].work.length);
+          root.add(model.group);
+          current = { ...model, code: data.code, ship: data.ship, yaw: data.yaw, placed: false };
+        } else current = newVessel(data.code);
         vessels.set(key, current);
       }
       Object.assign(current, { x: data.x, z: data.z, yaw: data.yaw });
